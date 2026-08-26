@@ -11,6 +11,47 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=8" />
   <style>
+    .hidden { display: none !important; }
+
+    /* ── Sign-in gate: intro panel left, key card right (same as merchant.html) ── */
+    .login-wrap {
+      max-width: 1020px; margin: min(7vh,70px) auto 0;
+      display: grid; grid-template-columns: 1.05fr 420px;
+      gap: clamp(36px, 6vw, 80px); align-items: center;
+      padding: 0 clamp(20px,4vw,44px) 90px;
+    }
+    .login-card { padding: clamp(28px,4vw,38px); }
+    .login-badge {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--blue-tint); color: var(--blue-deep);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.35rem; margin-bottom: 18px;
+      border: var(--bw) solid #DDEAF3;
+    }
+    .login-eyebrow { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--blue-deep); margin-bottom: 10px; }
+    .login-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 3.6vw, 2.9rem); letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 14px; }
+    .login-sub { font-size: .95rem; color: var(--ink-soft); line-height: 1.7; max-width: 440px; }
+    .form-title { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .form-sub { font-size: .84rem; color: var(--ink-soft); margin-bottom: 22px; line-height: 1.6; }
+    .login-err { font-size: .82rem; font-weight: 700; color: var(--red); margin-top: 4px; min-height: 1.1em; }
+    .pass-toggle {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      width: 34px; height: 34px; border: none; border-radius: 50%;
+      background: transparent; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: .95rem;
+    }
+    .pass-toggle:hover { background: var(--paper-deep); }
+    .login-note { font-size: .78rem; color: var(--ink-soft); margin-top: 18px; line-height: 1.65; }
+    .login-points { display: flex; flex-direction: column; gap: 18px; margin-top: 32px; }
+    .login-point { display: flex; gap: 14px; align-items: flex-start; }
+    .login-point .coin { font-size: 1.05rem; }
+    .point-title { font-size: .95rem; font-weight: 700; }
+    .point-desc { font-size: .84rem; color: var(--ink-soft); line-height: 1.55; margin-top: 2px; }
+    @media (max-width: 920px) {
+      .login-wrap { grid-template-columns: 1fr; gap: 28px; max-width: 460px; }
+      .login-points { gap: 14px; margin-top: 24px; }
+    }
+
     .admin-wrap { max-width: 1240px; margin: 0 auto; padding: 40px 22px 80px; }
     .admin-wrap h1 { font-family: var(--font-display); font-weight: 800; font-size: 2rem; letter-spacing: -0.02em; }
     .muted { color: var(--ink-soft); font-size: .9rem; margin: 6px 0 20px; }
@@ -24,8 +65,6 @@
     }
     .field textarea { min-height: 44px; resize: vertical; }
     .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .keybar { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 22px; max-width: 460px; }
-    .keybar .field { flex: 1; margin: 0; }
     #msg { margin-top: 12px; font-size: .85rem; font-weight: 600; min-height: 1.2em; }
     #msg.ok { color: #1c7c3a; }
     #msg.err { color: var(--red); }
@@ -188,16 +227,61 @@
   </style>
 </head>
 <body>
-  <div class="admin-wrap">
-    <h1>Admin portal</h1>
-    <p class="muted">Analytics, the review queue and the cashback catalog. Everything here requires the admin key (sent as the <code>X-Admin-Key</code> header). Not linked from the public site.</p>
 
-    <div class="keybar">
-      <div class="field">
-        <label for="adminKey">Admin key</label>
-        <input id="adminKey" type="password" placeholder="Paste the admin key" autocomplete="off" />
+  <nav class="nav">
+    <div style="display:flex; align-items:center; gap:10px">
+      <a href="index.html" class="logo">cirqle</a>
+      <span class="chip" style="background:var(--card)">Admin portal</span>
+    </div>
+    <div class="nav-cta">
+      <button class="btn btn-sm hidden" id="signOutBtn">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- ── Sign-in view: the key unlocks the portal below ── -->
+  <div class="login-wrap" id="loginView">
+    <div class="login-intro fade-up">
+      <div class="login-badge"><i class="ico ico-lock"></i></div>
+      <div class="login-eyebrow">Admin portal</div>
+      <h1 class="login-title">Everything,<br>in one place.</h1>
+      <p class="login-sub">Platform analytics, the review queue and the cashback catalog. Enter the admin key to unlock it.</p>
+      <div class="login-points">
+        <div class="login-point">
+          <span class="coin coin-sky"><i class="ico ico-chart"></i></span>
+          <div><div class="point-title">Platform analytics</div><div class="point-desc">Companies, members, claims and every £ moving through Cirqle.</div></div>
+        </div>
+        <div class="login-point">
+          <span class="coin coin-lime"><i class="ico ico-check"></i></span>
+          <div><div class="point-title">The review queue</div><div class="point-desc">Receipt claims, merchant applications and deal submissions, in one pass.</div></div>
+        </div>
+        <div class="login-point">
+          <span class="coin"><i class="ico ico-warning"></i></span>
+          <div><div class="point-title">Fraud signals</div><div class="point-desc">Repeat claims, rushed signups and reused receipts, flagged for review.</div></div>
+        </div>
       </div>
     </div>
+    <div class="card login-card fade-up d2">
+      <div class="form-title">Enter the admin key</div>
+      <div class="form-sub">The key is sent as the <code>X-Admin-Key</code> header on every request. It's kept for this browser tab only.</div>
+      <form id="keyForm" autocomplete="off">
+        <div class="field">
+          <label for="adminKey">Admin key</label>
+          <div class="field-wrap">
+            <span class="field-icon"><i class="ico ico-lock ico-soft"></i></span>
+            <input id="adminKey" type="password" required autocomplete="off" placeholder="Paste the admin key" />
+            <button type="button" class="pass-toggle" id="keyToggle" aria-label="Show key"><i class="ico ico-eye ico-soft"></i></button>
+          </div>
+        </div>
+        <div class="login-err" id="keyErr"></div>
+        <button type="submit" class="btn btn-lg btn-lime" id="keyBtn" style="width:100%">Unlock →</button>
+      </form>
+      <div class="login-note">This page isn't linked from the public site. Lost the key? It lives in the backend's <code>.env</code> as <code>CIRQLE_ADMIN_KEY</code>.</div>
+    </div>
+  </div>
+
+  <div class="admin-wrap hidden" id="adminView">
+    <h1>Admin portal</h1>
+    <p class="muted">Analytics, the review queue and the cashback catalog.</p>
 
     <!-- ═══════════ PLATFORM ANALYTICS ═══════════ -->
     <div class="sec-head">
@@ -483,14 +567,76 @@
     const $ = id => document.getElementById(id);
     const keyInput = $('adminKey');
 
-    // Remember the admin key for this tab so you don't retype it.
-    keyInput.value = sessionStorage.getItem('cirqle_admin_key') || '';
-    let keyTimer;
-    keyInput.addEventListener('input', () => {
-      sessionStorage.setItem('cirqle_admin_key', keyInput.value);
-      // Reload every panel once typing settles — no page refresh needed.
-      clearTimeout(keyTimer);
-      keyTimer = setTimeout(loadAll, 500);
+    // ── Sign-in gate ────────────────────────────────────────────────────
+    // The key is checked once against an admin-only endpoint; the portal is
+    // only shown after it comes back OK. Everything below still reads
+    // keyInput.value for the X-Admin-Key header.
+    function showLogin(message) {
+      $('loginView').classList.remove('hidden');
+      $('adminView').classList.add('hidden');
+      $('signOutBtn').classList.add('hidden');
+      $('keyErr').textContent = message || '';
+      keyInput.focus();
+    }
+
+    function showAdmin() {
+      $('loginView').classList.add('hidden');
+      $('adminView').classList.remove('hidden');
+      $('signOutBtn').classList.remove('hidden');
+      $('keyErr').textContent = '';
+    }
+
+    // Cheapest admin-gated call there is — used purely to check the key.
+    async function keyWorks(key) {
+      const res = await fetch(`${API}/admin/activity?limit=1`, { headers: { 'X-Admin-Key': key } });
+      if (res.ok) return true;
+      if (res.status === 401) return false;
+      throw new Error(`Unexpected response (${res.status}).`);
+    }
+
+    async function unlock(key, { remember = true } = {}) {
+      if (!key) { showLogin('Enter the admin key.'); return false; }
+      $('keyBtn').disabled = true;
+      $('keyBtn').textContent = 'Checking…';
+      try {
+        if (!await keyWorks(key)) {
+          keyInput.value = '';
+          sessionStorage.removeItem('cirqle_admin_key');
+          showLogin('That key was not accepted.');
+          return false;
+        }
+        keyInput.value = key;
+        if (remember) sessionStorage.setItem('cirqle_admin_key', key);
+        showAdmin();
+        loadAll();
+        return true;
+      } catch (err) {
+        showLogin(err.message === 'Failed to fetch'
+          ? 'Could not reach the API — is it up?' : err.message);
+        return false;
+      } finally {
+        $('keyBtn').disabled = false;
+        $('keyBtn').textContent = 'Unlock →';
+      }
+    }
+
+    $('keyForm').addEventListener('submit', e => {
+      e.preventDefault();
+      unlock(keyInput.value.trim());
+    });
+
+    $('keyToggle').addEventListener('click', () => {
+      const showing = keyInput.type === 'text';
+      keyInput.type = showing ? 'password' : 'text';
+      $('keyToggle').innerHTML = `<i class="ico ico-${showing ? 'eye' : 'eyeoff'} ico-soft"></i>`;
+      $('keyToggle').setAttribute('aria-label', showing ? 'Show key' : 'Hide key');
+    });
+
+    $('signOutBtn').addEventListener('click', () => {
+      sessionStorage.removeItem('cirqle_admin_key');
+      keyInput.value = '';
+      anData = null;
+      showLogin();
     });
 
     const FIELDS = ['brand','title','cardTitle','cardDesc','longDesc','category','rate',
@@ -1556,7 +1702,10 @@
       loadActivity();
       loadAnalytics();
     }
-    loadAll();
+
+    // Reuse the key from earlier in this tab, but only after re-checking it.
+    const savedKey = sessionStorage.getItem('cirqle_admin_key') || '';
+    if (savedKey) unlock(savedKey); else showLogin();
   </script>
 </body>
 </html>
