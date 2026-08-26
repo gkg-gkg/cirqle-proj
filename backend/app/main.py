@@ -12,8 +12,8 @@ from fastapi.staticfiles import StaticFiles
 
 load_dotenv()  # read backend/.env if present
 
-from .routers import (account, adminlog, auth, campaigns, events, feed,  # noqa: E402
-                      merchant, partners, receipts)
+from .routers import (account, adminlog, analytics, auth, campaigns, events,  # noqa: E402
+                      feed, merchant, partners, receipts)
 from .storage import MEDIA_DIR  # noqa: E402
 
 app = FastAPI(title="Cirqle API")
@@ -48,6 +48,7 @@ app.include_router(account.router)
 app.include_router(merchant.router)
 app.include_router(events.router)
 app.include_router(adminlog.router)
+app.include_router(analytics.router)
 
 # Serve locally-stored campaign images (only used when S3_BUCKET is unset; in
 # prod images live on S3 and are served by AWS). mkdir so the mount never fails.

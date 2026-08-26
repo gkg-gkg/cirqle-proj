@@ -658,3 +658,107 @@ class AdminActivityOut(BaseModel):
     action: str
     detail: str
     createdAt: datetime
+
+
+# ── Admin analytics (Phase 7) ──
+# All derived from the tables above on read — nothing extra is stored.
+class AdminTimePoint(BaseModel):
+    date: str          # YYYY-MM-DD
+    views: int
+    clicks: int
+    claims: int
+    signups: int       # new member accounts that day
+
+
+class AdminCompanyStat(BaseModel):
+    """One onboarded company (a merchant login) and everything it has done."""
+    merchantId: int
+    name: str
+    email: str
+    joinedAt: datetime
+    logoUrl: str = ""
+    deals: int                 # live deals attributed to this company
+    pendingSubmissions: int    # deals it has proposed, awaiting review
+    views: int
+    clicks: int
+    claims: int
+    ctr: float                 # clicks / views, as a percentage
+    conversion: float          # claims / views, as a percentage
+    cashbackGiven: float       # confirmed + paid
+    pendingCashback: float     # claims still clearing / awaiting approval
+    toppedUp: float
+    balance: float             # top-ups - cashback given
+    unreadMessages: int
+    lastActiveAt: Optional[datetime] = None
+    daysSinceActive: Optional[int] = None
+    status: str                # "active" (7d) | "quiet" (30d) | "dormant"
+    spark: list[int]           # daily activity (views+clicks+claims), last 30 days
+
+
+class AdminCategoryStat(BaseModel):
+    category: str
+    deals: int
+    views: int
+    claims: int
+    cashback: float
+
+
+class AdminDealStat(BaseModel):
+    campaignId: int
+    brand: str
+    title: str
+    company: str               # owning merchant, or "" for in-house deals
+    views: int
+    clicks: int
+    claims: int
+    cashback: float
+
+
+class AdminQueue(BaseModel):
+    """What is waiting on the admin right now."""
+    pendingReceipts: int
+    pendingApplications: int
+    pendingSubmissions: int
+    unreadMessages: int
+    expiringSoon: int          # claims that lapse within 24h unless approved
+
+
+class AdminAnalyticsOut(BaseModel):
+    # Companies
+    companiesOnboard: int
+    companiesActive30d: int
+    companiesNew30d: int
+    companiesDormant: int
+    # Pipeline (applications)
+    applicationsTotal: int
+    applicationsPending: int
+    applicationsApproved: int
+    applicationsRejected: int
+    approvalRate: float        # approved / (approved + rejected), %
+    avgReviewHours: Optional[float] = None
+    # Members + catalog
+    members: int
+    membersNew30d: int
+    deals: int
+    dealsFromCompanies: int    # deals attributed to a merchant login
+    # Engagement
+    views: int
+    clicks: int
+    claims: int
+    ctr: float
+    conversion: float
+    # Money
+    cashbackGiven: float
+    pendingCashback: float
+    expiredCashback: float
+    rejectedClaims: int
+    toppedUp: float
+    outstandingBalance: float  # total prepaid credit not yet spent
+    avgClaimValue: float
+    # Breakdowns
+    queue: AdminQueue
+    timeseries: list[AdminTimePoint]
+    companies: list[AdminCompanyStat]
+    categories: list[AdminCategoryStat]
+    topDeals: list[AdminDealStat]
+    generatedAt: datetime

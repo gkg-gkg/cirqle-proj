@@ -11,11 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=8" />
   <style>
-    .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 22px 80px; }
+    .admin-wrap { max-width: 1240px; margin: 0 auto; padding: 40px 22px 80px; }
     .admin-wrap h1 { font-family: var(--font-display); font-weight: 800; font-size: 2rem; letter-spacing: -0.02em; }
     .muted { color: var(--ink-soft); font-size: .9rem; margin: 6px 0 20px; }
-    .admin-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; align-items: start; }
-    @media (max-width: 860px) { .admin-grid { grid-template-columns: 1fr; } }
     .pad { padding: 24px; }
     .pad h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin-bottom: 12px; }
     .field { margin-bottom: 8px; }
@@ -67,12 +65,102 @@
     .app-detail dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
     .app-detail a { color: var(--blue); }
     @media (max-width: 560px) { .app-detail { margin-left: 0; } .app-detail dl { grid-template-columns: 1fr; } }
+
+    /* ── Analytics ── */
+    :root { --s-views:#2a78d6; --s-clicks:#1baf7a; --s-claims:#eda100; --s-signups:#8b5cf6; }
+    .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 34px 0 14px; }
+    .sec-head h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; }
+    .sec-head .muted { margin: 3px 0 0; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+    .kpi { padding: 16px 18px; }
+    .kpi-label { font-size: .63rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin-bottom: 7px; }
+    .kpi-val { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.03em; line-height: 1; }
+    .kpi-sub { font-size: .74rem; color: var(--ink-soft); font-weight: 600; margin-top: 6px; }
+
+    /* Review queue — one tile per thing waiting on the admin */
+    .queue-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 14px; }
+    .qtile { padding: 13px 15px; text-align: left; font: inherit; cursor: pointer;
+      background: var(--card); border: var(--bw) solid var(--line); border-radius: var(--r-card); transition: border-color .18s, background .18s; }
+    .qtile:hover { border-color: var(--blue); }
+    .qtile.hot { background: #FFF6E8; border-color: #EFC580; }
+    .qtile-val { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; line-height: 1; }
+    .qtile-label { font-size: .7rem; font-weight: 700; color: var(--ink-soft); margin-top: 5px; }
+    @media (max-width: 860px) { .queue-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Trend chart (same inline-SVG approach as the merchant dashboard) */
+    .an-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; align-items: start; margin-top: 16px; }
+    @media (max-width: 900px) { .an-grid { grid-template-columns: 1fr; } }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 7px; font-size: .78rem; font-weight: 700; }
+    .legend-swatch { width: 20px; height: 4px; border-radius: 4px; flex-shrink: 0; }
+    .legend-val { color: var(--ink-soft); font-weight: 600; }
+    .chart-box { position: relative; }
+    .chart-box svg { display: block; width: 100%; height: auto; }
+    .grid-line { stroke: rgba(15,23,42,.10); stroke-width: 1; }
+    .axis-label { fill: var(--ink-soft); font-size: 11px; font-weight: 600; }
+    .series-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .crosshair { stroke: rgba(15,23,42,.35); stroke-width: 1; stroke-dasharray: 3 3; visibility: hidden; }
+    .hover-dot { visibility: hidden; }
+    .chart-tip { position: absolute; pointer-events: none; visibility: hidden; background: var(--ink); color: #fff;
+      padding: 9px 11px; border-radius: 10px; font-size: .74rem; font-weight: 600; line-height: 1.5;
+      box-shadow: var(--shadow); transform: translate(-50%, -115%); white-space: nowrap; z-index: 5; }
+    .chart-tip .tip-date { font-weight: 800; margin-bottom: 3px; }
+    .chart-tip .tip-row { display: flex; align-items: center; gap: 6px; }
+    .chart-tip .tip-sw { width: 9px; height: 9px; border-radius: 50%; }
+    .chart-empty { text-align: center; padding: 40px 20px; color: var(--ink-soft); font-size: .86rem; font-weight: 600; }
+
+    /* Funnel */
+    .funnel-row { margin-bottom: 14px; }
+    .funnel-head { display: flex; justify-content: space-between; align-items: baseline; font-size: .82rem; font-weight: 700; margin-bottom: 6px; }
+    .funnel-num { font-variant-numeric: tabular-nums; }
+    .funnel-bar { height: 11px; background: var(--paper-deep); border-radius: 999px; overflow: hidden; }
+    .funnel-bar span { display: block; height: 100%; border-radius: 999px; transition: width .7s var(--snap); }
+    .funnel-rate { font-size: .71rem; color: var(--ink-soft); font-weight: 600; margin-top: 4px; }
+
+    /* Data tables (companies, categories, top deals) */
+    .table-scroll { overflow-x: auto; }
+    table.atable { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    table.atable th { text-align: left; font-size: .65rem; text-transform: uppercase; letter-spacing: .7px;
+      color: var(--ink-soft); font-weight: 800; padding: 0 10px 9px; border-bottom: var(--bw) solid var(--line); white-space: nowrap; }
+    table.atable th[data-sort] { cursor: pointer; user-select: none; }
+    table.atable th[data-sort]:hover { color: var(--blue-deep); }
+    table.atable th.sorted::after { content: ' \25BE'; }
+    table.atable td { padding: 10px; border-bottom: 1px solid var(--line-soft); font-weight: 600; vertical-align: middle; }
+    table.atable tr:last-child td { border-bottom: none; }
+    table.atable td.num, table.atable th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .co-name { display: flex; align-items: center; gap: 9px; min-width: 150px; }
+    .co-logo { width: 28px; height: 28px; border-radius: 8px; background: var(--paper-deep); flex: none;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: .7rem; font-weight: 800; color: var(--ink-soft); }
+    .co-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .co-email { font-size: .72rem; color: var(--ink-soft); font-weight: 600; }
+    .spark { display: block; width: 78px; height: 22px; }
+    .rbadge.active { background: #DDF5E3; color: #1c7c3a; }
+    .rbadge.quiet { background: #FFF1D6; color: #8a5a00; }
+    .rbadge.dormant { background: #ECECEC; color: #777; }
+    .table-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .table-tools input { flex: 1; min-width: 180px; padding: 8px 12px; border: var(--bw) solid var(--line);
+      border-radius: var(--r-chip); font: inherit; font-size: .85rem; background: var(--card); color: var(--ink); }
+    .catbar { height: 8px; background: var(--paper-deep); border-radius: 999px; overflow: hidden; min-width: 70px; }
+    .catbar span { display: block; height: 100%; background: var(--blue); border-radius: 999px; }
+
+    /* ── Campaign editor modal (replaces the old always-visible form) ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 2000;
+      display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px;
+      opacity: 0; pointer-events: none; transition: opacity .22s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { width: 100%; max-width: 620px; padding: 28px; position: relative; }
+    .modal h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .modal .modal-sub { font-size: .84rem; color: var(--ink-soft); margin-bottom: 18px; }
+    .modal-close { position: absolute; top: 16px; right: 16px; width: 34px; height: 34px;
+      border: var(--bw) solid var(--line); border-radius: 50%; background: var(--paper-deep); cursor: pointer; font-weight: 800; }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .card-head h2 { margin-bottom: 0; }
   </style>
 </head>
 <body>
   <div class="admin-wrap">
     <h1>Admin portal</h1>
-    <p class="muted">Create, edit and delete the cashback catalog. All changes require the admin key (sent as the <code>X-Admin-Key</code> header). Not linked from the public site.</p>
+    <p class="muted">Analytics, the review queue and the cashback catalog. Everything here requires the admin key (sent as the <code>X-Admin-Key</code> header). Not linked from the public site.</p>
 
     <div class="keybar">
       <div class="field">
@@ -81,65 +169,117 @@
       </div>
     </div>
 
-    <div class="admin-grid">
-      <!-- FORM -->
-      <div class="card pad">
-        <h2 id="formTitle">New campaign</h2>
-        <form id="campaignForm">
-          <input type="hidden" id="editId" />
-          <div class="field"><label>Brand *</label><input id="f_brand" required /></div>
-          <div class="field"><label>Detail title *</label><input id="f_title" required placeholder="Nike Summer Sale — up to 13% back" /></div>
-          <div class="two">
-            <div class="field"><label>Card title (short)</label><input id="f_cardTitle" placeholder="Nike Summer Sale" /></div>
-            <div class="field"><label>Category</label>
-              <select id="f_category">
-                <option>Fashion &amp; Beauty</option>
-                <option>Food &amp; Drink</option>
-                <option>Electronics</option>
-                <option>Travel</option>
-                <option>Home &amp; Living</option>
-                <option>Fitness</option>
-              </select>
-            </div>
-          </div>
-          <div class="field"><label>Card description (short)</label><textarea id="f_cardDesc"></textarea></div>
-          <div class="field"><label>Long description</label><textarea id="f_longDesc"></textarea></div>
-          <div class="two">
-            <div class="field"><label>Cashback rate (%)</label><input id="f_rate" type="number" step="0.1" placeholder="13" /></div>
-          </div>
-          <div class="two">
-            <div class="field"><label>Spend description</label><input id="f_spendDesc" placeholder="on a £100 spend" /></div>
-            <div class="field"><label>Total paid</label><input id="f_totalPaid" placeholder="£112,705 paid to members" /></div>
-          </div>
-          <div class="two">
-            <div class="field"><label>Expiry</label><input id="f_expiry" placeholder="30 Jun 2026 / Ongoing / New members only" /></div>
-            <div class="field"><label>Location</label><input id="f_location" placeholder="Online · UK" /></div>
-          </div>
-          <div class="field"><label>Brand URL</label><input id="f_brandUrl" placeholder="https://www.nike.com/gb" /></div>
-          <div class="field"><label>Tags (comma-separated)</label><input id="f_tags" placeholder="Fashion & Beauty, Footwear, Sale" /></div>
-          <div class="field"><label>Terms (HTML allowed)</label><textarea id="f_terms"></textarea></div>
-          <div class="field">
-            <label>Images (select up to 5)</label>
-            <input id="f_images" type="file" accept="image/*" multiple />
-            <div class="muted" id="imgNote" style="margin:6px 0 0">On edit, leave empty to keep the current images.</div>
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-ink" type="submit" id="saveBtn">Create campaign</button>
-            <button class="btn" type="button" id="resetBtn">Clear</button>
-          </div>
-          <div id="msg"></div>
-        </form>
+    <!-- ═══════════ PLATFORM ANALYTICS ═══════════ -->
+    <div class="sec-head">
+      <div>
+        <h2>Platform analytics</h2>
+        <p class="muted">Every company, deal, claim and £ across Cirqle. Recomputed live from the database each time you load or refresh.</p>
+      </div>
+      <button class="btn mini" type="button" id="anRefresh">Refresh</button>
+    </div>
+    <p class="muted" id="anMsg">Enter the admin key to load analytics.</p>
+
+    <div id="anBody" hidden>
+      <!-- headline numbers -->
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <!-- what is waiting on you right now -->
+      <div class="queue-grid" id="queueGrid"></div>
+
+      <div class="an-grid">
+        <!-- 30-day trend -->
+        <div class="card pad">
+          <h2>Last 30 days</h2>
+          <p class="muted" style="margin-top:-8px">Daily deal views, outbound clicks, cashback claims and new member sign-ups.</p>
+          <div class="legend" id="anLegend"></div>
+          <div class="chart-box" id="anChart"></div>
+        </div>
+
+        <!-- funnel -->
+        <div class="card pad">
+          <h2>Conversion funnel</h2>
+          <p class="muted" style="margin-top:-8px">All-time, across the whole catalog.</p>
+          <div id="anFunnel"></div>
+        </div>
       </div>
 
-      <!-- LIST -->
-      <div class="card pad">
-        <h2>Existing campaigns (<span id="count">0</span>)</h2>
-        <div id="list"><p class="muted">Loading…</p></div>
+      <!-- per-company activity -->
+      <div class="card pad" style="margin-top:16px">
+        <div class="card-head">
+          <div>
+            <h2>Company activity (<span id="coCount">0</span> onboard)</h2>
+            <p class="muted" style="margin:3px 0 0">Every brand with a merchant login and what it has done. Click a column to sort.
+              <strong>Active</strong> = something happened in the last 7 days, <strong>quiet</strong> = in the last 30, <strong>dormant</strong> = longer ago.</p>
+          </div>
+        </div>
+        <div class="table-tools">
+          <input id="coSearch" type="search" placeholder="Search company or email…" />
+          <span class="muted" id="coNote" style="margin:0"></span>
+        </div>
+        <div class="table-scroll">
+          <table class="atable" id="coTable">
+            <thead>
+              <tr>
+                <th data-sort="name">Company</th>
+                <th data-sort="status">Status</th>
+                <th class="num" data-sort="deals">Deals</th>
+                <th class="num" data-sort="views">Views</th>
+                <th class="num" data-sort="clicks">Clicks</th>
+                <th class="num" data-sort="claims">Claims</th>
+                <th class="num" data-sort="conversion">Conv.</th>
+                <th class="num" data-sort="cashbackGiven">Cashback</th>
+                <th class="num" data-sort="pendingCashback">Pending</th>
+                <th class="num" data-sort="balance">Balance</th>
+                <th data-sort="lastActiveAt">Last active</th>
+                <th>30-day activity</th>
+              </tr>
+            </thead>
+            <tbody id="coBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="an-grid">
+        <!-- category mix -->
+        <div class="card pad">
+          <h2>Categories</h2>
+          <p class="muted" style="margin-top:-8px">Where the catalog — and the claims — actually sit.</p>
+          <div class="table-scroll">
+            <table class="atable">
+              <thead><tr><th>Category</th><th class="num">Deals</th><th class="num">Views</th><th class="num">Claims</th><th class="num">Cashback</th><th style="width:90px">Share</th></tr></thead>
+              <tbody id="catBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- best deals -->
+        <div class="card pad">
+          <h2>Top deals</h2>
+          <p class="muted" style="margin-top:-8px">The busiest deals by claims, then views.</p>
+          <div class="table-scroll">
+            <table class="atable">
+              <thead><tr><th>Deal</th><th class="num">Views</th><th class="num">Claims</th><th class="num">Cashback</th></tr></thead>
+              <tbody id="topBody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- RECEIPTS REVIEW -->
+    <!-- ═══════════ CAMPAIGN CATALOG ═══════════ -->
     <div class="card pad" style="margin-top:22px">
+      <div class="card-head">
+        <div>
+          <h2>Campaign catalog (<span id="count">0</span>)</h2>
+          <p class="muted" style="margin:3px 0 0">Every live deal on the site. Edit one to change its copy, rate or images.</p>
+        </div>
+        <button class="btn btn-ink mini" type="button" id="newBtn">+ New campaign</button>
+      </div>
+      <div id="list"><p class="muted">Loading…</p></div>
+    </div>
+
+    <!-- RECEIPTS REVIEW -->
+    <div class="card pad" id="secReceipts" style="margin-top:22px">
       <h2>Receipt reviews (<span id="rcount">0</span>)</h2>
       <p class="muted" style="margin-top:-8px">Approve a claim within 3 days of the member's post — its cashback is then released to their wallet at the end of the 3 days. Unapproved claims expire (no cashback); reject to decline one.</p>
       <div class="rfilter">
@@ -150,7 +290,7 @@
     </div>
 
     <!-- PARTNERSHIP APPLICATIONS -->
-    <div class="card pad" style="margin-top:22px">
+    <div class="card pad" id="secApps" style="margin-top:22px">
       <h2>Merchant applications (<span id="pcount">0</span>)</h2>
       <p class="muted" style="margin-top:-8px">Submitted by brands via the partner form. Approving one publishes it as a live deal in the catalog above.</p>
       <div class="rfilter">
@@ -163,7 +303,7 @@
     </div>
 
     <!-- CAMPAIGN SUBMISSIONS -->
-    <div class="card pad" style="margin-top:22px">
+    <div class="card pad" id="secSubs" style="margin-top:22px">
       <h2>Campaign submissions (<span id="scount">0</span>)</h2>
       <p class="muted" style="margin-top:-8px">Deals proposed by merchants from their portal. Approving one publishes it as a live deal in the catalog above; denying sends the merchant your reason.</p>
       <div class="rfilter">
@@ -177,7 +317,7 @@
     </div>
 
     <!-- MERCHANT MESSAGES -->
-    <div class="card pad" style="margin-top:22px">
+    <div class="card pad" id="secMessages" style="margin-top:22px">
       <h2>Merchant messages (<span id="mcount">0</span> unread)</h2>
       <p class="muted" style="margin-top:-8px">Threads from merchants using the portal. Deal requests are highlighted; replying marks a thread read.</p>
       <div id="mlist"><p class="muted">Enter the admin key to load messages.</p></div>
@@ -192,6 +332,59 @@
     </div>
   </div>
 
+  <!-- Campaign editor — opened by "+ New campaign" and by each row's Edit button -->
+  <div class="modal-overlay" id="campaignModal">
+    <div class="card modal">
+      <button class="modal-close" type="button" id="modalClose" aria-label="Close">&#10005;</button>
+      <h2 id="formTitle">New campaign</h2>
+      <div class="modal-sub" id="formSub">Publishes straight to the public catalog.</div>
+      <form id="campaignForm">
+        <input type="hidden" id="editId" />
+        <div class="field"><label>Brand *</label><input id="f_brand" required /></div>
+        <div class="field"><label>Detail title *</label><input id="f_title" required placeholder="Nike Summer Sale — up to 13% back" /></div>
+        <div class="two">
+          <div class="field"><label>Card title (short)</label><input id="f_cardTitle" placeholder="Nike Summer Sale" /></div>
+          <div class="field"><label>Category</label>
+            <select id="f_category">
+              <option>Fashion &amp; Beauty</option>
+              <option>Food &amp; Drink</option>
+              <option>Electronics</option>
+              <option>Travel</option>
+              <option>Home &amp; Living</option>
+              <option>Fitness</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Card description (short)</label><textarea id="f_cardDesc"></textarea></div>
+        <div class="field"><label>Long description</label><textarea id="f_longDesc"></textarea></div>
+        <div class="two">
+          <div class="field"><label>Cashback rate (%)</label><input id="f_rate" type="number" step="0.1" placeholder="13" /></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Spend description</label><input id="f_spendDesc" placeholder="on a £100 spend" /></div>
+          <div class="field"><label>Total paid</label><input id="f_totalPaid" placeholder="£112,705 paid to members" /></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Expiry</label><input id="f_expiry" placeholder="30 Jun 2026 / Ongoing / New members only" /></div>
+          <div class="field"><label>Location</label><input id="f_location" placeholder="Online · UK" /></div>
+        </div>
+        <div class="field"><label>Brand URL</label><input id="f_brandUrl" placeholder="https://www.nike.com/gb" /></div>
+        <div class="field"><label>Tags (comma-separated)</label><input id="f_tags" placeholder="Fashion & Beauty, Footwear, Sale" /></div>
+        <div class="field"><label>Terms (HTML allowed)</label><textarea id="f_terms"></textarea></div>
+        <div class="field">
+          <label>Images (select up to 5)</label>
+          <input id="f_images" type="file" accept="image/*" multiple />
+          <div class="muted" id="imgNote" style="margin:6px 0 0">On edit, leave empty to keep the current images.</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ink" type="submit" id="saveBtn">Create campaign</button>
+          <button class="btn" type="button" id="cancelBtn">Cancel</button>
+        </div>
+        <div id="msg"></div>
+      </form>
+    </div>
+  </div>
+
   <script src="assets/api.js"></script>
   <script>
     const API = window.CIRQLE_API_BASE;
@@ -200,7 +393,13 @@
 
     // Remember the admin key for this tab so you don't retype it.
     keyInput.value = sessionStorage.getItem('cirqle_admin_key') || '';
-    keyInput.addEventListener('input', () => sessionStorage.setItem('cirqle_admin_key', keyInput.value));
+    let keyTimer;
+    keyInput.addEventListener('input', () => {
+      sessionStorage.setItem('cirqle_admin_key', keyInput.value);
+      // Reload every panel once typing settles — no page refresh needed.
+      clearTimeout(keyTimer);
+      keyTimer = setTimeout(loadAll, 500);
+    });
 
     const FIELDS = ['brand','title','cardTitle','cardDesc','longDesc','category','rate',
                     'spendDesc','totalPaid','expiry','location','brandUrl','terms'];
@@ -218,10 +417,33 @@
       $('f_images').value = '';
       $('f_category').value = 'Fashion & Beauty';
       $('formTitle').textContent = 'New campaign';
+      $('formSub').textContent = 'Publishes straight to the public catalog.';
       $('saveBtn').textContent = 'Create campaign';
       setMsg('', true);
     }
-    $('resetBtn').addEventListener('click', resetForm);
+
+    // ── Campaign editor modal ──
+    // The form is only shown on demand: "+ New campaign" for a blank one, a
+    // row's Edit button for an existing deal.
+    function openForm(c) {
+      if (c) fillForm(c); else resetForm();
+      $('campaignModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => $('f_brand').focus(), 50);
+    }
+    function closeForm() {
+      $('campaignModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    $('newBtn').addEventListener('click', () => openForm(null));
+    $('modalClose').addEventListener('click', closeForm);
+    $('cancelBtn').addEventListener('click', closeForm);
+    $('campaignModal').addEventListener('click', e => {
+      if (e.target === $('campaignModal')) closeForm();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && $('campaignModal').classList.contains('open')) closeForm();
+    });
 
     function fillForm(c) {
       $('editId').value = c.id;
@@ -229,9 +451,9 @@
       $('f_tags').value = (c.tags || []).join(', ');
       $('f_images').value = '';
       $('formTitle').textContent = `Edit #${c.id} — ${c.brand}`;
+      $('formSub').textContent = 'Changes go live on the public site as soon as you save.';
       $('saveBtn').textContent = 'Save changes';
       setMsg('', true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async function loadList() {
@@ -258,7 +480,7 @@
             <button class="btn mini" data-edit="${c.id}">Edit</button>
             <button class="btn mini btn-pink" data-del="${c.id}">Delete</button>
           </div>`;
-        row.querySelector('[data-edit]').addEventListener('click', () => fillForm(c));
+        row.querySelector('[data-edit]').addEventListener('click', () => openForm(c));
         row.querySelector('[data-del]').addEventListener('click', () => del(c.id, c.brand));
         list.appendChild(row);
       });
@@ -270,7 +492,7 @@
         method: 'DELETE',
         headers: { 'X-Admin-Key': keyInput.value },
       });
-      if (res.status === 204) { setMsg(`Deleted #${id}.`, true); loadList(); loadActivity(); }
+      if (res.status === 204) { setMsg(`Deleted #${id}.`, true); loadList(); loadActivity(); loadAnalytics(); }
       else if (res.status === 401) setMsg('Invalid admin key.', false);
       else setMsg(`Delete failed (${res.status}).`, false);
     }
@@ -306,8 +528,10 @@
         const body = await res.json().catch(() => ({}));
         if (res.ok) {
           setMsg(editId ? `Saved changes to #${editId}.` : `Created campaign #${body.id}.`, true);
+          closeForm();
           resetForm();
           loadList();
+          loadAnalytics();
         } else if (res.status === 401) {
           setMsg('Invalid admin key.', false);
         } else {
@@ -362,7 +586,7 @@
     }
     async function setReceipt(id, action) {
       const res = await fetch(`${API}/receipts/${id}/${action}`, { method: 'POST', headers: { 'X-Admin-Key': keyInput.value } });
-      if (res.ok) { loadReceipts(); loadActivity(); return; }
+      if (res.ok) { loadReceipts(); loadActivity(); loadAnalytics(); return; }
       if (res.status === 401) { setMsg('Invalid admin key.', false); return; }
       const b = await res.json().catch(() => ({}));
       window.alert(b.detail || `Action failed (${res.status}).`);
@@ -464,8 +688,9 @@
       if (res.ok) {
         setPMsg(`Approved ${brand} — live as deal #${body.campaignId}. Refine images/copy in the campaign editor above.`, true);
         loadApps();
-        loadList();   // the new deal appears in "Existing campaigns"
+        loadList();   // the new deal appears in the campaign catalog
         loadActivity();
+        loadAnalytics();
       } else if (res.status === 401) setPMsg('Invalid admin key.', false);
       else setPMsg(`Approve failed (${res.status}): ${body.detail || 'request failed'}`, false);
     }
@@ -500,7 +725,7 @@
       const res = await fetch(`${API}/partners/${id}/${action}`, {
         method: 'POST', headers: { 'X-Admin-Key': keyInput.value },
       });
-      if (res.ok) { setPMsg(`Application #${id} ${action}ed.`, true); loadApps(); loadActivity(); }
+      if (res.ok) { setPMsg(`Application #${id} ${action}ed.`, true); loadApps(); loadActivity(); loadAnalytics(); }
       else if (res.status === 401) setPMsg('Invalid admin key.', false);
       else setPMsg(`Action failed (${res.status}).`, false);
     }
@@ -590,7 +815,7 @@
       const body = await res.json().catch(() => ({}));
       if (res.ok) {
         setSMsg(`Approved — live as deal #${body.campaignId}. Refine images/copy in the campaign editor above.`, true);
-        loadSubs(); loadList(); loadActivity();
+        loadSubs(); loadList(); loadActivity(); loadAnalytics();
       } else if (res.status === 401) setSMsg('Invalid admin key.', false);
       else setSMsg(`Approve failed (${res.status}): ${body.detail || 'request failed'}`, false);
     }
@@ -604,7 +829,7 @@
         body: JSON.stringify({ reason: reason.trim() }),
       });
       const body = await res.json().catch(() => ({}));
-      if (res.ok) { setSMsg(`Denied “${title}” — the merchant will see your reason.`, true); loadSubs(); loadActivity(); }
+      if (res.ok) { setSMsg(`Denied “${title}” — the merchant will see your reason.`, true); loadSubs(); loadActivity(); loadAnalytics(); }
       else if (res.status === 401) setSMsg('Invalid admin key.', false);
       else setSMsg(`Deny failed (${res.status}): ${body.detail || 'request failed'}`, false);
     }
@@ -673,7 +898,7 @@
         headers: { 'X-Admin-Key': keyInput.value, 'Content-Type': 'application/json' },
         body: JSON.stringify({ merchantId, body }),
       });
-      if (res.ok) { setMMsg('Reply sent.', true); loadThreads(); }
+      if (res.ok) { setMMsg('Reply sent.', true); loadThreads(); loadAnalytics(); }
       else if (res.status === 401) setMMsg('Invalid admin key.', false);
       else setMMsg(`Reply failed (${res.status}).`, false);
     }
@@ -694,12 +919,347 @@
       } catch (e) { el.innerHTML = '<p class="muted">Could not load activity.</p>'; }
     }
 
-    loadList();
-    loadReceipts();
-    loadApps();
-    loadSubs();
-    loadThreads();
-    loadActivity();
+    // ── Platform analytics ─────────────────────────────────────────────
+    // One admin-gated call (GET /admin/analytics) returns every number below;
+    // nothing here is computed from a second request.
+    const AN_SERIES = [
+      { key: 'views',   label: 'Views',    color: 'var(--s-views)',   raw: '#2a78d6' },
+      { key: 'clicks',  label: 'Clicks',   color: 'var(--s-clicks)',  raw: '#1baf7a' },
+      { key: 'claims',  label: 'Claims',   color: 'var(--s-claims)',  raw: '#eda100' },
+      { key: 'signups', label: 'Sign-ups', color: 'var(--s-signups)', raw: '#8b5cf6' },
+    ];
+    const fmtInt = n => Number(n || 0).toLocaleString('en-GB');
+    const fmtGBP = n => '£' + Number(n || 0).toLocaleString('en-GB',
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtGBP0 = n => '£' + Math.round(Number(n || 0)).toLocaleString('en-GB');
+    const fmtAgo = iso => {
+      if (!iso) return '—';
+      const days = Math.floor((Date.now() - new Date(iso)) / 86400000);
+      if (days <= 0) return 'today';
+      if (days === 1) return 'yesterday';
+      if (days < 30) return `${days} days ago`;
+      return fmtDate(iso).split(',')[0];
+    };
+
+    let anData = null;
+    let coSort = { key: 'claims', dir: -1 };   // busiest companies first
+
+    async function loadAnalytics() {
+      const msg = $('anMsg'), body = $('anBody');
+      if (!keyInput.value) {
+        body.hidden = true;
+        msg.hidden = false;
+        msg.textContent = 'Enter the admin key to load analytics.';
+        return;
+      }
+      msg.hidden = false;
+      msg.textContent = anData ? 'Refreshing…' : 'Loading analytics…';
+      try {
+        const res = await fetch(`${API}/admin/analytics`, {
+          headers: { 'X-Admin-Key': keyInput.value },
+        });
+        if (res.status === 401) { body.hidden = true; msg.textContent = 'Invalid admin key.'; return; }
+        if (!res.ok) { body.hidden = true; msg.textContent = `Could not load analytics (${res.status}).`; return; }
+        anData = await res.json();
+        renderKpis(anData);
+        renderQueue(anData.queue);
+        renderLegend(anData.timeseries);
+        renderChart(anData.timeseries);
+        renderFunnel(anData);
+        renderCompanies();
+        renderCategories(anData.categories);
+        renderTopDeals(anData.topDeals);
+        body.hidden = false;
+        msg.hidden = true;
+      } catch (e) {
+        body.hidden = true;
+        msg.textContent = 'Could not reach the API.';
+      }
+    }
+    $('anRefresh').addEventListener('click', loadAnalytics);
+
+    function renderKpis(d) {
+      const tiles = [
+        ['Companies onboard', fmtInt(d.companiesOnboard),
+         `${fmtInt(d.companiesActive30d)} active · ${fmtInt(d.companiesDormant)} dormant`],
+        ['New companies (30d)', fmtInt(d.companiesNew30d),
+         `${fmtInt(d.applicationsPending)} application(s) waiting`],
+        ['Approval rate', `${d.approvalRate}%`,
+         `${fmtInt(d.applicationsApproved)} of ${fmtInt(d.applicationsTotal)} approved` +
+         (d.avgReviewHours != null ? ` · ${d.avgReviewHours}h avg review` : '')],
+        ['Members', fmtInt(d.members), `+${fmtInt(d.membersNew30d)} in 30 days`],
+        ['Live deals', fmtInt(d.deals), `${fmtInt(d.dealsFromCompanies)} from companies`],
+        ['Deal views', fmtInt(d.views), `${d.ctr}% click-through`],
+        ['Claims', fmtInt(d.claims), `${d.conversion}% of views`],
+        ['Cashback paid', fmtGBP0(d.cashbackGiven), `${fmtGBP(d.avgClaimValue)} avg per claim`],
+        ['Pending cashback', fmtGBP0(d.pendingCashback), `${fmtGBP0(d.expiredCashback)} expired unclaimed`],
+        ['Prepaid held', fmtGBP0(d.outstandingBalance), `${fmtGBP0(d.toppedUp)} topped up all-time`],
+      ];
+      $('kpiGrid').innerHTML = tiles.map(([label, val, sub]) =>
+        `<div class="card kpi"><div class="kpi-label">${label}</div>
+           <div class="kpi-val">${val}</div><div class="kpi-sub">${sub}</div></div>`).join('');
+    }
+
+    // Each tile jumps to the section that clears it; amber means it needs action.
+    function renderQueue(q) {
+      const tiles = [
+        ['Receipts to review', q.pendingReceipts, 'secReceipts'],
+        ['Expiring in 24h', q.expiringSoon, 'secReceipts'],
+        ['Merchant applications', q.pendingApplications, 'secApps'],
+        ['Deal submissions', q.pendingSubmissions, 'secSubs'],
+        ['Unread messages', q.unreadMessages, 'secMessages'],
+      ];
+      $('queueGrid').innerHTML = tiles.map(([label, n, target]) =>
+        `<button class="qtile${n ? ' hot' : ''}" type="button" data-goto="${target}">
+           <div class="qtile-val">${fmtInt(n)}</div><div class="qtile-label">${label}</div></button>`).join('');
+      $('queueGrid').querySelectorAll('[data-goto]').forEach(b =>
+        b.addEventListener('click', () => {
+          const el = $(b.dataset.goto);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }));
+    }
+
+    function renderLegend(ts) {
+      const totals = {};
+      AN_SERIES.forEach(se => totals[se.key] = (ts || []).reduce((a, p) => a + p[se.key], 0));
+      $('anLegend').innerHTML = AN_SERIES.map(se =>
+        `<div class="legend-item"><span class="legend-swatch" style="background:${se.color}"></span>
+           ${se.label} <span class="legend-val">· ${fmtInt(totals[se.key])}</span></div>`).join('');
+    }
+
+    // ── Inline SVG line chart (no external libraries) ──
+    const CW = 520, CH = 260, CPAD = { l: 38, r: 14, t: 12, b: 28 };
+    const PLOT_W = CW - CPAD.l - CPAD.r, PLOT_H = CH - CPAD.t - CPAD.b;
+    let chartData = [];
+    const xAt = (i, n) => CPAD.l + (n <= 1 ? 0 : (i / (n - 1)) * PLOT_W);
+    const yAt = (v, max) => CPAD.t + PLOT_H - (max <= 0 ? 0 : (v / max) * PLOT_H);
+
+    function renderChart(ts) {
+      chartData = ts || [];
+      const box = $('anChart');
+      const n = chartData.length;
+      const max = Math.max(1, ...chartData.flatMap(p => AN_SERIES.map(se => p[se.key])));
+      const total = chartData.reduce((a, p) => a + AN_SERIES.reduce((b, se) => b + p[se.key], 0), 0);
+      if (!n || !total) {
+        box.innerHTML = '<div class="chart-empty">No activity in the last 30 days yet. Views, clicks, claims and sign-ups will plot here as they happen.</div>';
+        return;
+      }
+
+      let grid = '';
+      for (let k = 0; k <= 4; k++) {
+        const v = (max / 4) * k, y = yAt(v, max);
+        grid += `<line class="grid-line" x1="${CPAD.l}" y1="${y}" x2="${CW - CPAD.r}" y2="${y}" />`;
+        grid += `<text class="axis-label" x="${CPAD.l - 8}" y="${y + 4}" text-anchor="end">${Math.round(v)}</text>`;
+      }
+      const fmtDay = d => new Date(d + 'T00:00:00')
+        .toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      let xlabels = '';
+      [0, Math.floor(n / 3), Math.floor(2 * n / 3), n - 1].forEach(i => {
+        const anchor = i === 0 ? 'start' : (i === n - 1 ? 'end' : 'middle');
+        xlabels += `<text class="axis-label" x="${xAt(i, n)}" y="${CH - 8}" text-anchor="${anchor}">${fmtDay(chartData[i].date)}</text>`;
+      });
+      const lines = AN_SERIES.map(se => {
+        const pts = chartData.map((p, i) =>
+          `${xAt(i, n).toFixed(1)},${yAt(p[se.key], max).toFixed(1)}`).join(' ');
+        return `<polyline class="series-line" points="${pts}" stroke="${se.color}" />`;
+      }).join('');
+      const dots = AN_SERIES.map(se =>
+        `<circle class="hover-dot" data-key="${se.key}" r="4" fill="${se.raw}" stroke="#fff" stroke-width="2" />`).join('');
+
+      box.innerHTML =
+        `<svg viewBox="0 0 ${CW} ${CH}" role="img" aria-label="Daily views, clicks, claims and sign-ups over the last 30 days">
+           ${grid}${xlabels}${lines}
+           <line class="crosshair" id="anCrosshair" y1="${CPAD.t}" y2="${CPAD.t + PLOT_H}" />
+           ${dots}
+           <rect x="${CPAD.l}" y="${CPAD.t}" width="${PLOT_W}" height="${PLOT_H}" fill="transparent" id="anHoverArea" />
+         </svg>
+         <div class="chart-tip" id="anTip"></div>`;
+      wireChartHover(box, n, max);
+    }
+
+    function wireChartHover(box, n, max) {
+      const svg = box.querySelector('svg');
+      const area = box.querySelector('#anHoverArea');
+      const crosshair = box.querySelector('#anCrosshair');
+      const tip = box.querySelector('#anTip');
+      const dots = [...box.querySelectorAll('.hover-dot')];
+      const hide = () => {
+        crosshair.style.visibility = 'hidden';
+        tip.style.visibility = 'hidden';
+        dots.forEach(d => d.style.visibility = 'hidden');
+      };
+      function move(evt) {
+        const rect = svg.getBoundingClientRect();
+        const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        let i = Math.round((((clientX - rect.left) / rect.width * CW - CPAD.l) / PLOT_W) * (n - 1));
+        i = Math.max(0, Math.min(n - 1, i));
+        const p = chartData[i], px = xAt(i, n);
+        crosshair.setAttribute('x1', px); crosshair.setAttribute('x2', px);
+        crosshair.style.visibility = 'visible';
+        dots.forEach(d => {
+          d.setAttribute('cx', px);
+          d.setAttribute('cy', yAt(p[d.getAttribute('data-key')], max));
+          d.style.visibility = 'visible';
+        });
+        const when = new Date(p.date + 'T00:00:00')
+          .toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+        tip.innerHTML = `<div class="tip-date">${when}</div>` + AN_SERIES.map(se =>
+          `<div class="tip-row"><span class="tip-sw" style="background:${se.raw}"></span>${se.label}: ${fmtInt(p[se.key])}</div>`).join('');
+        tip.style.left = (rect.left - box.getBoundingClientRect().left + (px / CW) * rect.width) + 'px';
+        tip.style.top = (rect.top - box.getBoundingClientRect().top + yAt(max, max)) + 'px';
+        tip.style.visibility = 'visible';
+      }
+      area.addEventListener('mousemove', move);
+      area.addEventListener('touchmove', move, { passive: true });
+      area.addEventListener('mouseleave', hide);
+      area.addEventListener('touchend', hide);
+    }
+
+    function renderFunnel(d) {
+      const steps = [
+        ['Deal views', d.views, 'var(--s-views)', ''],
+        ['Outbound clicks', d.clicks, 'var(--s-clicks)', d.views ? `${d.ctr}% of views` : ''],
+        ['Cashback claims', d.claims, 'var(--s-claims)', d.clicks ? `${(d.claims / d.clicks * 100).toFixed(1)}% of clicks` : ''],
+      ];
+      const max = Math.max(1, d.views, d.clicks, d.claims);
+      $('anFunnel').innerHTML = steps.map(([label, val, color, sub]) =>
+        `<div class="funnel-row">
+           <div class="funnel-head"><span>${label}</span><span class="funnel-num">${fmtInt(val)}</span></div>
+           <div class="funnel-bar"><span style="width:${(val / max * 100).toFixed(1)}%;background:${color}"></span></div>
+           ${sub ? `<div class="funnel-rate">${sub}</div>` : ''}
+         </div>`).join('') +
+        `<div class="funnel-rate" style="margin-top:16px;line-height:1.7">
+           <strong>${fmtGBP(d.cashbackGiven)}</strong> cashback confirmed ·
+           <strong>${fmtGBP(d.pendingCashback)}</strong> still clearing ·
+           ${fmtInt(d.rejectedClaims)} claim(s) rejected</div>`;
+    }
+
+    // ── Company activity table (sortable + searchable) ──
+    const STATUS_RANK = { active: 2, quiet: 1, dormant: 0 };
+
+    function sparkline(vals) {
+      const n = vals.length;
+      if (!n || !vals.some(v => v)) return '<span class="muted">—</span>';
+      const max = Math.max(...vals);
+      const pts = vals.map((v, i) =>
+        `${(1 + i / (n - 1) * 76).toFixed(1)},${(21 - (v / max) * 19).toFixed(1)}`).join(' ');
+      return `<svg class="spark" viewBox="0 0 78 22" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points="${pts}" fill="none" stroke="var(--blue)" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>`;
+    }
+
+    function renderCompanies() {
+      if (!anData) return;
+      const q = $('coSearch').value.trim().toLowerCase();
+      let rows = anData.companies.filter(c =>
+        !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
+
+      const { key, dir } = coSort;
+      rows = rows.slice().sort((a, b) => {
+        let x = a[key], y = b[key];
+        if (key === 'status') { x = STATUS_RANK[x]; y = STATUS_RANK[y]; }
+        else if (key === 'lastActiveAt') { x = x ? new Date(x) : 0; y = y ? new Date(y) : 0; }
+        if (typeof x === 'string') return x.localeCompare(y) * dir;
+        return (x - y) * dir;
+      });
+
+      $('coCount').textContent = anData.companies.length;
+      $('coNote').textContent = q
+        ? `${rows.length} of ${anData.companies.length} shown`
+        : `${anData.companiesActive30d} active in the last 30 days`;
+
+      const body = $('coBody');
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="12" class="muted">${anData.companies.length
+          ? 'No company matches that search.'
+          : 'No companies onboard yet — approve an application, then create its merchant login.'}</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map(c => {
+        const initials = esc((c.name || '?').trim().slice(0, 2).toUpperCase());
+        const logo = c.logoUrl
+          ? `<img src="${esc(c.logoUrl)}" alt="" onerror="this.remove()">`
+          : initials;
+        const flags = [];
+        if (c.pendingSubmissions) flags.push(`${c.pendingSubmissions} deal(s) awaiting review`);
+        if (c.unreadMessages) flags.push(`${c.unreadMessages} unread message(s)`);
+        if (c.balance < 0) flags.push('balance overdrawn');
+        return `<tr>
+          <td>
+            <div class="co-name">
+              <span class="co-logo">${logo}</span>
+              <span><span style="font-weight:800">${esc(c.name)}</span>
+                <div class="co-email">${esc(c.email)} · joined ${fmtAgo(c.joinedAt)}</div>
+                ${flags.length ? `<div class="co-email" style="color:#8a5a00">${esc(flags.join(' · '))}</div>` : ''}
+              </span>
+            </div>
+          </td>
+          <td><span class="rbadge ${esc(c.status)}">${esc(c.status)}</span></td>
+          <td class="num">${fmtInt(c.deals)}</td>
+          <td class="num">${fmtInt(c.views)}</td>
+          <td class="num">${fmtInt(c.clicks)}</td>
+          <td class="num">${fmtInt(c.claims)}</td>
+          <td class="num">${c.conversion}%</td>
+          <td class="num">${fmtGBP0(c.cashbackGiven)}</td>
+          <td class="num">${fmtGBP0(c.pendingCashback)}</td>
+          <td class="num"${c.balance < 0 ? ' style="color:var(--red)"' : ''}>${fmtGBP0(c.balance)}</td>
+          <td>${fmtAgo(c.lastActiveAt)}</td>
+          <td>${sparkline(c.spark)}</td>
+        </tr>`;
+      }).join('');
+
+      $('coTable').querySelectorAll('th[data-sort]').forEach(th =>
+        th.classList.toggle('sorted', th.dataset.sort === key));
+    }
+
+    $('coTable').querySelectorAll('th[data-sort]').forEach(th =>
+      th.addEventListener('click', () => {
+        const key = th.dataset.sort;
+        // Same column again flips the direction; a new one starts descending
+        // (or A-Z for the name).
+        coSort = coSort.key === key
+          ? { key, dir: -coSort.dir }
+          : { key, dir: key === 'name' ? 1 : -1 };
+        renderCompanies();
+      }));
+    $('coSearch').addEventListener('input', renderCompanies);
+
+    function renderCategories(cats) {
+      const body = $('catBody');
+      if (!cats || !cats.length) { body.innerHTML = '<tr><td colspan="6" class="muted">No deals yet.</td></tr>'; return; }
+      const max = Math.max(1, ...cats.map(c => c.claims || 0));
+      body.innerHTML = cats.map(c => `<tr>
+          <td>${esc(c.category)}</td>
+          <td class="num">${fmtInt(c.deals)}</td>
+          <td class="num">${fmtInt(c.views)}</td>
+          <td class="num">${fmtInt(c.claims)}</td>
+          <td class="num">${fmtGBP0(c.cashback)}</td>
+          <td><div class="catbar"><span style="width:${(c.claims / max * 100).toFixed(0)}%"></span></div></td>
+        </tr>`).join('');
+    }
+
+    function renderTopDeals(deals) {
+      const body = $('topBody');
+      if (!deals || !deals.length) { body.innerHTML = '<tr><td colspan="4" class="muted">No deals yet.</td></tr>'; return; }
+      body.innerHTML = deals.map(d => `<tr>
+          <td><a href="deal.html?id=${d.campaignId}" target="_blank" rel="noopener" style="color:var(--blue-deep);font-weight:800">${esc(d.title || d.brand)}</a>
+            <div class="co-email">${esc(d.company || 'In-house')}</div></td>
+          <td class="num">${fmtInt(d.views)}</td>
+          <td class="num">${fmtInt(d.claims)}</td>
+          <td class="num">${fmtGBP0(d.cashback)}</td>
+        </tr>`).join('');
+    }
+
+    function loadAll() {
+      loadList();
+      loadReceipts();
+      loadApps();
+      loadSubs();
+      loadThreads();
+      loadActivity();
+      loadAnalytics();
+    }
+    loadAll();
   </script>
 </body>
 </html>
