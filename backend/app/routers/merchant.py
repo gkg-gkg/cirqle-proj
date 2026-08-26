@@ -8,29 +8,43 @@ deals (the `Campaign` rows linked by `merchant_id`) and to message the admin.
 Merchant auth uses a JWT with a typ="merchant" claim (see security.py) so a
 merchant token can't reach user endpoints and vice-versa.
 """
+import json
 import secrets
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlmodel import Session, select
 
 from ..db import get_session
-from ..models import (AdminMessageIn, Campaign, CampaignSubmission,
-                      CampaignSubmissionIn, CampaignSubmissionOut, DealEvent,
-                      DealStat, Merchant, MerchantApplication, MerchantAuthOut,
+from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
+                      CampaignSubmission, CampaignSubmissionIn,
+                      CampaignSubmissionOut, DealEvent, DealStat, Mention,
+                      Merchant, MerchantApplication, MerchantAuthOut,
                       MerchantCreatedOut, MerchantCreateIn, MerchantMessage,
                       MerchantMessageIn, MerchantMessageOut, MerchantOut,
-                      MerchantSigninIn, MerchantStats, MerchantThreadOut,
-                      Receipt, RejectSubmissionIn, TimePoint)
+                      MerchantProfileIn, MerchantProfileOut, MerchantSigninIn,
+                      MerchantStats, MerchantThreadOut, MerchantTransaction,
+                      Receipt, RejectSubmissionIn, TaggedPostOut, TimePoint,
+                      TopUpIn)
 from ..activity import log_activity
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
+from ..storage import StorageError, upload_image
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
 
 _TIMESERIES_DAYS = 30
 _CASHBACK_GIVEN = ("confirmed", "paid")
+
+
+def _json_list(raw: str) -> list[str]:
+    """Decode a JSON-encoded TEXT list column, tolerating bad/empty data."""
+    try:
+        val = json.loads(raw or "[]")
+        return [str(x) for x in val] if isinstance(val, list) else []
+    except (ValueError, TypeError):
+        return []
 
 
 def _merchant_out(m: Merchant) -> MerchantOut:
@@ -60,6 +74,170 @@ def signin(data: MerchantSigninIn, session: Session = Depends(get_session)):
 @router.get("/me", response_model=MerchantOut)
 def me(merchant: Merchant = Depends(get_current_merchant)):
     return _merchant_out(merchant)
+
+
+# ── Brand profile (how members see the brand in the app) ──
+def _profile_out(m: Merchant) -> MerchantProfileOut:
+    return MerchantProfileOut(
+        id=m.id, email=m.email, businessName=m.business_name, bio=m.bio,
+        categories=_json_list(m.categories), website=m.website,
+        instagram=m.instagram, tiktok=m.tiktok, youtube=m.youtube,
+        facebook=m.facebook, tips=m.tips, logoUrl=m.logo_url,
+        createdAt=m.created_at,
+    )
+
+
+@router.get("/profile", response_model=MerchantProfileOut)
+def get_profile(merchant: Merchant = Depends(get_current_merchant)):
+    return _profile_out(merchant)
+
+
+@router.patch("/profile", response_model=MerchantProfileOut)
+def update_profile(data: MerchantProfileIn,
+                   merchant: Merchant = Depends(get_current_merchant),
+                   session: Session = Depends(get_session)):
+    """Merchant edits their public brand profile. Only sent fields change."""
+    if data.businessName is not None:
+        name = data.businessName.strip()
+        if not name:
+            raise HTTPException(status_code=422, detail="Brand name can't be empty.")
+        merchant.business_name = name
+    if data.bio is not None:
+        merchant.bio = data.bio.strip()
+    if data.categories is not None:
+        cats = [c.strip() for c in data.categories if c and c.strip()]
+        merchant.categories = json.dumps(cats)
+    if data.website is not None:
+        merchant.website = data.website.strip()
+    if data.instagram is not None:
+        merchant.instagram = data.instagram.strip().lstrip("@")
+    if data.tiktok is not None:
+        merchant.tiktok = data.tiktok.strip().lstrip("@")
+    if data.youtube is not None:
+        merchant.youtube = data.youtube.strip().lstrip("@")
+    if data.facebook is not None:
+        merchant.facebook = data.facebook.strip().lstrip("@")
+    if data.tips is not None:
+        merchant.tips = data.tips.strip()
+    session.add(merchant)
+    session.commit()
+    session.refresh(merchant)
+    return _profile_out(merchant)
+
+
+@router.post("/logo", response_model=MerchantProfileOut)
+def upload_logo(image: UploadFile = File(...),
+                merchant: Merchant = Depends(get_current_merchant),
+                session: Session = Depends(get_session)):
+    """Upload a brand logo (stored publicly, same as campaign images)."""
+    try:
+        url = upload_image(image)
+    except StorageError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    merchant.logo_url = url
+    session.add(merchant)
+    session.commit()
+    session.refresh(merchant)
+    return _profile_out(merchant)
+
+
+# ── Posts that tagged this merchant (from shoppers' claims) ──
+@router.get("/posts", response_model=list[TaggedPostOut])
+def tagged_posts(merchant: Merchant = Depends(get_current_merchant),
+                 session: Session = Depends(get_session)):
+    """Instagram posts shoppers tagged the brand in — the posts behind the
+    receipts claimed against this merchant's deals — with engagement counts
+    pulled from the scraped `Mention` rows when available."""
+    campaign_ids = [
+        c.id for c in session.exec(
+            select(Campaign).where(Campaign.merchant_id == merchant.id)).all()
+    ]
+    if not campaign_ids:
+        return []
+
+    receipts = session.exec(
+        select(Receipt).where(Receipt.campaign_id.in_(campaign_ids))
+        .order_by(Receipt.uploaded_at.desc())
+    ).all()
+
+    out: list[TaggedPostOut] = []
+    seen: set[str] = set()
+    for r in receipts:
+        if not r.post_id or r.post_id in seen:
+            continue
+        seen.add(r.post_id)
+        m = session.get(Mention, r.post_id)     # the scraped post, if we have it
+        out.append(TaggedPostOut(
+            postId=r.post_id,
+            imageUrl=(m.display_url if m else None),
+            caption=(m.caption if m and m.caption else ""),
+            ownerUsername=(m.owner_username if m and m.owner_username else ""),
+            likes=(m.likes_count if m else None),
+            comments=(m.comments_count if m else None),
+            views=None,                          # IG photo posts have no view count
+            url=(m.url if m else None),
+            dealTitle=r.brand,
+            date=(m.timestamp if m and m.timestamp else r.uploaded_at.isoformat()),
+        ))
+    return out
+
+
+# ── Billing: prepaid balance that funds shopper cashback ──
+def _billing(merchant: Merchant, session: Session) -> BillingOut:
+    topups = session.exec(
+        select(MerchantTransaction)
+        .where(MerchantTransaction.merchant_id == merchant.id)
+    ).all()
+    campaign_ids = [
+        c.id for c in session.exec(
+            select(Campaign).where(Campaign.merchant_id == merchant.id)).all()
+    ]
+    receipts = session.exec(
+        select(Receipt).where(Receipt.campaign_id.in_(campaign_ids))
+    ).all() if campaign_ids else []
+
+    total_topped = round(sum(t.amount for t in topups), 2)
+    given = [r for r in receipts if r.status in _CASHBACK_GIVEN]
+    cashback_given = round(sum(r.amount for r in given), 2)
+    pending = round(sum(r.amount for r in receipts if r.status == "pending"), 2)
+    balance = round(total_topped - cashback_given, 2)
+
+    txns = [BillingTxnOut(kind="topup", amount=round(t.amount, 2),
+                          description=t.description or "Account top-up",
+                          date=t.created_at) for t in topups]
+    txns += [BillingTxnOut(kind="cashback", amount=-round(r.amount, 2),
+                           description=f"Cashback — {r.brand}", date=r.uploaded_at)
+             for r in given]
+    txns.sort(key=lambda t: t.date, reverse=True)
+
+    return BillingOut(
+        balance=balance, totalToppedUp=total_topped, cashbackGiven=cashback_given,
+        pendingCashback=pending, transactions=txns,
+    )
+
+
+@router.get("/billing", response_model=BillingOut)
+def billing(merchant: Merchant = Depends(get_current_merchant),
+            session: Session = Depends(get_session)):
+    return _billing(merchant, session)
+
+
+@router.post("/billing/topup", response_model=BillingOut)
+def topup(data: TopUpIn, merchant: Merchant = Depends(get_current_merchant),
+          session: Session = Depends(get_session)):
+    """Record a prepaid credit top-up. No real payment is charged yet — this
+    just credits the balance so the merchant can see how funding will work."""
+    amount = round(float(data.amount), 2)
+    if amount <= 0:
+        raise HTTPException(status_code=422, detail="Enter an amount above £0.")
+    if amount > 100000:
+        raise HTTPException(status_code=422, detail="That top-up is too large.")
+    session.add(MerchantTransaction(
+        merchant_id=merchant.id, kind="topup", amount=amount,
+        description="Card top-up",
+    ))
+    session.commit()
+    return _billing(merchant, session)
 
 
 # ── Merchant dashboard stats ──

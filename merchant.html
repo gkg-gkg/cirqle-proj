@@ -172,10 +172,104 @@
     .sbadge.approved { background: #DDF5E3; color: #1c7c3a; }
     .sbadge.rejected { background: #FBE0E0; color: #a62222; }
 
+    /* ── Tab bar (Overview / Posts / Profile / Billing) ── */
+    .mtabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 22px 0 26px; border-bottom: var(--bw) solid var(--line); }
+    .mtab { appearance: none; background: none; border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: .92rem; color: var(--ink-soft); padding: 10px 16px; border-radius: var(--r-chip) var(--r-chip) 0 0; position: relative; }
+    .mtab:hover { color: var(--ink); }
+    .mtab.active { color: var(--ink); }
+    .mtab.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--blue-deep); }
+    .mtab .tab-badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 6px; font-size: .68rem; line-height: 18px; text-align: center; border-radius: 999px; background: var(--blue-tint); color: var(--blue-deep); vertical-align: middle; }
+    .pane-head { margin-bottom: 20px; }
+
+    /* ── Posts tiles ── */
+    .posts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+    .post-tile { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .pt-img { display: block; aspect-ratio: 1 / 1; background: var(--paper-deep); overflow: hidden; }
+    .pt-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pt-noimg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--ink-soft); font-weight: 700; font-size: .82rem; }
+    .pt-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: var(--bw) solid var(--line); }
+    .pt-stat { text-align: center; padding: 11px 6px; }
+    .pt-stat + .pt-stat { border-left: var(--bw) solid var(--line); }
+    .pt-stat .pt-num { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; line-height: 1; font-variant-numeric: tabular-nums; }
+    .pt-stat .pt-cap { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-soft); margin-top: 5px; }
+    .pt-body { padding: 12px 14px; }
+    .pt-owner { font-weight: 700; font-size: .84rem; }
+    .pt-deal { font-size: .74rem; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
+    .pt-cap-text { font-size: .78rem; color: var(--ink-soft); line-height: 1.5; margin-top: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .posts-empty { grid-column: 1 / -1; text-align: center; padding: 46px 20px; color: var(--ink-soft); font-weight: 600; }
+
+    /* ── Merchant Profile: form left, phone preview right ── */
+    .profile-grid { display: grid; grid-template-columns: 1fr 360px; gap: 32px; align-items: start; }
+    .profile-form { padding: 26px 24px; }
+    .profile-form .field { margin-bottom: 16px; }
+    .profile-form label { display: block; font-size: .78rem; font-weight: 700; margin-bottom: 6px; }
+    .profile-form input, .profile-form textarea { width: 100%; padding: 11px 13px; font: inherit; font-size: .9rem; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper); color: var(--ink); }
+    .profile-form input:focus, .profile-form textarea:focus { outline: none; border-color: var(--pink-deep); }
+    .profile-form textarea { resize: vertical; min-height: 70px; }
+    .field-hint { font-size: .74rem; color: var(--ink-soft); margin-top: 4px; }
+    .logo-row { display: flex; align-items: center; gap: 16px; }
+    .logo-thumb { width: 74px; height: 74px; border-radius: 50%; flex-shrink: 0; background: var(--paper-deep); border: var(--bw) solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--ink-soft); font-size: 1.4rem; }
+    .logo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .cat-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: var(--bw) solid var(--line); border-radius: 999px; font-size: .82rem; font-weight: 600; cursor: pointer; user-select: none; }
+    .cat-chip input { position: absolute; opacity: 0; pointer-events: none; }
+    .cat-chip.on { background: var(--blue-tint); border-color: var(--blue-deep); color: var(--blue-deep); }
+    .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .save-row { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+    .save-status { font-size: .82rem; font-weight: 700; color: var(--green-deep, #1c7c3a); }
+
+    /* Phone preview (mirrors the in-app brand page) */
+    .phone-wrap { position: sticky; top: 20px; }
+    .phone { border: 8px solid var(--ink); border-radius: 34px; overflow: hidden; background: var(--paper); box-shadow: var(--shadow); }
+    .pv-cover { height: 92px; background: linear-gradient(135deg, var(--blue-tint), var(--paper-deep)); background-size: cover; background-position: center; }
+    .pv-body { padding: 0 18px 22px; margin-top: -34px; }
+    .pv-logo { width: 68px; height: 68px; border-radius: 50%; border: 3px solid var(--paper); background: var(--card); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 1.5rem; color: var(--ink-soft); box-shadow: var(--shadow); }
+    .pv-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .pv-name { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; margin-top: 12px; }
+    .pv-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .pv-cat { font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--paper-deep); }
+    .pv-bio { font-size: .82rem; color: var(--ink-soft); line-height: 1.55; margin-top: 12px; }
+    .pv-section { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin: 16px 0 8px; }
+    .pv-socials { display: flex; flex-direction: column; gap: 7px; }
+    .pv-social { display: flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 600; }
+    .pv-tips { font-size: .82rem; color: var(--ink); line-height: 1.55; background: var(--tang); border-radius: 12px; padding: 11px 13px; }
+    .pv-empty { color: var(--ink-soft); font-weight: 600; }
+
+    /* ── Billing ── */
+    .billing-top { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 20px; margin-bottom: 24px; align-items: stretch; }
+    .balance-hero { padding: 26px 24px; display: flex; flex-direction: column; }
+    .balance-num { font-family: var(--font-display); font-weight: 800; font-size: 2.8rem; letter-spacing: -0.03em; line-height: 1; margin: 6px 0 18px; }
+    .balance-note { font-size: .74rem; color: var(--ink-soft); line-height: 1.5; margin-top: 14px; }
+    .bill-tiles { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .txn-card { padding: 24px 22px; }
+    .txn-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 2px dashed rgba(31,27,19,.14); }
+    .txn-row:last-child { border-bottom: none; }
+    .txn-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .txn-dot { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .txn-dot.topup { background: #DDF5E3; color: #1c7c3a; }
+    .txn-dot.cashback { background: var(--blue-tint); color: var(--blue-deep); }
+    .txn-desc { font-weight: 700; font-size: .88rem; }
+    .txn-when { font-size: .74rem; color: var(--ink-soft); font-weight: 600; margin-top: 1px; }
+    .txn-amt { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+    .txn-amt.pos { color: #1c7c3a; }
+    .txn-empty { color: var(--ink-soft); font-weight: 600; padding: 10px 0; }
+    .topup-chips { display: flex; gap: 8px; margin: 10px 0 4px; }
+    .topup-chip { flex: 1; padding: 9px 0; text-align: center; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper); font-weight: 700; font-size: .86rem; cursor: pointer; }
+    .topup-chip:hover { border-color: var(--blue-deep); }
+
     .hidden { display: none !important; }
 
     @media (max-width: 960px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 560px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px) {
+      .profile-grid { grid-template-columns: 1fr; }
+      .phone-wrap { position: static; max-width: 360px; }
+      .billing-top { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .social-grid { grid-template-columns: 1fr; }
+      .bill-tiles { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -246,6 +340,15 @@
       <div class="greeting-sub">Live performance across your Cirqle deals.</div>
     </div>
 
+    <nav class="mtabs" id="mtabs">
+      <button class="mtab active" data-tab="overview" onclick="showTab('overview')">Overview</button>
+      <button class="mtab" data-tab="posts" onclick="showTab('posts')">Posts<span class="tab-badge hidden" id="postsBadge">0</span></button>
+      <button class="mtab" data-tab="profile" onclick="showTab('profile')">Merchant Profile</button>
+      <button class="mtab" data-tab="billing" onclick="showTab('billing')">Billing</button>
+    </nav>
+
+    <!-- ═══ Overview ═══ -->
+    <div class="pane" id="paneOverview">
     <div class="stats-row">
       <div class="card stat-card fade-up"><div class="stat-label">Deals</div><div class="stat-val" id="sDeals">0</div></div>
       <div class="card card-sky stat-card fade-up"><div class="stat-label">Views</div><div class="stat-val" id="sViews">0</div></div>
@@ -303,6 +406,136 @@
           <button class="btn btn-ink" onclick="sendMessage('message')">Send message</button>
           <button class="btn btn-lime" onclick="sendMessage('deal_request')">Request more deals</button>
         </div>
+      </div>
+    </div>
+    </div><!-- /paneOverview -->
+
+    <!-- ═══ Posts tagging the brand ═══ -->
+    <div class="pane hidden" id="panePosts">
+      <div class="pane-head">
+        <div class="panel-title">Posts tagging your brand</div>
+        <div class="panel-sub">The posts shoppers shared when they claimed cashback on your deals — with their engagement counts.</div>
+      </div>
+      <div class="posts-grid" id="postsGrid">
+        <div class="posts-empty">Loading posts…</div>
+      </div>
+    </div>
+
+    <!-- ═══ Merchant Profile ═══ -->
+    <div class="pane hidden" id="paneProfile">
+      <div class="pane-head">
+        <div class="panel-title">Merchant Profile</div>
+        <div class="panel-sub">Edit your brand profile and preview how members see your brand in the app.</div>
+      </div>
+      <div class="profile-grid">
+        <!-- Editor -->
+        <div class="card profile-form">
+          <div class="field">
+            <label>Logo</label>
+            <div class="logo-row">
+              <div class="logo-thumb" id="logoThumb"><i class="ico ico-home ico-soft"></i></div>
+              <div>
+                <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="uploadLogo()" />
+                <button type="button" class="btn btn-sm" onclick="document.getElementById('logoInput').click()">Upload logo</button>
+                <div class="field-hint" id="logoHint">PNG, JPG or GIF. A square image works best.</div>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="pName">Brand name *</label>
+            <input id="pName" oninput="renderPreview()" placeholder="Your brand" />
+          </div>
+          <div class="field">
+            <label for="pBio">Bio</label>
+            <textarea id="pBio" oninput="renderPreview()" placeholder="Tell shoppers who you are in a sentence or two."></textarea>
+          </div>
+          <div class="field">
+            <label>Categories</label>
+            <div class="cat-checks" id="catChecks"></div>
+          </div>
+          <div class="field">
+            <label for="pWebsite">Website</label>
+            <input id="pWebsite" oninput="renderPreview()" placeholder="https://yourbrand.com" />
+          </div>
+          <div class="social-grid">
+            <div class="field"><label for="pInsta">Instagram handle</label><input id="pInsta" oninput="renderPreview()" placeholder="@yourbrand" /></div>
+            <div class="field"><label for="pTiktok">TikTok handle</label><input id="pTiktok" oninput="renderPreview()" placeholder="@yourbrand" /></div>
+            <div class="field"><label for="pYoutube">YouTube handle</label><input id="pYoutube" oninput="renderPreview()" placeholder="@yourbrand" /></div>
+            <div class="field"><label for="pFacebook">Facebook handle</label><input id="pFacebook" oninput="renderPreview()" placeholder="yourbrand" /></div>
+          </div>
+          <div class="field">
+            <label for="pTips">Tips for shoppers</label>
+            <textarea id="pTips" oninput="renderPreview()" placeholder="e.g. Tag @yourbrand in your post and keep your receipt to earn cashback."></textarea>
+          </div>
+          <div class="save-row">
+            <button type="button" class="btn btn-lime" id="saveProfileBtn" onclick="saveProfile()">Save profile</button>
+            <span class="save-status hidden" id="saveStatus">Saved ✓</span>
+          </div>
+          <div class="modal-err" id="profileErr"></div>
+        </div>
+        <!-- Live phone preview -->
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="pv-cover"></div>
+            <div class="pv-body">
+              <div class="pv-logo" id="pvLogo"><i class="ico ico-home ico-soft"></i></div>
+              <div class="pv-name" id="pvName">Your brand</div>
+              <div class="pv-cats" id="pvCats"></div>
+              <div class="pv-bio" id="pvBio"></div>
+              <div id="pvSocialWrap" class="hidden"><div class="pv-section">Find us on</div><div class="pv-socials" id="pvSocials"></div></div>
+              <div id="pvTipsWrap" class="hidden"><div class="pv-section">Tips to earn</div><div class="pv-tips" id="pvTips"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Billing ═══ -->
+    <div class="pane hidden" id="paneBilling">
+      <div class="pane-head">
+        <div class="panel-title">Billing</div>
+        <div class="panel-sub">Your prepaid balance funds the cashback shoppers earn on your deals.</div>
+      </div>
+      <div class="billing-top">
+        <div class="card balance-hero">
+          <div class="stat-label">Balance</div>
+          <div class="balance-num">£<span id="bBalance">0.00</span></div>
+          <button type="button" class="btn btn-lime" onclick="openTopup()">Add credit</button>
+          <div class="balance-note">No card is charged yet — top-ups are recorded so you can see how funding your cashback will work.</div>
+        </div>
+        <div class="bill-tiles">
+          <div class="card stat-card"><div class="stat-label">Topped up</div><div class="stat-val">£<span id="bTopped">0.00</span></div></div>
+          <div class="card card-sky stat-card"><div class="stat-label">Cashback given</div><div class="stat-val">£<span id="bGiven">0.00</span></div></div>
+          <div class="card card-tang stat-card"><div class="stat-label">Pending</div><div class="stat-val">£<span id="bPending">0.00</span></div></div>
+        </div>
+      </div>
+      <div class="card txn-card">
+        <div class="panel-title">Transactions</div>
+        <div class="panel-sub">Top-ups you've added and cashback paid out to shoppers.</div>
+        <div id="txnList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top-up modal -->
+  <div class="modal-overlay" id="topupModal">
+    <div class="card modal" style="max-width:400px">
+      <button class="modal-close" type="button" onclick="closeTopup()" aria-label="Close">✕</button>
+      <h2>Add credit</h2>
+      <div class="modal-sub">Top up your prepaid balance. This is a demo — no card is charged.</div>
+      <div class="field">
+        <label for="topupAmount">Amount (£)</label>
+        <input id="topupAmount" type="number" min="1" step="1" placeholder="100" />
+      </div>
+      <div class="topup-chips">
+        <div class="topup-chip" onclick="document.getElementById('topupAmount').value=50">£50</div>
+        <div class="topup-chip" onclick="document.getElementById('topupAmount').value=100">£100</div>
+        <div class="topup-chip" onclick="document.getElementById('topupAmount').value=250">£250</div>
+      </div>
+      <div class="modal-err" id="topupErr"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-lime" id="topupBtn" onclick="doTopup()">Add credit</button>
+        <button type="button" class="btn" onclick="closeTopup()">Cancel</button>
       </div>
     </div>
   </div>
@@ -414,7 +647,11 @@
       document.getElementById('createCampaignBtn').classList.remove('hidden');
     }
     function authHeader() { return { 'Authorization': 'Bearer ' + merchant.token }; }
-    function signOut() { localStorage.removeItem(SKEY); merchant = null; showLogin(); }
+    function signOut() {
+      localStorage.removeItem(SKEY); merchant = null;
+      loaded.posts = loaded.profile = loaded.billing = false;
+      showLogin();
+    }
 
     // ── Login ──
     document.getElementById('mPassToggle').addEventListener('click', function () {
@@ -461,6 +698,7 @@
 
     async function enterDashboard() {
       showDash();
+      showTab((location.hash || '').slice(1) || 'overview');
       // Refresh the profile from the server so a renamed business (or changed
       // email) shows straight away, without having to sign out and back in.
       try {
@@ -786,6 +1024,275 @@
       return String(s == null ? '' : s)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ── Tabs (Overview / Posts / Profile / Billing) ──
+    const PANES = { overview: 'paneOverview', posts: 'panePosts', profile: 'paneProfile', billing: 'paneBilling' };
+    const loaded = { posts: false, profile: false, billing: false };
+    function showTab(tab) {
+      if (!(tab in PANES)) tab = 'overview';
+      Object.values(PANES).forEach(id => document.getElementById(id).classList.add('hidden'));
+      document.getElementById(PANES[tab]).classList.remove('hidden');
+      document.querySelectorAll('.mtab').forEach(b =>
+        b.classList.toggle('active', b.dataset.tab === tab));
+      if (history.replaceState) history.replaceState(null, '', '#' + tab);
+      if (tab === 'posts' && !loaded.posts) { loaded.posts = true; loadPosts(); }
+      if (tab === 'profile' && !loaded.profile) { loaded.profile = true; loadProfile(); }
+      if (tab === 'billing' && !loaded.billing) { loaded.billing = true; loadBilling(); }
+    }
+
+    // ── Posts tagging the brand ──
+    async function loadPosts() {
+      const grid = document.getElementById('postsGrid');
+      const res = await fetch(`${API}/merchant/posts`, { headers: authHeader() });
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) { grid.innerHTML = '<div class="posts-empty">Couldn’t load posts. Try again.</div>'; return; }
+      renderPosts(await res.json());
+    }
+    function renderPosts(posts) {
+      const grid = document.getElementById('postsGrid');
+      const badge = document.getElementById('postsBadge');
+      badge.textContent = posts.length;
+      badge.classList.toggle('hidden', posts.length === 0);
+      if (!posts.length) {
+        grid.innerHTML = '<div class="posts-empty">No tagged posts yet. When shoppers post about your deals and claim cashback, their posts appear here.</div>';
+        return;
+      }
+      const stat = (val, label, icon) =>
+        `<div class="pt-stat"><div class="pt-num">${val == null ? '—' : fmtInt(val)}</div>
+           <div class="pt-cap"><i class="ico ${icon} ico-soft"></i>${label}</div></div>`;
+      grid.innerHTML = posts.map(p => {
+        const img = p.imageUrl
+          ? `<img src="${escapeHtml(p.imageUrl)}" alt="Post tagging your brand" loading="lazy" onerror="this.parentNode.innerHTML='&lt;div class=&quot;pt-noimg&quot;&gt;No image&lt;/div&gt;'" />`
+          : '<div class="pt-noimg">No image</div>';
+        const imgWrap = p.url
+          ? `<a class="pt-img" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">${img}</a>`
+          : `<div class="pt-img">${img}</div>`;
+        const owner = p.ownerUsername ? '@' + escapeHtml(p.ownerUsername) : 'Instagram post';
+        const when = p.date ? new Date(p.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+        const cap = p.caption ? `<div class="pt-cap-text">${escapeHtml(p.caption)}</div>` : '';
+        return `<div class="post-tile card">
+             ${imgWrap}
+             <div class="pt-stats">
+               ${stat(p.views, 'Views', 'ico-eye')}
+               ${stat(p.comments, 'Comments', 'ico-chat')}
+               ${stat(p.likes, 'Likes', 'ico-star')}
+             </div>
+             <div class="pt-body">
+               <div class="pt-owner">${owner}</div>
+               <div class="pt-deal">${escapeHtml(p.dealTitle || '')}${when ? ' · ' + when : ''}</div>
+               ${cap}
+             </div>
+           </div>`;
+      }).join('');
+    }
+
+    // ── Merchant Profile ──
+    const CATEGORIES = ['Fashion & Beauty', 'Food & Drink', 'Electronics', 'Travel',
+                        'Home & Living', 'Fitness', 'Entertainment', 'Other'];
+    let selectedCats = [];
+
+    function buildCatChecks() {
+      document.getElementById('catChecks').innerHTML = CATEGORIES.map((c, i) =>
+        `<label class="cat-chip" id="cat${i}">
+           <input type="checkbox" value="${escapeHtml(c)}" onchange="toggleCat(${i}, this)" /> ${escapeHtml(c)}
+         </label>`).join('');
+    }
+    function toggleCat(i, box) {
+      document.getElementById('cat' + i).classList.toggle('on', box.checked);
+      selectedCats = [...document.querySelectorAll('#catChecks input:checked')].map(b => b.value);
+      renderPreview();
+    }
+    function setCats(cats) {
+      selectedCats = cats || [];
+      document.querySelectorAll('#catChecks input').forEach((box, i) => {
+        box.checked = selectedCats.includes(box.value);
+        document.getElementById('cat' + i).classList.toggle('on', box.checked);
+      });
+    }
+
+    async function loadProfile() {
+      buildCatChecks();
+      const res = await fetch(`${API}/merchant/profile`, { headers: authHeader() });
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) return;
+      const p = await res.json();
+      document.getElementById('pName').value = p.businessName || '';
+      document.getElementById('pBio').value = p.bio || '';
+      document.getElementById('pWebsite').value = p.website || '';
+      document.getElementById('pInsta').value = p.instagram || '';
+      document.getElementById('pTiktok').value = p.tiktok || '';
+      document.getElementById('pYoutube').value = p.youtube || '';
+      document.getElementById('pFacebook').value = p.facebook || '';
+      document.getElementById('pTips').value = p.tips || '';
+      setCats(p.categories);
+      setLogo(p.logoUrl);
+      renderPreview();
+    }
+
+    function setLogo(url) {
+      const thumb = document.getElementById('logoThumb'), pv = document.getElementById('pvLogo');
+      const html = url ? `<img src="${escapeHtml(url)}" alt="Logo" />` : '<i class="ico ico-home ico-soft"></i>';
+      thumb.innerHTML = html; pv.innerHTML = html;
+    }
+
+    async function uploadLogo() {
+      const input = document.getElementById('logoInput');
+      if (!input.files || !input.files[0]) return;
+      const hint = document.getElementById('logoHint');
+      hint.textContent = 'Uploading…';
+      const fd = new FormData();
+      fd.append('image', input.files[0]);
+      try {
+        const res = await fetch(`${API}/merchant/logo`, { method: 'POST', headers: authHeader(), body: fd });
+        if (res.status === 401) { signOut(); return; }
+        if (!res.ok) { hint.textContent = 'Upload failed — use a PNG, JPG or GIF.'; return; }
+        const p = await res.json();
+        setLogo(p.logoUrl);
+        hint.textContent = 'Logo updated ✓';
+      } catch (_) {
+        hint.textContent = 'Couldn’t reach the server. Try again.';
+      } finally {
+        input.value = '';
+      }
+    }
+
+    function renderPreview() {
+      const v = id => document.getElementById(id).value.trim();
+      document.getElementById('pvName').textContent = v('pName') || 'Your brand';
+      const bio = v('pBio');
+      document.getElementById('pvBio').textContent = bio;
+      document.getElementById('pvBio').classList.toggle('pv-empty', !bio);
+      document.getElementById('pvCats').innerHTML = selectedCats.map(c =>
+        `<span class="pv-cat">${escapeHtml(c)}</span>`).join('');
+      // Socials
+      const socials = [
+        { icon: 'ico-instagram', label: 'Instagram', val: v('pInsta'), at: true },
+        { icon: 'ico-play', label: 'TikTok', val: v('pTiktok'), at: true },
+        { icon: 'ico-play', label: 'YouTube', val: v('pYoutube'), at: true },
+        { icon: 'ico-facebook', label: 'Facebook', val: v('pFacebook'), at: false },
+      ].filter(s => s.val);
+      const web = v('pWebsite');
+      document.getElementById('pvSocials').innerHTML =
+        (web ? `<div class="pv-social"><i class="ico ico-search ico-soft"></i>${escapeHtml(web.replace(/^https?:\/\//, ''))}</div>` : '') +
+        socials.map(s => `<div class="pv-social"><i class="ico ${s.icon} ico-soft"></i>${s.label} · ${s.at ? '@' : ''}${escapeHtml(s.val.replace(/^@/, ''))}</div>`).join('');
+      document.getElementById('pvSocialWrap').classList.toggle('hidden', !web && socials.length === 0);
+      // Tips
+      const tips = v('pTips');
+      document.getElementById('pvTips').textContent = tips;
+      document.getElementById('pvTipsWrap').classList.toggle('hidden', !tips);
+    }
+
+    async function saveProfile() {
+      const err = document.getElementById('profileErr');
+      const btn = document.getElementById('saveProfileBtn');
+      const status = document.getElementById('saveStatus');
+      err.textContent = ''; status.classList.add('hidden');
+      const name = document.getElementById('pName').value.trim();
+      if (!name) { err.textContent = 'Give your brand a name.'; return; }
+      btn.disabled = true; btn.textContent = 'Saving…';
+      const payload = {
+        businessName: name,
+        bio: document.getElementById('pBio').value.trim(),
+        categories: selectedCats,
+        website: document.getElementById('pWebsite').value.trim(),
+        instagram: document.getElementById('pInsta').value.trim(),
+        tiktok: document.getElementById('pTiktok').value.trim(),
+        youtube: document.getElementById('pYoutube').value.trim(),
+        facebook: document.getElementById('pFacebook').value.trim(),
+        tips: document.getElementById('pTips').value.trim(),
+      };
+      try {
+        const res = await fetch(`${API}/merchant/profile`, {
+          method: 'PATCH', headers: { ...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (res.status === 401) { signOut(); return; }
+        if (!res.ok) {
+          const b = await res.json().catch(() => ({}));
+          err.textContent = b.detail || 'Couldn’t save — try again.';
+          return;
+        }
+        const p = await res.json();
+        // Keep the rest of the portal in sync with a renamed brand.
+        merchant.businessName = p.businessName;
+        localStorage.setItem(SKEY, JSON.stringify(merchant));
+        document.getElementById('bizName').textContent = p.businessName;
+        status.classList.remove('hidden');
+        setTimeout(() => status.classList.add('hidden'), 2500);
+      } catch (_) {
+        err.textContent = 'Couldn’t reach the server. Try again.';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Save profile';
+      }
+    }
+
+    // ── Billing ──
+    async function loadBilling() {
+      const res = await fetch(`${API}/merchant/billing`, { headers: authHeader() });
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) return;
+      renderBilling(await res.json());
+    }
+    function renderBilling(b) {
+      document.getElementById('bBalance').textContent = fmtMoney(b.balance);
+      document.getElementById('bTopped').textContent = fmtMoney(b.totalToppedUp);
+      document.getElementById('bGiven').textContent = fmtMoney(b.cashbackGiven);
+      document.getElementById('bPending').textContent = fmtMoney(b.pendingCashback);
+      const list = document.getElementById('txnList');
+      if (!b.transactions.length) {
+        list.innerHTML = '<div class="txn-empty">No transactions yet. Add credit to fund your cashback.</div>';
+        return;
+      }
+      list.innerHTML = b.transactions.map(t => {
+        const when = new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        const isTop = t.kind === 'topup';
+        const icon = isTop ? 'ico-cash' : 'ico-receipt';
+        const amt = (t.amount >= 0 ? '+£' : '−£') + fmtMoney(Math.abs(t.amount));
+        return `<div class="txn-row">
+             <div class="txn-main">
+               <div class="txn-dot ${isTop ? 'topup' : 'cashback'}"><i class="ico ${icon}"></i></div>
+               <div><div class="txn-desc">${escapeHtml(t.description)}</div><div class="txn-when">${when}</div></div>
+             </div>
+             <div class="txn-amt ${isTop ? 'pos' : ''}">${amt}</div>
+           </div>`;
+      }).join('');
+    }
+    function openTopup() {
+      document.getElementById('topupErr').textContent = '';
+      document.getElementById('topupAmount').value = '';
+      document.getElementById('topupModal').classList.add('open');
+    }
+    function closeTopup() { document.getElementById('topupModal').classList.remove('open'); }
+    document.getElementById('topupModal').addEventListener('click', (e) => {
+      if (e.target.id === 'topupModal') closeTopup();
+    });
+    async function doTopup() {
+      const err = document.getElementById('topupErr');
+      const btn = document.getElementById('topupBtn');
+      err.textContent = '';
+      const amount = parseFloat(document.getElementById('topupAmount').value);
+      if (!amount || amount <= 0) { err.textContent = 'Enter an amount above £0.'; return; }
+      btn.disabled = true; btn.textContent = 'Adding…';
+      try {
+        const res = await fetch(`${API}/merchant/billing/topup`, {
+          method: 'POST', headers: { ...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount }),
+        });
+        if (res.status === 401) { signOut(); return; }
+        if (!res.ok) {
+          const b = await res.json().catch(() => ({}));
+          err.textContent = b.detail || 'Couldn’t add credit — try again.';
+          return;
+        }
+        renderBilling(await res.json());
+        closeTopup();
+        cirqleToast('Credit added ✓');
+      } catch (_) {
+        err.textContent = 'Couldn’t reach the server. Try again.';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Add credit';
+      }
     }
 
     // ── Boot ──

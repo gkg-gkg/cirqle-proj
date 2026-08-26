@@ -144,6 +144,32 @@ class Merchant(SQLModel, table=True):
     email: str = Field(index=True, unique=True)
     password_hash: str
     business_name: str = ""
+    # ── Public brand profile (Phase 6b) — how members see the brand in the app ──
+    bio: str = ""
+    categories: str = "[]"       # JSON-encoded list[str] (same trick as Campaign.tags)
+    website: str = ""
+    instagram: str = ""          # handle, stored without the leading @
+    tiktok: str = ""
+    youtube: str = ""
+    facebook: str = ""
+    tips: str = ""               # tips the brand gives shoppers (free text)
+    logo_url: str = ""           # public S3 URL of the uploaded logo
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class MerchantTransaction(SQLModel, table=True):
+    """A prepaid credit top-up on a merchant's account (Phase 6b billing).
+
+    Merchants pre-fund a balance that pays for shopper cashback. This table is
+    the top-ups only; cashback spend is derived from the merchant's `Receipt`
+    rows, and the live balance = sum(top-ups) - cashback given. (No real payment
+    processor yet — a top-up is recorded, not charged.)
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    merchant_id: int = Field(index=True, foreign_key="merchant.id")
+    kind: str = "topup"          # "topup"
+    amount: float = 0            # £ added
+    description: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -556,6 +582,74 @@ class CampaignSubmissionOut(BaseModel):
 
 class RejectSubmissionIn(BaseModel):
     reason: str
+
+
+# ── Merchant brand profile (Phase 6b) ──
+class MerchantProfileIn(BaseModel):
+    """Fields the merchant can edit on their brand profile. All optional so a
+    PATCH only touches what's sent (the logo is uploaded separately)."""
+    businessName: Optional[str] = None
+    bio: Optional[str] = None
+    categories: Optional[list[str]] = None
+    website: Optional[str] = None
+    instagram: Optional[str] = None
+    tiktok: Optional[str] = None
+    youtube: Optional[str] = None
+    facebook: Optional[str] = None
+    tips: Optional[str] = None
+
+
+class MerchantProfileOut(BaseModel):
+    id: int
+    email: EmailStr
+    businessName: str
+    bio: str
+    categories: list[str]
+    website: str
+    instagram: str
+    tiktok: str
+    youtube: str
+    facebook: str
+    tips: str
+    logoUrl: str
+    createdAt: datetime
+
+
+# ── Posts tagging the merchant (Phase 6b) ──
+class TaggedPostOut(BaseModel):
+    """One Instagram post that tagged this merchant (via a shopper's claim),
+    with its engagement counts. `views` is only known for videos/reels — it's
+    None for photo posts, which Instagram doesn't expose a view count for."""
+    postId: str
+    imageUrl: Optional[str] = None
+    caption: str = ""
+    ownerUsername: str = ""
+    likes: Optional[int] = None
+    comments: Optional[int] = None
+    views: Optional[int] = None
+    url: Optional[str] = None
+    dealTitle: str = ""
+    date: Optional[str] = None
+
+
+# ── Merchant billing / prepaid balance (Phase 6b) ──
+class BillingTxnOut(BaseModel):
+    kind: str            # "topup" | "cashback"
+    amount: float        # positive for a top-up, negative for cashback given
+    description: str
+    date: datetime
+
+
+class BillingOut(BaseModel):
+    balance: float           # sum(top-ups) - cashback given
+    totalToppedUp: float
+    cashbackGiven: float     # confirmed + paid
+    pendingCashback: float   # awaiting verification (not yet deducted)
+    transactions: list[BillingTxnOut]
+
+
+class TopUpIn(BaseModel):
+    amount: float
 
 
 # ── Admin activity log (Phase 6) ──
