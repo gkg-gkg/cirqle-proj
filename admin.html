@@ -71,21 +71,20 @@
     .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 34px 0 14px; }
     .sec-head h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; }
     .sec-head .muted { margin: 3px 0 0; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 14px; }
     .kpi { padding: 16px 18px; }
     .kpi-label { font-size: .63rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin-bottom: 7px; }
     .kpi-val { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.03em; line-height: 1; }
     .kpi-sub { font-size: .74rem; color: var(--ink-soft); font-weight: 600; margin-top: 6px; }
 
     /* Review queue — one tile per thing waiting on the admin */
-    .queue-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 14px; }
+    .queue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 12px; margin-top: 14px; }
     .qtile { padding: 13px 15px; text-align: left; font: inherit; cursor: pointer;
       background: var(--card); border: var(--bw) solid var(--line); border-radius: var(--r-card); transition: border-color .18s, background .18s; }
     .qtile:hover { border-color: var(--blue); }
     .qtile.hot { background: #FFF6E8; border-color: #EFC580; }
     .qtile-val { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; line-height: 1; }
     .qtile-label { font-size: .7rem; font-weight: 700; color: var(--ink-soft); margin-top: 5px; }
-    @media (max-width: 860px) { .queue-grid { grid-template-columns: repeat(2, 1fr); } }
 
     /* Trend chart (same inline-SVG approach as the merchant dashboard) */
     .an-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; align-items: start; margin-top: 16px; }
@@ -143,6 +142,37 @@
     .catbar { height: 8px; background: var(--paper-deep); border-radius: 999px; overflow: hidden; min-width: 70px; }
     .catbar span { display: block; height: 100%; background: var(--blue); border-radius: 999px; }
 
+    /* Range switch (7/30/90 days) */
+    .seg { display: inline-flex; border: var(--bw) solid var(--line); border-radius: var(--r-chip); overflow: hidden; }
+    .seg button { padding: 6px 14px; font: inherit; font-size: .78rem; font-weight: 700; border: none;
+      background: var(--card); color: var(--ink-soft); cursor: pointer; }
+    .seg button + button { border-left: var(--bw) solid var(--line); }
+    .seg button.on { background: var(--ink); color: #fff; }
+    .head-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    /* Fraud signals */
+    .fraud-list { display: flex; flex-direction: column; }
+    .fraud-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+    .fraud-item:last-child { border-bottom: none; }
+    .fraud-main { flex: 1; min-width: 0; }
+    .fraud-title { font-weight: 800; font-size: .88rem; }
+    .fraud-detail { font-size: .8rem; color: var(--ink-soft); margin-top: 2px; overflow-wrap: anywhere; }
+    .fraud-who { font-size: .76rem; color: var(--ink-soft); margin-top: 3px; overflow-wrap: anywhere; }
+    .fraud-amt { font-family: var(--font-display); font-weight: 800; font-size: .95rem;
+      white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .rbadge.high { background: #FBE0E0; color: #a62222; }
+    .rbadge.watch { background: #FFF1D6; color: #8a5a00; }
+    .rbadge.risk { background: #FBE0E0; color: #a62222; }
+    .fraud-clean { color: var(--ink-soft); font-size: .86rem; font-weight: 600; padding: 8px 0; }
+
+    /* Bulk receipt approve */
+    .bulkbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;
+      padding: 10px 12px; background: var(--paper-deep); border-radius: 12px; }
+    .bulkbar label { font-size: .8rem; font-weight: 700; display: flex; align-items: center; gap: 7px; cursor: pointer; }
+    .bulkbar .count { font-size: .78rem; color: var(--ink-soft); font-weight: 600; }
+    .rpick { width: 16px; height: 16px; flex: none; cursor: pointer; accent-color: var(--blue); }
+    .clist-item .rpick { margin-right: 2px; }
+
     /* ── Campaign editor modal (replaces the old always-visible form) ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 2000;
       display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px;
@@ -175,7 +205,14 @@
         <h2>Platform analytics</h2>
         <p class="muted">Every company, deal, claim and £ across Cirqle. Recomputed live from the database each time you load or refresh.</p>
       </div>
-      <button class="btn mini" type="button" id="anRefresh">Refresh</button>
+      <div class="head-tools">
+        <div class="seg" id="rangeSeg" role="group" aria-label="Time window">
+          <button type="button" data-days="7">7d</button>
+          <button type="button" data-days="30" class="on">30d</button>
+          <button type="button" data-days="90">90d</button>
+        </div>
+        <button class="btn mini" type="button" id="anRefresh">Refresh</button>
+      </div>
     </div>
     <p class="muted" id="anMsg">Enter the admin key to load analytics.</p>
 
@@ -189,7 +226,7 @@
       <div class="an-grid">
         <!-- 30-day trend -->
         <div class="card pad">
-          <h2>Last 30 days</h2>
+          <h2>Last <span id="chartDays">30</span> days</h2>
           <p class="muted" style="margin-top:-8px">Daily deal views, outbound clicks, cashback claims and new member sign-ups.</p>
           <div class="legend" id="anLegend"></div>
           <div class="chart-box" id="anChart"></div>
@@ -203,6 +240,19 @@
         </div>
       </div>
 
+      <!-- claims worth a second look -->
+      <div class="card pad" style="margin-top:16px">
+        <div class="card-head">
+          <div>
+            <h2>Fraud signals (<span id="fraudCount">0</span>)</h2>
+            <p class="muted" style="margin:3px 0 0">Patterns that often mean abuse — repeat claims on one deal, claims filed
+              moments after signup, one receipt image reused, one post claimed by several accounts.
+              These are <strong>heuristics, not verdicts</strong>: each has an innocent explanation, so review before rejecting.</p>
+          </div>
+        </div>
+        <div id="fraudList" class="fraud-list"></div>
+      </div>
+
       <!-- per-company activity -->
       <div class="card pad" style="margin-top:16px">
         <div class="card-head">
@@ -214,6 +264,7 @@
         </div>
         <div class="table-tools">
           <input id="coSearch" type="search" placeholder="Search company or email…" />
+          <button class="btn mini" type="button" id="coCsv">Export CSV</button>
           <span class="muted" id="coNote" style="margin:0"></span>
         </div>
         <div class="table-scroll">
@@ -230,11 +281,47 @@
                 <th class="num" data-sort="cashbackGiven">Cashback</th>
                 <th class="num" data-sort="pendingCashback">Pending</th>
                 <th class="num" data-sort="balance">Balance</th>
+                <th class="num" data-sort="shortfall">Shortfall</th>
                 <th data-sort="lastActiveAt">Last active</th>
                 <th>30-day activity</th>
               </tr>
             </thead>
             <tbody id="coBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- member ledgers -->
+      <div class="card pad" style="margin-top:16px">
+        <div class="card-head">
+          <div>
+            <h2>Members (<span id="memCount">0</span>)</h2>
+            <p class="muted" style="margin:3px 0 0">Top earners first. <strong>Wallet</strong> is cleared cashback they can still
+              withdraw — that's money you owe. <strong>Pending</strong> is still clearing or awaiting your approval.</p>
+          </div>
+        </div>
+        <div class="table-tools">
+          <input id="memSearch" type="search" placeholder="Search member or email…" />
+          <span class="muted" id="memNote" style="margin:0"></span>
+        </div>
+        <div class="table-scroll">
+          <table class="atable" id="memTable">
+            <thead>
+              <tr>
+                <th data-msort="name">Member</th>
+                <th class="num" data-msort="posts">Posts</th>
+                <th class="num" data-msort="claims">Claims</th>
+                <th class="num" data-msort="brandsUsed">Brands</th>
+                <th class="num" data-msort="earned">Earned</th>
+                <th class="num" data-msort="wallet">Wallet owed</th>
+                <th class="num" data-msort="paidOut">Withdrawn</th>
+                <th class="num" data-msort="pending">Pending</th>
+                <th class="num" data-msort="expired">Expired</th>
+                <th class="num" data-msort="rejected">Rej.</th>
+                <th data-msort="lastClaimAt">Last claim</th>
+              </tr>
+            </thead>
+            <tbody id="memBody"></tbody>
           </table>
         </div>
       </div>
@@ -285,6 +372,11 @@
       <div class="rfilter">
         <button class="btn mini" data-rf="pending">Pending</button>
         <button class="btn mini" data-rf="">All</button>
+      </div>
+      <div class="bulkbar" id="bulkBar" hidden>
+        <label><input type="checkbox" class="rpick" id="pickAll" /> Select all approvable</label>
+        <button class="btn btn-ink mini" type="button" id="bulkApprove" disabled>Approve selected</button>
+        <span class="count" id="bulkCount">none selected</span>
       </div>
       <div id="rlist"><p class="muted">Enter the admin key to load receipts.</p></div>
     </div>
@@ -548,7 +640,7 @@
     let currentRFilter = 'pending';
     async function loadReceipts() {
       const list = $('rlist');
-      if (!keyInput.value) { list.innerHTML = '<p class="muted">Enter the admin key to load receipts.</p>'; return; }
+      if (!keyInput.value) { list.innerHTML = '<p class="muted">Enter the admin key to load receipts.</p>'; syncBulkBar(); return; }
       list.innerHTML = '<p class="muted">Loading…</p>';
       try {
         const q = currentRFilter ? `?status=${currentRFilter}` : '';
@@ -556,7 +648,7 @@
         if (res.status === 401) { list.innerHTML = '<p class="muted">Invalid admin key.</p>'; return; }
         const data = await res.json();
         $('rcount').textContent = data.length;
-        if (!data.length) { list.innerHTML = '<p class="muted">No receipts.</p>'; return; }
+        if (!data.length) { list.innerHTML = '<p class="muted">No receipts.</p>'; syncBulkBar(); return; }
         list.innerHTML = '';
         data.forEach(r => {
           const row = document.createElement('div');
@@ -569,7 +661,12 @@
             actions = `<button class="btn mini" data-verify="${r.id}">Verify</button><button class="btn mini btn-pink" data-reject="${r.id}">Reject</button>`;
           else if (r.status === 'verified')
             actions = `<button class="btn mini btn-pink" data-reject="${r.id}">Reject</button>`;
+          // only claims still inside the 3-day window can be bulk-approved
+          const pick = r.status === 'pending'
+            ? `<input type="checkbox" class="rpick" data-pick="${r.id}" aria-label="Select claim #${r.id}" />`
+            : '';
           row.innerHTML = `
+            ${pick}
             <div class="clist-thumb">${thumb}</div>
             <div class="clist-main">
               <div class="clist-title">${r.brand || '—'} · £${Number(r.amount).toFixed(2)} <span class="rbadge ${r.status}">${r.status}</span></div>
@@ -578,8 +675,10 @@
             <div class="clist-actions">${actions}</div>`;
           const v = row.querySelector('[data-verify]'); if (v) v.addEventListener('click', () => setReceipt(r.id, 'verify'));
           const j = row.querySelector('[data-reject]'); if (j) j.addEventListener('click', () => setReceipt(r.id, 'reject'));
+          const pk = row.querySelector('[data-pick]'); if (pk) pk.addEventListener('change', syncBulkBar);
           list.appendChild(row);
         });
+        syncBulkBar();
       } catch (e) {
         list.innerHTML = '<p class="muted">Could not load receipts.</p>';
       }
@@ -594,6 +693,54 @@
     }
     document.querySelectorAll('[data-rf]').forEach(b =>
       b.addEventListener('click', () => { currentRFilter = b.dataset.rf; loadReceipts(); }));
+
+    // ── Bulk approve: clear a whole queue of claims in one call ──
+    const picks = () => [...document.querySelectorAll('[data-pick]')];
+    const picked = () => picks().filter(c => c.checked).map(c => Number(c.dataset.pick));
+
+    function syncBulkBar() {
+      const all = picks(), sel = picked();
+      $('bulkBar').hidden = all.length === 0;
+      $('bulkApprove').disabled = sel.length === 0;
+      $('bulkApprove').textContent = sel.length
+        ? `Approve ${sel.length} selected` : 'Approve selected';
+      $('bulkCount').textContent = sel.length
+        ? `${sel.length} of ${all.length} approvable claim(s) selected`
+        : `${all.length} claim(s) can be approved`;
+      $('pickAll').checked = all.length > 0 && sel.length === all.length;
+    }
+
+    $('pickAll').addEventListener('change', () => {
+      picks().forEach(c => { c.checked = $('pickAll').checked; });
+      syncBulkBar();
+    });
+
+    $('bulkApprove').addEventListener('click', async () => {
+      const ids = picked();
+      if (!ids.length) return;
+      if (!confirm(`Approve ${ids.length} claim(s)? Their cashback is released to members' wallets at the end of each claim's 3-day window.`)) return;
+      $('bulkApprove').disabled = true;
+      try {
+        const res = await fetch(`${API}/receipts/admin/bulk-verify`, {
+          method: 'POST',
+          headers: { 'X-Admin-Key': keyInput.value, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (res.status === 401) { setMsg('Invalid admin key.', false); return; }
+        if (!res.ok) { window.alert(body.detail || `Bulk approve failed (${res.status}).`); return; }
+        // Some claims can legitimately fail (their window closed) — say which.
+        if (body.failed) {
+          window.alert(`Approved ${body.approved}, skipped ${body.failed}:\n\n${(body.errors || []).join('\n')}`);
+        }
+        setMsg(`Approved ${body.approved} claim(s).`, true);
+        loadReceipts(); loadActivity(); loadAnalytics();
+      } catch (e) {
+        window.alert('Network error — is the API reachable?');
+      } finally {
+        $('bulkApprove').disabled = false;
+      }
+    });
 
     // ── Partnership applications: review brand submissions; approve → live deal ──
     // Applications are PUBLIC submissions (untrusted input) — escape everything
@@ -943,6 +1090,8 @@
 
     let anData = null;
     let coSort = { key: 'claims', dir: -1 };   // busiest companies first
+    let memSort = { key: 'earned', dir: -1 };  // top earners first
+    let anDays = 30;                           // selected window: 7 | 30 | 90
 
     async function loadAnalytics() {
       const msg = $('anMsg'), body = $('anBody');
@@ -955,18 +1104,21 @@
       msg.hidden = false;
       msg.textContent = anData ? 'Refreshing…' : 'Loading analytics…';
       try {
-        const res = await fetch(`${API}/admin/analytics`, {
+        const res = await fetch(`${API}/admin/analytics?days=${anDays}`, {
           headers: { 'X-Admin-Key': keyInput.value },
         });
         if (res.status === 401) { body.hidden = true; msg.textContent = 'Invalid admin key.'; return; }
         if (!res.ok) { body.hidden = true; msg.textContent = `Could not load analytics (${res.status}).`; return; }
         anData = await res.json();
+        $('chartDays').textContent = anData.windowDays;
         renderKpis(anData);
-        renderQueue(anData.queue);
+        renderQueue(anData);
         renderLegend(anData.timeseries);
         renderChart(anData.timeseries);
         renderFunnel(anData);
+        renderFraud(anData.fraud);
         renderCompanies();
+        renderMembers();
         renderCategories(anData.categories);
         renderTopDeals(anData.topDeals);
         body.hidden = false;
@@ -978,22 +1130,34 @@
     }
     $('anRefresh').addEventListener('click', loadAnalytics);
 
+    $('rangeSeg').querySelectorAll('[data-days]').forEach(b =>
+      b.addEventListener('click', () => {
+        anDays = Number(b.dataset.days);
+        $('rangeSeg').querySelectorAll('[data-days]').forEach(x =>
+          x.classList.toggle('on', x === b));
+        loadAnalytics();
+      }));
+
     function renderKpis(d) {
+      const w = d.windowDays;
       const tiles = [
         ['Companies onboard', fmtInt(d.companiesOnboard),
-         `${fmtInt(d.companiesActive30d)} active · ${fmtInt(d.companiesDormant)} dormant`],
-        ['New companies (30d)', fmtInt(d.companiesNew30d),
+         `${fmtInt(d.companiesActiveInWindow)} active · ${fmtInt(d.companiesDormant)} dormant`],
+        [`New companies (${w}d)`, fmtInt(d.companiesNewInWindow),
          `${fmtInt(d.applicationsPending)} application(s) waiting`],
         ['Approval rate', `${d.approvalRate}%`,
          `${fmtInt(d.applicationsApproved)} of ${fmtInt(d.applicationsTotal)} approved` +
          (d.avgReviewHours != null ? ` · ${d.avgReviewHours}h avg review` : '')],
-        ['Members', fmtInt(d.members), `+${fmtInt(d.membersNew30d)} in 30 days`],
+        ['Members', fmtInt(d.members), `+${fmtInt(d.membersNewInWindow)} in ${w} days`],
         ['Live deals', fmtInt(d.deals), `${fmtInt(d.dealsFromCompanies)} from companies`],
         ['Deal views', fmtInt(d.views), `${d.ctr}% click-through`],
         ['Claims', fmtInt(d.claims), `${d.conversion}% of views`],
         ['Cashback paid', fmtGBP0(d.cashbackGiven), `${fmtGBP(d.avgClaimValue)} avg per claim`],
+        ['Wallet owed to members', fmtGBP0(d.walletOwed), `${fmtGBP0(d.paidOut)} already withdrawn`],
         ['Pending cashback', fmtGBP0(d.pendingCashback), `${fmtGBP0(d.expiredCashback)} expired unclaimed`],
         ['Prepaid held', fmtGBP0(d.outstandingBalance), `${fmtGBP0(d.toppedUp)} topped up all-time`],
+        ['Underfunded companies', fmtInt(d.companiesAtRisk),
+         d.companiesAtRisk ? `${fmtGBP0(d.totalShortfall)} short of pending cashback` : 'all balances cover their claims'],
       ];
       $('kpiGrid').innerHTML = tiles.map(([label, val, sub]) =>
         `<div class="card kpi"><div class="kpi-label">${label}</div>
@@ -1001,10 +1165,13 @@
     }
 
     // Each tile jumps to the section that clears it; amber means it needs action.
-    function renderQueue(q) {
+    function renderQueue(d) {
+      const q = d.queue;
       const tiles = [
         ['Receipts to review', q.pendingReceipts, 'secReceipts'],
         ['Expiring in 24h', q.expiringSoon, 'secReceipts'],
+        ['Fraud signals', (d.fraud || []).filter(f => f.severity === 'high').length, 'fraudList'],
+        ['Underfunded companies', d.companiesAtRisk, 'coTable'],
         ['Merchant applications', q.pendingApplications, 'secApps'],
         ['Deal submissions', q.pendingSubmissions, 'secSubs'],
         ['Unread messages', q.unreadMessages, 'secMessages'],
@@ -1134,6 +1301,31 @@
            ${fmtInt(d.rejectedClaims)} claim(s) rejected</div>`;
     }
 
+    // ── Fraud signals ──
+    const FRAUD_ICON = {
+      repeat_claims: 'repeat', fresh_account: 'clock',
+      duplicate_image: 'copy', shared_post: 'users',
+    };
+    function renderFraud(signals) {
+      signals = signals || [];
+      $('fraudCount').textContent = signals.length;
+      const el = $('fraudList');
+      if (!signals.length) {
+        el.innerHTML = '<div class="fraud-clean">Nothing flagged — no repeat claims, rushed signups, reused images or shared posts in the current claims.</div>';
+        return;
+      }
+      el.innerHTML = signals.map(f => `
+        <div class="fraud-item">
+          <span class="rbadge ${esc(f.severity)}">${esc(f.severity)}</span>
+          <div class="fraud-main">
+            <div class="fraud-title">${esc(f.title)}</div>
+            <div class="fraud-detail">${esc(f.detail)}</div>
+            <div class="fraud-who">${esc(f.member)} · claim ${f.receiptIds.map(i => '#' + i).join(', ')}</div>
+          </div>
+          <div class="fraud-amt">${fmtGBP0(f.amount)}</div>
+        </div>`).join('');
+    }
+
     // ── Company activity table (sortable + searchable) ──
     const STATUS_RANK = { active: 2, quiet: 1, dormant: 0 };
 
@@ -1148,29 +1340,37 @@
               </svg>`;
     }
 
-    function renderCompanies() {
-      if (!anData) return;
+    // The rows currently on screen, in display order — also what CSV export writes.
+    function visibleCompanies() {
+      if (!anData) return [];
       const q = $('coSearch').value.trim().toLowerCase();
-      let rows = anData.companies.filter(c =>
+      const rows = anData.companies.filter(c =>
         !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
 
       const { key, dir } = coSort;
-      rows = rows.slice().sort((a, b) => {
+      return rows.slice().sort((a, b) => {
         let x = a[key], y = b[key];
         if (key === 'status') { x = STATUS_RANK[x]; y = STATUS_RANK[y]; }
         else if (key === 'lastActiveAt') { x = x ? new Date(x) : 0; y = y ? new Date(y) : 0; }
         if (typeof x === 'string') return x.localeCompare(y) * dir;
         return (x - y) * dir;
       });
+    }
+
+    function renderCompanies() {
+      if (!anData) return;
+      const q = $('coSearch').value.trim().toLowerCase();
+      const rows = visibleCompanies();
+      const key = coSort.key;
 
       $('coCount').textContent = anData.companies.length;
       $('coNote').textContent = q
         ? `${rows.length} of ${anData.companies.length} shown`
-        : `${anData.companiesActive30d} active in the last 30 days`;
+        : `${anData.companiesActiveInWindow} active in the last ${anData.windowDays} days`;
 
       const body = $('coBody');
       if (!rows.length) {
-        body.innerHTML = `<tr><td colspan="12" class="muted">${anData.companies.length
+        body.innerHTML = `<tr><td colspan="13" class="muted">${anData.companies.length
           ? 'No company matches that search.'
           : 'No companies onboard yet — approve an application, then create its merchant login.'}</td></tr>`;
         return;
@@ -1181,6 +1381,7 @@
           ? `<img src="${esc(c.logoUrl)}" alt="" onerror="this.remove()">`
           : initials;
         const flags = [];
+        if (c.atRisk) flags.push(`${fmtGBP0(c.shortfall)} short of its pending cashback`);
         if (c.pendingSubmissions) flags.push(`${c.pendingSubmissions} deal(s) awaiting review`);
         if (c.unreadMessages) flags.push(`${c.unreadMessages} unread message(s)`);
         if (c.balance < 0) flags.push('balance overdrawn');
@@ -1194,7 +1395,8 @@
               </span>
             </div>
           </td>
-          <td><span class="rbadge ${esc(c.status)}">${esc(c.status)}</span></td>
+          <td><span class="rbadge ${esc(c.status)}">${esc(c.status)}</span>${
+            c.atRisk ? ' <span class="rbadge risk">underfunded</span>' : ''}</td>
           <td class="num">${fmtInt(c.deals)}</td>
           <td class="num">${fmtInt(c.views)}</td>
           <td class="num">${fmtInt(c.clicks)}</td>
@@ -1203,6 +1405,8 @@
           <td class="num">${fmtGBP0(c.cashbackGiven)}</td>
           <td class="num">${fmtGBP0(c.pendingCashback)}</td>
           <td class="num"${c.balance < 0 ? ' style="color:var(--red)"' : ''}>${fmtGBP0(c.balance)}</td>
+          <td class="num"${c.atRisk ? ' style="color:var(--red);font-weight:800"' : ''}>${
+            c.shortfall ? fmtGBP0(c.shortfall) : '—'}</td>
           <td>${fmtAgo(c.lastActiveAt)}</td>
           <td>${sparkline(c.spark)}</td>
         </tr>`;
@@ -1223,6 +1427,99 @@
         renderCompanies();
       }));
     $('coSearch').addEventListener('input', renderCompanies);
+
+    // Export exactly what the table shows (current search + sort order).
+    $('coCsv').addEventListener('click', () => {
+      if (!anData || !anData.companies.length) return;
+      const cols = [
+        ['Company', c => c.name], ['Email', c => c.email],
+        ['Joined', c => new Date(c.joinedAt).toISOString().slice(0, 10)],
+        ['Status', c => c.status], ['Deals', c => c.deals],
+        ['Pending submissions', c => c.pendingSubmissions],
+        ['Views', c => c.views], ['Clicks', c => c.clicks], ['Claims', c => c.claims],
+        ['CTR %', c => c.ctr], ['Conversion %', c => c.conversion],
+        ['Cashback given', c => c.cashbackGiven], ['Pending cashback', c => c.pendingCashback],
+        ['Topped up', c => c.toppedUp], ['Balance', c => c.balance],
+        ['Shortfall', c => c.shortfall], ['Underfunded', c => c.atRisk ? 'yes' : 'no'],
+        ['Unread messages', c => c.unreadMessages],
+        ['Last active', c => c.lastActiveAt ? new Date(c.lastActiveAt).toISOString() : ''],
+      ];
+      const cell = v => {
+        const t = String(v ?? '');
+        return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+      };
+      const rows = visibleCompanies();
+      const csv = [cols.map(c => cell(c[0])).join(',')]
+        .concat(rows.map(r => cols.map(c => cell(c[1](r))).join(',')))
+        .join('\r\n');
+      // \ufeff so Excel opens the £ signs as UTF-8
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `cirqle-companies-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    // ── Member ledgers (sortable + searchable) ──
+    function renderMembers() {
+      if (!anData) return;
+      const q = $('memSearch').value.trim().toLowerCase();
+      let rows = (anData.topMembers || []).filter(m =>
+        !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+
+      const { key, dir } = memSort;
+      rows = rows.slice().sort((a, b) => {
+        let x = a[key], y = b[key];
+        if (key === 'lastClaimAt') { x = x ? new Date(x) : 0; y = y ? new Date(y) : 0; }
+        if (typeof x === 'string') return x.localeCompare(y) * dir;
+        return (x - y) * dir;
+      });
+
+      $('memCount').textContent = (anData.topMembers || []).length;
+      $('memNote').textContent = q
+        ? `${rows.length} of ${anData.topMembers.length} shown`
+        : `${fmtGBP0(anData.walletOwed)} owed across all members`;
+
+      const body = $('memBody');
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="11" class="muted">${anData.members
+          ? 'No member matches that search.' : 'No members signed up yet.'}</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map(m => `<tr>
+          <td>
+            <span style="font-weight:800">${esc(m.name)}</span>
+            <div class="co-email">${esc(m.email)}${m.instagramHandle ? ' · @' + esc(m.instagramHandle) : ''}
+              · joined ${fmtAgo(m.joinedAt)}</div>
+          </td>
+          <td class="num">${fmtInt(m.posts)}</td>
+          <td class="num">${fmtInt(m.claims)}</td>
+          <td class="num">${fmtInt(m.brandsUsed)}</td>
+          <td class="num">${fmtGBP0(m.earned)}</td>
+          <td class="num"${m.wallet ? ' style="font-weight:800"' : ''}>${fmtGBP0(m.wallet)}</td>
+          <td class="num">${fmtGBP0(m.paidOut)}</td>
+          <td class="num">${fmtGBP0(m.pending)}</td>
+          <td class="num">${m.expired ? fmtGBP0(m.expired) : '—'}</td>
+          <td class="num">${m.rejected || '—'}</td>
+          <td>${fmtAgo(m.lastClaimAt)}</td>
+        </tr>`).join('');
+
+      $('memTable').querySelectorAll('th[data-msort]').forEach(th =>
+        th.classList.toggle('sorted', th.dataset.msort === key));
+    }
+
+    $('memTable').querySelectorAll('th[data-msort]').forEach(th =>
+      th.addEventListener('click', () => {
+        const key = th.dataset.msort;
+        memSort = memSort.key === key
+          ? { key, dir: -memSort.dir }
+          : { key, dir: key === 'name' ? 1 : -1 };
+        renderMembers();
+      }));
+    $('memSearch').addEventListener('input', renderMembers);
 
     function renderCategories(cats) {
       const body = $('catBody');

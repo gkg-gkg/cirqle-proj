@@ -10,6 +10,7 @@ locally without any AWS:
 
 Phase 4 (receipt uploads) reuses this module unchanged.
 """
+import hashlib
 import os
 import uuid
 from pathlib import Path
@@ -96,14 +97,18 @@ def upload_image(file: UploadFile) -> str:
     return f"{LOCAL_BASE_URL}/media/{key}"
 
 
-def upload_receipt(file: UploadFile) -> str:
-    """Store a receipt image PRIVATELY and return its opaque storage key.
+def upload_receipt(file: UploadFile) -> tuple[str, str]:
+    """Store a receipt image PRIVATELY and return (storage key, sha256 of bytes).
 
     Receipts are personal, so unlike upload_image this produces NO public URL —
     it returns the object key only. Uses S3_RECEIPTS_BUCKET (a private bucket, no
     public policy) in prod, else backend/receipts/ locally. Neither is web-served.
+
+    The hash lets the admin page spot the same image claimed twice; it identifies
+    byte-identical files only (a re-saved or cropped copy hashes differently).
     """
     data, key = _validate_and_read(file)
+    digest = hashlib.sha256(data).hexdigest()
     bucket = os.environ.get("S3_RECEIPTS_BUCKET")
 
     if bucket:
@@ -120,14 +125,14 @@ def upload_receipt(file: UploadFile) -> str:
             )
         except Exception as exc:  # noqa: BLE001 — surface any AWS failure as one type
             raise StorageUploadError(f"S3 receipt upload failed: {exc}") from exc
-        return key
+        return key, digest
 
     try:
         RECEIPTS_DIR.mkdir(exist_ok=True)
         (RECEIPTS_DIR / key).write_bytes(data)
     except OSError as exc:
         raise StorageUploadError(f"Could not write receipt to disk: {exc}") from exc
-    return key
+    return key, digest
 
 
 def receipt_view_url(image_key: str, expires: int = 900) -> Optional[str]:

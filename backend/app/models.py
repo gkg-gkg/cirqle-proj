@@ -127,6 +127,7 @@ class Receipt(SQLModel, table=True):
     brand: str = ""                                  # snapshot of the deal's brand
     amount: float = 0                                # cashback £ (snapshot of deal.earn)
     image_key: str                                   # private storage key
+    image_sha256: str = ""                           # content hash, for duplicate detection
     status: str = "pending"                          # pending -> confirmed -> paid / rejected
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -689,6 +690,8 @@ class AdminCompanyStat(BaseModel):
     toppedUp: float
     balance: float             # top-ups - cashback given
     unreadMessages: int
+    shortfall: float           # pending cashback the prepaid balance can't cover (0 = funded)
+    atRisk: bool               # True when shortfall > 0
     lastActiveAt: Optional[datetime] = None
     daysSinceActive: Optional[int] = None
     status: str                # "active" (7d) | "quiet" (30d) | "dormant"
@@ -714,6 +717,52 @@ class AdminDealStat(BaseModel):
     cashback: float
 
 
+class AdminMemberStat(BaseModel):
+    """One member and their cashback ledger — the admin's view of a shopper."""
+    userId: int
+    name: str
+    email: str
+    instagramHandle: str = ""
+    joinedAt: datetime
+    posts: int
+    claims: int
+    earned: float              # cleared cashback ever (confirmed + paid)
+    wallet: float              # cleared and still withdrawable
+    paidOut: float             # already withdrawn
+    pending: float             # awaiting approval / still clearing
+    expired: float             # lapsed unapproved
+    rejected: int              # rejected claims
+    brandsUsed: int
+    lastClaimAt: Optional[datetime] = None
+
+
+class AdminFraudSignal(BaseModel):
+    """One thing worth a second look before cashback goes out.
+
+    These are heuristics, not verdicts — every one has an innocent explanation
+    and is meant to be reviewed, not auto-rejected.
+    """
+    kind: str                  # repeat_claims | fresh_account | duplicate_image | shared_post
+    severity: str              # "high" | "watch"
+    title: str
+    detail: str
+    member: str = ""           # "Name — email" of the member involved
+    amount: float = 0          # £ across the flagged claims (some may already be paid)
+    count: int = 0
+    receiptIds: list[int] = []
+
+
+class AdminBulkVerifyIn(BaseModel):
+    ids: list[int]
+
+
+class AdminBulkVerifyOut(BaseModel):
+    """Result of a bulk approve — per-claim outcomes, since some may be too old."""
+    approved: int
+    failed: int
+    errors: list[str] = []
+
+
 class AdminQueue(BaseModel):
     """What is waiting on the admin right now."""
     pendingReceipts: int
@@ -726,8 +775,8 @@ class AdminQueue(BaseModel):
 class AdminAnalyticsOut(BaseModel):
     # Companies
     companiesOnboard: int
-    companiesActive30d: int
-    companiesNew30d: int
+    companiesActiveInWindow: int
+    companiesNewInWindow: int
     companiesDormant: int
     # Pipeline (applications)
     applicationsTotal: int
@@ -738,7 +787,7 @@ class AdminAnalyticsOut(BaseModel):
     avgReviewHours: Optional[float] = None
     # Members + catalog
     members: int
-    membersNew30d: int
+    membersNewInWindow: int
     deals: int
     dealsFromCompanies: int    # deals attributed to a merchant login
     # Engagement
@@ -755,10 +804,18 @@ class AdminAnalyticsOut(BaseModel):
     toppedUp: float
     outstandingBalance: float  # total prepaid credit not yet spent
     avgClaimValue: float
+    companiesAtRisk: int       # companies whose balance can't cover pending cashback
+    totalShortfall: float
+    # Members
+    walletOwed: float          # cleared cashback members can still withdraw
+    paidOut: float             # already withdrawn
     # Breakdowns
+    windowDays: int            # the trend/activity window these numbers use
     queue: AdminQueue
     timeseries: list[AdminTimePoint]
     companies: list[AdminCompanyStat]
+    topMembers: list[AdminMemberStat]
+    fraud: list[AdminFraudSignal]
     categories: list[AdminCategoryStat]
     topDeals: list[AdminDealStat]
     generatedAt: datetime

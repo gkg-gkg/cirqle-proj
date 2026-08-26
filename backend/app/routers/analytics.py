@@ -7,27 +7,36 @@ no new storage, no background job.
 
 Admin-gated (reuses the campaigns X-Admin-Key).
 """
+from collections import defaultdict
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, func, select
 
 from ..cashback import admin_status, clears_at, parse_post_ts
 from ..db import get_session
 from ..models import (AdminAnalyticsOut, AdminCategoryStat, AdminCompanyStat,
-                      AdminDealStat, AdminQueue, AdminTimePoint, Campaign,
-                      CampaignSubmission, DealEvent, Mention, Merchant,
-                      MerchantApplication, MerchantMessage,
-                      MerchantTransaction, Receipt, User)
+                      AdminDealStat, AdminFraudSignal, AdminMemberStat,
+                      AdminQueue, AdminTimePoint, Campaign, CampaignSubmission,
+                      DealEvent, Mention, Merchant, MerchantApplication,
+                      MerchantMessage, MerchantTransaction, Receipt, User)
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-_DAYS = 30                              # trend window
+_WINDOWS = (7, 30, 90)                  # selectable trend windows
+_DEFAULT_DAYS = 30
 _ACTIVE_DAYS = 7                        # "active" company = activity this recent
 _GIVEN = ("confirmed", "paid")          # cashback the member has (or has had)
 _OWED = ("pending", "verified")         # cashback still on the hook
 _TOP_DEALS = 10
+_TOP_MEMBERS = 25
+
+# ── Fraud heuristics (tuned to surface a handful of rows, not a wall) ──
+_REPEAT_CLAIM_MIN = 2                   # same member, same deal, this many claims
+_REPEAT_CLAIM_HIGH = 4
+_FRESH_ACCOUNT_MINUTES = 30             # claim filed this soon after signing up
+_FRESH_ACCOUNT_HIGH_MINUTES = 5
 
 
 def _pct(part: float, whole: float) -> float:
@@ -43,13 +52,16 @@ def _newest(*values):
 
 @router.get("/analytics", response_model=AdminAnalyticsOut,
             dependencies=[Depends(require_admin)])
-def analytics(session: Session = Depends(get_session)):
+def analytics(days: int = Query(default=_DEFAULT_DAYS,
+                                description="Trend/activity window: 7, 30 or 90 days."),
+              session: Session = Depends(get_session)):
+    window_days = days if days in _WINDOWS else _DEFAULT_DAYS
     now = datetime.utcnow()
     today = date.today()
-    window_start = today - timedelta(days=_DAYS - 1)
+    window_start = today - timedelta(days=window_days - 1)
     window_start_dt = datetime.combine(window_start, datetime.min.time())
     active_cutoff = now - timedelta(days=_ACTIVE_DAYS)
-    month_cutoff = now - timedelta(days=_DAYS)
+    window_cutoff = now - timedelta(days=window_days)
 
     merchants = session.exec(select(Merchant)).all()
     campaigns = session.exec(select(Campaign)).all()
@@ -91,13 +103,12 @@ def analytics(session: Session = Depends(get_session)):
     status_of = {r.id: admin_status(r, post_ts.get(r.post_id)) for r in receipts}
 
     # ── Members ──
-    members = session.exec(select(func.count()).select_from(User)).one()
-    members_new = session.exec(
-        select(func.count()).select_from(User).where(User.created_at >= month_cutoff)
-    ).one()
-    signups_recent = session.exec(
-        select(User.created_at).where(User.created_at >= window_start_dt)
-    ).all()
+    users = session.exec(select(User)).all()
+    members_new = sum(1 for u in users if u.created_at >= window_cutoff)
+    signups_recent = [u.created_at for u in users if u.created_at >= window_start_dt]
+    posts_by_user = dict(session.exec(
+        select(Mention.user_id, func.count()).group_by(Mention.user_id)
+    ).all())
 
     # ── Headline engagement + money ──
     views = sum(views_by_deal.values())
@@ -137,13 +148,14 @@ def analytics(session: Session = Depends(get_session)):
     company_rows = _company_stats(
         merchants, campaigns, receipts, status_of, subs, messages, topups,
         views_by_deal, clicks_by_deal, last_event_by_deal, recent_events,
-        window_start, now, active_cutoff,
+        window_start, window_days, now, active_cutoff, window_cutoff,
     )
+    member_rows = _member_stats(users, receipts, status_of, posts_by_user)
 
     return AdminAnalyticsOut(
         companiesOnboard=len(merchants),
-        companiesActive30d=sum(1 for c in company_rows if c.status != "dormant"),
-        companiesNew30d=sum(1 for m in merchants if m.created_at >= month_cutoff),
+        companiesActiveInWindow=sum(1 for c in company_rows if c.status != "dormant"),
+        companiesNewInWindow=sum(1 for m in merchants if m.created_at >= window_cutoff),
         companiesDormant=sum(1 for c in company_rows if c.status == "dormant"),
         applicationsTotal=len(apps),
         applicationsPending=queue.pendingApplications,
@@ -151,8 +163,8 @@ def analytics(session: Session = Depends(get_session)):
         applicationsRejected=rejected,
         approvalRate=_pct(approved, approved + rejected),
         avgReviewHours=avg_review_hours,
-        members=members,
-        membersNew30d=members_new,
+        members=len(users),
+        membersNewInWindow=members_new,
         deals=len(campaigns),
         dealsFromCompanies=sum(1 for c in campaigns if c.merchant_id),
         views=views,
@@ -167,9 +179,19 @@ def analytics(session: Session = Depends(get_session)):
         toppedUp=topped_up,
         outstandingBalance=round(topped_up - cashback_given, 2),
         avgClaimValue=round(cashback_given / len(given), 2) if given else 0.0,
+        companiesAtRisk=sum(1 for c in company_rows if c.atRisk),
+        totalShortfall=round(sum(c.shortfall for c in company_rows), 2),
+        walletOwed=round(sum(r.amount for r in receipts
+                             if status_of[r.id] == "confirmed"), 2),
+        paidOut=round(sum(r.amount for r in receipts
+                          if status_of[r.id] == "paid"), 2),
+        windowDays=window_days,
         queue=queue,
-        timeseries=_timeseries(recent_events, receipts, signups_recent, window_start),
+        timeseries=_timeseries(recent_events, receipts, signups_recent,
+                               window_start, window_days),
         companies=company_rows,
+        topMembers=member_rows[:_TOP_MEMBERS],
+        fraud=_fraud_signals(users, receipts, status_of, campaigns, now),
         categories=_categories(campaigns, receipts, status_of, views_by_deal),
         topDeals=_top_deals(campaigns, merchants, receipts, status_of,
                             views_by_deal, clicks_by_deal),
@@ -177,12 +199,12 @@ def analytics(session: Session = Depends(get_session)):
     )
 
 
-def _timeseries(recent_events, receipts, signups, window_start) -> list:
-    """Last 30 days of views/clicks/claims/signups, one point per day (zero-filled)."""
+def _timeseries(recent_events, receipts, signups, window_start, window_days) -> list:
+    """The window's views/clicks/claims/signups, one point per day (zero-filled)."""
     buckets = {
         str(window_start + timedelta(days=n)):
             {"views": 0, "clicks": 0, "claims": 0, "signups": 0}
-        for n in range(_DAYS)
+        for n in range(window_days)
     }
 
     def bump(when, key):
@@ -203,7 +225,8 @@ def _timeseries(recent_events, receipts, signups, window_start) -> list:
 
 def _company_stats(merchants, campaigns, receipts, status_of, subs, messages,
                    topups, views_by_deal, clicks_by_deal, last_event_by_deal,
-                   recent_events, window_start, now, active_cutoff) -> list:
+                   recent_events, window_start, window_days, now, active_cutoff,
+                   window_cutoff) -> list:
     """One activity row per onboarded company, busiest first."""
     deals_by_merchant = {}
     for c in campaigns:
@@ -241,11 +264,11 @@ def _company_stats(merchants, campaigns, receipts, status_of, subs, messages,
         )
         days_since = (now - last_active).days if last_active else None
         status = ("active" if last_active and last_active >= active_cutoff
-                  else "quiet" if last_active and last_active >= now - timedelta(days=_DAYS)
+                  else "quiet" if last_active and last_active >= window_cutoff
                   else "dormant")
 
         # Daily activity for the row's sparkline: views + clicks + claims.
-        spark = {str(window_start + timedelta(days=n)): 0 for n in range(_DAYS)}
+        spark = {str(window_start + timedelta(days=n)): 0 for n in range(window_days)}
         for cid in deal_ids:
             for e in events_by_deal.get(cid, []):
                 key = str(e.created_at.date())
@@ -255,6 +278,11 @@ def _company_stats(merchants, campaigns, receipts, status_of, subs, messages,
             key = str(r.uploaded_at.date())
             if key in spark:
                 spark[key] += 1
+
+        pending_cashback = round(
+            sum(r.amount for r in m_receipts if status_of[r.id] in _OWED), 2)
+        balance = round(topped - cashback_given, 2)
+        shortfall = round(max(0.0, pending_cashback - balance), 2)
 
         rows.append(AdminCompanyStat(
             merchantId=m.id,
@@ -270,12 +298,13 @@ def _company_stats(merchants, campaigns, receipts, status_of, subs, messages,
             ctr=_pct(clicks, views),
             conversion=_pct(len(m_receipts), views),
             cashbackGiven=cashback_given,
-            pendingCashback=round(
-                sum(r.amount for r in m_receipts if status_of[r.id] in _OWED), 2),
+            pendingCashback=pending_cashback,
             toppedUp=topped,
-            balance=round(topped - cashback_given, 2),
+            balance=balance,
             unreadMessages=sum(1 for msg in m_msgs
                                if msg.sender == "merchant" and not msg.read_by_admin),
+            shortfall=shortfall,
+            atRisk=shortfall > 0,
             lastActiveAt=last_active,
             daysSinceActive=days_since,
             status=status,
@@ -284,6 +313,146 @@ def _company_stats(merchants, campaigns, receipts, status_of, subs, messages,
 
     rows.sort(key=lambda c: (c.claims, c.views, c.deals), reverse=True)
     return rows
+
+
+def _member_stats(users, receipts, status_of, posts_by_user) -> list:
+    """One ledger row per member, biggest earners first."""
+    by_user = defaultdict(list)
+    for r in receipts:
+        by_user[r.user_id].append(r)
+
+    rows = []
+    for u in users:
+        mine = by_user.get(u.id, [])
+        st = [status_of[r.id] for r in mine]
+        total = lambda kinds: round(  # noqa: E731 — local shorthand, used 4 times below
+            sum(r.amount for r, s in zip(mine, st) if s in kinds), 2)
+        wallet = total(("confirmed",))
+        paid = total(("paid",))
+        rows.append(AdminMemberStat(
+            userId=u.id,
+            name=f"{u.first_name} {u.last_name}".strip() or u.email,
+            email=u.email,
+            instagramHandle=u.instagram_handle or "",
+            joinedAt=u.created_at,
+            posts=posts_by_user.get(u.id, 0),
+            claims=len(mine),
+            earned=round(wallet + paid, 2),
+            wallet=wallet,
+            paidOut=paid,
+            pending=total(_OWED),
+            expired=total(("expired",)),
+            rejected=sum(1 for x in st if x == "rejected"),
+            brandsUsed=len({r.brand for r in mine if r.brand}),
+            lastClaimAt=max((r.uploaded_at for r in mine), default=None),
+        ))
+
+    rows.sort(key=lambda m: (m.earned, m.claims), reverse=True)
+    return rows
+
+
+def _fraud_signals(users, receipts, status_of, campaigns, now) -> list:
+    """Claims worth a second look before cashback goes out.
+
+    Every signal here is a heuristic with an innocent explanation — a member
+    genuinely can post twice about one brand — so these are surfaced for review,
+    never auto-rejected. Only claims that can still cost money are considered
+    (rejected and expired ones are already dead).
+    """
+    live = [r for r in receipts if status_of[r.id] not in ("rejected", "expired")]
+    user_by_id = {u.id: u for u in users}
+    title_by_campaign = {c.id: (c.card_title or c.title or c.brand) for c in campaigns}
+
+    def who(user_id):
+        u = user_by_id.get(user_id)
+        return f"{u.first_name} {u.last_name} — {u.email}".strip(" —") if u else f"user #{user_id}"
+
+    signals = []
+
+    # 1. The same member claiming the same deal over and over.
+    by_user_deal = defaultdict(list)
+    for r in live:
+        if r.campaign_id:
+            by_user_deal[(r.user_id, r.campaign_id)].append(r)
+    for (user_id, campaign_id), rs in by_user_deal.items():
+        if len(rs) < _REPEAT_CLAIM_MIN:
+            continue
+        deal = title_by_campaign.get(campaign_id, f"deal #{campaign_id}")
+        signals.append(AdminFraudSignal(
+            kind="repeat_claims",
+            severity="high" if len(rs) >= _REPEAT_CLAIM_HIGH else "watch",
+            title=f"{len(rs)} claims on one deal by one member",
+            detail=f"{deal} — {len(rs)} separate claims from the same account.",
+            member=who(user_id),
+            amount=round(sum(r.amount for r in rs), 2),
+            count=len(rs),
+            receiptIds=[r.id for r in rs],
+        ))
+
+    # 2. Accounts that claimed almost immediately after signing up.
+    for r in live:
+        u = user_by_id.get(r.user_id)
+        if not u:
+            continue
+        gap = (r.uploaded_at - u.created_at).total_seconds() / 60
+        if 0 <= gap <= _FRESH_ACCOUNT_MINUTES:
+            mins = int(gap)
+            signals.append(AdminFraudSignal(
+                kind="fresh_account",
+                severity="high" if gap <= _FRESH_ACCOUNT_HIGH_MINUTES else "watch",
+                title=f"Claim filed {mins} min after signup",
+                detail=f"{r.brand or 'Cashback'} £{r.amount:.2f} — account created "
+                       f"{u.created_at:%d %b %Y %H:%M}, claim uploaded {mins} minute(s) later.",
+                member=who(r.user_id),
+                amount=round(r.amount, 2),
+                count=1,
+                receiptIds=[r.id],
+            ))
+
+    # 3. The same image file used on more than one claim. Byte-identical only —
+    # a re-saved or cropped copy hashes differently and won't show up here.
+    by_hash = defaultdict(list)
+    for r in live:
+        if r.image_sha256:
+            by_hash[r.image_sha256].append(r)
+    for digest, rs in by_hash.items():
+        if len(rs) < 2:
+            continue
+        members = {r.user_id for r in rs}
+        signals.append(AdminFraudSignal(
+            kind="duplicate_image",
+            severity="high" if len(members) > 1 else "watch",
+            title=f"Same receipt image on {len(rs)} claims",
+            detail=(f"Identical file across {len(rs)} claims from {len(members)} "
+                    f"account(s) — hash {digest[:12]}…"),
+            member=" · ".join(who(uid) for uid in sorted(members)),
+            amount=round(sum(r.amount for r in rs), 2),
+            count=len(rs),
+            receiptIds=[r.id for r in rs],
+        ))
+
+    # 4. One Instagram post claimed by several different accounts.
+    by_post = defaultdict(list)
+    for r in live:
+        if r.post_id:
+            by_post[r.post_id].append(r)
+    for post_id, rs in by_post.items():
+        members = {r.user_id for r in rs}
+        if len(members) < 2:
+            continue
+        signals.append(AdminFraudSignal(
+            kind="shared_post",
+            severity="high",
+            title=f"One post claimed by {len(members)} accounts",
+            detail=f"Instagram post {post_id} backs claims from {len(members)} different accounts.",
+            member=" · ".join(who(uid) for uid in sorted(members)),
+            amount=round(sum(r.amount for r in rs), 2),
+            count=len(rs),
+            receiptIds=[r.id for r in rs],
+        ))
+
+    signals.sort(key=lambda f: (f.severity != "high", -f.amount, -f.count))
+    return signals
 
 
 def _categories(campaigns, receipts, status_of, views_by_deal) -> list:

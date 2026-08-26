@@ -18,8 +18,8 @@ from sqlmodel import Session, select
 from ..activity import log_activity
 from ..cashback import admin_status, clears_at, effective_status, parse_post_ts
 from ..db import get_session
-from ..models import (AdminReceiptOut, Campaign, Mention, Receipt, ReceiptOut,
-                      User)
+from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminReceiptOut,
+                      Campaign, Mention, Receipt, ReceiptOut, User)
 from ..security import get_current_user
 from ..storage import (StorageError, StorageUploadError, receipt_view_url,
                        upload_receipt)
@@ -80,7 +80,7 @@ def create_receipt(
     if not post_id.strip():
         raise HTTPException(status_code=422, detail="post_id is required.")
     try:
-        key = upload_receipt(image)
+        key, digest = upload_receipt(image)
     except StorageUploadError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
     except StorageError as exc:
@@ -102,6 +102,7 @@ def create_receipt(
     ).first()
     if existing:
         existing.image_key = key
+        existing.image_sha256 = digest
         existing.campaign_id = campaign_id
         existing.brand = brand
         existing.amount = amount
@@ -111,7 +112,8 @@ def create_receipt(
     else:
         receipt = Receipt(
             user_id=user.id, post_id=post_id, campaign_id=campaign_id,
-            brand=brand, amount=amount, image_key=key, status="pending",
+            brand=brand, amount=amount, image_key=key, image_sha256=digest,
+            status="pending",
         )
 
     session.add(receipt)
@@ -172,6 +174,46 @@ def verify_receipt(receipt_id: int, session: Session = Depends(get_session)):
     session.refresh(r)
     log_activity(session, "Approved receipt claim", f"{r.brand or 'Cashback'} £{r.amount:.2f}")
     return _receipt_out(r, effective_status(r, post_ts))
+
+
+@router.post("/admin/bulk-verify", response_model=AdminBulkVerifyOut,
+             dependencies=[Depends(require_admin)])
+def bulk_verify_receipts(data: AdminBulkVerifyIn,
+                         session: Session = Depends(get_session)):
+    """Admin: approve several claims at once.
+
+    Each claim is checked individually against the same 3-day rule as the single
+    approve, so an expired one is reported back instead of failing the whole
+    batch. One activity-log line covers the batch.
+    """
+    if not data.ids:
+        raise HTTPException(status_code=422, detail="No claims selected.")
+    if len(data.ids) > 200:
+        raise HTTPException(status_code=422, detail="Too many claims in one batch (max 200).")
+
+    approved, errors = [], []
+    for receipt_id in dict.fromkeys(data.ids):     # de-duplicate, keep order
+        r = session.get(Receipt, receipt_id)
+        if r is None:
+            errors.append(f"#{receipt_id}: not found")
+            continue
+        if r.status not in ("pending", "verified"):
+            errors.append(f"#{receipt_id}: already {r.status}")
+            continue
+        if datetime.utcnow() >= clears_at(r, _post_ts_of(r, session)):
+            errors.append(f"#{receipt_id}: 3-day window has passed")
+            continue
+        r.status = "verified"
+        session.add(r)
+        approved.append(r)
+
+    if approved:
+        session.commit()
+        total = sum(r.amount for r in approved)
+        log_activity(session, f"Approved {len(approved)} receipt claims",
+                     f"£{total:.2f} released across {len(approved)} claim(s)")
+
+    return AdminBulkVerifyOut(approved=len(approved), failed=len(errors), errors=errors[:20])
 
 
 @router.post("/{receipt_id}/reject", response_model=ReceiptOut,
