@@ -44,6 +44,8 @@ def _app_out(a: MerchantApplication) -> MerchantApplicationOut:
         heard=a.heard,
         message=a.message,
         status=a.status,
+        tier=a.tier,
+        kind=a.kind,
         campaignId=a.campaign_id,
         createdAt=a.created_at,
     )
@@ -72,6 +74,10 @@ def submit_application(data: MerchantApplicationIn,
         goals=json.dumps(data.goals),
         heard=data.heard.strip(),
         message=data.message.strip(),
+        tier=data.tier.strip(),
+        # A short "just a question" submission lands in the same inbox, tagged
+        # so the admin can tell it from a full application.
+        kind="enquiry" if data.kind == "enquiry" else "application",
     )
     session.add(a)
     session.commit()

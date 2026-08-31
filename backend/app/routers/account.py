@@ -3,7 +3,7 @@
 Real per-user numbers for the "My Account" page, all derived from the user's
 receipts (the cashback ledger) + their stored posts. No placeholders.
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 from ..cashback import effective_status, parse_post_ts
@@ -64,7 +64,16 @@ def withdraw(
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Withdraw the cleared balance — marks effectively-confirmed claims as paid."""
+    """Withdraw the cleared balance — marks effectively-confirmed claims as paid.
+
+    DISABLED until real payouts exist (Part 2: Stripe Connect). Marking claims
+    "paid" while no money leaves Cirqle would tell members — and the admin
+    ledger — that they'd been paid when they hadn't. The dashboard already
+    shows "withdrawals coming soon"; this makes the API agree.
+    """
+    raise HTTPException(
+        status_code=503,
+        detail="Withdrawals aren't live yet — your balance is safe and stays put.")
     receipts = session.exec(select(Receipt).where(Receipt.user_id == user.id)).all()
     posts = session.exec(select(Mention).where(Mention.user_id == user.id)).all()
     ts = {m.id: parse_post_ts(m.timestamp) for m in posts}

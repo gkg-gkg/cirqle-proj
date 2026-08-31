@@ -253,6 +253,28 @@
     .txn-amt { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
     .txn-amt.pos { color: #1c7c3a; }
     .txn-empty { color: var(--ink-soft); font-weight: 600; padding: 10px 0; }
+    .plan-picker .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 16px; }
+    .mplan { padding: 20px 18px; display: flex; flex-direction: column; border: var(--bw) solid var(--line); border-radius: var(--r-card); background: var(--paper); }
+    .mplan-name { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; }
+    .mplan-price { font-family: var(--font-display); font-weight: 800; font-size: 1.9rem; letter-spacing: -0.02em; margin: 8px 0 2px; }
+    .mplan-per { font-size: .74rem; font-weight: 700; color: var(--ink-soft); }
+    .mplan-allow { margin: 12px 0; font-size: .8rem; color: var(--ink-soft); line-height: 1.5; }
+    .mplan .btn { width: 100%; margin-top: auto; }
+    .mplan.current { border-color: var(--lime-deep); box-shadow: 0 0 0 3px var(--lime); }
+    .plan-summary { margin-bottom: 16px; }
+    .plan-sum-top { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+    .plan-sum-name { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .plan-sum-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .allow-wrap { margin-top: 20px; }
+    .allow-head { display: flex; justify-content: space-between; font-size: .82rem; font-weight: 700; margin-bottom: 8px; }
+    .allow-bar { height: 10px; border: var(--bw) solid var(--ink); border-radius: 999px; background: var(--paper); overflow: hidden; }
+    .allow-bar span { display: block; height: 100%; width: 0; background: var(--lime); transition: width .4s; }
+    .allow-bar span.over { background: var(--tang); }
+    .alert-bar { display: flex; align-items: center; gap: 10px; padding: 13px 16px; margin-bottom: 16px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: var(--tang); font-size: .86rem; font-weight: 700; }
+    .quote-box { margin: 14px 0 4px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper-deep); font-size: .84rem; line-height: 1.7; display: none; }
+    .quote-box.on { display: block; }
+    .quote-row { display: flex; justify-content: space-between; }
+    .quote-row.total { font-weight: 800; border-top: var(--bw) solid var(--line); margin-top: 6px; padding-top: 6px; }
     .topup-chips { display: flex; gap: 8px; margin: 10px 0 4px; }
     .topup-chip { flex: 1; padding: 9px 0; text-align: center; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper); font-weight: 700; font-size: .86rem; cursor: pointer; }
     .topup-chip:hover { border-color: var(--blue-deep); }
@@ -508,11 +530,45 @@
         <div class="panel-title">Billing</div>
         <div class="panel-sub">Your prepaid balance funds the cashback shoppers earn on your deals.</div>
       </div>
+      <!-- No plan yet: choose one (this is where the card is first collected) -->
+      <div class="card pad plan-picker hidden" id="planPicker">
+        <div class="panel-title">Choose your membership</div>
+        <div class="panel-sub">Every plan includes a monthly allowance of fee-free cashback credit. You'll enter your card securely on Stripe.</div>
+        <div class="plans-grid" id="mPlansGrid"><p class="muted">Loading plans…</p></div>
+        <p class="muted" id="mPlansNote" style="margin-top:14px"></p>
+      </div>
+
+      <!-- On a plan: current tier, allowance used, card management -->
+      <div class="card pad plan-summary hidden" id="planSummary">
+        <div class="plan-sum-top">
+          <div>
+            <div class="stat-label">Your plan</div>
+            <div class="plan-sum-name"><span id="planName">—</span>
+              <span class="rbadge" id="planStatus"></span></div>
+            <div class="muted" id="planRenews" style="margin-top:4px"></div>
+          </div>
+          <div class="plan-sum-actions">
+            <button type="button" class="btn mini" onclick="openPlanChange()">Change plan</button>
+            <button type="button" class="btn mini btn-ink" onclick="openPortal()">Manage card &amp; invoices</button>
+          </div>
+        </div>
+        <div class="allow-wrap">
+          <div class="allow-head">
+            <span>Fee-free credit this month</span>
+            <span id="allowText">£0 of £0 used</span>
+          </div>
+          <div class="allow-bar"><span id="allowFill"></span></div>
+          <div class="muted" id="allowNote" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <div class="alert-bar hidden" id="billingAlert"></div>
+
       <div class="billing-top">
         <div class="card balance-hero">
           <div class="stat-label">Balance</div>
           <div class="balance-num">£<span id="bBalance">0.00</span></div>
-          <button type="button" class="btn btn-lime" onclick="openTopup()">Add credit</button>
+          <button type="button" class="btn btn-lime" id="addCreditBtn" onclick="openTopup()">Add credit</button>
           <div class="balance-note">Top up by card to fund the cashback shoppers earn on your deals. You're charged only the amount you add.</div>
         </div>
         <div class="bill-tiles">
@@ -544,6 +600,7 @@
         <div class="topup-chip" onclick="document.getElementById('topupAmount').value=100">£100</div>
         <div class="topup-chip" onclick="document.getElementById('topupAmount').value=250">£250</div>
       </div>
+      <div class="quote-box" id="quoteBox"></div>
       <div class="modal-err" id="topupErr"></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-lime" id="topupBtn" onclick="doTopup()">Continue to payment →</button>
@@ -1287,7 +1344,110 @@
       if (!res.ok) return;
       renderBilling(await res.json());
     }
+    // ── Membership plan ───────────────────────────────────────────────────
+    let plansCache = [];
+    const gbp = n => '£' + Number(n).toLocaleString('en-GB');
+
+    async function loadPlans() {
+      if (plansCache.length) return plansCache;
+      const res = await fetch(`${API}/merchant/plans`);
+      plansCache = res.ok ? await res.json() : [];
+      return plansCache;
+    }
+
+    async function renderPlan(sub) {
+      const picker = document.getElementById('planPicker');
+      const summary = document.getElementById('planSummary');
+      const alert = document.getElementById('billingAlert');
+      const onPlan = sub.tier && sub.status === 'active';
+
+      picker.classList.toggle('hidden', onPlan);
+      summary.classList.toggle('hidden', !onPlan);
+
+      // A lapsed or cancelled plan blocks top-ups — say so plainly.
+      if (sub.status === 'past_due') {
+        alert.textContent = 'Your last payment failed. Update your card to keep adding credit and submitting deals.';
+        alert.classList.remove('hidden');
+      } else if (sub.status === 'canceled') {
+        alert.textContent = 'Your membership is cancelled. Choose a plan to start again — your balance is safe.';
+        alert.classList.remove('hidden');
+      } else {
+        alert.classList.add('hidden');
+      }
+
+      if (onPlan) {
+        document.getElementById('planName').textContent = sub.planName;
+        const badge = document.getElementById('planStatus');
+        badge.textContent = sub.status;
+        badge.className = 'rbadge ' + sub.status;
+        document.getElementById('planRenews').textContent = sub.renewsAt
+          ? `${gbp(sub.fee)}/month · renews ${new Date(sub.renewsAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+          : `${gbp(sub.fee)}/month`;
+        const pct = sub.allowance ? Math.min(100, sub.allowanceUsed / sub.allowance * 100) : 0;
+        const fill = document.getElementById('allowFill');
+        fill.style.width = pct + '%';
+        fill.classList.toggle('over', pct >= 100);
+        document.getElementById('allowText').textContent =
+          `${gbp(sub.allowanceUsed)} of ${gbp(sub.allowance)} used`;
+        document.getElementById('allowNote').textContent = sub.allowanceLeft > 0
+          ? `${gbp(sub.allowanceLeft)} of fee-free credit left this month.`
+          : 'Allowance used — further top-ups this month add a 10% platform fee.';
+        return;
+      }
+
+      const plans = await loadPlans();
+      document.getElementById('mPlansGrid').innerHTML = plans.map(p => `
+        <div class="mplan${p.id === sub.tier ? ' current' : ''}">
+          <div class="mplan-name">${p.name}</div>
+          <div class="mplan-price">${gbp(p.fee)}</div>
+          <div class="mplan-per">per month</div>
+          <div class="mplan-allow">Includes <strong>${gbp(p.allowance)}</strong> of fee-free cashback credit each month.</div>
+          <button type="button" class="btn btn-lime" data-sub="${p.id}">Choose ${p.name}</button>
+        </div>`).join('');
+      document.getElementById('mPlansNote').textContent =
+        `Top up beyond your allowance and a ${Math.round((plans[0]?.feeRate || 0.1) * 100)}% platform fee is added. Cancel any time.`;
+      document.querySelectorAll('[data-sub]').forEach(b =>
+        b.addEventListener('click', () => subscribe(b.dataset.sub, b)));
+    }
+
+    async function subscribe(tier, btn) {
+      btn.disabled = true; btn.textContent = 'Opening checkout…';
+      try {
+        const res = await fetch(`${API}/merchant/billing/subscribe`, {
+          method: 'POST', headers: { ...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tier }),
+        });
+        if (res.status === 401) { signOut(); return; }
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) { cirqleToast(body.detail || 'Could not start checkout'); btn.disabled = false; btn.textContent = 'Choose plan'; return; }
+        window.location.assign(body.url);
+      } catch (_) {
+        cirqleToast('Could not reach the server'); btn.disabled = false; btn.textContent = 'Choose plan';
+      }
+    }
+
+    function openPlanChange() {
+      // Changing plan is a Stripe-side action, so send them to the portal where
+      // upgrades, downgrades and proration are handled properly.
+      openPortal();
+    }
+
+    async function openPortal() {
+      try {
+        const res = await fetch(`${API}/merchant/billing/portal`, {
+          method: 'POST', headers: authHeader(),
+        });
+        if (res.status === 401) { signOut(); return; }
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) { cirqleToast(body.detail || 'Could not open the billing portal'); return; }
+        window.location.assign(body.url);
+      } catch (_) { cirqleToast('Could not reach the server'); }
+    }
+
     function renderBilling(b) {
+      renderPlan(b.subscription || { status: 'none' });
+      const addBtn = document.getElementById('addCreditBtn');
+      if (addBtn) addBtn.disabled = !(b.subscription && b.subscription.canTopUp);
       document.getElementById('bBalance').textContent = fmtMoney(b.balance);
       document.getElementById('bTopped').textContent = fmtMoney(b.totalToppedUp);
       document.getElementById('bGiven').textContent = fmtMoney(b.cashbackGiven);
@@ -1314,8 +1474,37 @@
     function openTopup() {
       document.getElementById('topupErr').textContent = '';
       document.getElementById('topupAmount').value = '';
+      document.getElementById('quoteBox').classList.remove('on');
       document.getElementById('topupModal').classList.add('open');
     }
+
+    // Ask the server what a given top-up actually costs. Debounced so typing
+    // "250" doesn't fire three requests, and the server is the authority on the
+    // fee — the browser never computes money.
+    let quoteTimer;
+    async function refreshQuote() {
+      const box = document.getElementById('quoteBox');
+      const amount = parseFloat(document.getElementById('topupAmount').value);
+      if (!amount || amount <= 0) { box.classList.remove('on'); return; }
+      try {
+        const res = await fetch(`${API}/merchant/billing/quote?amount=${amount}`, { headers: authHeader() });
+        if (!res.ok) { box.classList.remove('on'); return; }
+        const q = await res.json();
+        box.innerHTML = `
+          <div class="quote-row"><span>Credit added to your balance</span><span>${gbp(q.credit.toFixed(2))}</span></div>
+          ${q.fee > 0
+            ? `<div class="quote-row"><span>Platform fee (${Math.round(q.feeRate * 100)}% past your allowance)</span><span>${gbp(q.fee.toFixed(2))}</span></div>`
+            : `<div class="quote-row"><span>Within your fee-free allowance</span><span>No fee</span></div>`}
+          <div class="quote-row total"><span>Your card is charged</span><span>${gbp(q.total.toFixed(2))}</span></div>`;
+        box.classList.add('on');
+      } catch (_) { box.classList.remove('on'); }
+    }
+    document.getElementById('topupAmount').addEventListener('input', () => {
+      clearTimeout(quoteTimer);
+      quoteTimer = setTimeout(refreshQuote, 350);
+    });
+    document.querySelectorAll('.topup-chip').forEach(chip =>
+      chip.addEventListener('click', () => setTimeout(refreshQuote, 0)));
     function closeTopup() { document.getElementById('topupModal').classList.remove('open'); }
     document.getElementById('topupModal').addEventListener('click', (e) => {
       if (e.target.id === 'topupModal') closeTopup();
@@ -1352,7 +1541,21 @@
     // happened and refresh the balance. The credit is applied by the webhook,
     // which can land a moment after the redirect — so we refetch, then again.
     function handleTopupReturn() {
-      const status = new URLSearchParams(location.search).get('topup');
+      const params = new URLSearchParams(location.search);
+      const plan = params.get('plan');
+      if (plan) {
+        if (history.replaceState) history.replaceState(null, '', location.pathname + '#billing');
+        showTab('billing');
+        if (plan === 'success') {
+          cirqleToast('Membership active — welcome aboard!');
+          loadBilling();
+          setTimeout(loadBilling, 3000);   // the webhook can land a moment later
+        } else {
+          cirqleToast('Checkout cancelled — no plan was started.');
+        }
+        return;
+      }
+      const status = params.get('topup');
       if (!status) return;
       if (history.replaceState) history.replaceState(null, '', location.pathname + '#billing');
       if (status === 'success') {

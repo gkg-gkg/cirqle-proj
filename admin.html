@@ -961,7 +961,10 @@
           row.innerHTML = `
             <div class="clist-thumb"><i class="ico ico-users"></i></div>
             <div class="clist-main">
-              <div class="clist-title">${esc(a.brand)} — ${esc(a.cashbackRate)}% <span class="rbadge ${esc(a.status)}">${esc(a.status)}</span></div>
+              <div class="clist-title">${esc(a.brand)}${a.kind === 'enquiry'
+              ? ' <span class="rbadge verified">question</span>'
+              : ` — ${esc(a.cashbackRate)}%`} <span class="rbadge ${esc(a.status)}">${esc(a.status)}</span>${
+              a.tier ? ` <span class="rbadge approved">${esc(a.tier)}</span>` : ''}</div>
               <div class="clist-sub">${esc(a.category)} · ${esc(a.firstName)} ${esc(a.lastName)} · ${esc(a.email)}</div>
             </div>
             <div class="clist-actions">
@@ -1551,7 +1554,10 @@
             <div class="co-name">
               <span class="co-logo">${logo}</span>
               <span><span style="font-weight:800">${esc(c.name)}</span>
-                <div class="co-email">${esc(c.email)} · joined ${fmtAgo(c.joinedAt)}</div>
+                <div class="co-email">${esc(c.email)} · joined ${fmtAgo(c.joinedAt)}${c.planName
+                  ? ` · <strong>${esc(c.planName)}</strong>` : ' · <em>no plan</em>'}${
+                  c.subscriptionStatus && !['active','none'].includes(c.subscriptionStatus)
+                    ? ` <span class="rbadge ${esc(c.subscriptionStatus)}">${esc(c.subscriptionStatus)}</span>` : ''}</div>
                 ${flags.length ? `<div class="co-email" style="color:#8a5a00">${esc(flags.join(' · '))}</div>` : ''}
               </span>
             </div>

@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, func, select
 
 from ..cashback import admin_status, clears_at, parse_post_ts
+from ..payments import TIERS
 from ..db import get_session
 from ..models import (AdminAnalyticsOut, AdminCategoryStat, AdminCompanyStat,
                       AdminDealStat, AdminFraudSignal, AdminMemberStat,
@@ -290,6 +291,9 @@ def _company_stats(merchants, campaigns, receipts, status_of, subs, messages,
             name=m.business_name or m.email,
             email=m.email,
             joinedAt=m.created_at,
+            tier=m.tier or "",
+            planName=(TIERS.get(m.tier or "") or {}).get("name", ""),
+            subscriptionStatus=m.subscription_status or "none",
             logoUrl=m.logo_url,
             deals=len(deals),
             pendingSubmissions=sum(1 for s in m_subs if s.status == "pending"),

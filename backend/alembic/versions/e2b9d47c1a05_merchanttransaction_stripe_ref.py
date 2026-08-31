@@ -1,7 +1,7 @@
 """add merchanttransaction.stripe_ref for Stripe top-up idempotency
 
 Revision ID: e2b9d47c1a05
-Revises: c4f81b2ad930
+Revises: 5b8296a8b7a1
 Create Date: 2026-08-31
 
 `merchanttransaction` predates the migration chain — it was only ever created by
@@ -21,7 +21,7 @@ from sqlmodel import SQLModel
 import app.models  # noqa: F401 — registers every table on SQLModel.metadata
 
 revision: str = 'e2b9d47c1a05'
-down_revision: Union[str, Sequence[str], None] = 'c4f81b2ad930'
+down_revision: Union[str, Sequence[str], None] = '5b8296a8b7a1'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

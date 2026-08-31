@@ -110,6 +110,8 @@ class MerchantApplication(SQLModel, table=True):
     heard: str = ""
     message: str = ""
     status: str = "pending"           # pending -> approved / rejected
+    tier: str = ""                    # plan they picked on the form ("" = enquiry only)
+    kind: str = "application"         # "application" | "enquiry" (general question)
     campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     reviewed_at: Optional[datetime] = None
@@ -163,6 +165,16 @@ class Merchant(SQLModel, table=True):
     facebook: str = ""
     tips: str = ""               # tips the brand gives shoppers (free text)
     logo_url: str = ""           # public S3 URL of the uploaded logo
+    # ── Billing (Stripe) ──
+    # The Stripe Customer is the anchor every payment, card and invoice hangs
+    # off. `tier` is "" until they pick a plan; the rest mirrors Stripe so the
+    # portal can render without calling the API on every page load (webhooks
+    # keep it in sync — Stripe stays the source of truth).
+    stripe_customer_id: str = Field(default="", index=True)
+    tier: str = ""                                   # "" | starter | growth | scale
+    stripe_subscription_id: str = ""
+    subscription_status: str = "none"                # none|active|past_due|canceled
+    current_period_end: Optional[datetime] = None    # next renewal
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -176,8 +188,13 @@ class MerchantTransaction(SQLModel, table=True):
     """
     id: Optional[int] = Field(default=None, primary_key=True)
     merchant_id: int = Field(index=True, foreign_key="merchant.id")
-    kind: str = "topup"          # "topup"
-    amount: float = 0            # £ added
+    # topup         -> credit added to the spendable balance (+)
+    # platform_fee  -> the 10% charged past the monthly allowance (no credit)
+    # subscription  -> a monthly plan fee (no credit)
+    # refund        -> credit returned to their card (-)
+    kind: str = "topup"
+    amount: float = 0            # £ of credit (negative for a refund)
+    fee: float = 0               # £ platform fee charged alongside a top-up
     description: str = ""
     # The Stripe Checkout Session id (cs_...) that funded this top-up. Empty for
     # the old demo rows. Indexed + used to guarantee a webhook retry can never
@@ -443,6 +460,8 @@ class MerchantApplicationIn(BaseModel):
     goals: list[str] = []
     heard: str = ""
     message: str = ""
+    tier: str = ""                    # plan chosen on the plans grid ("" = none)
+    kind: str = "application"         # "application" | "enquiry"
 
 
 class MerchantApplicationOut(BaseModel):
@@ -467,6 +486,8 @@ class MerchantApplicationOut(BaseModel):
     heard: str
     message: str
     status: str
+    tier: str = ""
+    kind: str = "application"
     campaignId: Optional[int] = None
     createdAt: datetime
 
@@ -676,11 +697,46 @@ class BillingTxnOut(BaseModel):
     date: datetime
 
 
+# ── Membership plans (merchant subscriptions) ──
+class PlanOut(BaseModel):
+    """One membership tier, as shown on the plans grid + in the portal."""
+    id: str                  # starter | growth | scale
+    name: str
+    fee: float               # £ per month
+    allowance: float         # £ of fee-free top-ups included each month
+    feeRate: float           # fraction charged on top-ups beyond the allowance
+    blurb: str
+
+
+class SubscriptionOut(BaseModel):
+    """The merchant's current plan state."""
+    tier: str = ""                              # "" when they haven't chosen one
+    planName: str = ""
+    status: str = "none"                        # none|active|past_due|canceled
+    fee: float = 0
+    allowance: float = 0                        # £ fee-free top-ups per month
+    allowanceUsed: float = 0                    # £ topped up so far this month
+    allowanceLeft: float = 0
+    renewsAt: Optional[datetime] = None
+    canTopUp: bool = False                      # false without an active plan
+
+
+class TopUpQuote(BaseModel):
+    """What a given top-up will actually cost, before they commit to it."""
+    credit: float            # £ that lands in their balance
+    fee: float               # £ platform fee added on top
+    total: float             # £ their card is charged
+    feeRate: float           # the rate applied (0 while inside the allowance)
+    allowanceLeft: float     # £ of fee-free credit left before this top-up
+
+
 class BillingOut(BaseModel):
     balance: float           # sum(top-ups) - cashback given
     totalToppedUp: float
     cashbackGiven: float     # confirmed + paid
     pendingCashback: float   # awaiting verification (not yet deducted)
+    feesPaid: float          # platform + subscription fees charged to date
+    subscription: SubscriptionOut
     transactions: list[BillingTxnOut]
 
 
@@ -688,8 +744,18 @@ class TopUpIn(BaseModel):
     amount: float
 
 
+class RefundIn(BaseModel):
+    """Admin: return unused prepaid balance to the merchant's card."""
+    amount: float
+
+
+class SubscribeIn(BaseModel):
+    """Which membership plan the merchant is signing up for."""
+    tier: str          # starter | growth | scale
+
+
 class CheckoutSessionOut(BaseModel):
-    """The hosted Stripe Checkout page to send the merchant to."""
+    """The hosted Stripe page to send the merchant to (Checkout or Portal)."""
     url: str
 
 
@@ -736,6 +802,9 @@ class AdminCompanyStat(BaseModel):
     email: str
     joinedAt: datetime
     logoUrl: str = ""
+    tier: str = ""                 # membership plan ("" = none chosen)
+    planName: str = ""
+    subscriptionStatus: str = "none"
     deals: int                 # live deals attributed to this company
     pendingSubmissions: int    # deals it has proposed, awaiting review
     views: int

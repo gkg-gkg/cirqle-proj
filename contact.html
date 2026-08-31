@@ -27,6 +27,29 @@
     .req { color: var(--red); }
     .success-msg { display: none; margin-top: 18px; padding: 16px 18px; border: var(--bw) solid var(--line); border-radius: 14px; background: var(--lime); font-size: .9rem; font-weight: 700; }
     @media(max-width:560px){ .form-row, .form-row-3, .check-grid { grid-template-columns: 1fr; } }
+    /* Membership plans — shown before the application form */
+    .plans-wrap { max-width: 1040px; margin: 0 auto 44px; }
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .plan-card { padding: 26px 22px; display: flex; flex-direction: column; }
+    .plan-name { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.01em; }
+    .plan-price { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; letter-spacing: -0.03em; line-height: 1; margin: 12px 0 2px; }
+    .plan-per { font-size: .78rem; font-weight: 700; color: var(--ink-soft); }
+    .plan-allow { margin: 16px 0 6px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper-deep); font-size: .84rem; font-weight: 600; line-height: 1.5; }
+    .plan-allow strong { font-weight: 800; }
+    .plan-blurb { font-size: .84rem; color: var(--ink-soft); line-height: 1.6; margin-bottom: 18px; flex: 1; }
+    .plan-card .btn { width: 100%; }
+    .plan-card.selected { border-color: var(--lime-deep); box-shadow: 0 0 0 3px var(--lime); }
+    .plans-note { font-size: .84rem; color: var(--ink-soft); text-align: center; margin-top: 16px; line-height: 1.6; }
+    .plans-head { text-align: center; margin-bottom: 22px; }
+    .plans-head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.5rem,3vw,2rem); letter-spacing: -0.02em; }
+    .plans-head p { font-size: .92rem; color: var(--ink-soft); margin-top: 8px; }
+    .chosen-banner { display: none; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 16px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: var(--lime); font-size: .86rem; font-weight: 700; }
+    .chosen-banner.on { display: flex; }
+    .chosen-banner button { margin-left: auto; background: none; border: none; font-weight: 800; cursor: pointer; text-decoration: underline; font-size: .82rem; }
+    /* General enquiry — the short "just a question" route */
+    .enquiry-divider { display: flex; align-items: center; gap: 14px; max-width: 760px; margin: 34px auto 26px; }
+    .enquiry-divider span { font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--ink-soft); white-space: nowrap; }
+    .enquiry-divider i { flex: 1; height: 2px; background: var(--ink); opacity: .12; border-radius: 2px; }
   </style>
 </head>
 <body>
@@ -44,8 +67,39 @@
       <p class="h-sub fade-up d2" style="margin:16px auto 0">Tell us about your brand and what you want to achieve. The more you share, the faster we can tailor a cashback campaign and get you live.</p>
     </div>
 
-    <div class="form-wrap">
+    <!-- MEMBERSHIP PLANS — pick one, and the application below is tagged with it -->
+    <div class="plans-wrap fade-up d2">
+      <div class="plans-head">
+        <h2>Choose your membership</h2>
+        <p>Every plan includes a monthly allowance of fee-free cashback credit. Pick one to apply — you only pay once we've approved your brand and you're ready to go live.</p>
+      </div>
+      <div class="plans-grid" id="plansGrid">
+        <p class="muted" style="grid-column:1/-1;text-align:center">Loading plans…</p>
+      </div>
+      <p class="plans-note" id="plansNote"></p>
+    </div>
+
+    <div class="enquiry-divider fade-up d2"><i></i><span>Not sure yet?</span><i></i></div>
+    <div class="form-wrap fade-up d2" style="margin-bottom:38px">
+      <div class="card form-card">
+        <div class="form-title">Just have a question?</div>
+        <div class="form-lead">Ask us anything — pricing, how cashback works, whether Cirqle fits your brand. No application needed.</div>
+        <div class="form-row">
+          <div class="field"><label for="qName">Your name <span class="req">*</span></label><input id="qName" type="text" placeholder="Jane Smith" /></div>
+          <div class="field"><label for="qEmail">Email <span class="req">*</span></label><input id="qEmail" type="email" placeholder="jane@brand.com" /></div>
+        </div>
+        <div class="field"><label for="qMessage">Your question <span class="req">*</span></label><textarea id="qMessage" rows="4" placeholder="What would you like to know?"></textarea></div>
+        <button class="btn btn-lg" style="width:100%" id="enquiryBtn" onclick="sendEnquiry()">Send question →</button>
+        <div class="success-msg" id="enquiryMsg">Thanks — we'll come back to you within one business day.</div>
+      </div>
+    </div>
+
+    <div class="form-wrap" id="applyForm">
       <div class="card form-card fade-up d2">
+        <div class="chosen-banner" id="chosenBanner">
+          <span id="chosenText"></span>
+          <button type="button" onclick="clearPlan()">Change</button>
+        </div>
         <div class="form-title">Brand partnership application</div>
         <div class="form-lead">Fields marked <span class="req">*</span> are required. Takes about 3 minutes — our brand team replies within one business day.</div>
 
@@ -151,7 +205,7 @@
         phone: val('phone'),
         orders: val('orders'), aov: val('aov'),
         budget: val('budget'), timeline: val('timeline'),
-        goals, heard: val('heard'), message: '',
+        goals, heard: val('heard'), message: '', tier: chosenPlan,
       };
 
       const btn = document.getElementById('submitBtn');
@@ -179,6 +233,88 @@
         btn.disabled = false;
       }
     }
+
+    // ── Membership plans ──────────────────────────────────────────────────
+    // Fetched from the API so the marketing page and the merchant portal can
+    // never disagree about what a plan costs.
+    let chosenPlan = '';
+    const money = n => '£' + Number(n).toLocaleString('en-GB');
+
+    async function loadPlans() {
+      const grid = document.getElementById('plansGrid');
+      try {
+        const res = await fetch(`${window.CIRQLE_API_BASE}/merchant/plans`);
+        if (!res.ok) throw new Error();
+        const plans = await res.json();
+        grid.innerHTML = plans.map(p => `
+          <div class="card plan-card" data-plan="${p.id}">
+            <div class="plan-name">${p.name}</div>
+            <div class="plan-price">${money(p.fee)}</div>
+            <div class="plan-per">per month</div>
+            <div class="plan-allow">Includes <strong>${money(p.allowance)}</strong> of fee-free cashback credit each month</div>
+            <div class="plan-blurb">${p.blurb}</div>
+            <button type="button" class="btn btn-lime" data-choose="${p.id}">Choose ${p.name}</button>
+          </div>`).join('');
+        const rate = Math.round((plans[0]?.feeRate || 0.1) * 100);
+        document.getElementById('plansNote').textContent =
+          `Top up beyond your monthly allowance and a ${rate}% platform fee is added — you always know the cost before you pay.`;
+        grid.querySelectorAll('[data-choose]').forEach(b =>
+          b.addEventListener('click', () => choosePlan(b.dataset.choose, plans)));
+      } catch (_) {
+        grid.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center">Couldn\'t load plans — you can still apply below and we\'ll talk you through them.</p>';
+      }
+    }
+
+    function choosePlan(id, plans) {
+      chosenPlan = id;
+      const plan = plans.find(p => p.id === id);
+      document.querySelectorAll('.plan-card').forEach(c =>
+        c.classList.toggle('selected', c.dataset.plan === id));
+      document.getElementById('chosenText').textContent =
+        `Applying for ${plan.name} — ${money(plan.fee)}/mo`;
+      document.getElementById('chosenBanner').classList.add('on');
+      document.getElementById('applyForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function clearPlan() {
+      chosenPlan = '';
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('chosenBanner').classList.remove('on');
+      document.querySelector('.plans-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── General enquiry — a short question, not a full application ──
+    async function sendEnquiry() {
+      const name = document.getElementById('qName').value.trim();
+      const email = document.getElementById('qEmail').value.trim();
+      const message = document.getElementById('qMessage').value.trim();
+      if (!name || !email || !message) { cirqleToast('Please fill in all three fields'); return; }
+      const [first, ...rest] = name.split(' ');
+      const btn = document.getElementById('enquiryBtn');
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${window.CIRQLE_API_BASE}/partners`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brand: name, website: '', category: '', cashbackRate: 0,
+            firstName: first, lastName: rest.join(' ') || '-', email,
+            message, kind: 'enquiry',
+          }),
+        });
+        if (res.status === 201) {
+          document.getElementById('enquiryMsg').style.display = 'block';
+          btn.style.display = 'none';
+        } else {
+          cirqleToast('Something went wrong — please try again');
+          btn.disabled = false;
+        }
+      } catch (_) {
+        cirqleToast('Could not reach the server — please try again');
+        btn.disabled = false;
+      }
+    }
+
+    loadPlans();
   </script>
   <script src="assets/enhance.js"></script>
 </body>

@@ -24,6 +24,8 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       MerchantMessageIn, MerchantMessageOut, MerchantOut,
                       MerchantProfileIn, MerchantProfileOut, MerchantSigninIn,
                       CheckoutSessionOut, MerchantStats, MerchantThreadOut,
+                      PlanOut, RefundIn, SubscribeIn, SubscriptionOut,
+                      TopUpQuote,
                       MerchantTransaction, Receipt, ReferralStat,
                       RejectSubmissionIn, TaggedPostOut, TimePoint, TopUpIn,
                       User)
@@ -31,7 +33,10 @@ from ..activity import log_activity
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
 from ..storage import StorageError, delete_image, upload_image
-from ..payments import PaymentError, create_topup_session, payments_configured
+from ..payments import (OVERAGE_RATE, TIERS, PaymentError,
+                        create_portal_session, create_subscription_session,
+                        create_topup_session, ensure_customer, month_start,
+                        payments_configured, quote_topup, refund_topup)
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
@@ -246,8 +251,42 @@ def referrals(merchant: Merchant = Depends(get_current_merchant),
 
 
 # ── Billing: prepaid balance that funds shopper cashback ──
+def _month_topups(merchant_id: int, session: Session) -> float:
+    """£ of credit topped up since the 1st — what the allowance is measured against."""
+    rows = session.exec(
+        select(MerchantTransaction).where(
+            MerchantTransaction.merchant_id == merchant_id,
+            MerchantTransaction.kind == "topup",
+            MerchantTransaction.created_at >= month_start(),
+        )
+    ).all()
+    return round(sum(t.amount for t in rows), 2)
+
+
+def _subscription_out(merchant: Merchant, session: Session) -> SubscriptionOut:
+    """The merchant's plan state, including this month's allowance usage."""
+    tier = TIERS.get(merchant.tier or "")
+    if not tier:
+        # No tier: either never subscribed ("none") or cancelled — keep the
+        # real status so the portal can say which.
+        return SubscriptionOut(status=merchant.subscription_status or "none")
+    used = _month_topups(merchant.id, session)
+    allowance = tier["allowance"]
+    return SubscriptionOut(
+        tier=merchant.tier,
+        planName=tier["name"],
+        status=merchant.subscription_status,
+        fee=tier["fee"],
+        allowance=allowance,
+        allowanceUsed=used,
+        allowanceLeft=round(max(0.0, allowance - used), 2),
+        renewsAt=merchant.current_period_end,
+        canTopUp=merchant.subscription_status == "active",
+    )
+
+
 def _billing(merchant: Merchant, session: Session) -> BillingOut:
-    topups = session.exec(
+    txn_rows = session.exec(
         select(MerchantTransaction)
         .where(MerchantTransaction.merchant_id == merchant.id)
     ).all()
@@ -259,15 +298,25 @@ def _billing(merchant: Merchant, session: Session) -> BillingOut:
         select(Receipt).where(Receipt.campaign_id.in_(campaign_ids))
     ).all() if campaign_ids else []
 
-    total_topped = round(sum(t.amount for t in topups), 2)
+    # Only credit rows move the balance; fees are Cirqle's revenue, not credit.
+    credit_rows = [t for t in txn_rows if t.kind in ("topup", "refund")]
+    total_topped = round(sum(t.amount for t in credit_rows if t.kind == "topup"), 2)
+    balance_credit = round(sum(t.amount for t in credit_rows), 2)
+    # Each fee has its own row; `fee` on a top-up row is context for that
+    # top-up, so counting both would double it.
+    fees_paid = round(sum(t.amount for t in txn_rows
+                          if t.kind in ("platform_fee", "subscription")), 2)
+
     given = [r for r in receipts if r.status in _CASHBACK_GIVEN]
     cashback_given = round(sum(r.amount for r in given), 2)
     pending = round(sum(r.amount for r in receipts if r.status == "pending"), 2)
-    balance = round(total_topped - cashback_given, 2)
+    balance = round(balance_credit - cashback_given, 2)
 
-    txns = [BillingTxnOut(kind="topup", amount=round(t.amount, 2),
-                          description=t.description or "Account top-up",
-                          date=t.created_at) for t in topups]
+    _LABELS = {"topup": "Account top-up", "platform_fee": "Platform fee",
+               "subscription": "Membership fee", "refund": "Refund to card"}
+    txns = [BillingTxnOut(kind=t.kind, amount=round(t.amount, 2),
+                          description=t.description or _LABELS.get(t.kind, "Charge"),
+                          date=t.created_at) for t in txn_rows]
     txns += [BillingTxnOut(kind="cashback", amount=-round(r.amount, 2),
                            description=f"Cashback — {r.brand}", date=r.uploaded_at)
              for r in given]
@@ -275,7 +324,8 @@ def _billing(merchant: Merchant, session: Session) -> BillingOut:
 
     return BillingOut(
         balance=balance, totalToppedUp=total_topped, cashbackGiven=cashback_given,
-        pendingCashback=pending, transactions=txns,
+        pendingCashback=pending, feesPaid=fees_paid,
+        subscription=_subscription_out(merchant, session), transactions=txns,
     )
 
 
@@ -285,23 +335,103 @@ def billing(merchant: Merchant = Depends(get_current_merchant),
     return _billing(merchant, session)
 
 
-@router.post("/billing/checkout", response_model=CheckoutSessionOut)
-def billing_checkout(data: TopUpIn, request: Request,
-                     merchant: Merchant = Depends(get_current_merchant)):
-    """Start a Stripe Checkout for a prepaid top-up and return the hosted URL.
+# ── Plans, subscriptions and the card on file ─────────────────────────────────
+@router.get("/plans", response_model=list[PlanOut])
+def plans():
+    """The membership tiers. Public — the plans grid on contact.html reads this,
+    so the marketing page and the billing portal can never drift apart."""
+    return [PlanOut(id=key, name=t["name"], fee=t["fee"], allowance=t["allowance"],
+                    feeRate=OVERAGE_RATE, blurb=t["blurb"])
+            for key, t in TIERS.items()]
 
-    The balance is credited by the Stripe webhook after the payment succeeds
-    (see routers/stripe_webhook.py), never here — a redirect can be faked.
-    """
+
+def _require_payments():
     if not payments_configured():
         raise HTTPException(status_code=503, detail="Card payments aren't set up yet.")
-    amount = round(float(data.amount), 2)
-    if amount <= 0:
-        raise HTTPException(status_code=422, detail="Enter an amount above £0.")
-    if amount > 100000:
-        raise HTTPException(status_code=422, detail="That top-up is too large.")
+
+
+@router.post("/billing/subscribe", response_model=CheckoutSessionOut)
+def subscribe(data: SubscribeIn, request: Request,
+              merchant: Merchant = Depends(get_current_merchant),
+              session: Session = Depends(get_session)):
+    """Start (or switch to) a membership plan.
+
+    Stripe Checkout collects the card and billing address and starts the
+    subscription in one hosted step — this is where a brand's card first
+    reaches us, right after the admin approves them.
+    """
+    _require_payments()
+    if data.tier not in TIERS:
+        raise HTTPException(status_code=422, detail="Unknown plan.")
     try:
-        url = create_topup_session(merchant, amount, request.headers.get("origin", ""))
+        customer_id = ensure_customer(merchant, session)
+        url = create_subscription_session(merchant, data.tier, customer_id,
+                                          request.headers.get("origin", ""))
+    except PaymentError:
+        raise HTTPException(status_code=502, detail="Could not start checkout. Please try again.")
+    return CheckoutSessionOut(url=url)
+
+
+@router.post("/billing/portal", response_model=CheckoutSessionOut)
+def billing_portal(request: Request,
+                   merchant: Merchant = Depends(get_current_merchant),
+                   session: Session = Depends(get_session)):
+    """Open Stripe's Billing Portal — update the card, change the billing
+    address, download invoices, switch or cancel the plan."""
+    _require_payments()
+    if not merchant.stripe_customer_id:
+        raise HTTPException(status_code=409, detail="Choose a plan first.")
+    try:
+        url = create_portal_session(merchant.stripe_customer_id,
+                                    request.headers.get("origin", ""))
+    except PaymentError:
+        raise HTTPException(status_code=502, detail="Could not open the billing portal.")
+    return CheckoutSessionOut(url=url)
+
+
+# ── Prepaid top-ups ───────────────────────────────────────────────────────────
+def _validate_topup(merchant: Merchant, amount: float) -> float:
+    """Shared guard for the quote and the checkout, so a hand-crafted request
+    can't skip the plan gate that the UI enforces."""
+    if merchant.subscription_status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="Choose a membership plan before adding credit.")
+    credit = round(float(amount), 2)
+    if credit <= 0:
+        raise HTTPException(status_code=422, detail="Enter an amount above £0.")
+    if credit > 100000:
+        raise HTTPException(status_code=422, detail="That top-up is too large.")
+    return credit
+
+
+@router.get("/billing/quote", response_model=TopUpQuote)
+def topup_quote(amount: float,
+                merchant: Merchant = Depends(get_current_merchant),
+                session: Session = Depends(get_session)):
+    """What a top-up of `amount` will cost — so the merchant sees the platform
+    fee before they commit, never as a surprise on the Stripe page."""
+    credit = _validate_topup(merchant, amount)
+    return TopUpQuote(**quote_topup(merchant, credit,
+                                    _month_topups(merchant.id, session)))
+
+
+@router.post("/billing/checkout", response_model=CheckoutSessionOut)
+def billing_checkout(data: TopUpIn, request: Request,
+                     merchant: Merchant = Depends(get_current_merchant),
+                     session: Session = Depends(get_session)):
+    """Start a Stripe Checkout for a prepaid top-up and return the hosted URL.
+
+    The fee is recomputed here rather than trusted from the browser, and the
+    balance is credited by the webhook, never on the redirect.
+    """
+    _require_payments()
+    credit = _validate_topup(merchant, data.amount)
+    quote = quote_topup(merchant, credit, _month_topups(merchant.id, session))
+    try:
+        customer_id = ensure_customer(merchant, session)
+        url = create_topup_session(merchant, quote, customer_id,
+                                   request.headers.get("origin", ""))
     except PaymentError:
         raise HTTPException(status_code=502, detail="Could not start checkout. Please try again.")
     return CheckoutSessionOut(url=url)
@@ -445,7 +575,15 @@ def _submission_out(sub: CampaignSubmission) -> CampaignSubmissionOut:
 def submit_campaign(data: CampaignSubmissionIn,
                     merchant: Merchant = Depends(get_current_merchant),
                     session: Session = Depends(get_session)):
-    """Merchant: propose a new deal. Stored as 'pending' for admin review."""
+    """Merchant: propose a new deal. Stored as 'pending' for admin review.
+
+    Gated on an active membership — a lapsed or unpaid account keeps read
+    access to its stats but can't add new deals until billing is sorted.
+    """
+    if merchant.subscription_status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="An active membership plan is needed to submit new deals.")
     title = data.cardTitle.strip()
     if not title:
         raise HTTPException(status_code=422, detail="Give your deal a title.")
@@ -595,6 +733,61 @@ def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_sessi
 
     log_activity(session, "Created merchant login", merchant.business_name)
     return MerchantCreatedOut(merchant=_merchant_out(merchant), password=password)
+
+
+@router.post("/{merchant_id}/refund", response_model=BillingOut,
+             dependencies=[Depends(require_admin)])
+def refund_balance(merchant_id: int, data: RefundIn,
+                   session: Session = Depends(get_session)):
+    """Return unused prepaid balance to the merchant's card (admin action).
+
+    Refunds against their most recent top-ups, newest first, until the amount
+    is covered — so each refund reverses a real charge. The balance itself is
+    reduced by the `charge.refunded` webhook, keeping Stripe the source of
+    truth rather than us guessing.
+    """
+    merchant = session.get(Merchant, merchant_id)
+    if merchant is None:
+        raise HTTPException(status_code=404, detail="No such merchant.")
+    amount = round(float(data.amount), 2)
+    if amount <= 0:
+        raise HTTPException(status_code=422, detail="Enter an amount above £0.")
+
+    billing = _billing(merchant, session)
+    if amount > billing.balance:
+        raise HTTPException(
+            status_code=422,
+            detail=f"They only have £{billing.balance:.2f} of unused balance.")
+
+    topups = session.exec(
+        select(MerchantTransaction)
+        .where(MerchantTransaction.merchant_id == merchant_id,
+               MerchantTransaction.kind == "topup")
+        .order_by(MerchantTransaction.id.desc())
+    ).all()
+
+    remaining = amount
+    for t in topups:
+        if remaining <= 0:
+            break
+        if not t.stripe_ref:                 # pre-Stripe demo rows can't be refunded
+            continue
+        take = min(remaining, t.amount)
+        try:
+            refund_topup(t.stripe_ref, take)
+        except PaymentError as exc:
+            raise HTTPException(status_code=502, detail=f"Refund failed: {exc}")
+        remaining = round(remaining - take, 2)
+
+    if remaining > 0:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Could only refund £{amount - remaining:.2f} — the rest predates card payments.")
+
+    log_activity(session, "Refunded merchant balance",
+                 f"{merchant.business_name or merchant.email} — £{amount:.2f}")
+    session.refresh(merchant)
+    return _billing(merchant, session)
 
 
 @router.get("/messages/admin", response_model=list[MerchantThreadOut],
