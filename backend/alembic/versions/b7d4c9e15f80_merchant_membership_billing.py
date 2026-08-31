@@ -9,8 +9,12 @@ Adds the columns behind merchant membership plans:
   • merchanttransaction — `fee` (the 10% charged past the monthly allowance)
   • merchantapplication — `tier` (plan asked for) + `kind` (application/enquiry)
 
-Existing merchants land on tier='' / status='none', which the portal renders as
-"choose a plan" — nobody is charged retroactively and no balance is touched.
+Existing merchants are GRANDFATHERED onto an active plan (see _GRANDFATHER_TIER).
+They pre-date plans entirely, and without this the deploy would instantly lock
+them out of top-ups and new deal submissions until they subscribed — with no way
+to subscribe until Stripe keys are live on the server. They get no Stripe
+subscription, so they are never charged; if they later choose a plan in the
+portal, Checkout replaces this state properly. No balance is touched.
 """
 from typing import Sequence, Union
 
@@ -24,6 +28,11 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 _STR = sqlmodel.sql.sqltypes.AutoString
+
+# Which plan existing merchants are placed on. Middle tier: a £500/month
+# fee-free allowance, so a long-standing partner isn't suddenly hit with
+# platform fees on their normal top-ups.
+_GRANDFATHER_TIER = "growth"
 
 # table -> [(column, type, server_default)]
 _ADDITIONS = {
@@ -57,6 +66,12 @@ def upgrade() -> None:
         op.add_column('merchant', sa.Column('current_period_end', sa.DateTime(),
                                             nullable=True))
     op.create_index('ix_merchant_stripe_customer_id', 'merchant', ['stripe_customer_id'])
+
+    # Grandfather every pre-existing merchant. Any row present now pre-dates
+    # plans by definition, so this can't affect a genuine subscriber.
+    op.execute(
+        f"UPDATE merchant SET tier = '{_GRANDFATHER_TIER}', subscription_status = 'active' "
+        "WHERE tier = '' OR tier IS NULL")
 
 
 def downgrade() -> None:
