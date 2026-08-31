@@ -21,8 +21,8 @@ from ..db import get_session
 from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminReceiptOut,
                       Campaign, Mention, Receipt, ReceiptOut, User)
 from ..security import get_current_user
-from ..storage import (StorageError, StorageUploadError, receipt_view_url,
-                       upload_receipt)
+from ..storage import (StorageError, StorageTooLargeError, StorageUploadError,
+                       receipt_view_url, upload_receipt)
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
@@ -81,6 +81,8 @@ def create_receipt(
         raise HTTPException(status_code=422, detail="post_id is required.")
     try:
         key, digest = upload_receipt(image)
+    except StorageTooLargeError as exc:
+        raise HTTPException(status_code=413, detail=str(exc))
     except StorageUploadError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
     except StorageError as exc:

@@ -110,6 +110,9 @@
     // Which post this receipt belongs to (so the dashboard tile can flip to complete).
     const postId = new URLSearchParams(location.search).get('id') || '';
 
+    // Cap uploads client-side too (the server enforces the same 10 MB limit).
+    const MAX_RECEIPT_BYTES = 10 * 1024 * 1024; // 10 MB
+
     const input = document.getElementById('receiptInput');
     const dropZone = document.getElementById('dropZone');
 
@@ -157,6 +160,10 @@
         cirqleToast('Please attach an image of your receipt.');
         return;
       }
+      if (file.size > MAX_RECEIPT_BYTES) {
+        cirqleToast('That photo is too large — please keep it under 10 MB.');
+        return;
+      }
       stagedFile = file;
       const thumb = document.getElementById('dropThumb');
       thumb.src = URL.createObjectURL(file);
@@ -184,6 +191,11 @@
           body: fd
         });
         if (res.status === 401 || res.status === 403) { signOut(); return; }
+        if (res.status === 413) {
+          dropZone.style.pointerEvents = '';
+          cirqleToast('That photo is too large — please keep it under 10 MB.');
+          return;
+        }
         if (!res.ok) throw new Error('upload failed');
         const receipt = await res.json().catch(() => ({}));
         // Cashback clears automatically 3 days after the post date (not on upload).
