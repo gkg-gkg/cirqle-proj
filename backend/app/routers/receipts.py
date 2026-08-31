@@ -13,11 +13,12 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
 from ..activity import log_activity
 from ..cashback import admin_status, clears_at, effective_status, parse_post_ts
 from ..db import get_session
+from ..handles import normalize_handle
 from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminReceiptOut,
                       Campaign, Mention, Receipt, ReceiptOut, User)
 from ..security import get_current_user
@@ -69,6 +70,7 @@ def list_receipts(
 def create_receipt(
     post_id: str = Form(...),
     campaign_id: Optional[int] = Form(None),
+    referred_by_handle: Optional[str] = Form(None),
     image: UploadFile = File(...),
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
@@ -76,9 +78,24 @@ def create_receipt(
     """Upload a receipt for one of this user's posts, tied to a deal.
 
     One receipt per (user, post): re-uploading replaces it and resets to pending.
+    `referred_by_handle` is optional — the Instagram handle of the person whose
+    post led this user to buy. Attribution only: no reward is granted here.
     """
     if not post_id.strip():
         raise HTTPException(status_code=422, detail="post_id is required.")
+
+    referrer_id: Optional[int] = None
+    if referred_by_handle and referred_by_handle.strip():
+        normalized = normalize_handle(referred_by_handle)
+        referrer = session.exec(
+            select(User).where(func.lower(User.instagram_handle) == normalized)
+        ).first()
+        if referrer is None:
+            raise HTTPException(status_code=422, detail="Referrer handle not found.")
+        if referrer.id == user.id:
+            raise HTTPException(status_code=422, detail="You can't refer yourself.")
+        referrer_id = referrer.id
+
     try:
         key, digest = upload_receipt(image)
     except StorageUploadError as exc:
@@ -108,12 +125,13 @@ def create_receipt(
         existing.amount = amount
         existing.status = "pending"
         existing.uploaded_at = datetime.now(timezone.utc)
+        existing.referred_by_user_id = referrer_id
         receipt = existing
     else:
         receipt = Receipt(
             user_id=user.id, post_id=post_id, campaign_id=campaign_id,
             brand=brand, amount=amount, image_key=key, image_sha256=digest,
-            status="pending",
+            status="pending", referred_by_user_id=referrer_id,
         )
 
     session.add(receipt)

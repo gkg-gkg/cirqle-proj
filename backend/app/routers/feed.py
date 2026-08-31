@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 from ..db import get_session
+from ..handles import normalize_handle
 from ..instagram import ScrapeError, scrape_brand_mentions
 from ..models import FeedPost, FeedRefreshOut, Mention, User
 from ..security import get_current_user
@@ -23,7 +24,7 @@ router = APIRouter(prefix="/feed", tags=["feed"])
 
 def _user_handle(user: User) -> str:
     """This user's normalised Instagram handle, or '' if none set."""
-    return (user.instagram_handle or "").strip().lstrip("@").lower()
+    return normalize_handle(user.instagram_handle or "")
 
 
 def _mention_to_post(m: Mention) -> FeedPost:

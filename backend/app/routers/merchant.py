@@ -24,8 +24,8 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       MerchantMessageIn, MerchantMessageOut, MerchantOut,
                       MerchantProfileIn, MerchantProfileOut, MerchantSigninIn,
                       MerchantStats, MerchantThreadOut, MerchantTransaction,
-                      Receipt, RejectSubmissionIn, TaggedPostOut, TimePoint,
-                      TopUpIn)
+                      Receipt, ReferralStat, RejectSubmissionIn, TaggedPostOut,
+                      TimePoint, TopUpIn, User)
 from ..activity import log_activity
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
@@ -179,6 +179,63 @@ def tagged_posts(merchant: Merchant = Depends(get_current_merchant),
             dealTitle=r.brand,
             date=(m.timestamp if m and m.timestamp else r.uploaded_at.isoformat()),
         ))
+    return out
+
+
+# ── Referral attribution: which members' posts drove other members' claims ──
+@router.get("/referrals", response_model=list[ReferralStat])
+def referrals(merchant: Merchant = Depends(get_current_merchant),
+             session: Session = Depends(get_session)):
+    """Claims referred by another member, grouped by referrer + campaign —
+    the "top referring posts" view. Attribution only: `referredCashback` is
+    the referred claims' own cashback value, not a reward paid to the
+    referrer — no reward scheme exists yet (see Receipt.referred_by_user_id)."""
+    campaigns = session.exec(
+        select(Campaign).where(Campaign.merchant_id == merchant.id)).all()
+    campaign_ids = [c.id for c in campaigns]
+    if not campaign_ids:
+        return []
+    campaign_by_id = {c.id: c for c in campaigns}
+
+    receipts = session.exec(
+        select(Receipt).where(
+            Receipt.campaign_id.in_(campaign_ids),
+            Receipt.referred_by_user_id.is_not(None),
+        )
+    ).all()
+
+    groups: dict[tuple[int, int], list[Receipt]] = {}
+    for r in receipts:
+        groups.setdefault((r.referred_by_user_id, r.campaign_id), []).append(r)
+
+    out: list[ReferralStat] = []
+    for (referrer_id, campaign_id), group in groups.items():
+        referrer = session.get(User, referrer_id)
+        if referrer is None:
+            continue
+        camp = campaign_by_id[campaign_id]
+        # The referrer's own claim on this campaign is the post that started
+        # the chain — "the referrer's Mention for the originating post".
+        origin = session.exec(
+            select(Receipt).where(
+                Receipt.user_id == referrer_id,
+                Receipt.campaign_id == campaign_id,
+            )
+        ).first()
+        mention = session.get(Mention, origin.post_id) if origin else None
+        out.append(ReferralStat(
+            referrerUserId=referrer_id,
+            referrerHandle=referrer.instagram_handle or "",
+            campaignId=campaign_id,
+            brand=camp.brand,
+            dealTitle=camp.card_title or camp.title or camp.brand,
+            postId=(origin.post_id if origin else None),
+            imageUrl=(mention.display_url if mention else None),
+            claims=len(group),
+            referredCashback=round(
+                sum(r.amount for r in group if r.status in _CASHBACK_GIVEN), 2),
+        ))
+    out.sort(key=lambda s: s.claims, reverse=True)
     return out
 
 

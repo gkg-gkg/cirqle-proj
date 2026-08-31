@@ -343,6 +343,7 @@
     <nav class="mtabs" id="mtabs">
       <button class="mtab active" data-tab="overview" onclick="showTab('overview')">Overview</button>
       <button class="mtab" data-tab="posts" onclick="showTab('posts')">Posts<span class="tab-badge hidden" id="postsBadge">0</span></button>
+      <button class="mtab" data-tab="referrals" onclick="showTab('referrals')">Referrals<span class="tab-badge hidden" id="referralsBadge">0</span></button>
       <button class="mtab" data-tab="profile" onclick="showTab('profile')">Merchant Profile</button>
       <button class="mtab" data-tab="billing" onclick="showTab('billing')">Billing</button>
     </nav>
@@ -418,6 +419,17 @@
       </div>
       <div class="posts-grid" id="postsGrid">
         <div class="posts-empty">Loading posts…</div>
+      </div>
+    </div>
+
+    <!-- ═══ Referral attribution ═══ -->
+    <div class="pane hidden" id="paneReferrals">
+      <div class="pane-head">
+        <div class="panel-title">Top referring posts</div>
+        <div class="panel-sub">Members whose posts led other members to buy and claim cashback, by deal.</div>
+      </div>
+      <div class="posts-grid" id="referralsGrid">
+        <div class="posts-empty">Loading referrals…</div>
       </div>
     </div>
 
@@ -1027,8 +1039,8 @@
     }
 
     // ── Tabs (Overview / Posts / Profile / Billing) ──
-    const PANES = { overview: 'paneOverview', posts: 'panePosts', profile: 'paneProfile', billing: 'paneBilling' };
-    const loaded = { posts: false, profile: false, billing: false };
+    const PANES = { overview: 'paneOverview', posts: 'panePosts', referrals: 'paneReferrals', profile: 'paneProfile', billing: 'paneBilling' };
+    const loaded = { posts: false, referrals: false, profile: false, billing: false };
     function showTab(tab) {
       if (!(tab in PANES)) tab = 'overview';
       Object.values(PANES).forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -1037,6 +1049,7 @@
         b.classList.toggle('active', b.dataset.tab === tab));
       if (history.replaceState) history.replaceState(null, '', '#' + tab);
       if (tab === 'posts' && !loaded.posts) { loaded.posts = true; loadPosts(); }
+      if (tab === 'referrals' && !loaded.referrals) { loaded.referrals = true; loadReferrals(); }
       if (tab === 'profile' && !loaded.profile) { loaded.profile = true; loadProfile(); }
       if (tab === 'billing' && !loaded.billing) { loaded.billing = true; loadBilling(); }
     }
@@ -1082,6 +1095,45 @@
                <div class="pt-owner">${owner}</div>
                <div class="pt-deal">${escapeHtml(p.dealTitle || '')}${when ? ' · ' + when : ''}</div>
                ${cap}
+             </div>
+           </div>`;
+      }).join('');
+    }
+
+    // ── Referral attribution ──
+    async function loadReferrals() {
+      const grid = document.getElementById('referralsGrid');
+      const res = await fetch(`${API}/merchant/referrals`, { headers: authHeader() });
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) { grid.innerHTML = '<div class="posts-empty">Couldn’t load referrals. Try again.</div>'; return; }
+      renderReferrals(await res.json());
+    }
+    function renderReferrals(rows) {
+      const grid = document.getElementById('referralsGrid');
+      const badge = document.getElementById('referralsBadge');
+      badge.textContent = rows.length;
+      badge.classList.toggle('hidden', rows.length === 0);
+      if (!rows.length) {
+        grid.innerHTML = '<div class="posts-empty">No referred claims yet. When a member\'s post leads someone else to buy and claim cashback, it shows up here.</div>';
+        return;
+      }
+      const stat = (val, label, icon) =>
+        `<div class="pt-stat"><div class="pt-num">${val}</div>
+           <div class="pt-cap"><i class="ico ${icon} ico-soft"></i>${label}</div></div>`;
+      grid.innerHTML = rows.map(r => {
+        const img = r.imageUrl
+          ? `<img src="${escapeHtml(r.imageUrl)}" alt="Referrer's post" loading="lazy" onerror="this.parentNode.innerHTML='&lt;div class=&quot;pt-noimg&quot;&gt;No image&lt;/div&gt;'" />`
+          : '<div class="pt-noimg">No image</div>';
+        const owner = r.referrerHandle ? '@' + escapeHtml(r.referrerHandle) : 'Member';
+        return `<div class="post-tile card">
+             <div class="pt-img">${img}</div>
+             <div class="pt-stats">
+               ${stat(fmtInt(r.claims), 'Referred claims', 'ico-eye')}
+               ${stat('£' + fmtMoney(r.referredCashback), 'Referred cashback', 'ico-star')}
+             </div>
+             <div class="pt-body">
+               <div class="pt-owner">${owner}</div>
+               <div class="pt-deal">${escapeHtml(r.dealTitle || '')}</div>
              </div>
            </div>`;
       }).join('');

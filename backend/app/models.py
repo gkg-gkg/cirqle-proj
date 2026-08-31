@@ -17,6 +17,9 @@ class User(SQLModel, table=True):
     last_name: str
     email: str = Field(index=True, unique=True)
     password_hash: str
+    # Case-insensitively unique among non-blank handles — enforced by a partial
+    # index in the referral-attribution migration, not expressible as a plain
+    # SQLModel Field(unique=True) since blank ("" = no handle set) must repeat.
     instagram_handle: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -130,6 +133,7 @@ class Receipt(SQLModel, table=True):
     image_sha256: str = ""                           # content hash, for duplicate detection
     status: str = "pending"                          # pending -> confirmed -> paid / rejected
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    referred_by_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
 
 
 class Merchant(SQLModel, table=True):
@@ -631,6 +635,21 @@ class TaggedPostOut(BaseModel):
     url: Optional[str] = None
     dealTitle: str = ""
     date: Optional[str] = None
+
+
+# ── Referral attribution (Phase 8) ──
+class ReferralStat(BaseModel):
+    """One referrer's track record on one campaign: claims they referred and
+    the originating post, for the merchant's "top referring posts" panel."""
+    referrerUserId: int
+    referrerHandle: str
+    campaignId: int
+    brand: str
+    dealTitle: str
+    postId: Optional[str] = None      # referrer's own claimed post for this campaign, if found
+    imageUrl: Optional[str] = None
+    claims: int                        # number of claims they referred
+    referredCashback: float            # sum of the referred claims' amounts (not a reward figure)
 
 
 # ── Merchant billing / prepaid balance (Phase 6b) ──

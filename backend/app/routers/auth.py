@@ -3,17 +3,13 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlmodel import Session, select
 
 from ..db import get_session
+from ..handles import normalize_handle
 from ..models import (AuthOut, PasswordChangeIn, ProfileUpdateIn, SigninIn,
                       SignupIn, User, UserOut)
 from ..ratelimit import rate_limit
 from ..security import create_token, get_current_user, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-def _normalize_handle(raw: str) -> str:
-    """Trim, drop a leading @, lowercase — matches the frontend's normalisation."""
-    return raw.strip().lstrip("@").lower()
 
 
 def _user_out(user: User) -> UserOut:
@@ -40,7 +36,7 @@ def signup(data: SignupIn, session: Session = Depends(get_session)):
         last_name=data.lastName.strip(),
         email=email,
         password_hash=hash_password(data.password),
-        instagram_handle=_normalize_handle(data.instagramHandle),
+        instagram_handle=normalize_handle(data.instagramHandle),
     )
     session.add(user)
     session.commit()
@@ -95,7 +91,7 @@ def update_me(
         user.email = email
 
     if data.instagramHandle is not None:
-        handle = _normalize_handle(data.instagramHandle)
+        handle = normalize_handle(data.instagramHandle)
         if not handle:
             raise HTTPException(status_code=422, detail="Instagram handle can't be empty.")
         user.instagram_handle = handle

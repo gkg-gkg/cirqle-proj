@@ -49,7 +49,7 @@
 
     .deal-field { margin-bottom: 18px; }
     .deal-field label { display: block; font-size: .82rem; font-weight: 800; color: var(--ink-soft); margin-bottom: 8px; }
-    .deal-field select { width: 100%; padding: 11px 13px; border: var(--bw) solid var(--line); border-radius: 14px; font: inherit; font-size: .9rem; background: var(--card); color: var(--ink); }
+    .deal-field select, .deal-field input { width: 100%; padding: 11px 13px; border: var(--bw) solid var(--line); border-radius: 14px; font: inherit; font-size: .9rem; background: var(--card); color: var(--ink); }
 
     @media (max-width: 900px) { .nav-name { display: none; } }
   </style>
@@ -78,6 +78,10 @@
       <div class="deal-field">
         <label for="dealSelect">Which deal is this receipt for?</label>
         <select id="dealSelect"><option value="">Loading deals…</option></select>
+      </div>
+      <div class="deal-field">
+        <label for="referredBy">Referred by (optional)</label>
+        <input type="text" id="referredBy" placeholder="@theirhandle" autocomplete="off" />
       </div>
       <label class="drop" id="dropZone">
         <input type="file" id="receiptInput" accept="image/*" hidden />
@@ -137,10 +141,12 @@
       document.getElementById('preview').src = URL.createObjectURL(file);
       dropZone.style.pointerEvents = 'none';
       cirqleToast('Uploading…');
+      const referredBy = document.getElementById('referredBy').value.trim();
       try {
         const fd = new FormData();
         fd.append('post_id', postId);
         fd.append('campaign_id', campaignId);
+        if (referredBy) fd.append('referred_by_handle', referredBy);
         fd.append('image', file);
         const res = await fetch(`${window.CIRQLE_API_BASE}/receipts`, {
           method: 'POST',
@@ -148,6 +154,12 @@
           body: fd
         });
         if (res.status === 401) { signOut(); return; }
+        if (res.status === 422) {
+          const err = await res.json().catch(() => ({}));
+          cirqleToast(err.detail || 'Please check the form and try again.');
+          dropZone.style.pointerEvents = '';
+          return;
+        }
         if (!res.ok) throw new Error('upload failed');
         const receipt = await res.json().catch(() => ({}));
         // Cashback clears automatically 3 days after the post date (not on upload).
