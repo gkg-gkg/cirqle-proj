@@ -178,7 +178,7 @@
     async function loadMe() {
       try {
         const res = await fetch(`${API}/auth/me`, { headers: { 'Authorization': 'Bearer ' + session.token } });
-        if (res.status === 401) return signOut();
+        if (res.status === 401 || res.status === 403) return signOut();
         if (!res.ok) return;
         const u = await res.json();
         session.firstName = u.firstName; session.lastName = u.lastName;
@@ -209,7 +209,7 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
           body: JSON.stringify({ firstName, lastName, email }),
         });
-        if (res.status === 401) return signOut();
+        if (res.status === 401 || res.status === 403) return signOut();
         const body = await res.json().catch(() => ({}));
         if (res.ok) {
           session.firstName = body.firstName; session.lastName = body.lastName; session.email = body.email;
@@ -241,7 +241,7 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
           body: JSON.stringify({ instagramHandle: handle }),
         });
-        if (res.status === 401) return signOut();
+        if (res.status === 401 || res.status === 403) return signOut();
         const body = await res.json().catch(() => ({}));
         if (res.ok) {
           session.instagramHandle = body.instagramHandle;

@@ -23,6 +23,10 @@ MEDIA_DIR = Path(__file__).resolve().parent.parent / "media"
 # backend/receipts — private receipt store (Phase 4). Never web-served.
 RECEIPTS_DIR = Path(__file__).resolve().parent.parent / "receipts"
 
+# Receipts are phone photos (a few MB). Cap uploads so a giant file can't
+# exhaust memory/disk or stall the box; enforced in upload_receipt.
+MAX_RECEIPT_BYTES = 10 * 1024 * 1024  # 10 MB
+
 # Where the local files are reachable from a browser (frontend may be on a
 # different origin). Only used in local mode; S3 mode builds an S3 URL instead.
 LOCAL_BASE_URL = os.environ.get("CIRQLE_MEDIA_BASE", "http://localhost:8000")
@@ -44,6 +48,10 @@ class StorageUploadError(StorageError):
     """The store itself failed — S3 down, disk error (maps to HTTP 503)."""
 
 
+class StorageTooLargeError(StorageError):
+    """The upload exceeds the size limit (maps to HTTP 413)."""
+
+
 def _extension(file: UploadFile) -> str:
     """Pick a file extension from the content type, then the original name."""
     ext = _EXT_BY_TYPE.get((file.content_type or "").lower())
@@ -53,13 +61,23 @@ def _extension(file: UploadFile) -> str:
     return suffix if suffix else ".jpg"
 
 
-def _validate_and_read(file: UploadFile) -> tuple[bytes, str]:
-    """Ensure the upload is a non-empty image; return (bytes, a new object key)."""
+def _validate_and_read(file: UploadFile, max_bytes: Optional[int] = None) -> tuple[bytes, str]:
+    """Ensure the upload is a non-empty image (and, if max_bytes is given, no
+    larger than that); return (bytes, a new object key)."""
     if not (file.content_type or "").lower().startswith("image/"):
         raise StorageError(f"'{file.filename}' is not an image.")
+    # Reject oversized uploads up front — file.size comes from the multipart
+    # Content-Length — so we never read a huge body into memory.
+    if max_bytes and file.size and file.size > max_bytes:
+        raise StorageTooLargeError(
+            f"'{file.filename}' is too large (max {max_bytes // (1024 * 1024)} MB).")
     data = file.file.read()
     if not data:
         raise StorageError(f"'{file.filename}' is empty.")
+    # Backstop, in case the size header was missing or understated.
+    if max_bytes and len(data) > max_bytes:
+        raise StorageTooLargeError(
+            f"'{file.filename}' is too large (max {max_bytes // (1024 * 1024)} MB).")
     return data, f"{uuid.uuid4().hex}{_extension(file)}"
 
 
@@ -97,6 +115,41 @@ def upload_image(file: UploadFile) -> str:
     return f"{LOCAL_BASE_URL}/media/{key}"
 
 
+def _key_from_public_url(url: str) -> str:
+    """Pull the object key back out of a public image URL.
+
+    upload_image stores the *whole* URL (S3 or local), but the key is always the
+    last path segment — keys are `{uuid.hex}{ext}` with no slashes of their own.
+    """
+    return url.rsplit("/", 1)[-1].split("?", 1)[0]
+
+
+def delete_image(url: str) -> None:
+    """Remove one public image previously stored by upload_image. Best-effort.
+
+    Used when a campaign's images are replaced/deleted or a brand logo is
+    swapped, so the old object doesn't orphan in the bucket. Never raises — a
+    failed cleanup must not break the request that triggered it.
+    """
+    key = _key_from_public_url(url or "")
+    if not key:
+        return
+    bucket = os.environ.get("S3_BUCKET")
+    if bucket:
+        region = os.environ.get("AWS_REGION", "eu-west-2")
+        try:
+            import boto3
+            boto3.client("s3", region_name=region).delete_object(
+                Bucket=bucket, Key=key)
+        except Exception:  # noqa: BLE001 — cleanup is best-effort
+            pass
+        return
+    try:
+        (MEDIA_DIR / key).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
 def upload_receipt(file: UploadFile) -> tuple[str, str]:
     """Store a receipt image PRIVATELY and return (storage key, sha256 of bytes).
 
@@ -107,7 +160,7 @@ def upload_receipt(file: UploadFile) -> tuple[str, str]:
     The hash lets the admin page spot the same image claimed twice; it identifies
     byte-identical files only (a re-saved or cropped copy hashes differently).
     """
-    data, key = _validate_and_read(file)
+    data, key = _validate_and_read(file, max_bytes=MAX_RECEIPT_BYTES)
     digest = hashlib.sha256(data).hexdigest()
     bucket = os.environ.get("S3_RECEIPTS_BUCKET")
 
@@ -154,3 +207,27 @@ def receipt_view_url(image_key: str, expires: int = 900) -> Optional[str]:
         )
     except Exception:  # noqa: BLE001 — presign is best-effort
         return None
+
+
+def delete_receipt(image_key: str) -> None:
+    """Remove a stored receipt image. Best-effort: never raises.
+
+    Used when an account is deleted — the person's receipt photos shouldn't
+    outlive their account in the private bucket.
+    """
+    if not image_key:
+        return
+    bucket = os.environ.get("S3_RECEIPTS_BUCKET")
+    if bucket:
+        region = os.environ.get("AWS_REGION", "eu-west-2")
+        try:
+            import boto3
+            boto3.client("s3", region_name=region).delete_object(
+                Bucket=bucket, Key=image_key)
+        except Exception:  # noqa: BLE001 — cleanup is best-effort
+            pass
+        return
+    try:
+        (RECEIPTS_DIR / image_key).unlink(missing_ok=True)
+    except OSError:
+        pass

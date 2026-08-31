@@ -130,6 +130,7 @@ def analytics(days: int = Query(default=_DEFAULT_DAYS,
     )
     queue = AdminQueue(
         pendingReceipts=sum(1 for r in receipts if status_of[r.id] == "pending"),
+        pendingMembers=sum(1 for u in users if u.status == "pending"),
         pendingApplications=sum(1 for a in apps if a.status == "pending"),
         pendingSubmissions=sum(1 for s in subs if s.status == "pending"),
         unreadMessages=sum(1 for m in messages
@@ -334,6 +335,7 @@ def _member_stats(users, receipts, status_of, posts_by_user) -> list:
             name=f"{u.first_name} {u.last_name}".strip() or u.email,
             email=u.email,
             instagramHandle=u.instagram_handle or "",
+            status=u.status,
             joinedAt=u.created_at,
             posts=posts_by_user.get(u.id, 0),
             claims=len(mine),

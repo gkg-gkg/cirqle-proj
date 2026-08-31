@@ -36,6 +36,7 @@
     .drop:hover, .drop.drag { background: var(--blue-pale); transform: translateY(-2px); }
     .drop-title { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; }
     .drop-sub { font-size: .85rem; color: var(--ink-soft); margin-top: 6px; }
+    .drop-thumb { max-width: 180px; width: 100%; border-radius: 12px; margin: 0 auto 14px; display: block; border: var(--bw) solid var(--line); }
 
     /* Result */
     .result { text-align: center; }
@@ -85,6 +86,7 @@
       </div>
       <label class="drop" id="dropZone">
         <input type="file" id="receiptInput" accept="image/*" hidden />
+        <img class="drop-thumb" id="dropThumb" alt="Your receipt" hidden />
         <div class="drop-title">Attach receipt photo</div>
         <div class="drop-sub">Tap to choose an image — JPG, PNG or HEIC</div>
       </label>
@@ -112,6 +114,9 @@
     // Which post this receipt belongs to (so the dashboard tile can flip to complete).
     const postId = new URLSearchParams(location.search).get('id') || '';
 
+    // Cap uploads client-side too (the server enforces the same 10 MB limit).
+    const MAX_RECEIPT_BYTES = 10 * 1024 * 1024; // 10 MB
+
     const input = document.getElementById('receiptInput');
     const dropZone = document.getElementById('dropZone');
 
@@ -121,23 +126,61 @@
     // (that's how we know the cashback amount).
     async function loadDeals() {
       const sel = document.getElementById('dealSelect');
+      sel.innerHTML = '<option value="">Loading deals…</option>';
       try {
-        const deals = await (await fetch(`${window.CIRQLE_API_BASE}/campaigns`)).json();
+        const res = await fetch(`${window.CIRQLE_API_BASE}/campaigns`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const deals = await res.json();
+        if (!Array.isArray(deals) || !deals.length) {
+          sel.innerHTML = '<option value="">No deals available right now</option>';
+          return;
+        }
         sel.innerHTML = '<option value="">Choose a deal…</option>' +
           deals.map(c => `<option value="${c.id}">${c.brand} — ${c.rate}% back</option>`).join('');
       } catch (e) {
-        sel.innerHTML = '<option value="">Could not load deals</option>';
+        // Surface the REAL reason (network / CORS / server error) instead of
+        // hiding it, and let the user retry without reloading the page.
+        console.error('Could not load deals:', e);
+        sel.innerHTML = '<option value="">Could not load deals</option>' +
+                        '<option value="__retry">↻ Retry</option>';
+        cirqleToast('Could not load deals: ' + e.message);
       }
     }
     loadDeals();
 
-    async function handleFile(file) {
+    // The picked receipt file, held until a deal is chosen so we can upload it.
+    let stagedFile = null;
+    const dealSelect = document.getElementById('dealSelect');
+    dealSelect.addEventListener('change', () => {
+      if (dealSelect.value === '__retry') { dealSelect.value = ''; loadDeals(); return; }
+      // Photo was attached before a deal was chosen — finish the upload now.
+      if (stagedFile && dealSelect.value) uploadReceipt(stagedFile, dealSelect.value);
+    });
+
+    // Show the picked receipt straight away (even before a deal is chosen), then
+    // upload once we know which deal it's for.
+    function handleFile(file) {
       if (!file || !file.type.startsWith('image/')) {
         cirqleToast('Please attach an image of your receipt.');
         return;
       }
-      const campaignId = document.getElementById('dealSelect').value;
-      if (!campaignId) { cirqleToast('First choose which deal this receipt is for.'); return; }
+      if (file.size > MAX_RECEIPT_BYTES) {
+        cirqleToast('That photo is too large — please keep it under 10 MB.');
+        return;
+      }
+      stagedFile = file;
+      const thumb = document.getElementById('dropThumb');
+      thumb.src = URL.createObjectURL(file);
+      thumb.hidden = false;
+      document.querySelector('.drop-title').textContent = 'Photo attached ✓';
+      document.querySelector('.drop-sub').textContent = file.name + ' — tap to change';
+
+      const campaignId = dealSelect.value;
+      if (!campaignId) { cirqleToast('Now choose which deal this receipt is for.'); return; }
+      uploadReceipt(file, campaignId);
+    }
+
+    async function uploadReceipt(file, campaignId) {
       document.getElementById('preview').src = URL.createObjectURL(file);
       dropZone.style.pointerEvents = 'none';
       cirqleToast('Uploading…');
@@ -153,11 +196,18 @@
           headers: { 'Authorization': 'Bearer ' + session.token },
           body: fd
         });
+<<<<<<< HEAD
         if (res.status === 401) { signOut(); return; }
         if (res.status === 422) {
           const err = await res.json().catch(() => ({}));
           cirqleToast(err.detail || 'Please check the form and try again.');
           dropZone.style.pointerEvents = '';
+=======
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
+        if (res.status === 413) {
+          dropZone.style.pointerEvents = '';
+          cirqleToast('That photo is too large — please keep it under 10 MB.');
+>>>>>>> 7e093b27611f0bdfcfce3f1a22a4fc56187a4fba
           return;
         }
         if (!res.ok) throw new Error('upload failed');

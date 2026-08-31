@@ -12,6 +12,9 @@ from sqlmodel import SQLModel, Field
 
 
 class User(SQLModel, table=True):
+    """A member account. New sign-ups land as `pending` and cannot sign in until
+    the admin approves them on admin.html (accounts that existed before this gate
+    were grandfathered to `approved` by the migration)."""
     id: Optional[int] = Field(default=None, primary_key=True)
     first_name: str
     last_name: str
@@ -21,6 +24,7 @@ class User(SQLModel, table=True):
     # index in the referral-attribution migration, not expressible as a plain
     # SQLModel Field(unique=True) since blank ("" = no handle set) must repeat.
     instagram_handle: str = ""
+    status: str = "pending"                          # pending -> approved / rejected
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -284,6 +288,14 @@ class UserOut(BaseModel):
 
 class AuthOut(BaseModel):
     token: str
+    user: UserOut
+
+
+class SignupOut(BaseModel):
+    """Signup response. No token: the account is pending admin approval, so
+    there is nothing to log the browser into yet."""
+    status: str          # "pending"
+    message: str
     user: UserOut
 
 
@@ -672,6 +684,24 @@ class TopUpIn(BaseModel):
     amount: float
 
 
+# ── Admin member administration (approval gate) ──
+class AdminMemberOut(BaseModel):
+    """Admin view of one member account: the approval queue and account admin.
+
+    `claims`/`posts` are shown so the admin can see what a delete would take
+    with it.
+    """
+    userId: int
+    firstName: str
+    lastName: str
+    email: str
+    instagramHandle: str
+    status: str
+    createdAt: datetime
+    claims: int
+    posts: int
+
+
 # ── Admin activity log (Phase 6) ──
 class AdminActivityOut(BaseModel):
     id: int
@@ -742,6 +772,7 @@ class AdminMemberStat(BaseModel):
     name: str
     email: str
     instagramHandle: str = ""
+    status: str = "approved"   # pending -> approved / rejected
     joinedAt: datetime
     posts: int
     claims: int
@@ -785,6 +816,7 @@ class AdminBulkVerifyOut(BaseModel):
 class AdminQueue(BaseModel):
     """What is waiting on the admin right now."""
     pendingReceipts: int
+    pendingMembers: int
     pendingApplications: int
     pendingSubmissions: int
     unreadMessages: int

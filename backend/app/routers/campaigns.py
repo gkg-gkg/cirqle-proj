@@ -19,7 +19,7 @@ from ..activity import log_activity
 from ..db import get_session
 from ..models import (Campaign, CampaignIn, CampaignOut, CampaignSubmission,
                       DealEvent, MerchantApplication, Receipt)
-from ..storage import StorageError, StorageUploadError, upload_image
+from ..storage import StorageError, StorageUploadError, delete_image, upload_image
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
@@ -170,12 +170,17 @@ def update_campaign(
 
     _apply_in(c, _parse_payload(payload))
     real_images = [f for f in images if f and f.filename]
+    old_images: list[str] = []
     if real_images:
+        old_images = json.loads(c.images or "[]")
         c.images = json.dumps(_upload_all(real_images))
 
     session.add(c)
     session.commit()
     session.refresh(c)
+    # New images are committed — now the replaced ones can go.
+    for url in old_images:
+        delete_image(url)
     return _campaign_out(c)
 
 
@@ -207,7 +212,11 @@ def delete_campaign(campaign_id: int, session: Session = Depends(get_session)):
     session.flush()
 
     brand = c.brand
+    images = json.loads(c.images or "[]")
     session.delete(c)
     session.commit()
+    # Campaign row is gone — clear its images out of the bucket too.
+    for url in images:
+        delete_image(url)
     log_activity(session, "Deleted campaign", f"{brand or 'Campaign'} (deal #{campaign_id})")
     return Response(status_code=204)

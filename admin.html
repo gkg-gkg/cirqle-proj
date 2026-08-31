@@ -449,6 +449,20 @@
       <div id="list"><p class="muted">Loading…</p></div>
     </div>
 
+    <!-- MEMBER SIGN-UPS -->
+    <div class="card pad" id="secMembers" style="margin-top:22px">
+      <h2>Member sign-ups (<span id="ucount">0</span>)</h2>
+      <p class="muted" style="margin-top:-8px">Cirqle is approval-only: a new account can't sign in until you approve it here. Reject blocks an account without deleting it; delete removes it for good, along with its posts and claims.</p>
+      <div class="rfilter">
+        <button class="btn mini" data-uf="pending">Pending</button>
+        <button class="btn mini" data-uf="approved">Approved</button>
+        <button class="btn mini" data-uf="rejected">Rejected</button>
+        <button class="btn mini" data-uf="">All</button>
+      </div>
+      <div id="ulist"><p class="muted">Enter the admin key to load sign-ups.</p></div>
+      <div id="umsg" style="margin-top:10px; font-size:.85rem; font-weight:600; min-height:1.2em"></div>
+    </div>
+
     <!-- RECEIPTS REVIEW -->
     <div class="card pad" id="secReceipts" style="margin-top:22px">
       <h2>Receipt reviews (<span id="rcount">0</span>)</h2>
@@ -1314,6 +1328,7 @@
     function renderQueue(d) {
       const q = d.queue;
       const tiles = [
+        ['Sign-ups to approve', q.pendingMembers, 'secMembers'],
         ['Receipts to review', q.pendingReceipts, 'secReceipts'],
         ['Expiring in 24h', q.expiringSoon, 'secReceipts'],
         ['Fraud signals', (d.fraud || []).filter(f => f.severity === 'high').length, 'fraudList'],
@@ -1637,7 +1652,8 @@
       }
       body.innerHTML = rows.map(m => `<tr>
           <td>
-            <span style="font-weight:800">${esc(m.name)}</span>
+            <span style="font-weight:800">${esc(m.name)}</span>${m.status && m.status !== 'approved'
+              ? ` <span class="rbadge ${esc(m.status)}">${esc(m.status)}</span>` : ''}
             <div class="co-email">${esc(m.email)}${m.instagramHandle ? ' · @' + esc(m.instagramHandle) : ''}
               · joined ${fmtAgo(m.joinedAt)}</div>
           </td>
@@ -1693,7 +1709,100 @@
         </tr>`).join('');
     }
 
+    // ── Member sign-ups: the approval gate (approve / reject / delete) ──
+    let currentUFilter = 'pending';
+
+    function setUMsg(text, ok) {
+      const m = $('umsg');
+      m.textContent = text;
+      m.className = ok ? 'ok' : 'err';
+    }
+
+    async function loadMembers() {
+      const list = $('ulist');
+      if (!keyInput.value) { list.innerHTML = '<p class="muted">Enter the admin key to load sign-ups.</p>'; return; }
+      list.innerHTML = '<p class="muted">Loading…</p>';
+      try {
+        const q = currentUFilter ? `?status=${currentUFilter}` : '';
+        const res = await fetch(`${API}/admin/members${q}`, { headers: { 'X-Admin-Key': keyInput.value } });
+        if (res.status === 401) { list.innerHTML = '<p class="muted">Invalid admin key.</p>'; return; }
+        const data = await res.json();
+        $('ucount').textContent = data.length;
+        if (!data.length) {
+          list.innerHTML = `<p class="muted">No ${currentUFilter || ''} sign-ups.</p>`;
+          return;
+        }
+        list.innerHTML = '';
+        data.forEach(u => {
+          const name = `${u.firstName} ${u.lastName}`.trim() || u.email;
+          const row = document.createElement('div');
+          row.className = 'clist-item';
+          const actions = (u.status === 'pending'
+              ? `<button class="btn mini btn-lime" data-uapprove>Approve</button>
+                 <button class="btn mini btn-pink" data-ureject>Reject</button>`
+              : u.status === 'approved'
+                ? `<button class="btn mini btn-pink" data-ureject>Block</button>`
+                : `<button class="btn mini btn-lime" data-uapprove>Approve</button>`);
+          row.innerHTML = `
+            <div class="clist-thumb"><i class="ico ico-user"></i></div>
+            <div class="clist-main">
+              <div class="clist-title">${esc(name)} <span class="rbadge ${esc(u.status)}">${esc(u.status)}</span></div>
+              <div class="clist-sub">${esc(u.email)}${u.instagramHandle ? ' · @' + esc(u.instagramHandle) : ''}
+                · joined ${fmtAgo(u.createdAt)}${u.claims || u.posts
+                  ? ` · ${u.posts} post(s), ${u.claims} claim(s)` : ''}</div>
+            </div>
+            <div class="clist-actions">
+              ${actions}
+              <button class="btn mini btn-pink" data-udelete>Delete</button>
+            </div>`;
+          const ap = row.querySelector('[data-uapprove]');
+          if (ap) ap.addEventListener('click', () => setMember(u.userId, 'approve', name));
+          const rj = row.querySelector('[data-ureject]');
+          if (rj) rj.addEventListener('click', () => setMember(u.userId, 'reject', name));
+          row.querySelector('[data-udelete]').addEventListener('click', () => delMember(u, name));
+          list.appendChild(row);
+        });
+      } catch (e) {
+        list.innerHTML = '<p class="muted">Could not load sign-ups.</p>';
+      }
+    }
+
+    async function setMember(id, action, name) {
+      if (action === 'reject' && !confirm(`Block ${name}? They won't be able to sign in.`)) return;
+      const res = await fetch(`${API}/admin/members/${id}/${action}`, {
+        method: 'POST', headers: { 'X-Admin-Key': keyInput.value },
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setUMsg(action === 'approve' ? `${name} can now sign in.` : `${name} is blocked from signing in.`, true);
+        loadMembers();
+        loadActivity();
+        loadAnalytics();
+      } else if (res.status === 401) setUMsg('Invalid admin key.', false);
+      else setUMsg(`Failed (${res.status}): ${body.detail || 'request failed'}`, false);
+    }
+
+    async function delMember(u, name) {
+      const extras = (u.posts || u.claims)
+        ? ` This also deletes their ${u.posts} post(s) and ${u.claims} cashback claim(s).` : '';
+      if (!confirm(`Delete ${name} (${u.email}) permanently?${extras} This cannot be undone.`)) return;
+      const res = await fetch(`${API}/admin/members/${u.userId}`, {
+        method: 'DELETE', headers: { 'X-Admin-Key': keyInput.value },
+      });
+      if (res.ok) {
+        setUMsg(`Deleted ${name}.`, true);
+        loadMembers();
+        loadActivity();
+        loadAnalytics();
+      } else if (res.status === 401) setUMsg('Invalid admin key.', false);
+      else setUMsg(`Delete failed (${res.status}).`, false);
+    }
+
+    document.querySelectorAll('[data-uf]').forEach(b =>
+      b.addEventListener('click', () => { currentUFilter = b.dataset.uf; loadMembers(); }));
+
     function loadAll() {
+      loadMembers();
       loadList();
       loadReceipts();
       loadApps();

@@ -5,9 +5,10 @@ from sqlmodel import Session, select
 from ..db import get_session
 from ..handles import normalize_handle
 from ..models import (AuthOut, PasswordChangeIn, ProfileUpdateIn, SigninIn,
-                      SignupIn, User, UserOut)
+                      SignupIn, SignupOut, User, UserOut)
 from ..ratelimit import rate_limit
-from ..security import create_token, get_current_user, hash_password, verify_password
+from ..security import (PENDING_MESSAGE, approval_error, create_token,
+                        get_current_user, hash_password, verify_password)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,7 +23,7 @@ def _user_out(user: User) -> UserOut:
     )
 
 
-@router.post("/signup", response_model=AuthOut, status_code=201,
+@router.post("/signup", response_model=SignupOut, status_code=201,
              dependencies=[rate_limit("signup", limit=20, window=3600)])
 def signup(data: SignupIn, session: Session = Depends(get_session)):
     email = data.email.lower()
@@ -41,7 +42,13 @@ def signup(data: SignupIn, session: Session = Depends(get_session)):
     session.add(user)
     session.commit()
     session.refresh(user)
-    return AuthOut(token=create_token(user.id), user=_user_out(user))
+    # No token: the account is `pending` until an admin approves it on
+    # admin.html, so there is nothing to sign the browser into yet.
+    return SignupOut(
+        status=user.status,
+        message=PENDING_MESSAGE,
+        user=_user_out(user),
+    )
 
 
 @router.post("/signin", response_model=AuthOut,
@@ -51,6 +58,8 @@ def signin(data: SigninIn, session: Session = Depends(get_session)):
     user = session.exec(select(User).where(User.email == email)).first()
     if user is None or not verify_password(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Incorrect email or password.")
+    if user.status != "approved":
+        raise approval_error(user.status)
     return AuthOut(token=create_token(user.id), user=_user_out(user))
 
 
