@@ -236,7 +236,7 @@
         const res = await fetch(`${window.CIRQLE_API_BASE}/receipts`, {
           headers: { 'Authorization': 'Bearer ' + session.token }
         });
-        if (res.status === 401) { signOut(); return; }
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
         if (res.ok) {
           const data = await res.json();
           receiptMap = new Map((data || []).map(r => [r.postId, r]));
@@ -347,7 +347,7 @@
         const res = await fetch(`${window.CIRQLE_API_BASE}/feed`, {
           headers: { 'Authorization': 'Bearer ' + session.token }
         });
-        if (res.status === 401) { signOut(); return; }
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
         if (res.ok) {
           const data = await res.json();
           allMentions = Array.isArray(data.posts) ? data.posts : [];
@@ -387,7 +387,7 @@
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + session.token }
         });
-        if (res.status === 401) { signOut(); return; }
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
         if (!res.ok) {
           let msg = 'HTTP ' + res.status;
           try { msg = (await res.json()).detail || msg; } catch (e) { /* keep msg */ }
@@ -458,7 +458,7 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
           body: JSON.stringify({ instagramHandle: handle })
         });
-        if (res.status === 401) { signOut(); return; }
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
         if (!res.ok) throw new Error('save failed');
         const user = await res.json();
         window.CirqleAccount.setHandle(user.instagramHandle);   // mirror into session

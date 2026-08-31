@@ -47,6 +47,13 @@
 
     .btn-submit { width: 100%; font-family: var(--font-display); font-weight: 800; font-size: 1.02rem; }
 
+    .pending-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 2px solid var(--ink); border-radius: 999px;
+      background: var(--sky); padding: 7px 14px;
+      font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+    }
+
     .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
     .divider-line { flex: 1; height: 2px; background: var(--ink); opacity: .15; border-radius: 2px; }
     .divider-text { font-size: .74rem; font-weight: 700; color: var(--ink-soft); }
@@ -89,7 +96,7 @@
     <!-- RIGHT: form -->
     <div class="card auth-card fade-up d2">
       <div class="card-title">Create your account</div>
-      <div class="card-sub">Takes less than 60 seconds.</div>
+      <div class="card-sub">Takes less than 60 seconds. New accounts are reviewed by our team before they go live.</div>
 
       <form id="signupForm" novalidate>
         <div class="form-row">
@@ -168,8 +175,21 @@
 
       </form>
 
-      <div class="signin-link">
+      <div class="signin-link" id="signinLink">
         Already have an account? <a href="signin.html">Sign in</a>
+      </div>
+
+      <!-- Shown instead of the form once the request is in (accounts need approving). -->
+      <div id="pendingPanel" style="display:none">
+        <div class="pending-badge"><i class="ico ico-lock"></i> Awaiting approval</div>
+        <div class="card-title" style="margin-top:14px">Thanks, <span id="pendingName">there</span>!</div>
+        <p class="card-sub" style="margin-bottom:18px">
+          Cirqle is invite-only while we're getting started, so every new account is
+          reviewed by our team before it goes live. We'll email
+          <strong id="pendingEmail"></strong> the moment yours is approved — then you
+          can sign in and start earning.
+        </p>
+        <a href="index.html" class="btn btn-lg btn-submit">Back to home</a>
       </div>
     </div>
   </main>
@@ -291,18 +311,15 @@
         return;
       }
 
-      // Store the login token + profile as the session the other pages read.
-      localStorage.setItem('cirqle_session', JSON.stringify({
-        firstName: data.user.firstName,
-        lastName: data.user.lastName,
-        email: data.user.email,
-        instagramHandle: data.user.instagramHandle,
-        token: data.token,
-      }));
-
-      btn.classList.add('success');
-      txt.textContent = `Welcome to Cirqle, ${data.user.firstName}!`;
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1600);
+      // No session is stored: the account is pending an admin's approval, so
+      // there's no token to sign in with yet. Swap the form for a confirmation.
+      document.getElementById('pendingName').textContent = data.user.firstName;
+      document.getElementById('pendingEmail').textContent = data.user.email;
+      document.getElementById('signupForm').style.display = 'none';
+      document.getElementById('signinLink').style.display = 'none';
+      document.querySelector('.auth-card .card-title').style.display = 'none';
+      document.querySelector('.auth-card .card-sub').style.display = 'none';
+      document.getElementById('pendingPanel').style.display = 'block';
     });
 
   </script>

@@ -229,9 +229,20 @@
         if (res.status === 401) {
           btn.disabled = false;
           document.getElementById('submitText').textContent = 'Sign in →';
+          document.getElementById('errorMsg').textContent = 'Incorrect email or password. Please try again.';
           banner.classList.add('visible');
           document.getElementById('email').classList.add('error');
           document.getElementById('password').classList.add('error');
+          return;
+        }
+        if (res.status === 403) {
+          // Correct password, but the account isn't approved yet.
+          btn.disabled = false;
+          document.getElementById('submitText').textContent = 'Sign in →';
+          let msg = "Your account is awaiting approval. We'll let you know once it's live.";
+          try { const e = await res.json(); if (e && e.detail) msg = e.detail; } catch (_) {}
+          document.getElementById('errorMsg').textContent = msg;
+          banner.classList.add('visible');
           return;
         }
         if (!res.ok) {

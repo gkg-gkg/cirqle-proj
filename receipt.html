@@ -147,7 +147,7 @@
           headers: { 'Authorization': 'Bearer ' + session.token },
           body: fd
         });
-        if (res.status === 401) { signOut(); return; }
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
         if (!res.ok) throw new Error('upload failed');
         const receipt = await res.json().catch(() => ({}));
         // Cashback clears automatically 3 days after the post date (not on upload).

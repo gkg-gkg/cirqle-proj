@@ -26,6 +26,20 @@ TOKEN_EXPIRE_DAYS = 7
 # Reads the "Authorization: Bearer <token>" header off incoming requests.
 bearer_scheme = HTTPBearer(auto_error=True)
 
+# Approval gate: a member account is only usable once an admin approves it.
+# Shown to an account that can't sign in yet.
+PENDING_MESSAGE = ("Your account is awaiting approval. We'll let you know once "
+                   "it's live.")
+REJECTED_MESSAGE = "This account hasn't been approved for Cirqle."
+
+
+def approval_error(status: str) -> HTTPException:
+    """403 explaining why a not-yet-approved account is being turned away."""
+    return HTTPException(
+        status_code=403,
+        detail=PENDING_MESSAGE if status == "pending" else REJECTED_MESSAGE,
+    )
+
 
 def hash_password(password: str) -> str:
     # bcrypt only uses the first 72 bytes; trim to avoid an error on long input.
@@ -69,6 +83,10 @@ def get_current_user(
     user = session.get(User, user_id)
     if user is None:
         raise invalid
+    # A token minted before approval (or before the account was rejected /
+    # revoked) stops working here, not just at sign-in.
+    if user.status != "approved":
+        raise approval_error(user.status)
     return user
 
 

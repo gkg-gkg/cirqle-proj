@@ -154,3 +154,27 @@ def receipt_view_url(image_key: str, expires: int = 900) -> Optional[str]:
         )
     except Exception:  # noqa: BLE001 — presign is best-effort
         return None
+
+
+def delete_receipt(image_key: str) -> None:
+    """Remove a stored receipt image. Best-effort: never raises.
+
+    Used when an account is deleted — the person's receipt photos shouldn't
+    outlive their account in the private bucket.
+    """
+    if not image_key:
+        return
+    bucket = os.environ.get("S3_RECEIPTS_BUCKET")
+    if bucket:
+        region = os.environ.get("AWS_REGION", "eu-west-2")
+        try:
+            import boto3
+            boto3.client("s3", region_name=region).delete_object(
+                Bucket=bucket, Key=image_key)
+        except Exception:  # noqa: BLE001 — cleanup is best-effort
+            pass
+        return
+    try:
+        (RECEIPTS_DIR / image_key).unlink(missing_ok=True)
+    except OSError:
+        pass
