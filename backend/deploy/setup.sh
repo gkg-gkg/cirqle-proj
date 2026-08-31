@@ -56,6 +56,12 @@ CIRQLE_CORS_ORIGINS=https://gkg-gkg.github.io,https://cirqle.co.uk,https://www.c
 # then: sudo systemctl restart cirqle-api
 APIFY_TOKEN=
 CIRQLE_BRAND_HANDLE=cirqle.ltd
+# Stripe — merchant memberships and top-ups. Without these, plans still show
+# but checkout returns 503. Get them from the Stripe dashboard, then:
+#   python scripts/setup_stripe_plans.py   (creates the plans in that mode)
+#   sudo systemctl restart cirqle-api
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 EOF
   echo "   .env created with a fresh random secret key."
   echo "   NOTE: set APIFY_TOKEN in $BACKEND_DIR/.env to enable the feed, then restart."

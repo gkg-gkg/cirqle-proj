@@ -253,6 +253,10 @@
     .txn-amt { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
     .txn-amt.pos { color: #1c7c3a; }
     .txn-empty { color: var(--ink-soft); font-weight: 600; padding: 10px 0; }
+    .plan-prompt { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 15px 18px; margin-bottom: 18px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: var(--lime); }
+    .plan-prompt-title { font-family: var(--font-display); font-weight: 800; font-size: 1rem; }
+    .plan-prompt-sub { font-size: .84rem; color: var(--ink-soft); margin-top: 2px; }
+    .plan-prompt .btn { margin-left: auto; }
     .plan-picker .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 16px; }
     .mplan { padding: 20px 18px; display: flex; flex-direction: column; border: var(--bw) solid var(--line); border-radius: var(--r-card); background: var(--paper); }
     .mplan-name { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; }
@@ -372,6 +376,13 @@
 
     <!-- ═══ Overview ═══ -->
     <div class="pane" id="paneOverview">
+    <div class="plan-prompt hidden" id="planPrompt">
+      <div>
+        <div class="plan-prompt-title" id="planPromptTitle">Choose your membership to go live</div>
+        <div class="plan-prompt-sub" id="planPromptSub">You'll need an active plan before you can add credit or submit new deals.</div>
+      </div>
+      <button type="button" class="btn btn-ink mini" onclick="showTab('billing')">View plans →</button>
+    </div>
     <div class="stats-row">
       <div class="card stat-card fade-up"><div class="stat-label">Deals</div><div class="stat-val" id="sDeals">0</div></div>
       <div class="card card-sky stat-card fade-up"><div class="stat-label">Views</div><div class="stat-val" id="sViews">0</div></div>
@@ -769,6 +780,8 @@
       showDash();
       showTab((location.hash || '').slice(1) || 'overview');
       handleTopupReturn();
+      // Load billing up front so the Overview plan prompt is accurate on arrival.
+      if (!loaded.billing) { loaded.billing = true; loadBilling(); }
       // Refresh the profile from the server so a renamed business (or changed
       // email) shows straight away, without having to sign out and back in.
       try {
@@ -1355,7 +1368,21 @@
       return plansCache;
     }
 
+    function renderPlanPrompt(sub) {
+      const el = document.getElementById('planPrompt');
+      const needsPlan = !(sub.tier && sub.status === 'active');
+      el.classList.toggle('hidden', !needsPlan);
+      if (!needsPlan) return;
+      const past = sub.status === 'past_due';
+      document.getElementById('planPromptTitle').textContent = past
+        ? 'Your last payment failed' : 'Choose your membership to go live';
+      document.getElementById('planPromptSub').textContent = past
+        ? 'Update your card to keep adding credit and submitting deals.'
+        : "You'll need an active plan before you can add credit or submit new deals.";
+    }
+
     async function renderPlan(sub) {
+      renderPlanPrompt(sub);
       const picker = document.getElementById('planPicker');
       const summary = document.getElementById('planSummary');
       const alert = document.getElementById('billingAlert');
