@@ -12,7 +12,7 @@ import json
 import secrets
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from sqlmodel import Session, select
 
 from ..db import get_session
@@ -23,13 +23,15 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       MerchantCreatedOut, MerchantCreateIn, MerchantMessage,
                       MerchantMessageIn, MerchantMessageOut, MerchantOut,
                       MerchantProfileIn, MerchantProfileOut, MerchantSigninIn,
-                      MerchantStats, MerchantThreadOut, MerchantTransaction,
-                      Receipt, ReferralStat, RejectSubmissionIn, TaggedPostOut,
-                      TimePoint, TopUpIn, User)
+                      CheckoutSessionOut, MerchantStats, MerchantThreadOut,
+                      MerchantTransaction, Receipt, ReferralStat,
+                      RejectSubmissionIn, TaggedPostOut, TimePoint, TopUpIn,
+                      User)
 from ..activity import log_activity
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
 from ..storage import StorageError, delete_image, upload_image
+from ..payments import PaymentError, create_topup_session, payments_configured
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
@@ -283,22 +285,26 @@ def billing(merchant: Merchant = Depends(get_current_merchant),
     return _billing(merchant, session)
 
 
-@router.post("/billing/topup", response_model=BillingOut)
-def topup(data: TopUpIn, merchant: Merchant = Depends(get_current_merchant),
-          session: Session = Depends(get_session)):
-    """Record a prepaid credit top-up. No real payment is charged yet — this
-    just credits the balance so the merchant can see how funding will work."""
+@router.post("/billing/checkout", response_model=CheckoutSessionOut)
+def billing_checkout(data: TopUpIn, request: Request,
+                     merchant: Merchant = Depends(get_current_merchant)):
+    """Start a Stripe Checkout for a prepaid top-up and return the hosted URL.
+
+    The balance is credited by the Stripe webhook after the payment succeeds
+    (see routers/stripe_webhook.py), never here — a redirect can be faked.
+    """
+    if not payments_configured():
+        raise HTTPException(status_code=503, detail="Card payments aren't set up yet.")
     amount = round(float(data.amount), 2)
     if amount <= 0:
         raise HTTPException(status_code=422, detail="Enter an amount above £0.")
     if amount > 100000:
         raise HTTPException(status_code=422, detail="That top-up is too large.")
-    session.add(MerchantTransaction(
-        merchant_id=merchant.id, kind="topup", amount=amount,
-        description="Card top-up",
-    ))
-    session.commit()
-    return _billing(merchant, session)
+    try:
+        url = create_topup_session(merchant, amount, request.headers.get("origin", ""))
+    except PaymentError:
+        raise HTTPException(status_code=502, detail="Could not start checkout. Please try again.")
+    return CheckoutSessionOut(url=url)
 
 
 # ── Merchant dashboard stats ──

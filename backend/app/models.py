@@ -179,6 +179,10 @@ class MerchantTransaction(SQLModel, table=True):
     kind: str = "topup"          # "topup"
     amount: float = 0            # £ added
     description: str = ""
+    # The Stripe Checkout Session id (cs_...) that funded this top-up. Empty for
+    # the old demo rows. Indexed + used to guarantee a webhook retry can never
+    # credit the same payment twice.
+    stripe_ref: str = Field(default="", index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -682,6 +686,11 @@ class BillingOut(BaseModel):
 
 class TopUpIn(BaseModel):
     amount: float
+
+
+class CheckoutSessionOut(BaseModel):
+    """The hosted Stripe Checkout page to send the merchant to."""
+    url: str
 
 
 # ── Admin member administration (approval gate) ──

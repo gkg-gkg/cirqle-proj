@@ -513,7 +513,7 @@
           <div class="stat-label">Balance</div>
           <div class="balance-num">£<span id="bBalance">0.00</span></div>
           <button type="button" class="btn btn-lime" onclick="openTopup()">Add credit</button>
-          <div class="balance-note">No card is charged yet — top-ups are recorded so you can see how funding your cashback will work.</div>
+          <div class="balance-note">Top up by card to fund the cashback shoppers earn on your deals. You're charged only the amount you add.</div>
         </div>
         <div class="bill-tiles">
           <div class="card stat-card"><div class="stat-label">Topped up</div><div class="stat-val">£<span id="bTopped">0.00</span></div></div>
@@ -534,7 +534,7 @@
     <div class="card modal" style="max-width:400px">
       <button class="modal-close" type="button" onclick="closeTopup()" aria-label="Close">✕</button>
       <h2>Add credit</h2>
-      <div class="modal-sub">Top up your prepaid balance. This is a demo — no card is charged.</div>
+      <div class="modal-sub">Top up your prepaid balance. You'll be taken to our secure Stripe checkout to pay by card.</div>
       <div class="field">
         <label for="topupAmount">Amount (£)</label>
         <input id="topupAmount" type="number" min="1" step="1" placeholder="100" />
@@ -546,7 +546,7 @@
       </div>
       <div class="modal-err" id="topupErr"></div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-lime" id="topupBtn" onclick="doTopup()">Add credit</button>
+        <button type="button" class="btn btn-lime" id="topupBtn" onclick="doTopup()">Continue to payment →</button>
         <button type="button" class="btn" onclick="closeTopup()">Cancel</button>
       </div>
     </div>
@@ -711,6 +711,7 @@
     async function enterDashboard() {
       showDash();
       showTab((location.hash || '').slice(1) || 'overview');
+      handleTopupReturn();
       // Refresh the profile from the server so a renamed business (or changed
       // email) shows straight away, without having to sign out and back in.
       try {
@@ -1325,25 +1326,42 @@
       err.textContent = '';
       const amount = parseFloat(document.getElementById('topupAmount').value);
       if (!amount || amount <= 0) { err.textContent = 'Enter an amount above £0.'; return; }
-      btn.disabled = true; btn.textContent = 'Adding…';
+      const reset = () => { btn.disabled = false; btn.textContent = 'Continue to payment →'; };
+      btn.disabled = true; btn.textContent = 'Redirecting to checkout…';
       try {
-        const res = await fetch(`${API}/merchant/billing/topup`, {
+        const res = await fetch(`${API}/merchant/billing/checkout`, {
           method: 'POST', headers: { ...authHeader(), 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount }),
         });
         if (res.status === 401) { signOut(); return; }
         if (!res.ok) {
           const b = await res.json().catch(() => ({}));
-          err.textContent = b.detail || 'Couldn’t add credit — try again.';
+          err.textContent = b.detail || 'Couldn’t start checkout — try again.';
+          reset();
           return;
         }
-        renderBilling(await res.json());
-        closeTopup();
-        cirqleToast('Credit added ✓');
+        const { url } = await res.json();
+        window.location.assign(url);   // off to Stripe's hosted payment page
       } catch (_) {
         err.textContent = 'Couldn’t reach the server. Try again.';
-      } finally {
-        btn.disabled = false; btn.textContent = 'Add credit';
+        reset();
+      }
+    }
+
+    // On return from Stripe (?topup=success|cancel), tell the merchant what
+    // happened and refresh the balance. The credit is applied by the webhook,
+    // which can land a moment after the redirect — so we refetch, then again.
+    function handleTopupReturn() {
+      const status = new URLSearchParams(location.search).get('topup');
+      if (!status) return;
+      if (history.replaceState) history.replaceState(null, '', location.pathname + '#billing');
+      if (status === 'success') {
+        cirqleToast('Payment received — updating your balance…');
+        showTab('billing');
+        loadBilling();
+        setTimeout(loadBilling, 3000);
+      } else if (status === 'cancel') {
+        cirqleToast('Checkout cancelled — no charge was made.');
       }
     }
 
