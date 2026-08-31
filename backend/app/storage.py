@@ -97,6 +97,41 @@ def upload_image(file: UploadFile) -> str:
     return f"{LOCAL_BASE_URL}/media/{key}"
 
 
+def _key_from_public_url(url: str) -> str:
+    """Pull the object key back out of a public image URL.
+
+    upload_image stores the *whole* URL (S3 or local), but the key is always the
+    last path segment — keys are `{uuid.hex}{ext}` with no slashes of their own.
+    """
+    return url.rsplit("/", 1)[-1].split("?", 1)[0]
+
+
+def delete_image(url: str) -> None:
+    """Remove one public image previously stored by upload_image. Best-effort.
+
+    Used when a campaign's images are replaced/deleted or a brand logo is
+    swapped, so the old object doesn't orphan in the bucket. Never raises — a
+    failed cleanup must not break the request that triggered it.
+    """
+    key = _key_from_public_url(url or "")
+    if not key:
+        return
+    bucket = os.environ.get("S3_BUCKET")
+    if bucket:
+        region = os.environ.get("AWS_REGION", "eu-west-2")
+        try:
+            import boto3
+            boto3.client("s3", region_name=region).delete_object(
+                Bucket=bucket, Key=key)
+        except Exception:  # noqa: BLE001 — cleanup is best-effort
+            pass
+        return
+    try:
+        (MEDIA_DIR / key).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
 def upload_receipt(file: UploadFile) -> tuple[str, str]:
     """Store a receipt image PRIVATELY and return (storage key, sha256 of bytes).
 

@@ -29,7 +29,7 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
 from ..activity import log_activity
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
-from ..storage import StorageError, upload_image
+from ..storage import StorageError, delete_image, upload_image
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
@@ -134,10 +134,14 @@ def upload_logo(image: UploadFile = File(...),
         url = upload_image(image)
     except StorageError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    old_logo = merchant.logo_url
     merchant.logo_url = url
     session.add(merchant)
     session.commit()
     session.refresh(merchant)
+    # New logo saved — drop the one it replaced from the bucket.
+    if old_logo:
+        delete_image(old_logo)
     return _profile_out(merchant)
 
 
