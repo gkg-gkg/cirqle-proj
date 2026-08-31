@@ -196,18 +196,16 @@
           headers: { 'Authorization': 'Bearer ' + session.token },
           body: fd
         });
-<<<<<<< HEAD
-        if (res.status === 401) { signOut(); return; }
-        if (res.status === 422) {
-          const err = await res.json().catch(() => ({}));
-          cirqleToast(err.detail || 'Please check the form and try again.');
-          dropZone.style.pointerEvents = '';
-=======
         if (res.status === 401 || res.status === 403) { signOut(); return; }
         if (res.status === 413) {
           dropZone.style.pointerEvents = '';
           cirqleToast('That photo is too large — please keep it under 10 MB.');
->>>>>>> 7e093b27611f0bdfcfce3f1a22a4fc56187a4fba
+          return;
+        }
+        if (res.status === 422) {
+          const err = await res.json().catch(() => ({}));
+          cirqleToast(err.detail || 'Please check the form and try again.');
+          dropZone.style.pointerEvents = '';
           return;
         }
         if (!res.ok) throw new Error('upload failed');
