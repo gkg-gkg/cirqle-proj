@@ -1,6 +1,7 @@
 """Auth endpoints: create an account, sign in, and fetch the current user."""
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from .. import mailer, passwords, tokens
@@ -17,6 +18,7 @@ from ..security import (approval_error, create_token, get_current_user,
 # real. Saying "no such account" would let anyone test which emails are members.
 SENT_MESSAGE = ("If that email address has a Cirqle account, we've sent a link "
                 "to it. Check your inbox.")
+HANDLE_TAKEN = "That Instagram username is already linked to another account."
 VERIFY_MESSAGE = ("Check your inbox — we've sent a link to confirm your email "
                   "address. Once confirmed, we'll review your account.")
 
@@ -42,12 +44,20 @@ def signup(data: SignupIn, session: Session = Depends(get_session)):
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
     passwords.validate(data.password, email)
 
+    # The database carries a case-insensitive unique index on this column, so
+    # an unchecked clash surfaces as an IntegrityError (a bare 500) instead of
+    # something the sign-up form can show against the field.
+    handle = normalize_handle(data.instagramHandle)
+    if handle and session.exec(
+            select(User).where(func.lower(User.instagram_handle) == handle)).first():
+        raise HTTPException(status_code=409, detail=HANDLE_TAKEN)
+
     user = User(
         first_name=data.firstName.strip(),
         last_name=data.lastName.strip(),
         email=email,
         password_hash=hash_password(data.password),
-        instagram_handle=normalize_handle(data.instagramHandle),
+        instagram_handle=handle,
     )
     session.add(user)
     session.commit()
@@ -133,6 +143,10 @@ def update_me(
         handle = normalize_handle(data.instagramHandle)
         if not handle:
             raise HTTPException(status_code=422, detail="Instagram handle can't be empty.")
+        clash = session.exec(
+            select(User).where(func.lower(User.instagram_handle) == handle)).first()
+        if clash is not None and clash.id != user.id:
+            raise HTTPException(status_code=409, detail=HANDLE_TAKEN)
         user.instagram_handle = handle
 
     session.add(user)

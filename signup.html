@@ -286,11 +286,18 @@
         });
 
         if (res.status === 409) {
+          // 409 means a field is already taken — either the email or the
+          // Instagram username. Mark whichever one the server named.
           btn.disabled = false;
           txt.textContent = 'Create free account →';
-          document.getElementById('email').classList.add('error');
-          document.getElementById('emailErr').textContent = 'An account with this email already exists.';
-          document.getElementById('emailErr').classList.add('visible');
+          let detail = '';
+          try { const e = await res.json(); detail = (e && e.detail) || ''; } catch (_) {}
+          const isHandle = /instagram/i.test(detail);
+          const field = isHandle ? 'instagram' : 'email';
+          const errEl = document.getElementById(isHandle ? 'instagramErr' : 'emailErr');
+          document.getElementById(field).classList.add('error');
+          errEl.textContent = detail || 'An account with this email already exists.';
+          errEl.classList.add('visible');
           return;
         }
         if (!res.ok) {
