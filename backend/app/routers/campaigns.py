@@ -48,6 +48,12 @@ _FIELD_MAP = {
     "terms": "terms",
     "brandUrl": "brand_url",
     "bg": "bg",
+    "cashbackMode": "cashback_mode",
+    "baseCashback": "base_cashback",
+    "expectedEngagementBaseline": "expected_engagement_baseline",
+    "maxMultiplier": "max_multiplier",
+    "perPostCap": "per_post_cap",
+    "budgetTotal": "budget_total",
 }
 
 
@@ -81,6 +87,13 @@ def _campaign_out(c: Campaign) -> CampaignOut:
         bg=c.bg,
         tags=json.loads(c.tags or "[]"),
         images=json.loads(c.images or "[]"),
+        cashbackMode=c.cashback_mode,
+        baseCashback=c.base_cashback,
+        expectedEngagementBaseline=c.expected_engagement_baseline,
+        maxMultiplier=c.max_multiplier,
+        perPostCap=c.per_post_cap,
+        budgetTotal=c.budget_total,
+        budgetRemaining=c.budget_remaining,
     )
 
 
@@ -149,6 +162,8 @@ def create_campaign(
 
     c = Campaign(images=json.dumps(_upload_all(images)))
     _apply_in(c, data)
+    if data.budgetTotal is not None:
+        c.budget_remaining = data.budgetTotal
     session.add(c)
     session.commit()
     session.refresh(c)
@@ -168,7 +183,14 @@ def update_campaign(
     if c is None:
         raise HTTPException(status_code=404, detail="Campaign not found.")
 
-    _apply_in(c, _parse_payload(payload))
+    data = _parse_payload(payload)
+    old_budget_total = c.budget_total
+    _apply_in(c, data)
+    if data.budgetTotal is not None:
+        # Adjust remaining by the delta so topping up mid-campaign doesn't
+        # reset spend already tracked against it.
+        delta = data.budgetTotal - (old_budget_total or 0)
+        c.budget_remaining = (c.budget_remaining or 0) + delta
     real_images = [f for f in images if f and f.filename]
     old_images: list[str] = []
     if real_images:

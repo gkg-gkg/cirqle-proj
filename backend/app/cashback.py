@@ -12,12 +12,22 @@ We compute the effective status on read (no background job, no stored 'confirmed
 for new claims), so a claim flips to confirmed on its own once the 3 days pass.
 Legacy rows already stored as 'confirmed' are kept as-is.
 """
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from .models import Receipt
 
 CONFIRM_DAYS = 3
+
+
+def earn_to_amount(earn: str) -> float:
+    """'£13.00' -> 13.0 ; '£0.90' -> 0.9 ; '' -> 0.0."""
+    nums = re.findall(r"[\d.]+", earn or "")
+    try:
+        return float(nums[0]) if nums else 0.0
+    except ValueError:
+        return 0.0
 
 
 def _naive_utc(dt: datetime) -> datetime:

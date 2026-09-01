@@ -97,6 +97,17 @@ class Campaign(SQLModel, table=True):
     merchant_id: Optional[int] = Field(default=None, foreign_key="merchant.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    # Performance cashback (see app/aqs.py). `earn` above stays the display
+    # string used by every campaign; `base_cashback` is a separate decimal
+    # used only when cashback_mode == "performance" — don't conflate the two.
+    cashback_mode: str = "flat"                             # "flat" | "performance"
+    base_cashback: Optional[float] = None
+    expected_engagement_baseline: Optional[float] = None    # combined likes+comments; None -> DEFAULT_ENGAGEMENT_BASELINE
+    max_multiplier: Optional[float] = None                  # None -> ENGAGEMENT_MULTIPLIER_CEILING_DEFAULT
+    per_post_cap: Optional[float] = None                    # None -> no cap beyond the multiplier ceiling
+    budget_total: Optional[float] = None
+    budget_remaining: Optional[float] = None
+
 
 class MerchantApplication(SQLModel, table=True):
     """A brand's partnership application, submitted from contact.html.
@@ -157,6 +168,18 @@ class Receipt(SQLModel, table=True):
     status: str = "pending"                          # pending -> confirmed -> paid / rejected
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
     referred_by_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+
+    # Performance-cashback audit trail, stamped at every admin approval (see
+    # routers/receipts.py:_apply_shadow_scoring), flat campaigns included —
+    # so there's real historical data to compare once a campaign flips to
+    # "performance" mode. `shadow_payout` is what compute_payout WOULD return;
+    # it's kept separate from `amount` (what the member is actually paid) so
+    # the two are never ambiguous.
+    aqs_score_at_approval: Optional[float] = None
+    engagement_multiplier_at_approval: Optional[float] = None
+    engagement_snapshot: Optional[str] = None        # JSON-encoded dict
+    algorithm_version: Optional[str] = None
+    shadow_payout: Optional[float] = None
 
 
 class Merchant(SQLModel, table=True):
@@ -382,6 +405,12 @@ class CampaignIn(BaseModel):
     brandUrl: Optional[str] = None
     bg: Optional[str] = None
     tags: Optional[list[str]] = None
+    cashbackMode: Optional[str] = None
+    baseCashback: Optional[float] = None
+    expectedEngagementBaseline: Optional[float] = None
+    maxMultiplier: Optional[float] = None
+    perPostCap: Optional[float] = None
+    budgetTotal: Optional[float] = None   # budgetRemaining is system-managed, never admin-set directly
 
 
 class CampaignOut(BaseModel):
@@ -406,6 +435,13 @@ class CampaignOut(BaseModel):
     bg: str
     tags: list[str]
     images: list[str]
+    cashbackMode: str = "flat"
+    baseCashback: Optional[float] = None
+    expectedEngagementBaseline: Optional[float] = None
+    maxMultiplier: Optional[float] = None
+    perPostCap: Optional[float] = None
+    budgetTotal: Optional[float] = None
+    budgetRemaining: Optional[float] = None
 
 
 # ── Receipts / cashback (Phase 4 + 5) ──

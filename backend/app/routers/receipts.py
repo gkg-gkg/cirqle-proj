@@ -8,7 +8,7 @@ derived from these rows (see routers/account.py).
 Reads/writes of a user's own receipts are auth'd; verify/reject and the review
 list are admin-gated (reusing the campaigns admin key).
 """
-import re
+import json
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -16,7 +16,9 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlmodel import Session, func, select
 
 from ..activity import log_activity
-from ..cashback import admin_status, clears_at, effective_status, parse_post_ts
+from ..aqs import ALGORITHM_VERSION, compute_aqs, compute_payout
+from ..cashback import (admin_status, clears_at, earn_to_amount,
+                        effective_status, parse_post_ts)
 from ..db import get_session
 from ..handles import normalize_handle
 from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminReceiptOut,
@@ -28,14 +30,8 @@ from .campaigns import require_admin
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
 
-
-def _earn_to_amount(earn: str) -> float:
-    """'£13.00' -> 13.0 ; '£0.90' -> 0.9 ; '' -> 0.0."""
-    nums = re.findall(r"[\d.]+", earn or "")
-    try:
-        return float(nums[0]) if nums else 0.0
-    except ValueError:
-        return 0.0
+# Old private name kept so the rest of this file doesn't need touching.
+_earn_to_amount = earn_to_amount
 
 
 def _receipt_out(r: Receipt, status: Optional[str] = None, with_image: bool = False) -> ReceiptOut:
@@ -175,6 +171,56 @@ def _post_ts_of(r: Receipt, session: Session) -> Optional[datetime]:
     return parse_post_ts(m.timestamp) if m else None
 
 
+def _apply_shadow_scoring(r: Receipt, session: Session) -> None:
+    """Stamp AQS/payout audit fields and decide the outcome status.
+
+    For every campaign (flat or performance) this computes what compute_payout
+    WOULD return and stamps it as `shadow_payout` plus the `_at_approval` audit
+    fields — real historical data for later comparison, per the spec's Phase 3.
+    It never changes `Receipt.amount` (what the member is actually paid) unless
+    the campaign has explicitly opted into `cashback_mode == "performance"`,
+    and every real campaign is "flat" in this build, so this is inert to real
+    payouts today.
+
+    Wrapped so a scoring bug can never block a real approval: any exception
+    here just falls back to the plain `"verified"` outcome.
+    """
+    try:
+        r.status = "verified"
+        if r.campaign_id is None:
+            return
+        campaign = session.get(Campaign, r.campaign_id)
+        if campaign is None:
+            return
+        user = session.get(User, r.user_id)
+        mentions = session.exec(select(Mention).where(Mention.user_id == r.user_id)).all()
+        aqs_result = compute_aqs(user, mentions)
+
+        mention = session.get(Mention, r.post_id)
+        likes = (mention.likes_count or 0) if mention else 0
+        comments = (mention.comments_count or 0) if mention else 0
+        payout_result = compute_payout(campaign, aqs_result.score, likes, comments)
+
+        r.aqs_score_at_approval = payout_result.aqs_score
+        r.engagement_multiplier_at_approval = payout_result.engagement_multiplier
+        r.engagement_snapshot = json.dumps(payout_result.engagement_snapshot)
+        r.algorithm_version = ALGORITHM_VERSION
+        r.shadow_payout = payout_result.payout
+
+        if campaign.cashback_mode != "performance":
+            return  # shadow-only: real amount/status/budget are untouched
+
+        if campaign.budget_remaining is not None and payout_result.payout > campaign.budget_remaining:
+            r.status = "pending_budget_review"
+        else:
+            if campaign.budget_remaining is not None:
+                campaign.budget_remaining -= payout_result.payout
+                session.add(campaign)
+            r.amount = payout_result.payout
+    except Exception:
+        r.status = "verified"
+
+
 @router.post("/{receipt_id}/verify", response_model=ReceiptOut,
              dependencies=[Depends(require_admin)])
 def verify_receipt(receipt_id: int, session: Session = Depends(get_session)):
@@ -188,7 +234,7 @@ def verify_receipt(receipt_id: int, session: Session = Depends(get_session)):
     if datetime.utcnow() >= clears_at(r, post_ts):
         raise HTTPException(status_code=400,
                             detail="This claim's 3-day window has passed and can no longer be approved.")
-    r.status = "verified"
+    _apply_shadow_scoring(r, session)
     session.add(r)
     session.commit()
     session.refresh(r)
@@ -223,7 +269,7 @@ def bulk_verify_receipts(data: AdminBulkVerifyIn,
         if datetime.utcnow() >= clears_at(r, _post_ts_of(r, session)):
             errors.append(f"#{receipt_id}: 3-day window has passed")
             continue
-        r.status = "verified"
+        _apply_shadow_scoring(r, session)
         session.add(r)
         approved.append(r)
 

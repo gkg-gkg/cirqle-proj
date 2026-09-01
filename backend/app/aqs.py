@@ -25,7 +25,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
-from .models import Mention, User
+from .cashback import earn_to_amount
+from .models import Campaign, Mention, User
 
 AQS_FLOOR = 0.5
 AQS_CEILING = 1.0
@@ -164,4 +165,46 @@ def compute_aqs(user: User, mentions: list[Mention]) -> AqsResult:
             "comments": comments,
             "consistency_sample_size": len(usable_rates),
         },
+    )
+
+
+@dataclass
+class PayoutResult:
+    payout: float
+    aqs_score: float
+    engagement_multiplier: float
+    engagement_snapshot: dict
+
+
+def compute_payout(campaign: Campaign, aqs_score: float, likes: int, comments: int) -> PayoutResult:
+    """What this receipt should pay out, per the locked formula.
+
+    Reconciles the spec's flat-mode branch (which assumed `campaign.base_cashback`
+    is always set) against this codebase's real schema: campaigns that aren't
+    opted into performance mode (or have no `base_cashback` configured) never had
+    that field populated, so their real/flat payout is `earn_to_amount(campaign.earn)`
+    — the same value `receipts.create_receipt` already snapshots today. AQS and the
+    engagement multiplier are still computed from real data even in that case, so
+    shadow-mode logging has a real number to compare against once a campaign does
+    flip to performance mode.
+    """
+    baseline = campaign.expected_engagement_baseline or DEFAULT_ENGAGEMENT_BASELINE
+    ceiling = campaign.max_multiplier or ENGAGEMENT_MULTIPLIER_CEILING_DEFAULT
+    engagement_multiplier = _clamp(
+        (likes + comments) / baseline, ENGAGEMENT_MULTIPLIER_FLOOR, ceiling
+    )
+
+    if campaign.cashback_mode != "performance" or campaign.base_cashback is None:
+        payout = earn_to_amount(campaign.earn)
+    else:
+        raw_payout = campaign.base_cashback * aqs_score * engagement_multiplier
+        if campaign.per_post_cap is not None:
+            raw_payout = min(raw_payout, campaign.per_post_cap)
+        payout = round(raw_payout, 2)
+
+    return PayoutResult(
+        payout=payout,
+        aqs_score=aqs_score,
+        engagement_multiplier=engagement_multiplier,
+        engagement_snapshot={"likes": likes, "comments": comments, "baseline": baseline, "ceiling": ceiling},
     )
