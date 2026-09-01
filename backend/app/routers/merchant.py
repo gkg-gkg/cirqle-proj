@@ -75,7 +75,7 @@ def signin(data: MerchantSigninIn, session: Session = Depends(get_session)):
     m = session.exec(select(Merchant).where(Merchant.email == email)).first()
     if m is None or not verify_password(data.password, m.password_hash):
         raise HTTPException(status_code=401, detail="Incorrect email or password.")
-    return MerchantAuthOut(token=create_merchant_token(m.id), merchant=_merchant_out(m))
+    return MerchantAuthOut(token=create_merchant_token(m), merchant=_merchant_out(m))
 
 
 @router.get("/me", response_model=MerchantOut)

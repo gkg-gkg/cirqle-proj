@@ -1,0 +1,4 @@
+# Dev-only. Never installed on the server (setup.sh installs requirements.txt).
+#   .venv/bin/pip install -r requirements-dev.txt
+pytest
+httpx

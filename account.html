@@ -273,9 +273,18 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.token },
           body: JSON.stringify({ currentPassword, newPassword }),
         });
-        if (res.status === 204) {
+        if (res.ok) {
+          // The server rotates the login token on a password change (it signs
+          // out every OTHER device). Swap in the replacement so this page keeps
+          // working instead of 401-ing on the next request.
+          const body = await res.json().catch(() => ({}));
+          if (body.token) {
+            session.token = body.token;
+            const store = localStorage.getItem('cirqle_session') ? localStorage : sessionStorage;
+            store.setItem('cirqle_session', JSON.stringify(session));
+          }
           $('curPw').value = $('newPw').value = $('confirmPw').value = '';
-          setMsg($('pwMsg'), 'Password updated ✓', true);
+          setMsg($('pwMsg'), 'Password updated ✓ — other devices signed out', true);
           cirqleToast('Password updated');
         } else if (res.status === 401) {
           setMsg($('pwMsg'), 'Current password is incorrect', false);

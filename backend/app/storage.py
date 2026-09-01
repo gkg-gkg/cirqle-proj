@@ -188,6 +188,35 @@ def upload_receipt(file: UploadFile) -> tuple[str, str]:
     return key, digest
 
 
+def read_receipt(image_key: str) -> Optional[bytes]:
+    """Read a stored receipt's bytes back. None if it isn't there.
+
+    The automated check needs the image itself, and `receipt_view_url` can't
+    provide it — it returns None in local mode, and even in S3 mode a presigned
+    URL is for a browser, not for server-side code that already has bucket
+    access.
+    """
+    if not image_key:
+        return None
+    bucket = os.environ.get("S3_RECEIPTS_BUCKET")
+
+    if bucket:
+        region = os.environ.get("AWS_REGION", "eu-west-2")
+        try:
+            import boto3
+
+            obj = boto3.client("s3", region_name=region).get_object(
+                Bucket=bucket, Key=image_key)
+            return obj["Body"].read()
+        except Exception:  # noqa: BLE001 — a missing/unreadable object is "no bytes"
+            return None
+
+    try:
+        return (RECEIPTS_DIR / image_key).read_bytes()
+    except OSError:
+        return None
+
+
 def receipt_view_url(image_key: str, expires: int = 900) -> Optional[str]:
     """A short-lived presigned GET URL for a private receipt (admin viewing only).
 

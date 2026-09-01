@@ -24,7 +24,15 @@ class User(SQLModel, table=True):
     # index in the referral-attribution migration, not expressible as a plain
     # SQLModel Field(unique=True) since blank ("" = no handle set) must repeat.
     instagram_handle: str = ""
-    status: str = "pending"                          # pending -> approved / rejected
+    status: str = "unverified"                       # unverified -> pending -> approved / rejected
+    # Null until they click the link we email at signup. An account only joins
+    # the admin's approval queue once this is set, so the admin never reviews
+    # a fake or mistyped address.
+    email_verified_at: Optional[datetime] = None
+    pending_email: str = ""                          # a requested new address, not yet confirmed
+    # Bumped on every password change or reset. Login tokens carry this value,
+    # so changing the password instantly invalidates every existing session.
+    password_changed_at: datetime = Field(default_factory=datetime.utcnow)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -140,6 +148,20 @@ class Receipt(SQLModel, table=True):
     status: str = "pending"                          # pending -> confirmed -> paid / rejected
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
     referred_by_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    # ── Automated check (Phase 8) ──
+    # Filled in the background shortly after upload by app/verify.py. Advisory
+    # only for now: the admin still approves every claim, and these columns just
+    # put the reading of the receipt in front of them. `check_data` holds the
+    # extracted fields and the reasons as JSON TEXT (same trick as Campaign.tags)
+    # so the shape is identical on SQLite and Postgres.
+    check_status: str = ""                           # "" not run | ok | error
+    check_score: int = 0                             # 0-100, how well it matches the deal
+    check_data: str = "{}"                           # JSON: extracted fields + reasons
+    checked_at: Optional[datetime] = None
+    # The receipt's own order/transaction number, as printed. Indexed, NOT
+    # unique yet — extraction can misread, and a unique constraint would reject
+    # honest uploads while this is still advisory.
+    receipt_number: str = Field(default="", index=True)
 
 
 class Merchant(SQLModel, table=True):
@@ -175,6 +197,13 @@ class Merchant(SQLModel, table=True):
     stripe_subscription_id: str = ""
     subscription_status: str = "none"                # none|active|past_due|canceled
     current_period_end: Optional[datetime] = None    # next renewal
+    # ── Email verification / password (mirrors User) ──
+    email_verified_at: Optional[datetime] = None
+    pending_email: str = ""
+    password_changed_at: datetime = Field(default_factory=datetime.utcnow)
+    # True between "admin created the account" and "merchant set their own
+    # password" — the invite link is the only way in until they do.
+    must_set_password: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -270,6 +299,30 @@ class AdminActivity(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class AuthToken(SQLModel, table=True):
+    """A single-use, expiring link token: email verification, password reset,
+    and confirming a change of email address.
+
+    One table serves both members and merchants — `subject_type` says which
+    table `subject_id` points into, so neither login needs its own machinery.
+
+    Only the SHA-256 *hash* of the token is stored, never the token itself. The
+    raw token is effectively a temporary password, so this means a database leak
+    can't be replayed to take over accounts — the same reasoning as
+    `User.password_hash`.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    kind: str                                        # verify_email | reset_password | change_email
+    subject_type: str                                # user | merchant
+    subject_id: int = Field(index=True)
+    token_hash: str = Field(index=True, unique=True)
+    new_email: str = ""                              # change_email only: the address being moved to
+    expires_at: datetime
+    used_at: Optional[datetime] = None               # set the moment it's redeemed
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+
 # ── What the browser sends ──
 class SignupIn(BaseModel):
     firstName: str
@@ -298,6 +351,34 @@ class PasswordChangeIn(BaseModel):
     newPassword: str
 
 
+class EmailIn(BaseModel):
+    """Used by forgot-password and resend-verification. Both always answer the
+    same way whether or not the address exists, so this can't be used to work
+    out who has an account."""
+    email: EmailStr
+
+
+class TokenIn(BaseModel):
+    """A token lifted from an emailed link."""
+    token: str
+
+
+class ResetPasswordIn(BaseModel):
+    token: str
+    newPassword: str
+
+
+class MessageOut(BaseModel):
+    message: str
+
+
+class TokenOut(BaseModel):
+    """A replacement login token. Changing a password signs out every other
+    device, so the device that made the change is handed a fresh token to carry
+    on with rather than being logged out of the page it's sitting on."""
+    token: str
+
+
 # ── What the API returns (never includes the password hash) ──
 class UserOut(BaseModel):
     firstName: str
@@ -305,6 +386,10 @@ class UserOut(BaseModel):
     email: EmailStr
     instagramHandle: str
     createdAt: Optional[datetime] = None
+    # An address the user asked to move to but hasn't confirmed yet. "" when
+    # there's nothing pending. Lets account.html show "confirm the link we sent
+    # to X" instead of appearing to have ignored the change.
+    pendingEmail: str = ""
 
 
 class AuthOut(BaseModel):
@@ -416,6 +501,11 @@ class AdminReceiptOut(BaseModel):
     status: str
     uploadedAt: datetime
     imageUrl: Optional[str] = None   # presigned GET, expires shortly
+    # Automated check, for the reviewer to read alongside the image.
+    checkStatus: str = ""            # "" not run | ok | error
+    checkScore: int = 0
+    checkSummary: str = ""           # one line: what the check made of it
+    checkReasons: list[str] = []     # the individual findings, worst first
 
 
 class ActivityItem(BaseModel):

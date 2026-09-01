@@ -84,6 +84,14 @@
     .rbadge.confirmed { background: #DDF5E3; color: #1c7c3a; }
     .rbadge.paid { background: #E9E9F5; color: #4a4a7a; }
     .rbadge.rejected { background: #FBE0E0; color: #a62222; }
+    /* Automated receipt check (advisory — the admin still decides) */
+    .rcheck { margin-top: 6px; font-size: .74rem; line-height: 1.45; }
+    .rcheck .score { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: .68rem; font-weight: 800; }
+    .rcheck.good .score { background: #DDF5E3; color: #1c7c3a; }
+    .rcheck.warn .score { background: #FFF1D6; color: #8a5a00; }
+    .rcheck.bad .score { background: #FBE0E0; color: #a62222; }
+    .rcheck ul { margin: 4px 0 0; padding-left: 15px; color: var(--ink-soft); }
+    .rcheck li { margin: 1px 0; }
     .rbadge.approved { background: #DDF5E3; color: #1c7c3a; }
     .rbadge.verified { background: #E3EEFB; color: #2a5a8a; }
     .rbadge.expired { background: #ECECEC; color: #777; }
@@ -816,6 +824,17 @@
           const thumb = r.imageUrl
             ? `<a href="${r.imageUrl}" target="_blank" rel="noopener"><img src="${r.imageUrl}" alt="receipt"></a>`
             : '<i class="ico ico-receipt ico-soft"></i>';
+          let check = '';
+          if (r.checkStatus === 'ok') {
+            const tone = r.checkScore >= 80 ? 'good' : r.checkScore >= 50 ? 'warn' : 'bad';
+            const why = (r.checkReasons || []).map(x => `<li>${esc(x)}</li>`).join('');
+            check = `<div class="rcheck ${tone}">
+                <span class="score">${Number(r.checkScore)}/100</span> ${esc(r.checkSummary)}
+                ${why ? `<ul>${why}</ul>` : ''}
+              </div>`;
+          } else if (r.checkStatus === 'error') {
+            check = `<div class="rcheck"><span class="muted">${esc(r.checkSummary)}</span></div>`;
+          }
           let actions = '';
           if (r.status === 'pending')
             actions = `<button class="btn mini" data-verify="${r.id}">Verify</button><button class="btn mini btn-pink" data-reject="${r.id}">Reject</button>`;
@@ -829,8 +848,9 @@
             ${pick}
             <div class="clist-thumb">${thumb}</div>
             <div class="clist-main">
-              <div class="clist-title">${r.brand || '—'} · £${Number(r.amount).toFixed(2)} <span class="rbadge ${r.status}">${r.status}</span></div>
-              <div class="clist-sub">${r.userName} · ${r.userEmail}</div>
+              <div class="clist-title">${esc(r.brand) || '—'} · £${Number(r.amount).toFixed(2)} <span class="rbadge ${esc(r.status)}">${esc(r.status)}</span></div>
+              <div class="clist-sub">${esc(r.userName)} · ${esc(r.userEmail)}</div>
+              ${check}
             </div>
             <div class="clist-actions">${actions}</div>`;
           const v = row.querySelector('[data-verify]'); if (v) v.addEventListener('click', () => setReceipt(r.id, 'verify'));

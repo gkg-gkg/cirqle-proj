@@ -8,11 +8,13 @@ derived from these rows (see routers/account.py).
 Reads/writes of a user's own receipts are auth'd; verify/reject and the review
 list are admin-gated (reusing the campaigns admin key).
 """
+import os
 import re
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
+                     HTTPException, UploadFile)
 from sqlmodel import Session, func, select
 
 from ..activity import log_activity
@@ -23,7 +25,8 @@ from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminReceiptOut,
                       Campaign, Mention, Receipt, ReceiptOut, User)
 from ..security import get_current_user
 from ..storage import (StorageError, StorageTooLargeError, StorageUploadError,
-                       receipt_view_url, upload_receipt)
+                       delete_receipt, receipt_view_url, upload_receipt)
+from ..verify import check_receipt, summarise
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
@@ -68,6 +71,7 @@ def list_receipts(
 
 @router.post("", response_model=ReceiptOut, status_code=201)
 def create_receipt(
+    background: BackgroundTasks,
     post_id: str = Form(...),
     campaign_id: Optional[int] = Form(None),
     referred_by_handle: Optional[str] = Form(None),
@@ -105,6 +109,26 @@ def create_receipt(
     except StorageError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
+    # The same image file can only ever back one claim. Re-uploading for the
+    # SAME post is a replacement (below) and stays allowed; anything else — a
+    # second post, a second account — is one purchase claimed twice.
+    #
+    # Byte-identical only, so there are no false positives, but equally it is
+    # beaten by re-saving the photo. Catching that needs the receipt's own
+    # order number, which arrives with the extraction step.
+    clash = next(
+        (r for r in session.exec(
+            select(Receipt).where(Receipt.image_sha256 == digest)).all()
+         if not (r.user_id == user.id and r.post_id == post_id)),
+        None,
+    )
+    if clash is not None:
+        delete_receipt(key)             # don't leave the rejected upload behind
+        raise HTTPException(
+            status_code=409,
+            detail="This receipt image has already been submitted with another "
+                   "claim. Please upload the receipt for this purchase.")
+
     # Snapshot the deal's brand + cashback amount so the claim is self-contained.
     brand, amount = "", 0.0
     if campaign_id is not None:
@@ -120,6 +144,11 @@ def create_receipt(
         select(Receipt).where(Receipt.user_id == user.id, Receipt.post_id == post_id)
     ).first()
     if existing:
+        # Drop the photo this one replaces. Without it the old object stays in
+        # the private bucket forever with nothing pointing at it — billed, and
+        # (worse) missed by the cleanup that deletes a member's receipts when
+        # they close their account.
+        delete_receipt(existing.image_key)
         existing.image_key = key
         existing.image_sha256 = digest
         existing.campaign_id = campaign_id
@@ -139,6 +168,12 @@ def create_receipt(
     session.add(receipt)
     session.commit()
     session.refresh(receipt)
+
+    # Read the receipt in the background — the member shouldn't wait on a
+    # vision call to see their claim, and a failed check must not fail the
+    # upload. Advisory only: the admin still approves every claim.
+    if os.environ.get("CIRQLE_RECEIPT_CHECK", "on") != "off":
+        background.add_task(check_receipt, receipt.id)
 
     mention = session.get(Mention, post_id)
     post_ts = parse_post_ts(mention.timestamp) if mention else None
@@ -162,10 +197,13 @@ def admin_list_receipts(
     for r, u in rows:
         m = session.get(Mention, r.post_id)
         st = admin_status(r, parse_post_ts(m.timestamp) if m else None)
+        summary, reasons = summarise(r)
         out.append(AdminReceiptOut(
             id=r.id, userEmail=u.email, userName=f"{u.first_name} {u.last_name}",
             postId=r.post_id, brand=r.brand, amount=r.amount, status=st,
             uploadedAt=r.uploaded_at, imageUrl=receipt_view_url(r.image_key),
+            checkStatus=r.check_status, checkScore=r.check_score,
+            checkSummary=summary, checkReasons=reasons,
         ))
     return out
 
