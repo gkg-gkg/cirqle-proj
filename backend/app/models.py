@@ -53,6 +53,18 @@ class Mention(SQLModel, table=True):
     scraped_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class UserTrustScore(SQLModel, table=True):
+    """This user's current Account Quality Score (see app/aqs.py) — a
+    write-through cache/audit surface, one row per user, upserted whenever
+    it's (re)computed. Not the source of truth for payout math: AQS is always
+    recomputed live from Mention data wherever it's needed."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True, unique=True, foreign_key="user.id")
+    aqs_score: float
+    aqs_computed_at: datetime = Field(default_factory=datetime.utcnow)
+    aqs_inputs_snapshot: str = "{}"   # JSON-encoded dict — same trick as Campaign.tags
+
+
 class Campaign(SQLModel, table=True):
     """A cashback deal shown to everyone — the global catalog (Phase 3).
 
