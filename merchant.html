@@ -354,6 +354,10 @@
         </div>
         <div class="login-err" id="loginErr"></div>
         <button type="submit" class="btn btn-lg btn-lime" id="loginBtn" style="width:100%">Sign in →</button>
+        <div style="text-align:center;margin-top:14px;font-size:.82rem;font-weight:600">
+          <a href="#" id="mForgot" style="color:var(--pink-deep);font-weight:800;text-decoration:none">Forgot your password?</a>
+        </div>
+        <div id="mForgotNote" style="display:none;text-align:center;margin-top:10px;font-size:.8rem;color:var(--ink-soft);line-height:1.5"></div>
       </form>
       <div class="login-note">Don't have a login yet? Your account is created once your partnership application is approved — we'll send you the details. Want to partner with us? <a href="contact.html">Apply here →</a></div>
     </div>
@@ -757,7 +761,16 @@
           body: JSON.stringify({ email, password }),
         });
         if (!res.ok) {
-          err.textContent = res.status === 401 ? 'Incorrect email or password.' : 'Something went wrong. Try again.';
+          if (res.status === 401) {
+            err.textContent = 'Incorrect email or password.';
+          } else if (res.status === 403) {
+            // Either the invite hasn't been used yet or the email isn't
+            // confirmed — both are things the merchant can act on.
+            const body = await res.json().catch(() => ({}));
+            err.textContent = body.detail || 'Check your email to finish setting up your account.';
+          } else {
+            err.textContent = 'Something went wrong. Try again.';
+          }
           return;
         }
         const data = await res.json();
@@ -770,6 +783,32 @@
         btn.disabled = false;
         btn.textContent = 'Sign in →';
       }
+    });
+
+    // ── Forgot password ──
+    // Always reports the same thing, whether or not the address has an account
+    // (matching the server), so this can't be used to discover which brands are
+    // on Cirqle. A merchant who never used their invite gets the invite resent.
+    document.getElementById('mForgot').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('mEmail').value.trim();
+      const note = document.getElementById('mForgotNote');
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        note.style.display = 'block';
+        note.textContent = 'Enter your email address above first, then click again.';
+        return;
+      }
+      const link = document.getElementById('mForgot');
+      link.textContent = 'Sending…';
+      try {
+        await fetch(`${API}/merchant/forgot-password`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+      } catch (_) {}
+      link.textContent = 'Link sent ✓';
+      note.style.display = 'block';
+      note.textContent = "If that address has a merchant account, we've emailed a link to it. It expires in 1 hour.";
     });
 
     // ── Number helpers ──

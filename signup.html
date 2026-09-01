@@ -140,7 +140,7 @@
           <label for="password">Password</label>
           <div class="field-wrap">
             <span class="field-icon"><i class="ico ico-lock ico-soft"></i></span>
-            <input type="password" id="password" placeholder="At least 8 characters" autocomplete="new-password" />
+            <input type="password" id="password" placeholder="At least 10 characters" autocomplete="new-password" />
             <button type="button" class="pass-toggle" id="passToggle" aria-label="Show password"><i class="ico ico-eye ico-soft"></i></button>
           </div>
           <div class="strength-bar" id="strengthBar" aria-hidden="true">
@@ -150,7 +150,7 @@
             <div class="strength-seg" id="seg4"></div>
           </div>
           <div class="strength-label" id="strengthLabel"></div>
-          <div class="field-error" id="passwordErr">Password must be at least 8 characters.</div>
+          <div class="field-error" id="passwordErr">Password must be at least 10 characters.</div>
         </div>
 
         <div class="field">
@@ -179,15 +179,20 @@
         Already have an account? <a href="signin.html">Sign in</a>
       </div>
 
-      <!-- Shown instead of the form once the request is in (accounts need approving). -->
+      <!-- Shown instead of the form once the account exists. Two gates now:
+           confirm the email address, then our team approves. -->
       <div id="pendingPanel" style="display:none">
-        <div class="pending-badge"><i class="ico ico-lock"></i> Awaiting approval</div>
+        <div class="pending-badge"><i class="ico ico-mail"></i> Check your inbox</div>
         <div class="card-title" style="margin-top:14px">Thanks, <span id="pendingName">there</span>!</div>
         <p class="card-sub" style="margin-bottom:18px">
-          Cirqle is invite-only while we're getting started, so every new account is
-          reviewed by our team before it goes live. We'll email
-          <strong id="pendingEmail"></strong> the moment yours is approved — then you
-          can sign in and start earning.
+          We've sent a confirmation link to <strong id="pendingEmail"></strong>.
+          Click it to confirm your address — then our team reviews your account
+          (Cirqle is invite-only while we're getting started) and we'll email you
+          the moment it's live.
+        </p>
+        <p class="card-sub" style="margin-bottom:18px;font-size:.8rem">
+          Nothing arrived? Check your spam folder, or
+          <a href="#" id="resendLink" style="color:var(--pink-deep);font-weight:800;text-decoration:underline">send it again</a>.
         </p>
         <a href="index.html" class="btn btn-lg btn-submit">Back to home</a>
       </div>
@@ -222,7 +227,7 @@
     ];
     function getStrength(p) {
       let s = 0;
-      if (p.length >= 8) s++;
+      if (p.length >= 10) s++;
       if (/[A-Z]/.test(p)) s++;
       if (/[0-9]/.test(p)) s++;
       if (/[^A-Za-z0-9]/.test(p)) s++;
@@ -261,7 +266,7 @@
       const v2 = showErr('lastName',        'lastNameErr',  !ln);
       const v3 = showErr('email',           'emailErr',     !em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em));
       const vig = showErr('instagram',      'instagramErr', !ig);
-      const v4 = showErr('password',        'passwordErr',  pw.length < 8);
+      const v4 = showErr('password',        'passwordErr',  pw.length < 10);
       const v5 = showErr('confirmPassword', 'confirmErr',   pw !== cp);
       termsErr.classList.toggle('visible', !tc);
       if (!v1 || !v2 || !v3 || !vig || !v4 || !v5 || !tc) return;
@@ -311,10 +316,26 @@
         return;
       }
 
-      // No session is stored: the account is pending an admin's approval, so
-      // there's no token to sign in with yet. Swap the form for a confirmation.
+      // No session is stored: the address isn't confirmed and an admin hasn't
+      // approved the account, so there's no token to sign in with yet.
       document.getElementById('pendingName').textContent = data.user.firstName;
       document.getElementById('pendingEmail').textContent = data.user.email;
+
+      // Resend, for a link that never arrived.
+      document.getElementById('resendLink').onclick = async ev => {
+        ev.preventDefault();
+        const link = ev.target;
+        link.textContent = 'sending…';
+        try {
+          await fetch(`${window.CIRQLE_API_BASE}/auth/resend-verification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: data.user.email }),
+          });
+        } catch (_) {}
+        link.textContent = 'sent ✓';
+        link.style.textDecoration = 'none';
+      };
       document.getElementById('signupForm').style.display = 'none';
       document.getElementById('signinLink').style.display = 'none';
       document.querySelector('.auth-card .card-title').style.display = 'none';

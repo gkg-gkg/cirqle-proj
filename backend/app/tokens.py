@@ -26,6 +26,9 @@ LIFETIME = {
     "verify_email": timedelta(hours=24),
     "reset_password": timedelta(hours=1),
     "change_email": timedelta(hours=1),
+    # An invited merchant may not read their email for days, and there's no
+    # self-serve way for them to ask for another one — only the admin can.
+    "invite": timedelta(days=7),
 }
 
 

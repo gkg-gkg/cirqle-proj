@@ -15,10 +15,12 @@ from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from sqlmodel import Session, select
 
+from .. import mailer, passwords, tokens
 from ..db import get_session
 from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       CampaignSubmission, CampaignSubmissionIn,
-                      CampaignSubmissionOut, DealEvent, DealStat, Mention,
+                      CampaignSubmissionOut, DealEvent, DealStat, EmailIn,
+                      Mention, MessageOut, ResetPasswordIn,
                       Merchant, MerchantApplication, MerchantAuthOut,
                       MerchantCreatedOut, MerchantCreateIn, MerchantMessage,
                       MerchantMessageIn, MerchantMessageOut, MerchantOut,
@@ -30,6 +32,7 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       RejectSubmissionIn, TaggedPostOut, TimePoint, TopUpIn,
                       User)
 from ..activity import log_activity
+from ..ratelimit import rate_limit
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
 from ..storage import StorageError, delete_image, upload_image
@@ -37,6 +40,7 @@ from ..payments import (OVERAGE_RATE, TIERS, PaymentError,
                         create_portal_session, create_subscription_session,
                         create_topup_session, ensure_customer, month_start,
                         payments_configured, quote_topup, refund_topup)
+from .auth import SENT_MESSAGE
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
@@ -73,8 +77,21 @@ def _message_out(msg: MerchantMessage) -> MerchantMessageOut:
 def signin(data: MerchantSigninIn, session: Session = Depends(get_session)):
     email = data.email.lower()
     m = session.exec(select(Merchant).where(Merchant.email == email)).first()
-    if m is None or not verify_password(data.password, m.password_hash):
+    if m is None:
+        # Keep the timing the same as a real account — see auth.py signin.
+        hash_password(data.password)
         raise HTTPException(status_code=401, detail="Incorrect email or password.")
+    if m.must_set_password:
+        raise HTTPException(
+            status_code=403,
+            detail=("Check your email for the invite link and set a password to "
+                    "get started."))
+    if not verify_password(data.password, m.password_hash):
+        raise HTTPException(status_code=401, detail="Incorrect email or password.")
+    if m.email_verified_at is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Please confirm your email address first — check your inbox.")
     return MerchantAuthOut(token=create_merchant_token(m), merchant=_merchant_out(m))
 
 
@@ -697,8 +714,9 @@ def reject_submission(sub_id: int, data: RejectSubmissionIn,
 def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_session)):
     """Admin: turn an approved application into a merchant login.
 
-    Generates a one-time password (shown once, only the hash is stored) and
-    links the application's published deal to the new merchant so stats attribute.
+    No password is generated. The brand gets an emailed invite link and chooses
+    their own password, which also proves they own the address — so a working
+    password never has to be relayed by hand over chat or email.
     """
     app = session.get(MerchantApplication, data.applicationId)
     if app is None:
@@ -714,10 +732,12 @@ def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_sessi
         raise HTTPException(status_code=409,
                             detail="A merchant login already exists for this email.")
 
-    password = secrets.token_urlsafe(9)
     merchant = Merchant(
         application_id=app.id, email=email,
-        password_hash=hash_password(password), business_name=app.brand,
+        # Unusable until they set their own via the invite link. Random rather
+        # than blank so no crafted input can ever match it.
+        password_hash=hash_password(secrets.token_urlsafe(32)),
+        business_name=app.brand, must_set_password=True,
     )
     session.add(merchant)
     session.commit()
@@ -731,8 +751,104 @@ def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_sessi
             session.add(camp)
             session.commit()
 
+    raw = tokens.issue(session, "invite", "merchant", merchant.id)
+    delivered = mailer.send_merchant_invite(merchant.email, merchant.business_name, raw)
+
     log_activity(session, "Created merchant login", merchant.business_name)
-    return MerchantCreatedOut(merchant=_merchant_out(merchant), password=password)
+    return MerchantCreatedOut(
+        merchant=_merchant_out(merchant),
+        inviteSent=delivered,
+        message=(f"Invite emailed to {merchant.email}. They set their own "
+                 f"password from the link; it expires in 7 days."),
+    )
+
+
+# ── Setting and resetting a merchant password ────────────────────────────────
+# Mirrors the member flow in auth.py: generic answers so the endpoints can't be
+# used to find out which brands have accounts, single-use links, and a password
+# change that signs every other device out.
+
+@router.post("/set-password", response_model=MessageOut,
+             dependencies=[rate_limit("reset", limit=10, window=3600)])
+def set_password(data: ResetPasswordIn, session: Session = Depends(get_session)):
+    """Redeem an invite link: choose a password and confirm the address.
+
+    Reaching the inbox is what proves the address belongs to the brand, so this
+    completes verification as well as setting the password.
+    """
+    token = tokens.redeem(session, data.token, "invite")
+    if token is None or token.subject_type != "merchant":
+        raise HTTPException(
+            status_code=400,
+            detail="This link is invalid or has expired. Ask us for a new one.")
+    merchant = session.get(Merchant, token.subject_id)
+    if merchant is None:
+        raise HTTPException(status_code=400, detail="This link is no longer valid.")
+    passwords.validate(data.newPassword, merchant.email)
+
+    merchant.password_hash = hash_password(data.newPassword)
+    merchant.password_changed_at = datetime.utcnow()
+    merchant.email_verified_at = datetime.utcnow()
+    merchant.must_set_password = False
+    session.add(merchant)
+    session.commit()
+    return MessageOut(message="Password set. You can now sign in to the portal.")
+
+
+@router.post("/forgot-password", response_model=MessageOut,
+             dependencies=[rate_limit("forgot", limit=5, window=3600)])
+def forgot_password(data: EmailIn, session: Session = Depends(get_session)):
+    """Email a reset link. Always answers the same way — see auth.py."""
+    m = session.exec(select(Merchant).where(Merchant.email == data.email.lower())).first()
+    if m is not None:
+        # An account still on its invite gets the invite resent instead: it
+        # lasts longer, and "reset" makes no sense before a password exists.
+        if m.must_set_password:
+            raw = tokens.issue(session, "invite", "merchant", m.id)
+            mailer.send_merchant_invite(m.email, m.business_name, raw)
+        else:
+            raw = tokens.issue(session, "reset_password", "merchant", m.id)
+            mailer.send_merchant_reset(m.email, m.business_name, raw)
+    return MessageOut(message=SENT_MESSAGE)
+
+
+@router.post("/reset-password", response_model=MessageOut,
+             dependencies=[rate_limit("reset", limit=10, window=3600)])
+def reset_password(data: ResetPasswordIn, session: Session = Depends(get_session)):
+    """Set a new password from a reset link, signing every device out."""
+    token = tokens.redeem(session, data.token, "reset_password")
+    if token is None or token.subject_type != "merchant":
+        raise HTTPException(
+            status_code=400,
+            detail="This link is invalid or has expired. Request a new one.")
+    merchant = session.get(Merchant, token.subject_id)
+    if merchant is None:
+        raise HTTPException(status_code=400, detail="This link is no longer valid.")
+    passwords.validate(data.newPassword, merchant.email)
+
+    merchant.password_hash = hash_password(data.newPassword)
+    merchant.password_changed_at = datetime.utcnow()
+    if merchant.email_verified_at is None:
+        merchant.email_verified_at = datetime.utcnow()
+    session.add(merchant)
+    session.commit()
+    return MessageOut(message="Password updated. You can now sign in.")
+
+
+@router.post("/{merchant_id}/resend-invite", response_model=MessageOut,
+             dependencies=[Depends(require_admin)])
+def resend_invite(merchant_id: int, session: Session = Depends(get_session)):
+    """Admin: send a fresh invite link (the old one expired or never arrived)."""
+    merchant = session.get(Merchant, merchant_id)
+    if merchant is None:
+        raise HTTPException(status_code=404, detail="No such merchant.")
+    raw = tokens.issue(session, "invite", "merchant", merchant.id)
+    mailer.send_merchant_invite(merchant.email, merchant.business_name, raw)
+    merchant.must_set_password = True
+    session.add(merchant)
+    session.commit()
+    log_activity(session, "Resent merchant invite", merchant.business_name)
+    return MessageOut(message=f"Invite resent to {merchant.email}.")
 
 
 @router.post("/{merchant_id}/refund", response_model=BillingOut,

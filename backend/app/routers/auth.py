@@ -150,8 +150,7 @@ def change_password(
     """Change the signed-in user's password (verifies the current one first)."""
     if not verify_password(data.currentPassword, user.password_hash):
         raise HTTPException(status_code=401, detail="Current password is incorrect.")
-    if len(data.newPassword) < 8:
-        raise HTTPException(status_code=422, detail="New password must be at least 8 characters.")
+    passwords.validate(data.newPassword, user.email)
     user.password_hash = hash_password(data.newPassword)
     # Moves the "pwd" claim, which invalidates every token issued before now —
     # including this caller's. They get a replacement below so the page they're

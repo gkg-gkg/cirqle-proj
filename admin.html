@@ -864,6 +864,10 @@
             actions = `<button class="btn mini" data-verify="${r.id}">Verify</button><button class="btn mini btn-pink" data-reject="${r.id}">Reject</button>`;
           else if (r.status === 'verified')
             actions = `<button class="btn mini btn-pink" data-reject="${r.id}">Reject</button>`;
+          // A check fails for ordinary reasons (a transient AWS error, a format
+          // Textract won't read), so offer a retry rather than a dead end.
+          if (r.checkStatus === 'error')
+            actions += `<button class="btn mini" data-recheck="${r.id}">Re-check</button>`;
           // only claims still inside the 3-day window can be bulk-approved
           const pick = r.status === 'pending'
             ? `<input type="checkbox" class="rpick" data-pick="${r.id}" aria-label="Select claim #${r.id}" />`
@@ -879,12 +883,50 @@
             <div class="clist-actions">${actions}</div>`;
           const v = row.querySelector('[data-verify]'); if (v) v.addEventListener('click', () => setReceipt(r.id, 'verify'));
           const j = row.querySelector('[data-reject]'); if (j) j.addEventListener('click', () => setReceipt(r.id, 'reject'));
+          const rc = row.querySelector('[data-recheck]');
+          if (rc) rc.addEventListener('click', async () => {
+            rc.disabled = true; rc.textContent = 'Re-checking…';
+            await fetch(`${API}/receipts/${r.id}/recheck`, {
+              method: 'POST', headers: { 'X-Admin-Key': keyInput.value } });
+            // The check runs in the background, so give it a moment to land.
+            setTimeout(loadReceipts, 2500);
+          });
           const pk = row.querySelector('[data-pick]'); if (pk) pk.addEventListener('change', syncBulkBar);
           list.appendChild(row);
         });
         syncBulkBar();
+        loadCalibration();
       } catch (e) {
         list.innerHTML = '<p class="muted">Could not load receipts.</p>';
+      }
+    }
+
+    // How the automated check's scores compare with the admin's own decisions.
+    // This is the evidence for turning auto-approval on; until there are enough
+    // decided-and-checked claims it says so rather than inventing a threshold.
+    async function loadCalibration() {
+      const box = $('rcal');
+      try {
+        const res = await fetch(`${API}/receipts/admin/calibration`,
+          { headers: { 'X-Admin-Key': keyInput.value } });
+        if (!res.ok) { box.hidden = true; return; }
+        const c = await res.json();
+        const peak = Math.max(1, ...c.buckets.map(b => b.approved + b.rejected));
+        const bars = c.buckets.map(b => `<div class="bar" title="${b.label}: ${b.approved} approved, ${b.rejected} rejected">
+            <i class="a" style="height:${Math.round(38 * b.approved / peak)}px"></i>
+            <i class="r" style="height:${Math.round(38 * b.rejected / peak)}px"></i>
+          </div>`).join('');
+        const axis = c.buckets.map(b => `<span>${b.label.split('-')[0]}</span>`).join('');
+        box.innerHTML = `
+          <h3>Auto-approval readiness</h3>
+          <p>${esc(c.verdict)}</p>
+          ${c.decided ? `<div class="bars">${bars}</div><div class="axis">${axis}</div>
+            <div class="key"><i class="a" style="background:#4caf7d"></i> approved
+              &nbsp;<i class="r" style="background:#e08585"></i> rejected
+              &nbsp;· ${c.decided} checked${c.unchecked ? `, ${c.unchecked} decided before checks ran` : ''}</div>` : ''}`;
+        box.hidden = false;
+      } catch (e) {
+        box.hidden = true;
       }
     }
     async function setReceipt(id, action) {
@@ -1049,10 +1091,11 @@
       else setPMsg(`Approve failed (${res.status}): ${body.detail || 'request failed'}`, false);
     }
 
-    // Turn an approved application into a merchant login (Phase 6). The one-time
-    // password is shown once here — copy it and pass it to the merchant.
+    // Turn an approved application into a merchant login (Phase 6). No password
+    // is generated: the brand gets an emailed invite and sets their own, which
+    // also confirms their email address. Nothing to copy or pass on by hand.
     async function createMerchantLogin(id, brand) {
-      if (!confirm(`Create a merchant login for ${brand}? A one-time password will be shown now — copy it, it won't be shown again.`)) return;
+      if (!confirm(`Create a merchant login for ${brand}? We'll email them an invite link to set their own password.`)) return;
       const res = await fetch(`${API}/merchant`, {
         method: 'POST',
         headers: { 'X-Admin-Key': keyInput.value, 'Content-Type': 'application/json' },
@@ -1061,8 +1104,13 @@
       const body = await res.json().catch(() => ({}));
       if (res.ok) {
         const { email } = body.merchant;
-        window.alert(`Merchant login created for ${brand}\n\nEmail:    ${email}\nPassword: ${body.password}\n\nCopy these now — the password is not stored and won't be shown again.\nThe merchant signs in at merchant.html.`);
-        setPMsg(`Login created for ${brand} (${email}). Password was shown once — resend by deleting and recreating if lost.`, true);
+        const warn = body.inviteSent
+          ? ''
+          : '\n\n⚠️ The invite email could NOT be sent. Check the server logs, then use "Resend invite".';
+        window.alert(`Merchant login created for ${brand}\n\nEmail: ${email}\n\n${body.message}${warn}`);
+        setPMsg(body.inviteSent
+          ? `Login created for ${brand} — invite emailed to ${email}.`
+          : `Login created for ${brand}, but the invite email failed to send.`, body.inviteSent);
         loadThreads();
       } else if (res.status === 409) {
         setPMsg(`A merchant login already exists for ${brand}.`, false);

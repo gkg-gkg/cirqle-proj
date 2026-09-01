@@ -113,6 +113,7 @@
         <span><i class="ico ico-warning" style="color:inherit"></i></span>
         <span id="errorMsg">Incorrect email or password. Please try again.</span>
       </div>
+      <a href="#" id="resendLink" style="display:none;font-size:.82rem;font-weight:700;color:var(--pink-deep);text-decoration:underline;margin:-8px 0 16px">Resend the confirmation email</a>
 
       <form id="signinForm" novalidate>
         <div class="field">
@@ -236,13 +237,32 @@
           return;
         }
         if (res.status === 403) {
-          // Correct password, but the account isn't approved yet.
+          // Correct password, but a gate is in the way: either the email isn't
+          // confirmed yet, or an admin hasn't approved the account.
           btn.disabled = false;
           document.getElementById('submitText').textContent = 'Sign in →';
           let msg = "Your account is awaiting approval. We'll let you know once it's live.";
           try { const e = await res.json(); if (e && e.detail) msg = e.detail; } catch (_) {}
           document.getElementById('errorMsg').textContent = msg;
           banner.classList.add('visible');
+
+          // Only the email gate is something the user can act on right now.
+          if (/confirm your email/i.test(msg)) {
+            const link = document.getElementById('resendLink');
+            link.style.display = 'block';
+            link.onclick = async ev => {
+              ev.preventDefault();
+              link.textContent = 'Sending…';
+              try {
+                await fetch(`${window.CIRQLE_API_BASE}/auth/resend-verification`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email }),
+                });
+              } catch (_) {}
+              link.textContent = 'Sent — check your inbox ✓';
+            };
+          }
           return;
         }
         if (!res.ok) {
@@ -295,12 +315,18 @@
         document.getElementById(id).classList.remove('error');
         document.getElementById(id + 'Err').classList.remove('visible');
         document.getElementById('errorBanner').classList.remove('visible');
+        document.getElementById('resendLink').style.display = 'none';
       });
     });
 
     // ── Forgot password modal ──
     const modal = document.getElementById('forgotModal');
-    document.getElementById('forgotLink').addEventListener('click', e => { e.preventDefault(); modal.classList.add('open'); });
+    document.getElementById('forgotLink').addEventListener('click', e => {
+      e.preventDefault();
+      const typed = document.getElementById('email').value.trim();
+      if (typed) document.getElementById('resetEmail').value = typed;
+      modal.classList.add('open');
+    });
     document.getElementById('modalClose').addEventListener('click', () => {
       modal.classList.remove('open');
       document.getElementById('forgotForm').style.display = '';
@@ -308,11 +334,34 @@
     });
     modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
-    document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('resetBtn').addEventListener('click', async () => {
       const em = document.getElementById('resetEmail').value.trim();
-      if (!em) return;
+      if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+        document.getElementById('resetEmail').classList.add('error');
+        return;
+      }
+      const btn = document.getElementById('resetBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      try {
+        await fetch(`${window.CIRQLE_API_BASE}/auth/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: em }),
+        });
+      } catch (_) {
+        // Deliberately swallowed. The server always answers the same way so a
+        // reply can't reveal who has an account; showing a network error here
+        // would undo that, and the user's action is the same either way.
+      }
+      // Always show the same confirmation, whatever happened.
       document.getElementById('forgotForm').style.display = 'none';
       document.getElementById('forgotSuccess').classList.add('visible');
+    });
+
+    // Prefill the modal with whatever they typed on the form.
+    document.getElementById('resetEmail').addEventListener('input', function () {
+      this.classList.remove('error');
     });
 
   </script>

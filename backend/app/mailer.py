@@ -147,3 +147,40 @@ def send_email_change(to: str, first_name: str, token: str) -> bool:
         "This link expires in 1 hour. Until you confirm, your account keeps its "
         "current email address. If you didn't request this, ignore this email.")
     return send_email(to, "Confirm your new Cirqle email address", text, html)
+
+
+def send_merchant_invite(to: str, business_name: str, token: str) -> bool:
+    """Sent when an admin creates a merchant login. The link is the ONLY way in
+    — no password is generated, so nothing has to be relayed by hand."""
+    url = f"{site_base()}/merchant-set-password.html?token={token}"
+    name = business_name or "there"
+    text = (f"Hi {name},\n\n"
+            f"Your Cirqle merchant portal account is ready. Set your password to "
+            f"get started:\n\n"
+            f"{url}\n\n"
+            f"This link expires in 7 days. If it does, ask us for a new one.")
+    html = _layout(
+        "Your merchant portal is ready",
+        f"Hi {name}, set a password to start using your Cirqle merchant portal — "
+        f"track your deals, see referrals and manage billing.",
+        "Set your password", url,
+        "This link expires in 7 days. If it expires, contact us for a new one.")
+    return send_email(to, "Set up your Cirqle merchant account", text, html)
+
+
+def send_merchant_reset(to: str, business_name: str, token: str) -> bool:
+    url = f"{site_base()}/merchant-set-password.html?token={token}&reset=1"
+    name = business_name or "there"
+    text = (f"Hi {name},\n\n"
+            f"Reset your Cirqle merchant portal password here:\n\n"
+            f"{url}\n\n"
+            f"This link expires in 1 hour and can only be used once.\n\n"
+            f"If you didn't request this, ignore this email — nothing has changed.")
+    html = _layout(
+        "Reset your portal password",
+        f"Hi {name}, use the button below to choose a new password for your "
+        f"Cirqle merchant portal.",
+        "Reset password", url,
+        "This link expires in 1 hour and can only be used once. If you didn't "
+        "request it, ignore this email — nothing has changed.")
+    return send_email(to, "Reset your Cirqle merchant password", text, html)

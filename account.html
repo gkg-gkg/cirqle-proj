@@ -118,7 +118,7 @@
     <!-- PASSWORD -->
     <div class="card acct-card fade-up d4">
       <div class="section-label"><i class="ico ico-lock ico-soft"></i> Password</div>
-      <div class="section-note">Choose a strong password you don't use anywhere else. Minimum 8 characters.</div>
+      <div class="section-note">Choose a strong password you don't use anywhere else. Minimum 10 characters.</div>
       <div class="field"><label for="curPw">Current password</label><input id="curPw" type="password" autocomplete="current-password" /></div>
       <div class="two">
         <div class="field"><label for="newPw">New password</label><input id="newPw" type="password" autocomplete="new-password" /></div>
@@ -214,8 +214,18 @@
         if (res.ok) {
           session.firstName = body.firstName; session.lastName = body.lastName; session.email = body.email;
           saveSession(); paintIdentity();
-          setMsg($('profileMsg'), 'Saved ✓', true);
-          cirqleToast('Profile updated');
+          // A NEW email isn't applied until it's confirmed from that inbox, so
+          // body.email is still the old one — say so rather than showing a
+          // bare "Saved ✓" that looks like the change was ignored.
+          if (body.pendingEmail) {
+            $('email').value = body.email;
+            setMsg($('profileMsg'),
+                   `Saved ✓ — confirm the link we sent to ${body.pendingEmail} to finish changing your email`, true);
+            cirqleToast('Check your inbox to confirm the new email');
+          } else {
+            setMsg($('profileMsg'), 'Saved ✓', true);
+            cirqleToast('Profile updated');
+          }
         } else if (res.status === 409) {
           setMsg($('profileMsg'), 'That email is already in use', false);
         } else if (res.status === 422) {
@@ -263,7 +273,7 @@
       const newPassword = $('newPw').value;
       const confirm = $('confirmPw').value;
       if (!currentPassword) { setMsg($('pwMsg'), 'Enter your current password', false); return; }
-      if (newPassword.length < 8) { setMsg($('pwMsg'), 'New password must be at least 8 characters', false); return; }
+      if (newPassword.length < 10) { setMsg($('pwMsg'), 'New password must be at least 10 characters', false); return; }
       if (newPassword !== confirm) { setMsg($('pwMsg'), 'New passwords don’t match', false); return; }
       const btn = $('savePwBtn'); btn.disabled = true;
       setMsg($('pwMsg'), 'Updating…', true);

@@ -110,3 +110,101 @@ token is set, `POST /feed/refresh` returns 503 with a clear message.
 
 Re-run the same one-liner from Stage 3 — it pulls the latest code and restarts the
 service, keeping your `.env` and database intact.
+
+---
+
+## Transactional email (verification links + password resets)
+
+Sign-up now requires confirming an email address, and passwords can be reset by
+link. Both need Amazon SES. **Until SES is set up and out of sandbox, no member
+can complete a sign-up on the live site** — so do these in order.
+
+### 1. One-off AWS setup
+
+1. **Verify the sending domain.** SES console (region **eu-west-2**) →
+   Configuration → Identities → Create identity → Domain → `cirqle.co.uk`,
+   Easy DKIM, RSA_2048_BIT. Add the 3 CNAME records it gives you to Krystal DNS
+   as *relative* names (`abc._domainkey`, not `abc._domainkey.cirqle.co.uk` —
+   Krystal appends the domain itself). Status goes Pending → Verified.
+2. **Request production access.** SES → Account dashboard → Request production
+   access → Transactional. **Takes ~24 hours.** Until it's granted, SES delivers
+   only to addresses you've individually verified — everyone else gets nothing,
+   silently.
+3. **Permission.** The EC2 role `cirqle-ec2-s3` needs an inline policy allowing
+   `ses:SendEmail` and `ses:SendRawEmail` on `*`. No restart needed.
+
+### 2. On the server
+
+`setup.sh` only writes `.env` when it doesn't exist, so add these by hand:
+
+```bash
+ssh -i ~/.ssh/cirqle-key.pem ec2-user@35.178.6.182
+nano ~/cirqle/backend/.env
+```
+
+```
+CIRQLE_EMAIL_MODE=console
+CIRQLE_EMAIL_FROM=Cirqle <noreply@cirqle.co.uk>
+CIRQLE_SITE_BASE=https://cirqle.co.uk
+```
+
+Leave `CIRQLE_EMAIL_MODE=console` until step 1.2 is granted. In console mode
+emails are written to the service log instead of being sent — nothing breaks,
+but nobody receives anything, so links must be read out of the log:
+
+```bash
+journalctl -u cirqle-api -n 100 --no-pager | grep -A 6 "EMAIL (console mode"
+```
+
+Once production access is granted, change it to `ses` and restart:
+
+```bash
+sudo systemctl restart cirqle-api
+```
+
+### 3. Deploy the code
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/gkg-gkg/cirqle-proj/main/backend/deploy/setup.sh | bash
+```
+
+This pulls the code and runs `alembic upgrade head`, which applies migration
+`d5e1a8c30b47` (the `authtoken` table plus verification columns). Existing
+accounts are grandfathered as already-verified, so nobody is locked out.
+
+### 4. Expect everyone to be signed out once
+
+Login tokens now carry a stamp of when the password last changed, so that
+changing a password invalidates sessions on other devices. Tokens issued before
+this deploy have no stamp and are refused. **Every signed-in user is logged out
+once** and signs back in as normal. This happens only on this deploy.
+
+### 5. Check it works
+
+```bash
+curl -s https://api.cirqle.co.uk/ping >/dev/null; \
+curl -s -X POST https://api.cirqle.co.uk/auth/forgot-password \
+  -H 'Content-Type: application/json' -d '{"email":"you@example.com"}'
+```
+
+Always answers "if that address has an account…" whether or not it does — that
+is deliberate, so the endpoint can't be used to discover who has an account.
+Then check the inbox (or the log, in console mode).
+
+### Ordering note
+
+The website is served by GitHub Pages and goes live the moment you push, but the
+API only updates when you run `setup.sh`. Push and deploy close together —
+between the two, the live site calls endpoints the old API doesn't have.
+
+### Known gap (pre-existing)
+
+The merchant brand-profile columns (`bio`, `categories`, `website`, …) are added
+by `scripts/migrate_merchant_profile.py`, not by an Alembic migration, so a
+database built purely from migrations will not have them and merchant endpoints
+will 500. Existing deployments already ran it. Run it once on any fresh
+database:
+
+```bash
+cd ~/cirqle/backend && .venv/bin/python scripts/migrate_merchant_profile.py
+```
