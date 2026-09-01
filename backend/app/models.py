@@ -45,6 +45,11 @@ class Mention(SQLModel, table=True):
     owner_full_name: Optional[str] = None
     likes_count: Optional[int] = None
     comments_count: Optional[int] = None
+    # Snapshot of the post owner's own profile at scrape time (best-effort — a
+    # separate Apify profile lookup, not part of the brand-mentions scrape, so
+    # it can be null if that lookup failed or hasn't run yet).
+    follower_count_at_scrape: Optional[int] = None
+    following_count_at_scrape: Optional[int] = None
     scraped_at: datetime = Field(default_factory=datetime.utcnow)
 
 

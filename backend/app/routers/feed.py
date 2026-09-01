@@ -15,7 +15,7 @@ from sqlmodel import Session, select
 
 from ..db import get_session
 from ..handles import normalize_handle
-from ..instagram import ScrapeError, scrape_brand_mentions
+from ..instagram import ScrapeError, scrape_brand_mentions, scrape_profile_stats
 from ..models import FeedPost, FeedRefreshOut, Mention, User
 from ..security import get_current_user
 
@@ -76,6 +76,8 @@ def refresh(
 
     mine = [p for p in raw_posts if (p.get("ownerUsername") or "").lower() == handle]
     now = datetime.now(timezone.utc)
+    # Best-effort — never blocks the refresh if it fails (see scrape_profile_stats).
+    profile_stats = scrape_profile_stats(handle)
 
     # Replace this user's stored set with the fresh scrape (delete-then-insert,
     # flushed in between so re-using the same post id doesn't clash).
@@ -110,6 +112,8 @@ def refresh(
                 owner_full_name=fp.ownerFullName,
                 likes_count=fp.likesCount,
                 comments_count=fp.commentsCount,
+                follower_count_at_scrape=profile_stats.get("followers") if profile_stats else None,
+                following_count_at_scrape=profile_stats.get("following") if profile_stats else None,
                 scraped_at=now,
             ))
     session.commit()

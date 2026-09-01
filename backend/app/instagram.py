@@ -10,6 +10,7 @@ the caller filter down to a single user's own posts.
 """
 import os
 import time
+from typing import Optional
 
 from apify_client import ApifyClient
 
@@ -25,6 +26,11 @@ BRAND_HANDLE = os.environ.get("CIRQLE_BRAND_HANDLE", "cirqle.ltd")
 # process; move to Redis if we ever run multiple workers.)
 _CACHE_TTL_SECONDS = 60
 _cache: dict = {"at": 0.0, "limit": None, "posts": None}
+
+# A user's own follower/following counts change slowly, so this cache lives
+# much longer than the brand-mentions one above. Keyed by normalized handle.
+_PROFILE_CACHE_TTL_SECONDS = 900
+_profile_cache: dict = {}
 
 
 class ScrapeError(RuntimeError):
@@ -68,3 +74,53 @@ def scrape_brand_mentions(limit: int = 50) -> list[dict]:
     posts = _do_scrape(token, limit)
     _cache.update(at=time.time(), limit=limit, posts=posts)
     return posts
+
+
+def _do_scrape_profile(token: str, handle: str) -> Optional[dict]:
+    """One Apify run against a single profile URL, 'details' mode. No caching."""
+    client = ApifyClient(token)
+    run_input = {
+        "directUrls": [f"https://www.instagram.com/{handle}/"],
+        "resultsType": "details",   # profile-level stats, not posts
+        "resultsLimit": 1,
+    }
+    run = client.actor(ACTOR_ID).call(run_input=run_input)
+    dataset = client.dataset(run["defaultDatasetId"])
+    items = list(dataset.iterate_items())
+    if not items:
+        return None
+    item = items[0]
+    followers = item.get("followersCount")
+    following = item.get("followsCount")
+    if followers is None and following is None:
+        return None
+    return {"followers": followers, "following": following}
+
+
+def scrape_profile_stats(handle: str) -> Optional[dict]:
+    """Best-effort: this user's own followers/following counts.
+
+    Never raises — a broken or rate-limited profile lookup must not block the
+    mention refresh it's called alongside. Returns None on any failure
+    (missing token, Apify error, unexpected response shape) or unrecognised
+    handle, and a fresh {"followers": int|None, "following": int|None} dict
+    on success, reusing a longer-lived cache since these numbers move slowly.
+    """
+    if not handle:
+        return None
+
+    cached = _profile_cache.get(handle)
+    if cached and (time.time() - cached["at"]) < _PROFILE_CACHE_TTL_SECONDS:
+        return cached["stats"]
+
+    token = os.environ.get("APIFY_TOKEN")
+    if not token:
+        return None
+
+    try:
+        stats = _do_scrape_profile(token, handle)
+    except Exception:  # noqa: BLE001 — this path must never raise
+        stats = None
+
+    _profile_cache[handle] = {"at": time.time(), "stats": stats}
+    return stats
