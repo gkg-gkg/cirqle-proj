@@ -148,7 +148,7 @@
         <div class="card wallet-card fade-up d3">
           <div class="wallet-label">Available balance</div>
           <div class="wallet-balance">£<span id="walletBal">47.80</span></div>
-          <div class="wallet-sub">Ready to withdraw to your bank or PayPal</div>
+          <div class="wallet-sub" id="walletSub">Ready to withdraw to your bank</div>
           <div class="wallet-actions">
             <button class="btn btn-ink" id="withdrawBtn" onclick="withdraw()">Withdraw</button>
             <a href="browse.html" class="btn">Find deals</a>
@@ -296,11 +296,82 @@
         renderActivity(s.activity);
       } catch (e) { /* leave zeros */ }
     }
-    function withdraw() {
-      // Withdrawals aren't live yet. Intentionally do NOT call /account/withdraw,
-      // so the user's balance is never touched — just show a "coming soon" message.
-      cirqleToast('Withdrawals are coming soon — your balance stays put for now');
+    // ── Cashing out ────────────────────────────────────────────────────────
+    // Paying real money means Stripe has to verify the member first, so the
+    // button does one of two things depending on where they are in that
+    // process: start verification, or actually withdraw.
+    let payoutState = null;
+    const API = window.CIRQLE_API_BASE;
+    const auth = () => ({ 'Authorization': 'Bearer ' + session.token });
+
+    async function loadPayoutStatus() {
+      try {
+        const res = await fetch(`${API}/account/payouts/status`, { headers: auth() });
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
+        if (!res.ok) return;
+        payoutState = await res.json();
+        const btn = document.getElementById('withdrawBtn');
+        const sub = document.getElementById('walletSub');
+        if (payoutState.canWithdraw) {
+          btn.textContent = 'Withdraw';
+          btn.disabled = false;
+          sub.textContent = 'Ready to withdraw to your bank';
+        } else if (!payoutState.detailsSubmitted) {
+          btn.textContent = 'Set up withdrawals';
+          btn.disabled = false;
+          sub.textContent = 'Verify your identity once to cash out';
+        } else if (!payoutState.ready) {
+          btn.textContent = 'Verifying…';
+          btn.disabled = true;
+          sub.textContent = payoutState.reason;
+        } else {
+          btn.textContent = 'Withdraw';
+          btn.disabled = true;
+          sub.textContent = payoutState.reason;
+        }
+      } catch (_) { /* leave the button as-is */ }
     }
+
+    async function withdraw() {
+      const btn = document.getElementById('withdrawBtn');
+      if (!payoutState) { await loadPayoutStatus(); if (!payoutState) return; }
+
+      // Not verified yet -> send them to Stripe's hosted form.
+      if (!payoutState.ready) {
+        btn.disabled = true; btn.textContent = 'Opening…';
+        try {
+          const res = await fetch(`${API}/account/payouts/onboard`, { method: 'POST', headers: auth() });
+          if (res.status === 401 || res.status === 403) { signOut(); return; }
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) { cirqleToast(body.detail || 'Could not start verification'); loadPayoutStatus(); return; }
+          window.location.assign(body.url);
+        } catch (_) { cirqleToast('Could not reach the server'); loadPayoutStatus(); }
+        return;
+      }
+
+      if (!confirm(`Withdraw £${payoutState.wallet.toFixed(2)} to your bank? It usually arrives within a few working days.`)) return;
+      btn.disabled = true; btn.textContent = 'Sending…';
+      try {
+        const res = await fetch(`${API}/account/withdraw`, { method: 'POST', headers: auth() });
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) { cirqleToast(body.detail || 'Withdrawal failed — try again'); loadPayoutStatus(); return; }
+        cirqleToast('On its way — it should land in a few working days');
+        loadStats();
+        loadPayoutStatus();
+      } catch (_) {
+        cirqleToast('Could not reach the server'); loadPayoutStatus();
+      }
+    }
+
+    // Returning from Stripe's form: checks can still be running, so re-check.
+    (function handlePayoutReturn() {
+      const p = new URLSearchParams(location.search).get('payout');
+      if (!p) return;
+      if (history.replaceState) history.replaceState(null, '', location.pathname);
+      if (p === 'done') cirqleToast('Details submitted — we\'ll confirm once Stripe has checked them');
+      setTimeout(loadPayoutStatus, 1500);
+    })();
     // ── Active deals from the live catalog ──
     async function loadActiveDeals() {
       const el = document.getElementById('activeDealsList');
@@ -320,7 +391,7 @@
         el.innerHTML = '<div style="font-size:.82rem;color:var(--ink-soft)">Couldn’t load deals right now.</div>';
       }
     }
-    if (session) { loadStats(); loadActiveDeals(); }
+    if (session) { loadStats(); loadActiveDeals(); loadPayoutStatus(); }
 
     // ── Saved deals ──
     (function renderSaved() {

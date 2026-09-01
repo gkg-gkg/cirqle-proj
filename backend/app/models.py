@@ -33,6 +33,31 @@ class User(SQLModel, table=True):
     # Bumped on every password change or reset. Login tokens carry this value,
     # so changing the password instantly invalidates every existing session.
     password_changed_at: datetime = Field(default_factory=datetime.utcnow)
+    # ── Cashing out (Stripe Connect) ──
+    # Paying a member real money means Stripe must verify who they are, so each
+    # one gets their own Connect account. Stripe holds the identity and bank
+    # details; we only mirror whether they're cleared to receive money.
+    stripe_account_id: str = Field(default="", index=True)
+    payouts_enabled: bool = False        # Stripe says we can send them money
+    payout_details_submitted: bool = False   # they finished the onboarding form
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Payout(SQLModel, table=True):
+    """One withdrawal of a member's cleared cashback to their bank.
+
+    Created when the member withdraws; `amount` is the total of the receipts
+    flipped to "paid" in that withdrawal, so the ledger and the money always
+    agree. Stripe moves the money in two hops — a Transfer to their connected
+    account, then Stripe's own payout to their bank — which is why "sent"
+    (we've transferred) is a different state from the money actually landing.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True, foreign_key="user.id")
+    amount: float = 0
+    status: str = "sent"                 # sent -> paid / failed
+    stripe_transfer_id: str = Field(default="", index=True)
+    failure_reason: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -516,6 +541,29 @@ class ActivityItem(BaseModel):
     imageUrl: Optional[str] = None   # presigned link to the user's own receipt
 
 
+class PayoutStatusOut(BaseModel):
+    """Whether this member can be paid, and what's stopping them if not."""
+    ready: bool                  # Stripe has cleared them to receive money
+    detailsSubmitted: bool       # they finished the form (checks may still run)
+    wallet: float                # £ cleared and available to withdraw
+    minimum: float               # £ smallest withdrawal we allow
+    canWithdraw: bool            # ready AND wallet >= minimum
+    reason: str = ""             # plain-English blocker, when canWithdraw is false
+
+
+class OnboardLinkOut(BaseModel):
+    """A one-time Stripe-hosted link for identity + bank details."""
+    url: str
+
+
+class PayoutOut(BaseModel):
+    id: int
+    amount: float
+    status: str
+    createdAt: datetime
+    failureReason: str = ""
+
+
 class AccountStats(BaseModel):
     """Real per-user dashboard numbers, all derived from the user's receipts."""
     totalEarned: float   # confirmed + paid
@@ -607,10 +655,14 @@ class MerchantCreateIn(BaseModel):
 
 
 class MerchantCreatedOut(BaseModel):
-    """Returned once to the admin so they can pass on the credentials.
-    The plaintext password is shown here and never stored or shown again."""
+    """Returned to the admin after creating a merchant login.
+
+    No password: the brand is emailed an invite link and chooses their own, so
+    there's nothing for the admin to copy down or pass on.
+    """
     merchant: MerchantOut
-    password: str
+    inviteSent: bool
+    message: str
 
 
 class DealStat(BaseModel):
@@ -849,6 +901,31 @@ class CheckoutSessionOut(BaseModel):
     url: str
 
 
+# ── Admin: member payouts ──
+class AdminPayoutOut(BaseModel):
+    id: int
+    userId: int
+    userName: str
+    userEmail: str
+    amount: float
+    status: str              # sent -> paid / failed
+    createdAt: datetime
+    failureReason: str = ""
+
+
+class AdminPayoutsOut(BaseModel):
+    """Withdrawals plus whether the Stripe balance can actually cover what
+    members are owed — merchant top-ups are what funds member payouts, so a
+    shortfall here means withdrawals will start failing."""
+    balanceAvailable: Optional[float] = None   # None when Stripe can't be reached
+    balancePending: Optional[float] = None
+    walletOwed: float                          # cleared cashback members can withdraw
+    shortfall: float                           # owed minus available (0 = funded)
+    totalPaidOut: float
+    failedCount: int
+    payouts: list[AdminPayoutOut]
+
+
 # ── Admin member administration (approval gate) ──
 class AdminMemberOut(BaseModel):
     """Admin view of one member account: the approval queue and account admin.
@@ -968,6 +1045,35 @@ class AdminFraudSignal(BaseModel):
     amount: float = 0          # £ across the flagged claims (some may already be paid)
     count: int = 0
     receiptIds: list[int] = []
+
+
+class AdminCheckBucket(BaseModel):
+    """One score band, and how the admin actually decided the claims in it."""
+    label: str                 # "80-89"
+    approved: int
+    rejected: int
+
+
+class AdminCheckCalibration(BaseModel):
+    """Evidence for setting an auto-approve threshold (Phase 3).
+
+    Compares what the automated check scored against what the admin actually
+    decided, so the cut-off comes from real decisions instead of a guess.
+    """
+    decided: int               # claims the admin approved or rejected AND that were checked
+    unchecked: int             # decided claims with no check — invisible to this report
+    approved: int
+    rejected: int
+    buckets: list[AdminCheckBucket]
+    # The single number that matters: the best score the admin ever REJECTED.
+    # Any auto-approve threshold must sit above it, or the machine would have
+    # approved something a human turned down.
+    highestRejectedScore: Optional[int] = None
+    suggestedThreshold: Optional[int] = None
+    # How many of the admin's approvals that threshold would have handled.
+    wouldAutoApprove: int = 0
+    coveragePct: int = 0
+    verdict: str = ""          # plain-English read of the numbers
 
 
 class AdminBulkVerifyIn(BaseModel):

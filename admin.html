@@ -78,6 +78,7 @@
     .clist-sub { font-size: .76rem; color: var(--ink-soft); }
     .clist-actions { display: flex; gap: 6px; }
     .mini { padding: 5px 11px; font-size: .78rem; border-radius: 10px; }
+    .alert-line { margin-top: 14px; padding: 12px 15px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: #FBE0E0; font-size: .86rem; font-weight: 700; }
     .rfilter { display: flex; gap: 8px; margin-bottom: 14px; }
     .rbadge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
     .rbadge.pending { background: #FFF1D6; color: #8a5a00; }
@@ -92,6 +93,19 @@
     .rcheck.bad .score { background: #FBE0E0; color: #a62222; }
     .rcheck ul { margin: 4px 0 0; padding-left: 15px; color: var(--ink-soft); }
     .rcheck li { margin: 1px 0; }
+    /* Auto-approval readiness — how the check's scores line up with real decisions */
+    .cal { margin: 4px 0 14px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: 14px; background: var(--paper-deep); }
+    .cal h3 { margin: 0 0 6px; font-size: .84rem; }
+    .cal p { margin: 0; font-size: .78rem; color: var(--ink-soft); }
+    .cal .bars { display: flex; gap: 3px; align-items: flex-end; height: 46px; margin-top: 10px; }
+    .cal .bar { flex: 1; display: flex; flex-direction: column-reverse; gap: 1px; }
+    .cal .bar i { display: block; border-radius: 2px; }
+    .cal .bar .a { background: #4caf7d; }
+    .cal .bar .r { background: #e08585; }
+    .cal .axis { display: flex; gap: 3px; margin-top: 3px; }
+    .cal .axis span { flex: 1; text-align: center; font-size: .58rem; color: var(--ink-soft); }
+    .cal .key { margin-top: 8px; font-size: .7rem; color: var(--ink-soft); }
+    .cal .key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; vertical-align: -1px; }
     .rbadge.approved { background: #DDF5E3; color: #1c7c3a; }
     .rbadge.verified { background: #E3EEFB; color: #2a5a8a; }
     .rbadge.expired { background: #ECECEC; color: #777; }
@@ -457,6 +471,15 @@
       <div id="list"><p class="muted">Loading…</p></div>
     </div>
 
+    <!-- MEMBER WITHDRAWALS -->
+    <div class="card pad" id="secPayouts" style="margin-top:22px">
+      <h2>Member withdrawals (<span id="poCount">0</span>)</h2>
+      <p class="muted" style="margin-top:-8px">Cashback members have sent to their bank. Withdrawals are paid out of your Stripe balance, which merchant top-ups fund — so keep an eye on the cover below.</p>
+      <div class="queue-grid" id="poTiles"></div>
+      <div id="poAlert" class="alert-line hidden"></div>
+      <div id="poList" style="margin-top:14px"><p class="muted">Enter the admin key to load withdrawals.</p></div>
+    </div>
+
     <!-- MEMBER SIGN-UPS -->
     <div class="card pad" id="secMembers" style="margin-top:22px">
       <h2>Member sign-ups (<span id="ucount">0</span>)</h2>
@@ -484,6 +507,7 @@
         <button class="btn btn-ink mini" type="button" id="bulkApprove" disabled>Approve selected</button>
         <span class="count" id="bulkCount">none selected</span>
       </div>
+      <div id="rcal" class="cal" hidden></div>
       <div id="rlist"><p class="muted">Enter the admin key to load receipts.</p></div>
     </div>
 
@@ -1827,7 +1851,52 @@
     document.querySelectorAll('[data-uf]').forEach(b =>
       b.addEventListener('click', () => { currentUFilter = b.dataset.uf; loadMembers(); }));
 
+    // ── Member withdrawals ──
+    async function loadPayouts() {
+      const list = $('poList');
+      if (!keyInput.value) { list.innerHTML = '<p class="muted">Enter the admin key to load withdrawals.</p>'; return; }
+      try {
+        const res = await fetch(`${API}/admin/payouts`, { headers: { 'X-Admin-Key': keyInput.value } });
+        if (res.status === 401) { list.innerHTML = '<p class="muted">Invalid admin key.</p>'; return; }
+        const d = await res.json();
+        $('poCount').textContent = d.payouts.length;
+
+        const money = v => v === null || v === undefined ? '—' : fmtGBP0(v);
+        $('poTiles').innerHTML = [
+          ['Stripe balance', money(d.balanceAvailable), 'available now'],
+          ['Owed to members', fmtGBP0(d.walletOwed), 'cleared, withdrawable'],
+          ['Paid out', fmtGBP0(d.totalPaidOut), 'sent to banks'],
+          ['Failed', fmtInt(d.failedCount), 'need attention'],
+        ].map(([label, val, sub]) =>
+          `<div class="qtile${label === 'Failed' && d.failedCount ? ' hot' : ''}">
+             <div class="qtile-val">${val}</div><div class="qtile-label">${label}</div>
+             <div class="muted" style="font-size:.7rem;margin-top:2px">${sub}</div></div>`).join('');
+
+        // The operationally important bit: can the balance cover what's owed?
+        const alert = $('poAlert');
+        if (d.shortfall > 0) {
+          alert.textContent = `Your Stripe balance is ${fmtGBP0(d.shortfall)} short of what members can withdraw right now. Withdrawals will fail until merchants top up or funds settle.`;
+          alert.classList.remove('hidden');
+        } else { alert.classList.add('hidden'); }
+
+        if (!d.payouts.length) { list.innerHTML = '<p class="muted">No withdrawals yet.</p>'; return; }
+        list.innerHTML = d.payouts.map(p => `
+          <div class="clist-item">
+            <div class="clist-thumb"><i class="ico ico-cash"></i></div>
+            <div class="clist-main">
+              <div class="clist-title">${esc(p.userName)} — ${fmtGBP0(p.amount)}
+                <span class="rbadge ${p.status === 'failed' ? 'rejected' : 'approved'}">${esc(p.status)}</span></div>
+              <div class="clist-sub">${esc(p.userEmail)} · ${fmtAgo(p.createdAt)}${
+                p.failureReason ? ' · ' + esc(p.failureReason) : ''}</div>
+            </div>
+          </div>`).join('');
+      } catch (e) {
+        list.innerHTML = '<p class="muted">Could not load withdrawals.</p>';
+      }
+    }
+
     function loadAll() {
+      loadPayouts();
       loadMembers();
       loadList();
       loadReceipts();

@@ -292,3 +292,113 @@ def refund_topup(checkout_session_id: str, amount: float) -> str:
     except Exception as exc:  # noqa: BLE001
         raise PaymentError(str(exc)) from exc
     return refund.id
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Connect — paying members their cashback.
+#
+# Sending money to a member is not the same as charging a card: Stripe must
+# verify who they are first (identity + bank details), which is a legal
+# requirement, not a Stripe preference. Each member therefore gets their own
+# Express account. Stripe hosts the whole form and holds the details — we never
+# see or store a bank account number, only whether they're cleared to be paid.
+# ─────────────────────────────────────────────────────────────────────────────
+MIN_PAYOUT = 5.0        # £ — below this, transfer fees make a payout wasteful
+
+
+def ensure_connect_account(user, session) -> str:
+    """Return this member's Connect account id, creating it on first use.
+
+    Like ensure_customer, this re-checks a stored id and recreates it if it no
+    longer resolves, so a test->live key swap can't strand anyone.
+    """
+    stripe.api_key = _secret_key()
+    if user.stripe_account_id:
+        try:
+            acct = stripe.Account.retrieve(user.stripe_account_id).to_dict()
+            if not acct.get("deleted"):
+                return user.stripe_account_id
+        except Exception:  # noqa: BLE001 — unknown id: fall through and recreate
+            pass
+    try:
+        acct = stripe.Account.create(
+            type="express",
+            country="GB",
+            email=user.email,
+            capabilities={"transfers": {"requested": True}},
+            business_type="individual",
+            metadata={"user_id": str(user.id)},
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise PaymentError(str(exc)) from exc
+    user.stripe_account_id = acct.id
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user.stripe_account_id
+
+
+def create_onboarding_link(account_id: str, origin: str) -> str:
+    """A single-use link to Stripe's hosted identity + bank details form."""
+    stripe.api_key = _secret_key()
+    base = _return_base(origin)
+    try:
+        link = stripe.AccountLink.create(
+            account=account_id,
+            refresh_url=f"{base}/dashboard.html?payout=refresh",
+            return_url=f"{base}/dashboard.html?payout=done",
+            type="account_onboarding",
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise PaymentError(str(exc)) from exc
+    return link.url
+
+
+def connect_status(account_id: str) -> dict:
+    """Ask Stripe whether this member is cleared to receive money."""
+    stripe.api_key = _secret_key()
+    try:
+        acct = stripe.Account.retrieve(account_id).to_dict()
+    except Exception as exc:  # noqa: BLE001
+        raise PaymentError(str(exc)) from exc
+    return {
+        "payouts_enabled": bool(acct.get("payouts_enabled")),
+        "details_submitted": bool(acct.get("details_submitted")),
+    }
+
+
+def create_transfer(account_id: str, amount: float, user_id: int) -> str:
+    """Move £`amount` from the platform balance to a member's Connect account.
+
+    The platform balance is what merchants' top-ups have built up, so this is
+    where merchant money actually becomes member money.
+    """
+    stripe.api_key = _secret_key()
+    try:
+        transfer = stripe.Transfer.create(
+            amount=int(round(amount * 100)),
+            currency=CURRENCY,
+            destination=account_id,
+            description="Cirqle cashback withdrawal",
+            metadata={"user_id": str(user_id)},
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise PaymentError(str(exc)) from exc
+    return transfer.id
+
+
+def platform_balance() -> dict:
+    """What's actually in the Stripe balance — the pot member payouts come from.
+
+    Returns None values rather than raising when Stripe can't be reached, so an
+    admin page never breaks over a balance lookup.
+    """
+    stripe.api_key = _secret_key()
+    try:
+        bal = stripe.Balance.retrieve().to_dict()
+    except Exception:  # noqa: BLE001 — informational only
+        return {"available": None, "pending": None}
+    def total(bucket):
+        return round(sum(b.get("amount", 0) for b in bal.get(bucket, [])
+                         if b.get("currency") == CURRENCY) / 100.0, 2)
+    return {"available": total("available"), "pending": total("pending")}
