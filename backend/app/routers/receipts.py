@@ -21,8 +21,9 @@ from ..activity import log_activity
 from ..cashback import admin_status, clears_at, effective_status, parse_post_ts
 from ..db import get_session
 from ..handles import normalize_handle
-from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminReceiptOut,
-                      Campaign, Mention, Receipt, ReceiptOut, User)
+from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminCheckBucket,
+                      AdminCheckCalibration, AdminReceiptOut, Campaign, Mention,
+                      Receipt, ReceiptOut, User)
 from ..security import get_current_user
 from ..storage import (StorageError, StorageTooLargeError, StorageUploadError,
                        delete_receipt, receipt_view_url, upload_receipt)
@@ -205,6 +206,108 @@ def admin_list_receipts(
             checkStatus=r.check_status, checkScore=r.check_score,
             checkSummary=summary, checkReasons=reasons,
         ))
+    return out
+
+
+# Claims where the admin actually made a decision. 'expired' is excluded: it
+# means the 3-day window closed without anyone acting, which is an absence of a
+# decision, not a rejection.
+_APPROVED_STATUSES = ("verified", "confirmed", "paid")
+_BUCKET_SIZE = 10
+
+
+@router.post("/{receipt_id}/recheck", response_model=AdminReceiptOut,
+             dependencies=[Depends(require_admin)])
+def recheck_receipt(receipt_id: int, background: BackgroundTasks,
+                    session: Session = Depends(get_session)):
+    """Admin: run the automated check on this claim again.
+
+    Checks fail for ordinary reasons — a transient AWS error, an image format
+    Textract won't read — and without this there is no way to retry one short
+    of re-uploading the receipt. Also useful after the scoring rules change.
+    Reads nothing and decides nothing; it only refreshes the advisory columns.
+    """
+    receipt = session.get(Receipt, receipt_id)
+    if receipt is None:
+        raise HTTPException(status_code=404, detail="Receipt not found.")
+    background.add_task(check_receipt, receipt_id)
+
+    user = session.get(User, receipt.user_id)
+    summary, reasons = summarise(receipt)
+    return AdminReceiptOut(
+        id=receipt.id, userEmail=user.email if user else "",
+        userName=f"{user.first_name} {user.last_name}" if user else "",
+        postId=receipt.post_id, brand=receipt.brand, amount=receipt.amount,
+        status=admin_status(receipt, _post_ts_of(receipt, session)),
+        uploadedAt=receipt.uploaded_at,
+        imageUrl=receipt_view_url(receipt.image_key),
+        checkStatus=receipt.check_status, checkScore=receipt.check_score,
+        checkSummary=summary, checkReasons=reasons,
+    )
+
+
+@router.get("/admin/calibration", response_model=AdminCheckCalibration,
+            dependencies=[Depends(require_admin)])
+def check_calibration(session: Session = Depends(get_session)):
+    """How the automated check's scores line up with the admin's own decisions.
+
+    This is the evidence for turning on auto-approval. The important output is
+    `highestRejectedScore`: the best score that a human still rejected. A safe
+    threshold has to sit above it — otherwise switching on auto-approval would
+    have waved through a claim the admin had turned down.
+    """
+    rows = session.exec(
+        select(Receipt).where(Receipt.status.in_(_APPROVED_STATUSES + ("rejected",)))
+    ).all()
+    decided = [r for r in rows if r.check_status == "ok"]
+    approved = [r for r in decided if r.status in _APPROVED_STATUSES]
+    rejected = [r for r in decided if r.status == "rejected"]
+
+    buckets = []
+    for low in range(0, 100, _BUCKET_SIZE):
+        high = low + _BUCKET_SIZE - 1
+        in_band = lambda rs: sum(1 for r in rs if low <= r.check_score <= high)
+        buckets.append(AdminCheckBucket(label=f"{low}-{high}",
+                                        approved=in_band(approved),
+                                        rejected=in_band(rejected)))
+
+    out = AdminCheckCalibration(
+        decided=len(decided), unchecked=len(rows) - len(decided),
+        approved=len(approved), rejected=len(rejected), buckets=buckets,
+    )
+
+    if not decided:
+        out.verdict = ("No decided claims have been checked yet. Leave the check "
+                       "running in the background and come back once you have "
+                       "approved and rejected a few dozen.")
+        return out
+
+    if not rejected:
+        out.verdict = (f"{len(approved)} approved claim(s) checked, none rejected "
+                       f"yet. A threshold needs rejections to calibrate against — "
+                       f"there is nothing yet to say what a bad claim scores like.")
+        return out
+
+    out.highestRejectedScore = max(r.check_score for r in rejected)
+    threshold = out.highestRejectedScore + 1
+    out.wouldAutoApprove = sum(1 for r in approved if r.check_score >= threshold)
+    out.coveragePct = round(100 * out.wouldAutoApprove / len(approved)) if approved else 0
+
+    if threshold > 100:
+        out.verdict = ("At least one rejected claim scored 100, so no threshold is "
+                       "safe. The scoring rules are missing whatever made you "
+                       "reject it — worth looking at that claim before going further.")
+    elif out.coveragePct < 20:
+        out.suggestedThreshold = threshold
+        out.verdict = (f"A safe threshold is {threshold}, but it would only cover "
+                       f"{out.coveragePct}% of your approvals — barely worth "
+                       f"automating. Approvals and rejections are scoring too "
+                       f"similarly for the rules to separate them yet.")
+    else:
+        out.suggestedThreshold = threshold
+        out.verdict = (f"Approving automatically at {threshold} or above would have "
+                       f"handled {out.wouldAutoApprove} of {len(approved)} approvals "
+                       f"({out.coveragePct}%) without touching anything you rejected.")
     return out
 
 

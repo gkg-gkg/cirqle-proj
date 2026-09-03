@@ -11,4 +11,3 @@ python-multipart
 boto3
 alembic
 stripe>=15,<16
-anthropic
