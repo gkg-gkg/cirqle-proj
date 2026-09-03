@@ -28,9 +28,9 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       CheckoutSessionOut, MerchantStats, MerchantThreadOut,
                       PlanOut, RefundIn, SubscribeIn, SubscriptionOut,
                       TopUpQuote,
-                      MerchantTransaction, Receipt, ReferralStat,
-                      RejectSubmissionIn, TaggedPostOut, TimePoint, TopUpIn,
-                      User)
+                      DealReferralsIn, MerchantTransaction, Receipt,
+                      ReferralReward, ReferralStat, RejectSubmissionIn,
+                      TaggedPostOut, TimePoint, TopUpIn, User, WalletOut)
 from ..activity import log_activity
 from ..ratelimit import rate_limit
 from ..security import (create_merchant_token, get_current_merchant,
@@ -242,13 +242,21 @@ def referrals(merchant: Merchant = Depends(get_current_merchant),
         if referrer is None:
             continue
         camp = campaign_by_id[campaign_id]
+        # Only claims that actually earned cashback count. A rejected or still-
+        # clearing claim isn't a referral the merchant got anything from, and
+        # counting it here while excluding it from `referredCashback` below made
+        # the two figures disagree.
+        credited = [r for r in group if r.status in _CASHBACK_GIVEN]
+        if not credited:
+            continue
         # The referrer's own claim on this campaign is the post that started
-        # the chain — "the referrer's Mention for the originating post".
+        # the chain — "the referrer's Mention for the originating post". Oldest
+        # first: with several posts on one deal, the chain starts at the first.
         origin = session.exec(
             select(Receipt).where(
                 Receipt.user_id == referrer_id,
                 Receipt.campaign_id == campaign_id,
-            )
+            ).order_by(Receipt.uploaded_at)
         ).first()
         mention = session.get(Mention, origin.post_id) if origin else None
         out.append(ReferralStat(
@@ -259,17 +267,43 @@ def referrals(merchant: Merchant = Depends(get_current_merchant),
             dealTitle=camp.card_title or camp.title or camp.brand,
             postId=(origin.post_id if origin else None),
             imageUrl=(mention.display_url if mention else None),
-            claims=len(group),
-            referredCashback=round(
-                sum(r.amount for r in group if r.status in _CASHBACK_GIVEN), 2),
+            claims=len(credited),
+            referredCashback=round(sum(r.amount for r in credited), 2),
         ))
     out.sort(key=lambda s: s.claims, reverse=True)
     return out
 
 
+@router.patch("/deals/{campaign_id}/referrals", response_model=DealStat)
+def set_deal_referrals(campaign_id: int, data: DealReferralsIn,
+                       merchant: Merchant = Depends(get_current_merchant),
+                       session: Session = Depends(get_session)):
+    """Turn referral bonuses on or off for one of this merchant's deals.
+
+    Off by default, so funding the referral wallet never silently enrols a deal
+    the brand didn't choose. Switching it off stops future bonuses; ones already
+    earned are money the member has, and are left alone.
+    """
+    campaign = session.get(Campaign, campaign_id)
+    if campaign is None or campaign.merchant_id != merchant.id:
+        raise HTTPException(status_code=404, detail="No such deal.")
+    campaign.referrals_enabled = bool(data.enabled)
+    session.add(campaign)
+    session.commit()
+    session.refresh(campaign)
+
+    stats = _compute_stats(merchant, session)
+    return next(d for d in stats.deals if d.campaignId == campaign_id)
+
+
 # ── Billing: prepaid balance that funds shopper cashback ──
 def _month_topups(merchant_id: int, session: Session) -> float:
-    """£ of credit topped up since the 1st — what the allowance is measured against."""
+    """£ of credit topped up since the 1st — what the allowance is measured against.
+
+    Both wallets count towards the one allowance. The allowance is about how much
+    money moves through the account, so keeping them separate would let a merchant
+    dodge the fee by routing credit through the referral wallet.
+    """
     rows = session.exec(
         select(MerchantTransaction).where(
             MerchantTransaction.merchant_id == merchant_id,
@@ -315,10 +349,18 @@ def _billing(merchant: Merchant, session: Session) -> BillingOut:
         select(Receipt).where(Receipt.campaign_id.in_(campaign_ids))
     ).all() if campaign_ids else []
 
-    # Only credit rows move the balance; fees are Cirqle's revenue, not credit.
-    credit_rows = [t for t in txn_rows if t.kind in ("topup", "refund")]
-    total_topped = round(sum(t.amount for t in credit_rows if t.kind == "topup"), 2)
-    balance_credit = round(sum(t.amount for t in credit_rows), 2)
+    # Only credit rows move a balance; fees are Cirqle's revenue, not credit.
+    # Each wallet is funded and spent separately — a full cashback balance pays
+    # for no referral bonuses, and vice versa.
+    def credit(wallet: str) -> tuple[float, float]:
+        rows = [t for t in txn_rows
+                if t.kind in ("topup", "refund") and t.wallet == wallet]
+        return (round(sum(t.amount for t in rows if t.kind == "topup"), 2),
+                round(sum(t.amount for t in rows), 2))
+
+    cash_topped, cash_credit = credit("cashback")
+    ref_topped, ref_credit = credit("referral")
+
     # Each fee has its own row; `fee` on a top-up row is context for that
     # top-up, so counting both would double it.
     fees_paid = round(sum(t.amount for t in txn_rows
@@ -327,21 +369,40 @@ def _billing(merchant: Merchant, session: Session) -> BillingOut:
     given = [r for r in receipts if r.status in _CASHBACK_GIVEN]
     cashback_given = round(sum(r.amount for r in given), 2)
     pending = round(sum(r.amount for r in receipts if r.status == "pending"), 2)
-    balance = round(balance_credit - cashback_given, 2)
+    balance = round(cash_credit - cashback_given, 2)
+
+    rewards = session.exec(
+        select(ReferralReward).where(
+            ReferralReward.merchant_id == merchant.id,
+            ReferralReward.status.in_(("available", "paid")),
+        )
+    ).all()
+    referral_paid = round(sum(r.amount for r in rewards), 2)
 
     _LABELS = {"topup": "Account top-up", "platform_fee": "Platform fee",
                "subscription": "Membership fee", "refund": "Refund to card"}
     txns = [BillingTxnOut(kind=t.kind, amount=round(t.amount, 2),
                           description=t.description or _LABELS.get(t.kind, "Charge"),
-                          date=t.created_at) for t in txn_rows]
+                          date=t.created_at, wallet=t.wallet) for t in txn_rows]
     txns += [BillingTxnOut(kind="cashback", amount=-round(r.amount, 2),
-                           description=f"Cashback — {r.brand}", date=r.uploaded_at)
+                           description=f"Cashback — {r.brand}", date=r.uploaded_at,
+                           wallet="cashback")
              for r in given]
+    txns += [BillingTxnOut(kind="referral", amount=-round(w.amount, 2),
+                           description="Referral bonus", date=w.created_at,
+                           wallet="referral")
+             for w in rewards]
     txns.sort(key=lambda t: t.date, reverse=True)
 
     return BillingOut(
-        balance=balance, totalToppedUp=total_topped, cashbackGiven=cashback_given,
+        balance=balance, totalToppedUp=cash_topped, cashbackGiven=cashback_given,
         pendingCashback=pending, feesPaid=fees_paid,
+        wallets=[
+            WalletOut(wallet="cashback", balance=balance, toppedUp=cash_topped,
+                      spent=cashback_given, pending=pending),
+            WalletOut(wallet="referral", balance=round(ref_credit - referral_paid, 2),
+                      toppedUp=ref_topped, spent=referral_paid, pending=0.0),
+        ],
         subscription=_subscription_out(merchant, session), transactions=txns,
     )
 
@@ -422,12 +483,21 @@ def _validate_topup(merchant: Merchant, amount: float) -> float:
     return credit
 
 
+def _validate_wallet(wallet: str) -> str:
+    """Which pot the money is for. Rejected rather than defaulted: silently
+    crediting the wrong wallet would be a real accounting error."""
+    if wallet not in ("cashback", "referral"):
+        raise HTTPException(status_code=422, detail="Unknown wallet.")
+    return wallet
+
+
 @router.get("/billing/quote", response_model=TopUpQuote)
-def topup_quote(amount: float,
+def topup_quote(amount: float, wallet: str = "cashback",
                 merchant: Merchant = Depends(get_current_merchant),
                 session: Session = Depends(get_session)):
     """What a top-up of `amount` will cost — so the merchant sees the platform
     fee before they commit, never as a surprise on the Stripe page."""
+    _validate_wallet(wallet)
     credit = _validate_topup(merchant, amount)
     return TopUpQuote(**quote_topup(merchant, credit,
                                     _month_topups(merchant.id, session)))
@@ -443,12 +513,13 @@ def billing_checkout(data: TopUpIn, request: Request,
     balance is credited by the webhook, never on the redirect.
     """
     _require_payments()
+    wallet = _validate_wallet(data.wallet)
     credit = _validate_topup(merchant, data.amount)
     quote = quote_topup(merchant, credit, _month_topups(merchant.id, session))
     try:
         customer_id = ensure_customer(merchant, session)
         url = create_topup_session(merchant, quote, customer_id,
-                                   request.headers.get("origin", ""))
+                                   request.headers.get("origin", ""), wallet)
     except PaymentError:
         raise HTTPException(status_code=502, detail="Could not start checkout. Please try again.")
     return CheckoutSessionOut(url=url)
@@ -474,6 +545,12 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
     receipts = session.exec(
         select(Receipt).where(Receipt.campaign_id.in_(campaign_ids))
     ).all()
+    rewards = session.exec(
+        select(ReferralReward).where(
+            ReferralReward.campaign_id.in_(campaign_ids),
+            ReferralReward.status.in_(("available", "paid")),
+        )
+    ).all()
 
     views = sum(1 for e in events if e.kind == "view")
     clicks = sum(1 for e in events if e.kind == "click")
@@ -496,6 +573,9 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
             claims=len(c_receipts),
             cashback=round(sum(r.amount for r in c_receipts
                                if r.status in _CASHBACK_GIVEN), 2),
+            referralsEnabled=c.referrals_enabled,
+            referralsPaid=round(sum(w.amount for w in rewards
+                                    if w.campaign_id == c.id), 2),
         ))
 
     return MerchantStats(
@@ -865,20 +945,26 @@ def refund_balance(merchant_id: int, data: RefundIn,
     merchant = session.get(Merchant, merchant_id)
     if merchant is None:
         raise HTTPException(status_code=404, detail="No such merchant.")
+    wallet = _validate_wallet(data.wallet)
     amount = round(float(data.amount), 2)
     if amount <= 0:
         raise HTTPException(status_code=422, detail="Enter an amount above £0.")
 
+    # Refund out of the wallet being refunded, against that wallet's own
+    # top-ups. Mixing them would reverse a charge for one pot while taking the
+    # credit off the other.
     billing = _billing(merchant, session)
-    if amount > billing.balance:
+    available = next(w.balance for w in billing.wallets if w.wallet == wallet)
+    if amount > available:
         raise HTTPException(
             status_code=422,
-            detail=f"They only have £{billing.balance:.2f} of unused balance.")
+            detail=f"They only have £{available:.2f} of unused {wallet} balance.")
 
     topups = session.exec(
         select(MerchantTransaction)
         .where(MerchantTransaction.merchant_id == merchant_id,
-               MerchantTransaction.kind == "topup")
+               MerchantTransaction.kind == "topup",
+               MerchantTransaction.wallet == wallet)
         .order_by(MerchantTransaction.id.desc())
     ).all()
 

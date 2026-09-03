@@ -6,10 +6,12 @@ receipts (the cashback ledger) + their stored posts. No placeholders.
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
+from .. import referrals
 from ..cashback import effective_status, parse_post_ts
 from ..db import get_session
 from ..models import (AccountStats, ActivityItem, Mention, OnboardLinkOut,
-                      Payout, PayoutOut, PayoutStatusOut, Receipt, User)
+                      Payout, PayoutOut, PayoutStatusOut, Receipt,
+                      ReferralItemOut, User)
 from ..payments import (MIN_PAYOUT, PaymentError, connect_status,
                         create_onboarding_link, create_transfer,
                         ensure_connect_account, payments_configured)
@@ -20,6 +22,10 @@ router = APIRouter(prefix="/account", tags=["account"])
 
 
 def _compute_stats(user: User, session: Session) -> AccountStats:
+    # Referrals clear by the clock, so there's no moment a job could catch. Bank
+    # anything newly earned before we add the money up (see app/referrals.py).
+    referrals.settle_for_user(user, session)
+
     receipts = session.exec(select(Receipt).where(Receipt.user_id == user.id)).all()
     posts = session.exec(select(Mention).where(Mention.user_id == user.id)).all()
 
@@ -29,10 +35,17 @@ def _compute_stats(user: User, session: Session) -> AccountStats:
     def eff(r: Receipt) -> str:
         return effective_status(r, ts.get(r.post_id))
 
+    # Referral bonuses — their own £1s for referring, plus 50p for having been
+    # referred — sit alongside cashback in the same wallet (one balance, one
+    # withdrawal) but stay their own rows so the two can still be told apart.
+    reward_available, reward_paid, reward_count = referrals.totals(user.id, session)
+
     pending = round(sum(r.amount for r in receipts if eff(r) == "pending"), 2)
-    wallet = round(sum(r.amount for r in receipts if eff(r) == "confirmed"), 2)  # available to withdraw
-    paid = round(sum(r.amount for r in receipts if r.status == "paid"), 2)
-    earned = round(wallet + paid, 2)     # all cleared cashback ever
+    wallet = round(sum(r.amount for r in receipts if eff(r) == "confirmed")
+                   + reward_available, 2)                    # available to withdraw
+    paid = round(sum(r.amount for r in receipts if r.status == "paid")
+                 + reward_paid, 2)
+    earned = round(wallet + paid, 2)     # all cleared cashback + bonuses ever
 
     brands = {r.brand for r in receipts if r.brand}
     recent = sorted(receipts, key=lambda r: r.uploaded_at, reverse=True)[:6]
@@ -45,6 +58,8 @@ def _compute_stats(user: User, session: Session) -> AccountStats:
         brandsUsed=len(brands),
         postsCount=len(posts),
         receiptsCount=len(receipts),
+        referralEarnings=round(reward_available + reward_paid, 2),
+        referralCount=reward_count,
         activity=[
             ActivityItem(brand=r.brand or "Cashback", amount=r.amount,
                          status=eff(r), date=r.uploaded_at,
@@ -63,14 +78,19 @@ def get_stats(
     return _compute_stats(user, session)
 
 
-def _wallet(user: User, session: Session) -> tuple[float, list]:
-    """£ cleared and withdrawable, plus the receipts that make it up."""
+def _wallet(user: User, session: Session) -> tuple[float, list, list]:
+    """£ cleared and withdrawable, plus the receipts and referral rewards that
+    make it up. Both are needed by `withdraw`, which marks each one paid."""
+    referrals.settle_for_user(user, session)
+
     receipts = session.exec(select(Receipt).where(Receipt.user_id == user.id)).all()
     posts = session.exec(select(Mention).where(Mention.user_id == user.id)).all()
     ts = {m.id: parse_post_ts(m.timestamp) for m in posts}
     ready = [r for r in receipts
              if effective_status(r, ts.get(r.post_id)) == "confirmed"]
-    return round(sum(r.amount for r in ready), 2), ready
+    rewards = referrals.available_rewards(user.id, session)
+    total = round(sum(r.amount for r in ready) + sum(w.amount for w in rewards), 2)
+    return total, ready, rewards
 
 
 def _sync_connect(user: User, session: Session) -> None:
@@ -83,6 +103,13 @@ def _sync_connect(user: User, session: Session) -> None:
         return                          # keep the last known state
     user.payouts_enabled = status["payouts_enabled"]
     user.payout_details_submitted = status["details_submitted"]
+    # Hashes of what Stripe verified, kept so two accounts belonging to one
+    # person can't refer each other. Only overwritten when Stripe actually
+    # returns something, so a partial response can't wipe a known fingerprint.
+    if status.get("payout_fingerprint"):
+        user.payout_fingerprint = status["payout_fingerprint"]
+    if status.get("identity_fingerprint"):
+        user.identity_fingerprint = status["identity_fingerprint"]
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -93,7 +120,7 @@ def payout_status(user: User = Depends(get_current_user),
                   session: Session = Depends(get_session)):
     """Can this member cash out yet, and if not, why not?"""
     _sync_connect(user, session)
-    wallet, _ = _wallet(user, session)
+    wallet, _receipts, _rewards = _wallet(user, session)
     ready = bool(user.payouts_enabled)
     if not payments_configured():
         reason = "Withdrawals aren't available right now."
@@ -111,6 +138,19 @@ def payout_status(user: User = Depends(get_current_user),
         canWithdraw=ready and wallet >= MIN_PAYOUT and payments_configured(),
         reason=reason,
     )
+
+
+@router.get("/referrals", response_model=list[ReferralItemOut])
+def list_referrals(user: User = Depends(get_current_user),
+                   session: Session = Depends(get_session)):
+    """Every referral this member is part of, newest first — both the people
+    they referred (£1 each) and their own referral, if they were referred (50p).
+
+    Includes the ones that haven't paid out, each with the reason — a bonus that
+    quietly never arrives is worse than one that says what it's waiting for.
+    """
+    referrals.settle_for_user(user, session)
+    return [ReferralItemOut(**item) for item in referrals.summary(user, session)]
 
 
 @router.post("/payouts/onboard", response_model=OnboardLinkOut)
@@ -162,7 +202,7 @@ def withdraw(
             status_code=409,
             detail="Verify your identity and add a bank account before withdrawing.")
 
-    amount, ready = _wallet(user, session)
+    amount, ready, rewards = _wallet(user, session)
     if amount < MIN_PAYOUT:
         raise HTTPException(status_code=422,
                             detail=f"You need at least £{MIN_PAYOUT:.2f} to withdraw.")
@@ -181,6 +221,11 @@ def withdraw(
     for r in ready:
         r.status = "paid"
         session.add(r)
+    # Referral bonuses go out in the same transfer, so they're marked paid by
+    # the same success. Missing this would leave them withdrawable forever.
+    for reward in rewards:
+        reward.status = "paid"
+        session.add(reward)
     session.add(Payout(user_id=user.id, amount=amount, status="sent",
                        stripe_transfer_id=transfer_id))
     session.commit()

@@ -17,13 +17,17 @@ from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
                      HTTPException, UploadFile)
 from sqlmodel import Session, func, select
 
+from .. import referrals
 from ..activity import log_activity
-from ..cashback import admin_status, clears_at, effective_status, parse_post_ts
+from ..cashback import (APPROVED_STATUSES, admin_status, clears_at,
+                        effective_status, parse_post_ts)
 from ..db import get_session
 from ..handles import normalize_handle
 from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminCheckBucket,
-                      AdminCheckCalibration, AdminReceiptOut, Campaign, Mention,
-                      Receipt, ReceiptOut, User)
+                      AdminCheckCalibration, AdminReceiptOut, AdminReferralOut,
+                      Campaign, Mention, Receipt, ReceiptOut, ReferralReward,
+                      User)
+from ..ratelimit import rate_limit
 from ..security import get_current_user
 from ..storage import (StorageError, StorageTooLargeError, StorageUploadError,
                        delete_receipt, receipt_view_url, upload_receipt)
@@ -47,6 +51,7 @@ def _receipt_out(r: Receipt, status: Optional[str] = None, with_image: bool = Fa
         id=r.id, postId=r.post_id, campaignId=r.campaign_id,
         brand=r.brand, amount=r.amount, status=status or r.status, uploadedAt=r.uploaded_at,
         imageUrl=receipt_view_url(r.image_key) if with_image else None,
+        referredByHandle=r.referred_by_handle, referralStatus=r.referral_status,
     )
 
 
@@ -55,6 +60,53 @@ def _post_ts_map(user_id: int, session: Session) -> dict:
     cashback clearing counter runs from the post date."""
     mentions = session.exec(select(Mention).where(Mention.user_id == user_id)).all()
     return {m.id: parse_post_ts(m.timestamp) for m in mentions}
+
+
+def _resolve_referral(raw_handle: str, campaign_id: Optional[int], user: User,
+                      session: Session) -> tuple[Optional[int], str, str]:
+    """Check 'referred by @handle' at upload -> (referrer id, handle, status).
+
+    Naming someone only means something if they actually promoted this deal, so
+    the referrer must have claimed it themselves. Their claim does NOT have to be
+    approved yet — it may still be sitting in the admin queue, and refusing the
+    referee over our own backlog would punish the wrong person. We record which
+    of the two it is so the member can be told.
+
+    Advisory: nothing is paid here. The status is re-checked when this claim
+    confirms, because a 'pending' claim can still be approved or rejected long
+    after this upload.
+    """
+    normalized = normalize_handle(raw_handle)
+    referrer = session.exec(
+        select(User).where(func.lower(User.instagram_handle) == normalized)
+    ).first()
+    if referrer is None:
+        raise HTTPException(status_code=422, detail="Referrer handle not found.")
+    if referrer.id == user.id:
+        raise HTTPException(status_code=422, detail="You can't refer yourself.")
+    if campaign_id is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Choose which deal this receipt is for before saying who referred you.")
+
+    # Their claims on THIS deal. A rejected one doesn't count: the admin has
+    # already thrown it out, so it's no evidence they promoted anything.
+    claims = session.exec(
+        select(Receipt).where(
+            Receipt.user_id == referrer.id,
+            Receipt.campaign_id == campaign_id,
+            Receipt.status != "rejected",
+        )
+    ).all()
+    if not claims:
+        raise HTTPException(
+            status_code=422,
+            detail=f"@{normalized} hasn't claimed this deal, so they can't have "
+                   f"referred you to it.")
+
+    status = ("verified" if any(c.status in APPROVED_STATUSES for c in claims)
+              else "pending")
+    return referrer.id, raw_handle.strip(), status
 
 
 @router.get("", response_model=list[ReceiptOut])
@@ -70,7 +122,8 @@ def list_receipts(
             for r in rows]
 
 
-@router.post("", response_model=ReceiptOut, status_code=201)
+@router.post("", response_model=ReceiptOut, status_code=201,
+             dependencies=[rate_limit("receipts", limit=30, window=3600)])
 def create_receipt(
     background: BackgroundTasks,
     post_id: str = Form(...),
@@ -90,16 +143,10 @@ def create_receipt(
         raise HTTPException(status_code=422, detail="post_id is required.")
 
     referrer_id: Optional[int] = None
+    referral_handle, referral_status = "", ""
     if referred_by_handle and referred_by_handle.strip():
-        normalized = normalize_handle(referred_by_handle)
-        referrer = session.exec(
-            select(User).where(func.lower(User.instagram_handle) == normalized)
-        ).first()
-        if referrer is None:
-            raise HTTPException(status_code=422, detail="Referrer handle not found.")
-        if referrer.id == user.id:
-            raise HTTPException(status_code=422, detail="You can't refer yourself.")
-        referrer_id = referrer.id
+        referrer_id, referral_handle, referral_status = _resolve_referral(
+            referred_by_handle, campaign_id, user, session)
 
     try:
         key, digest = upload_receipt(image)
@@ -158,12 +205,15 @@ def create_receipt(
         existing.status = "pending"
         existing.uploaded_at = datetime.now(timezone.utc)
         existing.referred_by_user_id = referrer_id
+        existing.referred_by_handle = referral_handle
+        existing.referral_status = referral_status
         receipt = existing
     else:
         receipt = Receipt(
             user_id=user.id, post_id=post_id, campaign_id=campaign_id,
             brand=brand, amount=amount, image_key=key, image_sha256=digest,
             status="pending", referred_by_user_id=referrer_id,
+            referred_by_handle=referral_handle, referral_status=referral_status,
         )
 
     session.add(receipt)
@@ -208,11 +258,6 @@ def admin_list_receipts(
         ))
     return out
 
-
-# Claims where the admin actually made a decision. 'expired' is excluded: it
-# means the 3-day window closed without anyone acting, which is an absence of a
-# decision, not a rejection.
-_APPROVED_STATUSES = ("verified", "confirmed", "paid")
 _BUCKET_SIZE = 10
 
 
@@ -257,10 +302,10 @@ def check_calibration(session: Session = Depends(get_session)):
     have waved through a claim the admin had turned down.
     """
     rows = session.exec(
-        select(Receipt).where(Receipt.status.in_(_APPROVED_STATUSES + ("rejected",)))
+        select(Receipt).where(Receipt.status.in_(APPROVED_STATUSES + ("rejected",)))
     ).all()
     decided = [r for r in rows if r.check_status == "ok"]
-    approved = [r for r in decided if r.status in _APPROVED_STATUSES]
+    approved = [r for r in decided if r.status in APPROVED_STATUSES]
     rejected = [r for r in decided if r.status == "rejected"]
 
     buckets = []
@@ -386,7 +431,79 @@ def reject_receipt(receipt_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Receipt not found.")
     r.status = "rejected"
     session.add(r)
+    # A rejected claim can't have earned anyone a referral bonus. Take back an
+    # unspent one; one already withdrawn is left alone, since the money has gone
+    # (see referrals.cancel_for_receipt).
+    referrals.cancel_for_receipt(r, session, "The claim it was earned on was rejected.")
     session.commit()
     session.refresh(r)
     log_activity(session, "Rejected receipt claim", f"{r.brand or 'Cashback'} £{r.amount:.2f}")
     return _receipt_out(r, "rejected")
+
+
+# ── Admin: referral oversight ────────────────────────────────────────────────
+@router.get("/admin/referrals", response_model=list[AdminReferralOut],
+            dependencies=[Depends(require_admin)])
+def admin_list_referrals(session: Session = Depends(get_session)):
+    """Every referral on the site, newest first — both sides of each one.
+
+    Shows the ones that paid and the ones that didn't, with the reason, so a
+    referral can be judged without reconstructing the checks by hand.
+    """
+    claims = session.exec(
+        select(Receipt).where(Receipt.referred_by_user_id.is_not(None))
+        .order_by(Receipt.uploaded_at.desc())
+    ).all()
+    rewards = {(w.receipt_id, w.kind): w for w in session.exec(
+        select(ReferralReward)).all()}
+
+    out: list[AdminReferralOut] = []
+    for claim in claims:
+        campaign = session.get(Campaign, claim.campaign_id) if claim.campaign_id else None
+        referrer = session.get(User, claim.referred_by_user_id)
+        referee = session.get(User, claim.user_id)
+        # Worked out once per claim: the reason is the same for both sides.
+        _ok, reason = referrals.check(claim, session)
+
+        for kind, member, other in (("referrer", referrer, referee),
+                                    ("referee", referee, referrer)):
+            if member is None:
+                continue
+            reward = rewards.get((claim.id, kind))
+            out.append(AdminReferralOut(
+                rewardId=reward.id if reward else None,
+                receiptId=claim.id,
+                kind=kind,
+                memberEmail=member.email,
+                memberHandle=member.instagram_handle or "",
+                otherHandle=(other.instagram_handle if other else "") or "",
+                brand=claim.brand,
+                dealTitle=(campaign.card_title or campaign.title or campaign.brand)
+                          if campaign else "",
+                amount=reward.amount if reward else 0.0,
+                status=reward.status if reward else "waiting",
+                reason="" if reward else reason,
+                date=claim.uploaded_at,
+            ))
+    return out
+
+
+@router.post("/admin/referrals/{receipt_id}/cancel",
+             response_model=list[AdminReferralOut],
+             dependencies=[Depends(require_admin)])
+def admin_cancel_referral(receipt_id: int, session: Session = Depends(get_session)):
+    """Admin: cancel a referral's bonuses, returning the money to the merchant.
+
+    Cancels BOTH sides — a referral that shouldn't have paid shouldn't have paid
+    anyone. A bonus already withdrawn is left alone (see referrals.cancel_for_receipt):
+    that money has reached a bank, and pretending otherwise would only make the
+    books disagree with reality.
+    """
+    claim = session.get(Receipt, receipt_id)
+    if claim is None:
+        raise HTTPException(status_code=404, detail="Receipt not found.")
+    referrals.cancel_for_receipt(claim, session, "Cancelled by an admin.")
+    session.commit()
+    log_activity(session, "Cancelled a referral bonus",
+                 f"{claim.brand or 'Deal'} — claim #{claim.id}")
+    return admin_list_referrals(session)

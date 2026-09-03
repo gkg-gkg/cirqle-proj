@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import UniqueConstraint
 from sqlmodel import SQLModel, Field
 
 
@@ -40,6 +41,13 @@ class User(SQLModel, table=True):
     stripe_account_id: str = Field(default="", index=True)
     payouts_enabled: bool = False        # Stripe says we can send them money
     payout_details_submitted: bool = False   # they finished the onboarding form
+    # Two accounts that are really one person, spotted through Stripe's own
+    # identity checks — used to refuse a referral between them. Both are HASHES:
+    # enough to compare two members, useless to anyone who reads the database.
+    #   payout_fingerprint   -> Stripe's fingerprint for their bank account
+    #   identity_fingerprint -> their verified name + date of birth
+    payout_fingerprint: str = Field(default="", index=True)
+    identity_fingerprint: str = Field(default="", index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -107,6 +115,9 @@ class Campaign(SQLModel, table=True):
     location: str = ""         # e.g. "Online · UK"
     terms: str = ""            # HTML string
     brand_url: str = ""        # outbound shop link
+    # Whether this deal pays referral bonuses. Off by default: a merchant opts a
+    # deal in deliberately, so nobody is enrolled by simply funding the wallet.
+    referrals_enabled: bool = False
     bg: str = "var(--paper-deep)"
     tags: str = "[]"           # JSON-encoded list[str]
     images: str = "[]"         # JSON-encoded list[str] of image URLs
@@ -172,7 +183,18 @@ class Receipt(SQLModel, table=True):
     image_sha256: str = ""                           # content hash, for duplicate detection
     status: str = "pending"                          # pending -> confirmed -> paid / rejected
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    # ── Referral attribution (Phase 8) ──
+    # Who this member says led them to the deal. `referred_by_handle` keeps the
+    # handle exactly as they typed it: the id below is the truth, but the raw
+    # text is what the member saw, so it's what a dispute has to be judged on.
     referred_by_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    referred_by_handle: str = ""
+    # Whether the referrer's OWN claim on this deal is approved yet, recorded at
+    # upload: "" no referral | pending (they claimed it, admin hasn't approved)
+    # | verified (approved). Advisory — no reward exists yet, and the real gate
+    # runs again when this claim confirms, since 'pending' can still become
+    # 'verified' (or be rejected) long after upload.
+    referral_status: str = ""
     # ── Automated check (Phase 8) ──
     # Filled in the background shortly after upload by app/verify.py. Advisory
     # only for now: the admin still approves every claim, and these columns just
@@ -247,6 +269,13 @@ class MerchantTransaction(SQLModel, table=True):
     # subscription  -> a monthly plan fee (no credit)
     # refund        -> credit returned to their card (-)
     kind: str = "topup"
+    # Which pot this credit belongs to: "cashback" pays members their cashback,
+    # "referral" pays the £1 referral bonuses. Genuinely separate — an empty
+    # referral wallet stops bonuses even with a full cashback wallet — so a
+    # merchant can budget the two independently. Fee rows carry the wallet of
+    # the top-up they were charged on. Rows that predate this are "cashback",
+    # which is what they were.
+    wallet: str = "cashback"
     amount: float = 0            # £ of credit (negative for a refund)
     fee: float = 0               # £ platform fee charged alongside a top-up
     description: str = ""
@@ -266,6 +295,44 @@ class DealEvent(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     campaign_id: int = Field(index=True, foreign_key="campaign.id")
     kind: str = Field(index=True)                     # "view" | "click"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ReferralReward(SQLModel, table=True):
+    """One side's bonus for a referral (Phase 8).
+
+    A genuine referral pays twice: £1 to the referrer, 50p to the person they
+    referred. Both are created together once the REFERRED claim has cleared and
+    every check in app/referrals.py has passed, and both come out of the
+    merchant's referral wallet.
+
+    Each is a row of its own rather than money added onto a Receipt so cashback
+    and referral money never blur together: the merchant's statement has to show
+    them separately, and cancelling a bonus must not disturb anyone's cashback.
+    A claim carries at most one reward of each kind — enforced by the unique
+    (receipt_id, kind), which is what makes settling safe to re-run.
+    """
+    __table_args__ = (UniqueConstraint("receipt_id", "kind",
+                                       name="uq_referralreward_receipt_kind"),)
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    # Who is being paid — the referrer for the £1, the referee for the 50p.
+    user_id: int = Field(index=True, foreign_key="user.id")
+    kind: str = Field(index=True)      # "referrer" | "referee"
+    # The referred claim both bonuses hang off: B's purchase, which is the thing
+    # that has to clear before either side is paid.
+    receipt_id: int = Field(index=True, foreign_key="receipt.id")
+    campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
+    # Who funded it. Kept here rather than looked up through the campaign so the
+    # reward still says who paid if the campaign is later edited or deleted.
+    merchant_id: Optional[int] = Field(default=None, index=True,
+                                       foreign_key="merchant.id")
+    amount: float = 0
+    # available -> in the member's wallet, withdrawable
+    # paid      -> withdrawn to their bank
+    # cancelled -> the referred claim was rejected after the fact
+    status: str = Field(default="available", index=True)
+    cancel_reason: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -513,6 +580,8 @@ class ReceiptOut(BaseModel):
     status: str
     uploadedAt: datetime
     imageUrl: Optional[str] = None   # presigned GET (owner viewing); None in local mode
+    referredByHandle: str = ""
+    referralStatus: str = ""         # "" | pending | verified (see Receipt.referral_status)
 
 
 class AdminReceiptOut(BaseModel):
@@ -564,12 +633,27 @@ class PayoutOut(BaseModel):
     failureReason: str = ""
 
 
+class ReferralItemOut(BaseModel):
+    """One referral on the member's dashboard. An unpaid one carries the reason,
+    so a bonus that hasn't arrived can say what it's waiting for."""
+    receiptId: int
+    brand: str
+    role: str            # referrer (earns £1) | referee (earns 50p)
+    handle: str          # the other member's Instagram handle
+    amount: float
+    status: str          # earned | waiting | cancelled
+    reason: str = ""
+    date: datetime
+
+
 class AccountStats(BaseModel):
     """Real per-user dashboard numbers, all derived from the user's receipts."""
-    totalEarned: float   # confirmed + paid
+    totalEarned: float   # confirmed + paid, cashback + referral bonuses
     pending: float       # awaiting verification
     wallet: float        # confirmed, available to withdraw
     paidOut: float       # already withdrawn
+    referralEarnings: float = 0   # of the above, £ earned by referring people
+    referralCount: int = 0        # how many referrals have been credited
     brandsUsed: int
     postsCount: int
     receiptsCount: int
@@ -673,6 +757,29 @@ class DealStat(BaseModel):
     clicks: int
     claims: int
     cashback: float
+    referralsEnabled: bool = False   # does this deal pay referral bonuses?
+    referralsPaid: float = 0         # £ of bonuses it has paid out
+
+
+class DealReferralsIn(BaseModel):
+    """Merchant switching referral bonuses on or off for one of their deals."""
+    enabled: bool
+
+
+class AdminReferralOut(BaseModel):
+    """One side of one referral, for the admin's review list."""
+    rewardId: Optional[int] = None      # null while nothing has been paid
+    receiptId: int
+    kind: str                           # referrer | referee
+    memberEmail: str
+    memberHandle: str
+    otherHandle: str                    # the member on the other side
+    brand: str
+    dealTitle: str
+    amount: float
+    status: str                         # earned | waiting | cancelled | paid
+    reason: str = ""
+    date: datetime
 
 
 class TimePoint(BaseModel):
@@ -833,10 +940,20 @@ class ReferralStat(BaseModel):
 
 # ── Merchant billing / prepaid balance (Phase 6b) ──
 class BillingTxnOut(BaseModel):
-    kind: str            # "topup" | "cashback"
-    amount: float        # positive for a top-up, negative for cashback given
+    kind: str            # "topup" | "cashback" | "referral"
+    amount: float        # positive for a top-up, negative for money paid out
     description: str
     date: datetime
+    wallet: str = "cashback"   # which wallet the row belongs to
+
+
+class WalletOut(BaseModel):
+    """One of the merchant's two prepaid wallets, as the billing page shows it."""
+    wallet: str              # "cashback" | "referral"
+    balance: float           # top-ups - what's been paid out of it
+    toppedUp: float          # £ ever added
+    spent: float             # £ paid out (cashback given, or referral bonuses)
+    pending: float           # £ committed but not yet deducted
 
 
 # ── Membership plans (merchant subscriptions) ──
@@ -873,22 +990,27 @@ class TopUpQuote(BaseModel):
 
 
 class BillingOut(BaseModel):
-    balance: float           # sum(top-ups) - cashback given
+    # The cashback wallet. These four keep their original names so nothing that
+    # already reads them breaks; `wallets` below carries both pots.
+    balance: float           # cashback top-ups - cashback given
     totalToppedUp: float
     cashbackGiven: float     # confirmed + paid
     pendingCashback: float   # awaiting verification (not yet deducted)
     feesPaid: float          # platform + subscription fees charged to date
+    wallets: list[WalletOut] # cashback + referral, in that order
     subscription: SubscriptionOut
     transactions: list[BillingTxnOut]
 
 
 class TopUpIn(BaseModel):
     amount: float
+    wallet: str = "cashback"   # which pot to credit: cashback | referral
 
 
 class RefundIn(BaseModel):
     """Admin: return unused prepaid balance to the merchant's card."""
     amount: float
+    wallet: str = "cashback"   # which pot to refund from
 
 
 class SubscribeIn(BaseModel):

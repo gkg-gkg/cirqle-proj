@@ -480,6 +480,20 @@
       <div id="poList" style="margin-top:14px"><p class="muted">Enter the admin key to load withdrawals.</p></div>
     </div>
 
+    <!-- REFERRAL BONUSES -->
+    <div class="card pad" id="secReferrals" style="margin-top:22px">
+      <h2>Referral bonuses (<span id="refCount">0</span>)</h2>
+      <p class="muted" style="margin-top:-8px">A member who posts about a deal earns <strong>£1</strong> when someone buys through their post, and that buyer earns <strong>50p</strong>. Both are paid by the brand, from its referral wallet, once the buyer's claim clears. Cancelling undoes both sides and returns the money to the brand — a bonus already withdrawn can't be taken back.</p>
+      <div class="rfilter">
+        <button class="btn mini" data-reff="available">Paid</button>
+        <button class="btn mini" data-reff="waiting">Waiting</button>
+        <button class="btn mini" data-reff="cancelled">Cancelled</button>
+        <button class="btn mini" data-reff="">All</button>
+      </div>
+      <div id="refList"><p class="muted">Enter the admin key to load referrals.</p></div>
+      <div id="refMsg" style="margin-top:10px; font-size:.85rem; font-weight:600; min-height:1.2em"></div>
+    </div>
+
     <!-- MEMBER SIGN-UPS -->
     <div class="card pad" id="secMembers" style="margin-top:22px">
       <h2>Member sign-ups (<span id="ucount">0</span>)</h2>
@@ -1943,8 +1957,78 @@
       }
     }
 
+    // ── Referral bonuses ──
+    // One row per side, so a referral shows as two lines: the £1 and the 50p.
+    let refFilter = '';
+    async function loadReferrals() {
+      const list = $('refList');
+      if (!keyInput.value) { list.innerHTML = '<p class="muted">Enter the admin key to load referrals.</p>'; return; }
+      try {
+        const res = await fetch(`${API}/receipts/admin/referrals`,
+          { headers: { 'X-Admin-Key': keyInput.value } });
+        if (res.status === 401) { list.innerHTML = '<p class="muted">Invalid admin key.</p>'; return; }
+        const all = await res.json();
+        const rows = refFilter
+          ? all.filter(r => (refFilter === 'available'
+              ? (r.status === 'available' || r.status === 'paid')
+              : r.status === refFilter))
+          : all;
+        $('refCount').textContent = all.length;
+        if (!rows.length) { list.innerHTML = '<p class="muted">No referrals to show.</p>'; return; }
+
+        list.innerHTML = rows.map(r => {
+          const paid = r.status === 'available' || r.status === 'paid';
+          const badge = paid ? 'approved' : r.status === 'cancelled' ? 'rejected' : '';
+          const label = r.status === 'paid' ? 'withdrawn'
+                      : r.status === 'available' ? 'in their wallet'
+                      : r.status;
+          const side = r.kind === 'referrer'
+            ? `referred @${esc(r.otherHandle)}`
+            : `was referred by @${esc(r.otherHandle)}`;
+          return `
+          <div class="clist-item">
+            <div class="clist-thumb"><i class="ico ico-cash"></i></div>
+            <div class="clist-main">
+              <div class="clist-title">@${esc(r.memberHandle || r.memberEmail)} — ${paid ? fmtGBP(r.amount) : '—'}
+                <span class="rbadge ${badge}">${esc(label)}</span></div>
+              <div class="clist-sub">${side} · ${esc(r.dealTitle || r.brand)} · ${fmtAgo(r.date)}${
+                r.reason ? ' · ' + esc(r.reason) : ''}</div>
+            </div>
+            <div class="clist-actions">${paid
+              ? `<button class="btn mini" type="button" data-refcancel="${r.receiptId}">Cancel</button>`
+              : ''}</div>
+          </div>`;
+        }).join('');
+
+        list.querySelectorAll('[data-refcancel]').forEach(b =>
+          b.addEventListener('click', () => cancelReferral(b.dataset.refcancel, b)));
+      } catch (e) {
+        list.innerHTML = '<p class="muted">Could not load referrals.</p>';
+      }
+    }
+
+    async function cancelReferral(receiptId, btn) {
+      if (!confirm('Cancel this referral? Both sides lose their bonus and the money goes back to the brand.')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API}/receipts/admin/referrals/${receiptId}/cancel`,
+          { method: 'POST', headers: { 'X-Admin-Key': keyInput.value } });
+        $('refMsg').textContent = res.ok
+          ? 'Referral cancelled — the brand has been refunded.'
+          : 'Could not cancel that referral.';
+        loadReferrals();
+      } catch (e) {
+        $('refMsg').textContent = 'Could not reach the server.';
+        btn.disabled = false;
+      }
+    }
+
+    document.querySelectorAll('[data-reff]').forEach(b =>
+      b.addEventListener('click', () => { refFilter = b.dataset.reff; loadReferrals(); }));
+
     function loadAll() {
       loadPayouts();
+      loadReferrals();
       loadMembers();
       loadList();
       loadReceipts();

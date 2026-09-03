@@ -47,6 +47,7 @@
       color: var(--blue-deep); margin-bottom: 8px;
     }
     .result-note { font-size: .92rem; color: var(--ink-soft); margin-bottom: 22px; }
+    .referral-note { padding: 12px 14px; border-radius: 12px; background: var(--blue-tint); color: var(--blue-deep); }
 
     .deal-field { margin-bottom: 18px; }
     .deal-field label { display: block; font-size: .82rem; font-weight: 800; color: var(--ink-soft); margin-bottom: 8px; }
@@ -96,6 +97,7 @@
       <img id="preview" alt="Your receipt" />
       <div class="result-badge">Receipt received ✓</div>
       <p class="result-note">Your receipt was uploaded and saved to your account. Cashback lands once we verify it and the 3‑day hold clears.</p>
+      <p class="result-note referral-note" id="referralNote" hidden></p>
       <a href="feed.html" class="btn btn-ink">Back to dashboard</a>
     </div>
   </div>
@@ -220,6 +222,18 @@
           document.querySelector('.result-badge').textContent = 'Receipt received ✓';
           document.querySelector('.result-note').textContent =
             'Your claim is under review. Once approved, your ' + amt + ' cashback lands in your wallet 3 days after your post — track it on your dashboard.';
+        }
+        // A referral only counts once the referrer's own claim on this deal is
+        // approved. Say so plainly rather than letting it fail silently later.
+        const refNote = document.getElementById('referralNote');
+        if (receipt.referralStatus === 'pending') {
+          refNote.textContent = '@' + receipt.referredByHandle.replace(/^@/, '') +
+            " hasn't had their own claim for this deal verified yet. They'll only be credited for referring you once it is.";
+          refNote.hidden = false;
+        } else if (receipt.referralStatus === 'verified') {
+          refNote.textContent = '@' + receipt.referredByHandle.replace(/^@/, '') +
+            ' has been credited with referring you.';
+          refNote.hidden = false;
         }
         document.getElementById('uploadCard').hidden = true;
         document.getElementById('resultCard').hidden = false;

@@ -43,6 +43,15 @@
     .wallet-balance { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 5vw, 3.4rem); letter-spacing: -0.04em; line-height: 1; }
     .wallet-sub { font-size: .85rem; font-weight: 600; color: rgba(31,27,19,.7); margin: 8px 0 24px; }
     .wallet-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .wallet-referrals { font-size: .82rem; font-weight: 600; color: rgba(31,27,19,.7); margin: -14px 0 20px; }
+    .panel-note { font-size: .8rem; color: var(--ink-soft); margin: -6px 0 14px; line-height: 1.5; }
+    .ref-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 2px dashed rgba(31,27,19,.14); }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-who { font-weight: 700; font-size: .9rem; }
+    .ref-why { font-size: .76rem; color: var(--ink-soft); margin-top: 3px; line-height: 1.45; }
+    .ref-amt { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ref-amt.waiting { color: var(--ink-soft); font-weight: 700; }
+    .ref-empty { font-size: .86rem; color: var(--ink-soft); }
 
     .panel-title { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin-bottom: 16px; }
 
@@ -149,10 +158,11 @@
           <div class="wallet-label">Available balance</div>
           <div class="wallet-balance">£<span id="walletBal">47.80</span></div>
           <div class="wallet-sub" id="walletSub">Ready to withdraw to your bank</div>
+          <div class="wallet-referrals" id="walletReferrals" hidden></div>
           <div class="wallet-actions">
             <button class="btn btn-ink" id="withdrawBtn" onclick="withdraw()">Withdraw</button>
             <a href="browse.html" class="btn">Find deals</a>
-            <button class="btn" onclick="cirqleToast('Share link copied!')">Refer a friend</button>
+            <button class="btn" onclick="copyHandle()">Refer a friend</button>
           </div>
         </div>
 
@@ -160,6 +170,13 @@
         <div class="card fade-up d4">
           <div class="panel-title">Recent activity</div>
           <div id="activityList"></div>
+        </div>
+
+        <!-- Referrals: both people you referred and, if you were referred, your own -->
+        <div class="card fade-up d4" id="referralsCard" hidden>
+          <div class="panel-title">Referrals</div>
+          <div class="panel-note">£1 when someone buys through your post, 50p when you buy through someone else's. Paid once their claim clears.</div>
+          <div id="referralsList"></div>
         </div>
       </div>
 
@@ -245,6 +262,12 @@
         expired:   { icon: cirqleIcon('clock'), cls: '',          label: 'not approved in time', amt: 'amount-muted', sign: '' },
       })[s] || { icon: '•', cls: '', label: s, amt: 'amount-muted', sign: '' };
     }
+    // Handles are member-supplied, so anything from them is escaped before it
+    // reaches innerHTML.
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g,
+        c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
     function fmtWhen(iso) {
       const d = new Date(iso); if (isNaN(d)) return '';
       return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -271,6 +294,52 @@
         '</div>';
       }).join('');
     }
+    // Referrals run on handles, not share links: a friend types your @handle when
+    // they upload their receipt. So copying the handle is the useful thing to do.
+    async function copyHandle() {
+      const handle = session.instagramHandle;
+      if (!handle) {
+        cirqleToast('Add your Instagram handle in your account first');
+        setTimeout(() => window.location.href = 'account.html', 1400);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText('@' + handle);
+        cirqleToast('@' + handle + ' copied — friends enter it with their receipt');
+      } catch (_) {
+        cirqleToast('Your handle is @' + handle + ' — friends enter it with their receipt');
+      }
+    }
+
+    // Referrals list. A bonus that hasn't arrived says what it's waiting for —
+    // silently missing money is worse than money that explains itself.
+    async function loadReferrals() {
+      try {
+        const res = await fetch(`${window.CIRQLE_API_BASE}/account/referrals`, {
+          headers: { 'Authorization': 'Bearer ' + session.token },
+        });
+        if (!res.ok) return;
+        const items = await res.json();
+        if (!items.length) return;
+        document.getElementById('referralsCard').hidden = false;
+        document.getElementById('referralsList').innerHTML = items.map(r => {
+          const who = r.role === 'referrer'
+            ? `@${escapeHtml(r.handle)} bought through your post`
+            : `You bought through @${escapeHtml(r.handle)}'s post`;
+          const earned = r.status === 'earned';
+          const amount = earned ? '+£' + Number(r.amount).toFixed(2)
+                       : r.status === 'cancelled' ? 'Cancelled' : 'Pending';
+          return `<div class="ref-row">
+              <div>
+                <div class="ref-who">${who}</div>
+                <div class="ref-why">${escapeHtml(r.brand || 'Deal')}${r.reason ? ' — ' + escapeHtml(r.reason) : ''}</div>
+              </div>
+              <div class="ref-amt ${earned ? '' : 'waiting'}">${amount}</div>
+            </div>`;
+        }).join('');
+      } catch (_) { /* leave the card hidden */ }
+    }
+
     async function loadStats() {
       try {
         const res = await fetch(`${window.CIRQLE_API_BASE}/account/stats`, {
@@ -285,6 +354,14 @@
         animateCount(document.getElementById('receiptsVal'), s.receiptsCount, 0);
         document.getElementById('postsVal').textContent = s.postsCount;
         document.getElementById('walletBal').textContent = Number(s.wallet).toFixed(2);
+        // One wallet, but say how much of it came from referring people.
+        const refLine = document.getElementById('walletReferrals');
+        if (s.referralCount > 0) {
+          refLine.textContent = `Includes £${Number(s.referralEarnings).toFixed(2)} from ${s.referralCount} referral${s.referralCount === 1 ? '' : 's'}.`;
+          refLine.hidden = false;
+        } else {
+          refLine.hidden = true;
+        }
         const pct = Math.min(100, Math.round((s.totalEarned / 100) * 100));
         document.getElementById('goalFraction').textContent = '£' + Number(s.totalEarned).toFixed(2) + ' / £100 target';
         document.getElementById('goalPct').textContent = pct + '%';
@@ -391,7 +468,7 @@
         el.innerHTML = '<div style="font-size:.82rem;color:var(--ink-soft)">Couldn’t load deals right now.</div>';
       }
     }
-    if (session) { loadStats(); loadActiveDeals(); loadPayoutStatus(); }
+    if (session) { loadStats(); loadActiveDeals(); loadPayoutStatus(); loadReferrals(); }
 
     // ── Saved deals ──
     (function renderSaved() {

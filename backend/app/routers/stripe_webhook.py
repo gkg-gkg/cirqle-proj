@@ -125,13 +125,23 @@ def _credit_topup(cs: dict, meta: dict, session: Session) -> None:
     if credit <= 0:
         return
 
+    # Which pot to credit. Older sessions carry no wallet, and everything before
+    # two wallets existed was cashback, so that's the fallback.
+    wallet = meta.get("wallet") or "cashback"
+    if wallet not in ("cashback", "referral"):
+        wallet = "cashback"
+
     session.add(MerchantTransaction(
         merchant_id=merchant_id, kind="topup", amount=credit, fee=fee,
-        description="Card top-up", stripe_ref=ref,
+        wallet=wallet,
+        description=("Card top-up — referral wallet" if wallet == "referral"
+                     else "Card top-up"),
+        stripe_ref=ref,
     ))
     if fee > 0:
         session.add(MerchantTransaction(
             merchant_id=merchant_id, kind="platform_fee", amount=fee,
+            wallet=wallet,
             description="Platform fee on credit beyond your monthly allowance",
             stripe_ref=f"{ref}:fee",
         ))
@@ -203,9 +213,16 @@ def _charge_refunded(charge: dict, session: Session) -> None:
     refunded = round((charge.get("amount_refunded") or 0) / 100.0, 2)
     if refunded <= 0:
         return
+    # Which pot the money came out of. Charges made before two wallets existed
+    # carry no metadata, and all of those were cashback.
+    wallet = (charge.get("metadata") or {}).get("wallet") or "cashback"
+    if wallet not in ("cashback", "referral"):
+        wallet = "cashback"
     session.add(MerchantTransaction(
-        merchant_id=merchant.id, kind="refund", amount=-refunded,
-        description="Refund to card", stripe_ref=ref,
+        merchant_id=merchant.id, kind="refund", amount=-refunded, wallet=wallet,
+        description=("Refund to card — referral wallet" if wallet == "referral"
+                     else "Refund to card"),
+        stripe_ref=ref,
     ))
     session.commit()
 

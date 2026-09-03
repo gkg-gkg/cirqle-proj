@@ -117,6 +117,10 @@
     table.deals td { padding: 12px; border-bottom: 2px dashed rgba(31,27,19,.14); font-weight: 600; }
     table.deals td.num, table.deals th.num { text-align: right; font-variant-numeric: tabular-nums; }
     table.deals tr:last-child td { border-bottom: none; }
+    .ref-toggle { font: inherit; font-size: .74rem; font-weight: 800; padding: 4px 12px; border-radius: 999px; border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+    .ref-toggle.on { background: var(--lime); border-color: var(--ink); color: var(--ink); }
+    .ref-toggle:disabled { opacity: .5; cursor: default; }
+    .ref-paid { font-size: .7rem; color: var(--ink-soft); margin-top: 4px; }
     .deal-brand { font-weight: 800; }
 
     /* Messages */
@@ -275,6 +279,7 @@
     .allow-bar span { display: block; height: 100%; width: 0; background: var(--lime); transition: width .4s; }
     .allow-bar span.over { background: var(--tang); }
     .alert-bar { display: flex; align-items: center; gap: 10px; padding: 13px 16px; margin-bottom: 16px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: var(--tang); font-size: .86rem; font-weight: 700; }
+    .alert-bar.wallet-low { margin: 12px 0 0; padding: 10px 13px; font-size: .78rem; }
     .quote-box { margin: 14px 0 4px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper-deep); font-size: .84rem; line-height: 1.7; display: none; }
     .quote-box.on { display: block; }
     .quote-row { display: flex; justify-content: space-between; }
@@ -405,6 +410,7 @@
           <thead><tr>
             <th>Deal</th><th class="num">Views</th><th class="num">Clicks</th>
             <th class="num">Claims</th><th class="num">Cashback</th>
+            <th class="num">Referrals</th>
           </tr></thead>
           <tbody id="dealsBody"></tbody>
         </table>
@@ -463,7 +469,7 @@
     <div class="pane hidden" id="paneReferrals">
       <div class="pane-head">
         <div class="panel-title">Top referring posts</div>
-        <div class="panel-sub">Members whose posts led other members to buy and claim cashback, by deal.</div>
+        <div class="panel-sub">Members whose posts led other members to buy and claim cashback, by deal. Where a deal has referral bonuses switched on, each of these pays £1 to the poster and 50p to the buyer from your referral wallet — see the Referrals column on your campaigns table.</div>
       </div>
       <div class="posts-grid" id="referralsGrid">
         <div class="posts-empty">Loading referrals…</div>
@@ -581,10 +587,10 @@
 
       <div class="billing-top">
         <div class="card balance-hero">
-          <div class="stat-label">Balance</div>
+          <div class="stat-label">Cashback wallet</div>
           <div class="balance-num">£<span id="bBalance">0.00</span></div>
-          <button type="button" class="btn btn-lime" id="addCreditBtn" onclick="openTopup()">Add credit</button>
-          <div class="balance-note">Top up by card to fund the cashback shoppers earn on your deals. You're charged only the amount you add.</div>
+          <button type="button" class="btn btn-lime" id="addCreditBtn" onclick="openTopup('cashback')">Add credit</button>
+          <div class="balance-note">Funds the cashback shoppers earn on your deals. You're charged only the amount you add.</div>
         </div>
         <div class="bill-tiles">
           <div class="card stat-card"><div class="stat-label">Topped up</div><div class="stat-val">£<span id="bTopped">0.00</span></div></div>
@@ -592,9 +598,27 @@
           <div class="card card-tang stat-card"><div class="stat-label">Pending</div><div class="stat-val">£<span id="bPending">0.00</span></div></div>
         </div>
       </div>
+
+      <!-- Second, genuinely separate pot: an empty referral wallet pays no
+           bonuses even when the cashback wallet is full. -->
+      <div class="billing-top">
+        <div class="card balance-hero">
+          <div class="stat-label">Referral wallet</div>
+          <div class="balance-num">£<span id="bRefBalance">0.00</span></div>
+          <button type="button" class="btn btn-lime" id="addReferralBtn" onclick="openTopup('referral')">Add referral credit</button>
+          <div class="balance-note">Funds the referral bonus paid when a member refers someone to one of your deals — £1 to them, 50p to the person they referred. Kept separate from your cashback balance: if this runs out, no bonuses are paid.</div>
+          <div class="alert-bar wallet-low" id="refWalletLow" hidden></div>
+        </div>
+        <div class="bill-tiles">
+          <div class="card stat-card"><div class="stat-label">Topped up</div><div class="stat-val">£<span id="bRefTopped">0.00</span></div></div>
+          <div class="card card-lime stat-card"><div class="stat-label">Bonuses paid</div><div class="stat-val">£<span id="bRefPaid">0.00</span></div></div>
+          <div class="card stat-card"><div class="stat-label">Referrals left</div><div class="stat-val"><span id="bRefLeft">0</span></div></div>
+        </div>
+      </div>
+
       <div class="card txn-card">
         <div class="panel-title">Transactions</div>
-        <div class="panel-sub">Top-ups you've added and cashback paid out to shoppers.</div>
+        <div class="panel-sub">Top-ups you've added, cashback paid to shoppers, and referral bonuses.</div>
         <div id="txnList"></div>
       </div>
     </div>
@@ -604,8 +628,8 @@
   <div class="modal-overlay" id="topupModal">
     <div class="card modal" style="max-width:400px">
       <button class="modal-close" type="button" onclick="closeTopup()" aria-label="Close">✕</button>
-      <h2>Add credit</h2>
-      <div class="modal-sub">Top up your prepaid balance. You'll be taken to our secure Stripe checkout to pay by card.</div>
+      <h2 id="topupTitle">Add credit</h2>
+      <div class="modal-sub" id="topupSub">Top up your prepaid balance. You'll be taken to our secure Stripe checkout to pay by card.</div>
       <div class="field">
         <label for="topupAmount">Amount (£)</label>
         <input id="topupAmount" type="number" min="1" step="1" placeholder="100" />
@@ -991,7 +1015,7 @@
     function renderDeals(deals) {
       const body = document.getElementById('dealsBody');
       if (!deals || !deals.length) {
-        body.innerHTML = '<tr><td colspan="5" style="color:var(--ink-soft)">No deals linked to your account yet.</td></tr>';
+        body.innerHTML = '<tr><td colspan="6" style="color:var(--ink-soft)">No deals linked to your account yet.</td></tr>';
         return;
       }
       body.innerHTML = deals.map(d =>
@@ -1001,7 +1025,44 @@
            <td class="num">${fmtInt(d.clicks)}</td>
            <td class="num">${fmtInt(d.claims)}</td>
            <td class="num">£${fmtMoney(d.cashback)}</td>
+           <td class="num">
+             <button type="button" class="ref-toggle${d.referralsEnabled ? ' on' : ''}"
+                     data-deal="${d.campaignId}" data-on="${d.referralsEnabled ? '1' : '0'}"
+                     title="${d.referralsEnabled ? 'Referral bonuses are on for this deal' : 'Referral bonuses are off for this deal'}">
+               ${d.referralsEnabled ? 'On' : 'Off'}
+             </button>
+             ${d.referralsPaid > 0 ? `<div class="ref-paid">£${fmtMoney(d.referralsPaid)} paid</div>` : ''}
+           </td>
          </tr>`).join('');
+      body.querySelectorAll('.ref-toggle').forEach(b =>
+        b.addEventListener('click', () => toggleReferrals(b)));
+    }
+
+    // Referral bonuses are off per deal until the brand switches them on, so
+    // funding the referral wallet never silently enrols a deal.
+    async function toggleReferrals(btn) {
+      const turningOn = btn.dataset.on !== '1';
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API}/merchant/deals/${btn.dataset.deal}/referrals`, {
+          method: 'PATCH',
+          headers: { ...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: turningOn }),
+        });
+        if (res.status === 401) { signOut(); return; }
+        if (!res.ok) { cirqleToast('Could not change that — try again'); btn.disabled = false; return; }
+        const deal = await res.json();
+        btn.dataset.on = deal.referralsEnabled ? '1' : '0';
+        btn.classList.toggle('on', deal.referralsEnabled);
+        btn.textContent = deal.referralsEnabled ? 'On' : 'Off';
+        btn.disabled = false;
+        cirqleToast(deal.referralsEnabled
+          ? 'Referral bonuses on for this deal'
+          : 'Referral bonuses off for this deal');
+      } catch (_) {
+        cirqleToast('Could not reach the server');
+        btn.disabled = false;
+      }
     }
 
     // ── Messages ──
@@ -1514,10 +1575,33 @@
       renderPlan(b.subscription || { status: 'none' });
       const addBtn = document.getElementById('addCreditBtn');
       if (addBtn) addBtn.disabled = !(b.subscription && b.subscription.canTopUp);
+      const refBtn = document.getElementById('addReferralBtn');
+      if (refBtn) refBtn.disabled = !(b.subscription && b.subscription.canTopUp);
       document.getElementById('bBalance').textContent = fmtMoney(b.balance);
       document.getElementById('bTopped').textContent = fmtMoney(b.totalToppedUp);
       document.getElementById('bGiven').textContent = fmtMoney(b.cashbackGiven);
       document.getElementById('bPending').textContent = fmtMoney(b.pendingCashback);
+
+      const ref = (b.wallets || []).find(w => w.wallet === 'referral')
+        || { balance: 0, toppedUp: 0, spent: 0 };
+      document.getElementById('bRefBalance').textContent = fmtMoney(ref.balance);
+      document.getElementById('bRefTopped').textContent = fmtMoney(ref.toppedUp);
+      document.getElementById('bRefPaid').textContent = fmtMoney(ref.spent);
+      // A referral costs £1.50 — £1 to the referrer, 50p to the person referred.
+      const referralsLeft = Math.floor(ref.balance / 1.5);
+      document.getElementById('bRefLeft').textContent = referralsLeft;
+      // Say so before it runs out. An empty wallet stops paying bonuses
+      // silently, and the merchant would otherwise only find out by looking.
+      const low = document.getElementById('refWalletLow');
+      if (ref.toppedUp > 0 && referralsLeft === 0) {
+        low.textContent = 'Your referral wallet is empty — no bonuses are being paid. Top up to start them again.';
+        low.hidden = false;
+      } else if (ref.toppedUp > 0 && referralsLeft <= 5) {
+        low.textContent = `Running low — enough for ${referralsLeft} more referral${referralsLeft === 1 ? '' : 's'}.`;
+        low.hidden = false;
+      } else {
+        low.hidden = true;
+      }
       const list = document.getElementById('txnList');
       if (!b.transactions.length) {
         list.innerHTML = '<div class="txn-empty">No transactions yet. Add credit to fund your cashback.</div>';
@@ -1527,17 +1611,28 @@
         const when = new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         const isTop = t.kind === 'topup';
         const icon = isTop ? 'ico-cash' : 'ico-receipt';
+        const tag = t.wallet === 'referral' ? ' · Referral wallet' : '';
         const amt = (t.amount >= 0 ? '+£' : '−£') + fmtMoney(Math.abs(t.amount));
         return `<div class="txn-row">
              <div class="txn-main">
                <div class="txn-dot ${isTop ? 'topup' : 'cashback'}"><i class="ico ${icon}"></i></div>
-               <div><div class="txn-desc">${escapeHtml(t.description)}</div><div class="txn-when">${when}</div></div>
+               <div><div class="txn-desc">${escapeHtml(t.description)}</div><div class="txn-when">${when}${tag}</div></div>
              </div>
              <div class="txn-amt ${isTop ? 'pos' : ''}">${amt}</div>
            </div>`;
       }).join('');
     }
-    function openTopup() {
+    // Which wallet the open modal is filling. The server validates it too —
+    // crediting the wrong pot would be a real accounting error, not a cosmetic one.
+    let topupWallet = 'cashback';
+    function openTopup(wallet) {
+      topupWallet = wallet === 'referral' ? 'referral' : 'cashback';
+      const referral = topupWallet === 'referral';
+      document.getElementById('topupTitle').textContent =
+        referral ? 'Add referral credit' : 'Add credit';
+      document.getElementById('topupSub').textContent = referral
+        ? "Top up your referral wallet — it funds the £1 bonus paid each time a member refers someone to your deals. You'll pay by card on our secure Stripe checkout."
+        : "Top up your prepaid balance. You'll be taken to our secure Stripe checkout to pay by card.";
       document.getElementById('topupErr').textContent = '';
       document.getElementById('topupAmount').value = '';
       document.getElementById('quoteBox').classList.remove('on');
@@ -1553,11 +1648,11 @@
       const amount = parseFloat(document.getElementById('topupAmount').value);
       if (!amount || amount <= 0) { box.classList.remove('on'); return; }
       try {
-        const res = await fetch(`${API}/merchant/billing/quote?amount=${amount}`, { headers: authHeader() });
+        const res = await fetch(`${API}/merchant/billing/quote?amount=${amount}&wallet=${topupWallet}`, { headers: authHeader() });
         if (!res.ok) { box.classList.remove('on'); return; }
         const q = await res.json();
         box.innerHTML = `
-          <div class="quote-row"><span>Credit added to your balance</span><span>${gbp(q.credit.toFixed(2))}</span></div>
+          <div class="quote-row"><span>Credit added to your ${topupWallet === 'referral' ? 'referral wallet' : 'balance'}</span><span>${gbp(q.credit.toFixed(2))}</span></div>
           ${q.fee > 0
             ? `<div class="quote-row"><span>Platform fee (${Math.round(q.feeRate * 100)}% past your allowance)</span><span>${gbp(q.fee.toFixed(2))}</span></div>`
             : `<div class="quote-row"><span>Within your fee-free allowance</span><span>No fee</span></div>`}
@@ -1586,7 +1681,7 @@
       try {
         const res = await fetch(`${API}/merchant/billing/checkout`, {
           method: 'POST', headers: { ...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount }),
+          body: JSON.stringify({ amount, wallet: topupWallet }),
         });
         if (res.status === 401) { signOut(); return; }
         if (!res.ok) {

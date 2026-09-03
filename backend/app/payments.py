@@ -17,6 +17,7 @@ tests can set the keys before exercising the code:
 The module is named `payments` (not `stripe`) so `import stripe` doesn't import
 this file instead of the SDK.
 """
+import hashlib
 import os
 import re
 from datetime import datetime
@@ -131,12 +132,15 @@ def quote_topup(merchant, credit: float, used_this_month: float) -> dict:
     }
 
 
-def create_topup_session(merchant, quote: dict, customer_id: str, origin: str) -> str:
+def create_topup_session(merchant, quote: dict, customer_id: str, origin: str,
+                         wallet: str = "cashback") -> str:
     """Hosted Checkout for a prepaid top-up, with the platform fee shown as its
     own line so the merchant sees exactly what they're paying for.
 
     The balance is NOT credited here — that happens when Stripe calls the
-    webhook after a successful payment (a redirect alone can be faked).
+    webhook after a successful payment (a redirect alone can be faked). Which
+    wallet the money is for therefore has to survive the round trip through
+    Stripe, so it travels in the session metadata and is read back there.
     """
     stripe.api_key = _secret_key()
     base = _return_base(origin)
@@ -147,9 +151,12 @@ def create_topup_session(merchant, quote: dict, customer_id: str, origin: str) -
                                "unit_amount": int(round(pounds * 100))},
                 "quantity": 1}
 
-    items = [line("Cirqle cashback credit",
-                  f"Prepaid balance for {merchant.business_name or 'your account'}",
-                  quote["credit"])]
+    label = ("Cirqle referral credit" if wallet == "referral"
+             else "Cirqle cashback credit")
+    purpose = ("Funds referral bonuses paid to members who refer others to your deals"
+               if wallet == "referral"
+               else f"Prepaid balance for {merchant.business_name or 'your account'}")
+    items = [line(label, purpose, quote["credit"])]
     if quote["fee"] > 0:
         items.append(line(
             "Platform fee",
@@ -164,7 +171,13 @@ def create_topup_session(merchant, quote: dict, customer_id: str, origin: str) -
             cancel_url=f"{base}/merchant.html?topup=cancel#billing",
             client_reference_id=str(merchant.id),
             metadata={"merchant_id": str(merchant.id), "kind": "topup",
+                      "wallet": wallet,
                       "credit": f"{quote['credit']:.2f}", "fee": f"{quote['fee']:.2f}"},
+            # Session metadata doesn't reach the charge, and a refund webhook
+            # only ever sees the charge — so the wallet has to be stamped here
+            # as well, or a refund can't tell which pot to take the credit from.
+            payment_intent_data={"metadata": {"merchant_id": str(merchant.id),
+                                              "wallet": wallet}},
         )
     except Exception as exc:  # noqa: BLE001
         raise PaymentError(str(exc)) from exc
@@ -354,16 +367,50 @@ def create_onboarding_link(account_id: str, origin: str) -> str:
     return link.url
 
 
+def _fingerprint(*parts) -> str:
+    """A one-way hash of some identity details, or '' if we have none of them.
+
+    Two accounts belonging to one person produce the same hash, which is all we
+    need to refuse a referral between them. We never store the details
+    themselves, so this can't be read back into someone's name, date of birth or
+    bank account — it's only ever compared against another hash.
+    """
+    values = [str(p or "").strip().lower() for p in parts]
+    if not any(values):
+        return ""
+    return hashlib.sha256("|".join(values).encode("utf-8")).hexdigest()
+
+
 def connect_status(account_id: str) -> dict:
-    """Ask Stripe whether this member is cleared to receive money."""
+    """Ask Stripe whether this member is cleared to receive money, and for the
+    fingerprints that tell two of their accounts apart from two people's."""
     stripe.api_key = _secret_key()
     try:
-        acct = stripe.Account.retrieve(account_id).to_dict()
+        # external_accounts has to be asked for explicitly — a plain retrieve
+        # leaves it out, and we'd silently read no bank fingerprint at all.
+        acct = stripe.Account.retrieve(
+            account_id, expand=["external_accounts"]).to_dict()
     except Exception as exc:  # noqa: BLE001
         raise PaymentError(str(exc)) from exc
+
+    # Stripe's own fingerprint for the bank account: the same account added to
+    # two Connect accounts fingerprints identically. The strongest signal there
+    # is — two members paying into one bank account.
+    banks = ((acct.get("external_accounts") or {}).get("data") or [])
+    bank_fp = next((b.get("fingerprint") for b in banks if b.get("fingerprint")), "")
+
+    # Name + date of birth, as Stripe verified them against documents. Catches
+    # one person who used two different bank accounts.
+    person = acct.get("individual") or {}
+    dob = person.get("dob") or {}
+
     return {
         "payouts_enabled": bool(acct.get("payouts_enabled")),
         "details_submitted": bool(acct.get("details_submitted")),
+        "payout_fingerprint": _fingerprint(bank_fp) if bank_fp else "",
+        "identity_fingerprint": _fingerprint(
+            person.get("first_name"), person.get("last_name"),
+            dob.get("year"), dob.get("month"), dob.get("day")),
     }
 
 
