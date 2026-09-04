@@ -184,8 +184,19 @@ def _apply_shadow_scoring(r: Receipt, session: Session) -> None:
 
     Wrapped so a scoring bug can never block a real approval: any exception
     here just falls back to the plain `"verified"` outcome.
+
+    Neither this endpoint nor bulk-verify guards against being called again on
+    a receipt that's already `"verified"` (bulk-verify's own filter is `status
+    not in ("pending", "verified")` — so a *verified* receipt is not skipped).
+    That's pre-existing, harmless for flat campaigns (nothing here re-mutates
+    `amount`), but for a performance-mode campaign a repeat call would
+    otherwise re-deduct the budget and overwrite `amount` a second time for a
+    receipt the member was already paid on. `already_verified` guards against
+    exactly that, while still letting a `pending_budget_review` receipt (not
+    yet actually paid) go through the budget check again after a top-up.
     """
     try:
+        already_verified = r.status == "verified"
         r.status = "verified"
         if r.campaign_id is None:
             return
@@ -209,6 +220,8 @@ def _apply_shadow_scoring(r: Receipt, session: Session) -> None:
 
         if campaign.cashback_mode != "performance":
             return  # shadow-only: real amount/status/budget are untouched
+        if already_verified:
+            return  # already paid once for this campaign — don't re-deduct/repay
 
         if campaign.budget_remaining is not None and payout_result.payout > campaign.budget_remaining:
             r.status = "pending_budget_review"
