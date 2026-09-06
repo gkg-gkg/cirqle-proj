@@ -38,17 +38,21 @@
     .hw-col { display: flex; flex-direction: column; gap: 12px; }
     .hw-col:nth-child(2n) { transform: translateY(-7%); }
     .hw-col:nth-child(3n) { transform: translateY(4%); }
-    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: saturate(.82) contrast(.96); }
+    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: grayscale(.92) contrast(.92); }
     .hero-scrim {
       z-index: 1;
+      /* A real vignette: a bright pool behind the copy falling off to a dark
+         edge, so the wall sits back and the eye lands on the headline. The
+         photos are near-monochrome for the same reason — no colour competing. */
       background:
-        linear-gradient(90deg, rgba(255,255,255,.90) 0%, rgba(255,255,255,.72) 46%, rgba(255,255,255,.44) 100%),
-        linear-gradient(180deg, rgba(241,249,255,.34) 0%, rgba(241,249,255,.30) 52%, rgba(241,249,255,.90) 88%, #F1F9FF 100%);
+        radial-gradient(100% 78% at 42% 46%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.72) 42%, rgba(255,255,255,.30) 74%, rgba(18,28,42,.22) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(241,249,255,.10) 40%, rgba(241,249,255,.88) 90%, #F1F9FF 100%);
     }
     @media (max-width: 900px) {
       .hw-grid { grid-template-columns: repeat(4, 1fr); }
       .hero-scrim { background:
-        linear-gradient(180deg, rgba(255,255,255,.90) 0%, rgba(255,255,255,.88) 55%, rgba(241,249,255,.96) 88%, #F1F9FF 100%); }
+        radial-gradient(120% 62% at 50% 40%, rgba(255,255,255,.92) 0%, rgba(255,255,255,.80) 55%, rgba(18,28,42,.20) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(241,249,255,.30) 45%, rgba(241,249,255,.92) 88%, #F1F9FF 100%); }
     }
     .hero-blob {
       position: absolute; border-radius: 50%;
