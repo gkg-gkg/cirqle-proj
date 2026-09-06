@@ -9,47 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=9" />
   <style>
-    /* ══ NEON THEME — scoped to this page only ══
-       cirqle.css is shared by every page, so the palette is overridden here
-       on <body class="theme-neon"> rather than in the shared stylesheet.
-       Rule: neon carries FILLS and GLOWS, never text. #38B6FF on white is
-       2.26:1 — fine behind ink, unreadable as type. Text stays ink or --blue. */
-    body.theme-neon {
-      --neon:      #38B6FF;   /* fills, buttons, highlight sweeps */
-      --neon-soft: #66D4FF;   /* gradient partner + glows */
-      --neon-line: #0090E8;   /* 3.41:1 — safe for icons/borders, not text */
-      --blue:      #0072D6;   /* 4.80:1 — the only blue allowed to be text */
-      --blue-deep: #005CB0;
-      --blue-tint: #E8F7FF;
-      --blue-pale: #F3FBFF;
-      --blue-glow: rgba(56,182,255,.26);
-      --blue-ring: rgba(56,182,255,.60);
-      --shadow-blue: 0 6px 20px rgba(56,182,255,.40), 0 1px 3px rgba(56,182,255,.22);
-      --lime: #38B6FF; --lime-soft: #E8F7FF;
-      --sky: #E8F7FF; --pink: #F3FBFF; --tang: #F3FBFF;
-    }
-    /* primary button: neon fill, ink label (8.29:1) */
-    body.theme-neon .btn-lime {
-      background: linear-gradient(180deg, var(--neon-soft), var(--neon));
-      color: #0B1220; border-color: transparent;
-      box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.35);
-    }
-    body.theme-neon .btn-lime:hover {
-      background: linear-gradient(180deg, #7BDAFF, #45BCFF);
-      border-color: transparent;
-      box-shadow: 0 10px 28px rgba(56,182,255,.46), inset 0 1px 0 rgba(255,255,255,.35);
-    }
-    body.theme-neon .coin-lime, body.theme-neon .coin-sky, body.theme-neon .coin-pink {
-      background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220;
-    }
-    body.theme-neon .sticker-lime { background: var(--neon); color: #0B1220; }
-    /* Wordmark matches the primary button. Logotypes are exempt from the
-       WCAG contrast minimum, so the neon is fine here where it isn't for copy. */
-    body.theme-neon .logo, body.theme-neon .footer-logo { color: var(--neon); }
-    body.theme-neon .card-lime { border-color: rgba(56,182,255,.42); background: #F3FBFF; }
-
     /* ── HERO ── */
     .hero {
       position: relative; z-index: 1;
@@ -199,6 +160,25 @@
     .calc-out-sub { font-size: .8rem; font-weight: 500; color: rgba(11,18,32,.75); margin-top: 4px; }
     .calc-note { font-size: .74rem; color: var(--ink-soft); margin-top: 14px; line-height: 1.55; }
 
+    /* ── Tinted bands ──
+       The carousel sits on a blue band so the tiles read as cards on a surface;
+       the review wall gets a paler one so the two don't compete. */
+    .band {
+      background: linear-gradient(180deg, #F1F9FF 0%, #E7F5FF 55%, #F1F9FF 100%);
+      border-top: 1px solid rgba(56,182,255,.22);
+      border-bottom: 1px solid rgba(56,182,255,.22);
+      padding-top: clamp(28px, 3.4vw, 46px);
+      padding-bottom: clamp(30px, 3.6vw, 50px);
+    }
+    .band-soft {
+      background: linear-gradient(180deg, #F8FCFF 0%, #EDF8FF 50%, #F8FCFF 100%);
+      border-top: 1px solid rgba(56,182,255,.16);
+      border-bottom: 1px solid rgba(56,182,255,.16);
+    }
+    .band > .hcar { margin-left: calc(-1 * clamp(18px, 4vw, 44px)); margin-right: calc(-1 * clamp(18px, 4vw, 44px)); }
+    /* the steps follow the band closely — they're the same idea continued */
+    #steps { padding-top: clamp(34px, 4.2vw, 58px); }
+
     /* ── Post → paid carousel (horizontal) ── */
     .hcar { display: flex; flex-direction: column; gap: 14px; overflow: hidden; min-height: 404px;
       -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
@@ -218,12 +198,21 @@
     .htile-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
     .htile-rate { font-size: .64rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
     .htile-amt { font-family: var(--font-display); font-weight: 700; font-size: .88rem; }
-    .htile.paid { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
+    /* Six tile treatments, matching the review wall. The logo panel always
+       stays light — most brand marks are dark and would vanish on a blue fill. */
+    .htile.t1 { background: #F2FAFF; }
+    .htile.t2 { background: #DCF1FF; border-color: rgba(56,182,255,.34); }
+    .htile.t3 { background: linear-gradient(150deg, #A5E4FF, #66D4FF); border-color: transparent; box-shadow: 0 8px 22px rgba(56,182,255,.30); }
+    .htile.t4 { background: linear-gradient(150deg, #66D4FF, #38B6FF); border-color: transparent; box-shadow: 0 10px 26px rgba(56,182,255,.40); }
+    .htile.t5 { background: linear-gradient(150deg, #2F97E8, #0F6FCC); border-color: transparent; box-shadow: 0 10px 26px rgba(15,111,204,.34); }
+    .htile.t3 .htile-cap, .htile.t4 .htile-cap { color: rgba(11,18,32,.72); }
+    .htile.t3 .htile-foot, .htile.t4 .htile-foot { border-top-color: rgba(11,18,32,.18); }
+    .htile.t3 .htile-rate, .htile.t4 .htile-rate { background: rgba(11,18,32,.16); color: #0B1220; border-color: rgba(11,18,32,.24); }
+    .htile.t5 .htile-brand, .htile.t5 .htile-amt { color: #fff; }
+    .htile.t5 .htile-cap { color: rgba(255,255,255,.88); }
+    .htile.t5 .htile-foot { border-top-color: rgba(255,255,255,.28); }
+    .htile.t5 .htile-rate { background: rgba(255,255,255,.20); color: #fff; border-color: rgba(255,255,255,.38); }
     .htile.paid .htile-state { background: rgba(11,18,32,.85); color: var(--neon-soft); }
-    .htile.paid .htile-shot { border-bottom-color: rgba(11,18,32,.18); background: rgba(255,255,255,.82); }
-    .htile.paid .htile-cap { color: rgba(11,18,32,.72); }
-    .htile.paid .htile-foot { border-top-color: rgba(11,18,32,.18); }
-    .htile.paid .htile-rate { background: rgba(11,18,32,.16); color: #0B1220; border-color: rgba(11,18,32,.24); }
 
     /* ── The cycle: three white tiles, each a phone doing the step ──
        The phones are drawn in CSS rather than screenshotted, so they stay sharp
@@ -360,7 +349,7 @@
     }
   </style>
 </head>
-<body class="theme-neon">
+<body>
 
   <!-- ══ NAV ══ -->
   <nav class="nav">
@@ -530,7 +519,7 @@
   <!-- ══ REVIEW WALL ══
        Illustrative review cards. The photography is licensed stock and the
        people shown are models, not members — stated in the disclaimer below. -->
-  <section class="section" id="reviews">
+  <section class="section band-soft" id="reviews">
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">Shop at <span class="hl">Cirqle.</span></h2>
@@ -770,7 +759,7 @@
         var logo = 'assets/logos/' + slug(d.brand) + '.png';
         var spend = 40 + (i % 6) * 15;
         var earn = (spend * (d.rate || 0) / 100).toFixed(2);
-        return '<div class="htile' + (paid ? ' paid' : '') + '">' +
+        return '<div class="htile' + (paid ? ' paid' : '') + ' t' + (i % 6) + '">' +
             '<div class="htile-shot">' +
               '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
               ' onerror="this.style.display=\'none\'">' +
