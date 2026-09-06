@@ -199,22 +199,85 @@
     .calc-out-sub { font-size: .8rem; font-weight: 500; color: rgba(11,18,32,.75); margin-top: 4px; }
     .calc-note { font-size: .74rem; color: var(--ink-soft); margin-top: 14px; line-height: 1.55; }
 
-    /* ── The cycle: three big tiles, one per step ── */
-    .cycle { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 2.6vw, 30px); }
-    .cyc-shot { position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 4/3; box-shadow: 0 10px 30px rgba(11,18,32,.12); }
-    .cyc-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .cyc-n {
-      position: absolute; top: 13px; left: 13px; width: 34px; height: 34px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display); font-weight: 700; font-size: .92rem; color: #0B1220;
-      background: linear-gradient(150deg, var(--neon-soft), var(--neon));
-      box-shadow: 0 4px 14px rgba(11,18,32,.28);
+    /* ── Post → paid carousel (horizontal) ── */
+    .hcar { display: flex; flex-direction: column; gap: 14px; overflow: hidden; min-height: 404px;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
+    .hcar-row { display: flex; gap: 14px; width: max-content; will-change: transform; }
+    .hcar-row.r1 { animation: slideL 46s linear infinite; }
+    .hcar-row.r2 { animation: slideR 58s linear infinite; }
+    @keyframes slideL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes slideR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+    .htile { width: 218px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+    .htile-shot { height: 104px; position: relative; display: flex; align-items: center; justify-content: center; padding: 18px; background: linear-gradient(150deg, #F4FBFF, #E6F6FF); border-bottom: 1px solid var(--line-soft); }
+    .htile-img { max-width: 100%; max-height: 56px; width: auto; height: auto; object-fit: contain; display: block; }
+    .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--ink); }
+    .htile-body { padding: 12px 13px 13px; }
+    .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
+    .htile-cap { font-size: .68rem; color: var(--ink-soft); margin-top: 3px; }
+    .htile-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+    .htile-rate { font-size: .64rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+    .htile-amt { font-family: var(--font-display); font-weight: 700; font-size: .88rem; }
+    .htile.paid { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
+    .htile.paid .htile-state { background: rgba(11,18,32,.85); color: var(--neon-soft); }
+    .htile.paid .htile-shot { border-bottom-color: rgba(11,18,32,.18); background: rgba(255,255,255,.82); }
+    .htile.paid .htile-cap { color: rgba(11,18,32,.72); }
+    .htile.paid .htile-foot { border-top-color: rgba(11,18,32,.18); }
+    .htile.paid .htile-rate { background: rgba(11,18,32,.16); color: #0B1220; border-color: rgba(11,18,32,.24); }
+
+    /* ── The cycle: three white tiles, each a phone doing the step ──
+       The phones are drawn in CSS rather than screenshotted, so they stay sharp
+       and restyle with the palette. */
+    .cycle { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 2.6vw, 28px); }
+    .cyc { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 18px 24px; box-shadow: var(--shadow); }
+    .cyc-stage {
+      position: relative; height: 250px; border-radius: 14px; overflow: hidden;
+      background: linear-gradient(160deg, #EAF6FF 0%, #D6EEFF 100%);
+      display: flex; align-items: flex-end; justify-content: center;
     }
-    .cyc:nth-child(2) .cyc-n { background: linear-gradient(150deg, #BFE6FF, #66D4FF); }
-    .cyc:nth-child(3) .cyc-n { background: linear-gradient(150deg, #38B6FF, #0B63C4); color: #fff; }
-    .cyc-t { font-family: var(--font-display); font-size: 1.32rem; font-weight: 700; letter-spacing: -.025em; margin: 18px 0 7px; }
-    .cyc-d { font-size: .92rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
-    @media (max-width: 780px) { .cycle { grid-template-columns: 1fr; gap: 30px; } }
+    .cyc:nth-child(2) .cyc-stage { background: linear-gradient(160deg, #E4F4FF 0%, #BFE6FF 100%); }
+    .cyc:nth-child(3) .cyc-stage { background: linear-gradient(160deg, #DCF1FF 0%, #9FDCFF 100%); }
+    .cyc-n {
+      position: absolute; top: 12px; left: 12px; z-index: 2; width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: .84rem; color: #0B1220;
+      background: #fff; box-shadow: 0 3px 10px rgba(11,18,32,.18);
+    }
+    .cyc-t { font-family: var(--font-display); font-size: 1.24rem; font-weight: 700; letter-spacing: -.025em; margin: 18px 0 6px; }
+    .cyc-d { font-size: .89rem; color: var(--ink-soft); line-height: 1.6; margin: 0; }
+
+    /* phone */
+    .ph {
+      width: 142px; border-radius: 20px 20px 0 0; background: #0B1220;
+      padding: 7px 7px 0; margin-bottom: -14px;
+      box-shadow: 0 -2px 30px rgba(11,18,32,.22);
+    }
+    .ph-screen {
+      background: #fff; border-radius: 14px 14px 0 0; padding: 9px 8px 14px;
+      display: flex; flex-direction: column; gap: 6px; min-height: 210px;
+    }
+    .ph-notch { width: 40px; height: 4px; border-radius: 99px; background: #33405A; margin: 0 auto 6px; }
+    .ps-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .ps-brand { font-family: var(--font-display); font-weight: 700; font-size: .6rem; color: var(--ink); }
+    .ps-chip { font-size: .5rem; font-weight: 700; padding: 2px 6px; border-radius: 99px; background: var(--neon); color: #0B1220; }
+    .ps-img { width: 100%; border-radius: 8px; object-fit: cover; display: block; height: 78px; }
+    .ps-img.tall { height: 92px; }
+    .ps-line { height: 5px; border-radius: 99px; background: #E4EBF2; display: block; }
+    .ps-line.w70 { width: 70%; } .ps-line.w45 { width: 45%; } .ps-line.w50 { width: 50%; } .ps-line.w40 { width: 40%; }
+    .ps-cap { font-size: .52rem; color: var(--ink-soft); line-height: 1.4; }
+    .ps-cap b { color: var(--blue); }
+    .ps-btn {
+      margin-top: auto; text-align: center; font-family: var(--font-display); font-weight: 700;
+      font-size: .58rem; color: #0B1220; padding: 6px; border-radius: 99px;
+      background: linear-gradient(180deg, var(--neon-soft), var(--neon));
+    }
+    .ps-bal { background: linear-gradient(140deg, var(--neon-soft), var(--neon)); border-radius: 9px; padding: 8px 9px; color: #0B1220; }
+    .ps-bal span { display: block; font-size: .45rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+    .ps-bal b { font-family: var(--font-display); font-size: .95rem; letter-spacing: -.02em; }
+    .ps-row { display: flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 8px; padding: 5px 6px; min-width: 0; }
+    .ps-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--blue-tint); flex-shrink: 0; }
+    .ps-amt { margin-left: auto; font-family: var(--font-display); font-size: .55rem; color: var(--ink); white-space: nowrap; }
+    @media (max-width: 780px) { .cycle { grid-template-columns: 1fr; gap: 24px; } }
 
     /* ── Review wall — small avatar, quote, rating ── */
     .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 500px; overflow: hidden; position: relative;
@@ -251,9 +314,9 @@
     .rv.v2 { background: #DCF1FF; border-color: rgba(56,182,255,.38); }
     .rv.v3 { background: linear-gradient(150deg, #A5E4FF, #66D4FF); border-color: transparent; box-shadow: 0 8px 24px rgba(56,182,255,.30); }
     .rv.v4 { background: linear-gradient(150deg, #66D4FF, #38B6FF); border-color: transparent; box-shadow: 0 8px 26px rgba(56,182,255,.40); }
-    .rv.v5 { background: linear-gradient(150deg, #0B63C4, #0A5AB0); border-color: transparent; box-shadow: 0 8px 26px rgba(10,90,176,.34); }
+    .rv.v5 { background: linear-gradient(150deg, #2F97E8, #0F6FCC); border-color: transparent; box-shadow: 0 8px 26px rgba(15,111,204,.34); }
     .rv.v5 .rv-txt, .rv.v5 .rv-who, .rv.v5 .rv-amt { color: #fff; }
-    .rv.v5 .rv-where { color: rgba(255,255,255,.78); }
+    .rv.v5 .rv-where { color: rgba(255,255,255,.88); }
     .rv.v5 .rv-stars { color: #A5E4FF; }
     .rv.v5 .rv-av { border-color: rgba(255,255,255,.5); }
     .disclaim { font-size: .76rem; color: var(--ink-soft); text-align: center; margin-top: 20px; line-height: 1.6; }
@@ -291,7 +354,8 @@
       body { padding-bottom: 68px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .pw-col { animation: none !important; }
+      .hcar-row, .pw-col { animation: none !important; }
+      .hcar-row { flex-wrap: wrap; width: auto; }
       .pwall { height: auto; -webkit-mask-image: none; mask-image: none; }
     }
   </style>
@@ -387,26 +451,49 @@
   </header>
   </div>
 
-  <!-- ══ THE CYCLE — shop, post, earn ══ -->
+  <!-- ══ POST → PAID CAROUSEL ══ -->
   <section class="section band" id="flow">
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">From post to <span class="hl">paid.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Real brands, real published rates. Example earnings shown to illustrate how each rate works out.</p>
+      </div>
+    </div>
+    <div class="hcar reveal">
+      <div class="hcar-row r1" id="carRow1"></div>
+      <div class="hcar-row r2" id="carRow2"></div>
+    </div>
+  </section>
+
+  <!-- ══ THE CYCLE — shop, post, earn ══ -->
+  <section class="section" id="steps">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">Shop. Post. <span class="hl">Earn.</span></h2>
         <p class="h-sub reveal reveal-delay-2">Three steps, and the cashback from one buys the next thing.</p>
       </div>
       <div class="cycle">
         <div class="cyc reveal reveal-delay-1">
-          <div class="cyc-shot"><img src="assets/steps/shop.jpg" alt="" loading="lazy" decoding="async"><span class="cyc-n">1</span></div>
+          <div class="cyc-stage">
+            <span class="cyc-n">1</span>
+            <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">Nike</span><span class="ps-chip">13% back</span></div><img class="ps-img" src="assets/steps/shop.jpg" alt="" loading="lazy" decoding="async"><span class="ps-line w70"></span><span class="ps-line w45"></span><div class="ps-btn">Shop now</div></div></div>
+          </div>
           <h3 class="cyc-t">Shop</h3>
           <p class="cyc-d">Buy from partner brands the way you always do. No codes, no extension.</p>
         </div>
         <div class="cyc reveal reveal-delay-2">
-          <div class="cyc-shot"><img src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><span class="cyc-n">2</span></div>
+          <div class="cyc-stage">
+            <span class="cyc-n">2</span>
+            <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
+          </div>
           <h3 class="cyc-t">Post</h3>
-          <p class="cyc-d">Share it on Instagram, tag @cirqle and the brand, upload your receipt.</p>
+          <p class="cyc-d">Share it on Instagram, tag @cirqle and the brand, then upload your receipt.</p>
         </div>
         <div class="cyc reveal reveal-delay-3">
-          <div class="cyc-shot"><img src="assets/steps/earn.jpg" alt="" loading="lazy" decoding="async"><span class="cyc-n">3</span></div>
+          <div class="cyc-stage">
+            <span class="cyc-n">3</span>
+            <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-bal"><span>Wallet</span><b>£47.80</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w50"></span><b class="ps-amt">+£3.50</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w40"></span><b class="ps-amt">+£2.10</b></div><div class="ps-btn">Withdraw</div></div></div>
+          </div>
           <h3 class="cyc-t">Earn</h3>
           <p class="cyc-d">Once approved it clears in about three days, then goes to your bank.</p>
         </div>
@@ -660,14 +747,50 @@
           return d && d.brand && d.rate > 0 && !/test merchant/i.test(d.brand);
         });
         if (!deals.length) throw new Error('catalogue empty');
+        buildCarousel(deals);
         buildCalculator(deals);
       })
       .catch(function (err) {
-        // Only the calculator needs the catalogue now — the cycle tiles are
-        // static, so they stay. No heading is left over blank space.
+        // The carousel and calculator both need the catalogue; the three step
+        // tiles are static and stay put. Never leave a heading over blank space.
+        dropSection('flow');
         dropSection('calculator');
         if (window.console) console.warn('Cirqle: deals unavailable —', err.message);
       });
+
+    // Post → paid tiles. Brand and rate are real; the post caption and the
+    // worked example are illustrative, and the section header says so.
+    var CAPTIONS = ['Story tagged @cirqle', 'Haul post · 2 tags', 'Reel · tagged', 'Grid post', 'Unboxing story', 'Receipt uploaded'];
+    function buildCarousel(deals) {
+      var r1 = document.getElementById('carRow1'), r2 = document.getElementById('carRow2');
+      if (!r1 || !r2) return;
+      var tiles = deals.map(function (d, i) {
+        var paid = (i % 4 === 3);
+        // Partner logos live in assets/logos, keyed by a slug of the brand name.
+        var logo = 'assets/logos/' + slug(d.brand) + '.png';
+        var spend = 40 + (i % 6) * 15;
+        var earn = (spend * (d.rate || 0) / 100).toFixed(2);
+        return '<div class="htile' + (paid ? ' paid' : '') + '">' +
+            '<div class="htile-shot">' +
+              '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
+              ' onerror="this.style.display=\'none\'">' +
+              '<span class="htile-state">' + (paid ? 'Paid' : 'Posted') + '</span>' +
+            '</div>' +
+            '<div class="htile-body">' +
+              '<div class="htile-brand">' + esc(d.brand) + '</div>' +
+              '<div class="htile-cap">' + CAPTIONS[i % CAPTIONS.length] + '</div>' +
+              '<div class="htile-foot">' +
+                '<span class="htile-rate">' + Math.round(d.rate) + '% back</span>' +
+                '<span class="htile-amt">£' + earn + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+      });
+      var half = Math.ceil(tiles.length / 2);
+      var a = tiles.slice(0, half).join(''), b = tiles.slice(half).join('');
+      r1.innerHTML = a + a;
+      r2.innerHTML = b + b;
+    }
 
     // Cashback the way it actually lands: only spending at partner brands counts,
     // only the purchases you post about count, and rates vary across the deals in
