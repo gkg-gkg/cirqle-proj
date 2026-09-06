@@ -3,15 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#FFFFFF" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#38B6FF" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%2338B6FF' stroke-width='12'/%3E%3C/svg%3E" />
   <title>Cirqle — Shop. Post. Earn Cashback.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=8" />
   <style>
-    /* ── Page-specific: HERO ── */
+    /* ══ NEON THEME — scoped to this page only ══
+       cirqle.css is shared by every page, so the palette is overridden here
+       on <body class="theme-neon"> rather than in the shared stylesheet.
+       Rule: neon carries FILLS and GLOWS, never text. #38B6FF on white is
+       2.26:1 — fine behind ink, unreadable as type. Text stays ink or --blue. */
+    body.theme-neon {
+      --neon:      #38B6FF;   /* fills, buttons, highlight sweeps */
+      --neon-soft: #66D4FF;   /* gradient partner + glows */
+      --neon-line: #0090E8;   /* 3.41:1 — safe for icons/borders, not text */
+      --blue:      #0072D6;   /* 4.80:1 — the only blue allowed to be text */
+      --blue-deep: #005CB0;
+      --blue-tint: #E8F7FF;
+      --blue-pale: #F3FBFF;
+      --blue-glow: rgba(56,182,255,.26);
+      --blue-ring: rgba(56,182,255,.60);
+      --shadow-blue: 0 6px 20px rgba(56,182,255,.40), 0 1px 3px rgba(56,182,255,.22);
+      --lime: #38B6FF; --lime-soft: #E8F7FF;
+      --sky: #E8F7FF; --pink: #F3FBFF; --tang: #F3FBFF;
+    }
+    /* primary button: neon fill, ink label (8.29:1) */
+    body.theme-neon .btn-lime {
+      background: linear-gradient(180deg, var(--neon-soft), var(--neon));
+      color: #0B1220; border-color: transparent;
+      box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.35);
+    }
+    body.theme-neon .btn-lime:hover {
+      background: linear-gradient(180deg, #7BDAFF, #45BCFF);
+      border-color: transparent;
+      box-shadow: 0 10px 28px rgba(56,182,255,.46), inset 0 1px 0 rgba(255,255,255,.35);
+    }
+    body.theme-neon .coin-lime, body.theme-neon .coin-sky, body.theme-neon .coin-pink {
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220;
+    }
+    body.theme-neon .sticker-lime { background: var(--neon); color: #0B1220; }
+    body.theme-neon .card-lime { border-color: rgba(56,182,255,.42); background: #F3FBFF; }
+
+    /* ── HERO ── */
     .hero {
       position: relative; z-index: 1;
       max-width: 1140px; margin: 0 auto;
@@ -22,7 +58,6 @@
     }
     .hero > div:not(.dots) { position: relative; z-index: 1; }
     .hero .dots { position: absolute; inset: 0; z-index: 0; }
-    /* soft drifting glow fields behind the hero — movement without colour */
     .hero-blob {
       position: absolute; border-radius: 50%;
       background: radial-gradient(circle, var(--blue-glow), transparent 70%);
@@ -30,94 +65,74 @@
     }
     .blob-a { width: 460px; height: 460px; top: -100px; right: 4%; animation: blobDrift 22s ease-in-out infinite alternate; }
     .blob-b { width: 380px; height: 380px; bottom: -140px; left: -80px; animation: blobDrift 27s ease-in-out -9s infinite alternate-reverse; }
-    @keyframes blobDrift {
-      from { transform: translate(0, 0) scale(1); }
-      to   { transform: translate(44px, 30px) scale(1.14); }
-    }
-    /* the "paid" highlight draws itself in like a marker stroke */
+    @keyframes blobDrift { from { transform: translate(0,0) scale(1); } to { transform: translate(44px,30px) scale(1.14); } }
+    /* the marker sweep: ink type on a solid neon bar */
     .hero-h .hl {
-      background: linear-gradient(var(--blue-tint), var(--blue-tint)) no-repeat 0 0 / 0% 100%;
+      background: linear-gradient(var(--neon), var(--neon)) no-repeat 0 54% / 0% 46%;
+      color: var(--ink); padding: 0 4px;
       animation: hlSweep .8s var(--snap) .5s forwards;
     }
-    @keyframes hlSweep { to { background-size: 100% 100%; } }
-    /* primary CTA breathes a soft glow */
+    @keyframes hlSweep { to { background-size: 100% 46%; } }
     .hero-actions .btn-lime { animation: ctaPulse 3.4s ease-in-out 1.4s infinite; }
     @keyframes ctaPulse {
-      0%, 100% { box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.18); }
-      50% { box-shadow: 0 8px 26px rgba(53,99,127,.34), 0 0 0 7px rgba(67,125,158,.09), inset 0 1px 0 rgba(255,255,255,.18); }
+      0%, 100% { box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.35); }
+      50% { box-shadow: 0 8px 30px rgba(56,182,255,.55), 0 0 0 8px rgba(56,182,255,.10), inset 0 1px 0 rgba(255,255,255,.35); }
     }
-    /* wallet: pointer tilt (JS feeds the transform) + periodic cashback ping */
     .wallet-phone { transition: transform .35s var(--snap); will-change: transform; }
     .wp-item.ping { animation: itemPing 1.5s var(--snap); }
     @keyframes itemPing {
-      0% { box-shadow: 0 0 0 0 rgba(67,125,158,.32); }
-      65% { box-shadow: 0 0 0 9px rgba(67,125,158,0); }
-      100% { box-shadow: 0 0 0 0 rgba(67,125,158,0); }
+      0% { box-shadow: 0 0 0 0 rgba(56,182,255,.42); }
+      65% { box-shadow: 0 0 0 9px rgba(56,182,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(56,182,255,0); }
     }
     .hero-h {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: clamp(2.6rem, 6vw, 4.6rem);
-      line-height: 1.04;
-      letter-spacing: -0.035em;
-      margin: 22px 0 20px;
+      font-family: var(--font-display); font-weight: 700;
+      font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: 1.04;
+      letter-spacing: -0.035em; margin: 22px 0 20px;
     }
     .hero-sub { font-size: clamp(1rem, 1.7vw, 1.15rem); color: var(--ink-soft); max-width: 480px; line-height: 1.7; margin-bottom: 34px; }
     .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-    .hero-proof { display: flex; align-items: center; gap: 12px; margin-top: 30px; }
-    .proof-faces { display: flex; }
-    .proof-face {
-      width: 38px; height: 38px; border-radius: 50%;
-      border: var(--bw) solid var(--line);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; margin-right: -10px;
-    }
-    .proof-text { font-size: .82rem; font-weight: 600; color: var(--ink-soft); }
-    .proof-text b { color: var(--ink); }
+    .hero-proof { display: flex; align-items: center; gap: 10px; margin-top: 30px; flex-wrap: wrap; }
+    .proof-text { font-size: .84rem; font-weight: 500; color: var(--ink-soft); }
+    .proof-text b { color: var(--ink); font-weight: 600; }
 
     /* wallet phone */
     .hero-visual { position: relative; display: flex; justify-content: center; }
     .wallet-phone {
-      width: min(310px, 80vw);
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 26px;
-      box-shadow: var(--shadow-lg);
-      padding: 18px;
-      position: relative; z-index: 2;
+      width: min(310px, 80vw); background: var(--card);
+      border: 1px solid var(--line); border-radius: 26px;
+      box-shadow: var(--shadow-lg); padding: 18px; position: relative; z-index: 2;
     }
     .wp-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
     .wp-hello { font-size: .76rem; font-weight: 600; color: var(--ink-soft); }
     .wp-balance-card {
-      background: var(--blue);
-      color: #fff;
-      border-radius: 16px;
-      padding: 16px 18px;
-      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--neon-soft), var(--neon));
+      color: #0B1220; border-radius: 16px; padding: 16px 18px; margin-bottom: 12px;
+      box-shadow: 0 10px 26px rgba(56,182,255,.34);
     }
-    .wp-balance-label { font-size: .62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; opacity: .8; }
+    .wp-balance-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; opacity: .78; }
     .wp-balance { font-family: var(--font-display); font-weight: 700; font-size: 2.2rem; letter-spacing: -0.03em; line-height: 1.15; }
-    .wp-balance-up { font-size: .72rem; font-weight: 600; color: rgba(255,255,255,.85); }
+    .wp-balance-up { font-size: .72rem; font-weight: 600; color: rgba(11,18,32,.72); }
     .wp-item {
       display: flex; align-items: center; gap: 10px;
       border: 1px solid var(--line); border-radius: 12px;
-      padding: 10px 12px; margin-bottom: 9px;
-      background: var(--paper);
+      padding: 10px 12px; margin-bottom: 9px; background: var(--paper);
     }
     .wp-item-icon {
       width: 34px; height: 34px; border-radius: 50%;
-      background: var(--paper-deep);
+      background: var(--blue-tint);
       display: flex; align-items: center; justify-content: center; font-size: .95rem; flex-shrink: 0;
     }
     .wp-item-name { font-size: .76rem; font-weight: 600; line-height: 1.25; }
     .wp-item-sub { font-size: .64rem; color: var(--ink-soft); font-weight: 500; }
-    .wp-item-cash { margin-left: auto; font-family: var(--font-display); font-weight: 700; font-size: .88rem; color: var(--blue-deep); }
+    .wp-item-cash { margin-left: auto; font-family: var(--font-display); font-weight: 700; font-size: .88rem; color: var(--ink); }
 
-    /* ── Stats row ── */
-    .stats-strip { max-width: 1140px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) clamp(56px,7vw,90px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; position: relative; z-index: 1; }
-    .stat-card { text-align: center; padding: 26px 14px; }
-    .stat-num { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.9rem, 3.4vw, 2.6rem); letter-spacing: -0.03em; line-height: 1; display: block; }
-    .stat-label { font-size: .82rem; font-weight: 500; color: var(--ink-soft); margin-top: 8px; display: block; }
+    /* ── Truth tiles (replaced the invented stats) ── */
+    .facts-strip { max-width: 1140px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) clamp(56px,7vw,90px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; position: relative; z-index: 1; }
+    .fact-card { text-align: center; padding: 26px 16px; }
+    .fact-ico { width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .fact-title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; letter-spacing: -.02em; }
+    .fact-sub { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
 
     /* ── How it works ── */
     .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
@@ -125,13 +140,98 @@
     .step-title { font-size: 1.35rem; font-weight: 700; margin: 16px 0 10px; }
     .step-desc { font-size: .9rem; color: var(--ink-soft); line-height: 1.7; }
 
-    /* ── Features / wallet demo ── */
+    /* ── Cashback calculator ── */
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
+    .calc-card { padding: 28px; }
+    .calc-row { margin-bottom: 20px; }
+    .calc-label { display: flex; justify-content: space-between; align-items: baseline; font-size: .82rem; font-weight: 600; margin-bottom: 9px; }
+    .calc-label b { font-family: var(--font-display); font-size: 1.05rem; }
+    .calc-range { width: 100%; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--blue-tint); outline: none; }
+    .calc-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(56,182,255,.55); cursor: pointer; }
+    .calc-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--neon); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(56,182,255,.55); cursor: pointer; border-width: 3px; }
+    .calc-cats { display: flex; flex-wrap: wrap; gap: 7px; }
+    .calc-cat { font-size: .78rem; font-weight: 600; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); cursor: pointer; transition: all .18s var(--snap); color: var(--ink); }
+    .calc-cat:hover { border-color: var(--neon-line); }
+    .calc-cat[aria-pressed="true"] { background: var(--neon); border-color: transparent; color: #0B1220; box-shadow: 0 3px 12px rgba(56,182,255,.4); }
+    .calc-out { background: linear-gradient(140deg, var(--neon-soft), var(--neon)); border-radius: 16px; padding: 22px 24px; color: #0B1220; box-shadow: 0 12px 30px rgba(56,182,255,.36); }
+    .calc-out-label { font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.3px; opacity: .8; }
+    .calc-out-val { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.2rem,5vw,3rem); letter-spacing: -.035em; line-height: 1.1; }
+    .calc-out-sub { font-size: .8rem; font-weight: 500; color: rgba(11,18,32,.75); margin-top: 4px; }
+    .calc-note { font-size: .74rem; color: var(--ink-soft); margin-top: 14px; line-height: 1.55; }
+
+    /* ── Post → paid carousel (horizontal) ── */
+    .hcar { display: flex; flex-direction: column; gap: 14px; overflow: hidden;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
+    .hcar-row { display: flex; gap: 14px; width: max-content; will-change: transform; }
+    .hcar-row.r1 { animation: slideL 46s linear infinite; }
+    .hcar-row.r2 { animation: slideR 58s linear infinite; }
+    @keyframes slideL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes slideR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+    .hcar:hover .hcar-row { animation-play-state: paused; }
+    .htile { width: 218px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+    .htile-shot { height: 104px; position: relative; overflow: hidden; border-bottom: 1px solid var(--line-soft); }
+    .htile-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--ink); }
+    .htile-body { padding: 12px 13px 13px; }
+    .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
+    .htile-cap { font-size: .68rem; color: var(--ink-soft); margin-top: 3px; }
+    .htile-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+    .htile-rate { font-size: .64rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+    .htile-amt { font-family: var(--font-display); font-weight: 700; font-size: .88rem; }
+    .htile.paid { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
+    .htile.paid .htile-state { background: rgba(11,18,32,.85); color: var(--neon-soft); }
+    .htile.paid .htile-shot { border-bottom-color: rgba(11,18,32,.18); }
+    .htile.paid .htile-cap { color: rgba(11,18,32,.72); }
+    .htile.paid .htile-foot { border-top-color: rgba(11,18,32,.18); }
+    .htile.paid .htile-rate { background: rgba(11,18,32,.16); color: #0B1220; border-color: rgba(11,18,32,.24); }
+
+    /* ── Photo wall ── */
+    .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 520px; overflow: hidden; position: relative;
+      -webkit-mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
+      mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent); }
+    .pw-col { display: flex; flex-direction: column; gap: 14px; will-change: transform; }
+    .pw-col.k1 { animation: wallUp 50s linear infinite; }
+    .pw-col.k2 { animation: wallDn 62s linear infinite; }
+    .pw-col.k3 { animation: wallUp 44s linear infinite; }
+    @keyframes wallUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+    @keyframes wallDn { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+    .pwall:hover .pw-col { animation-play-state: paused; }
+    .pw-card { border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
+    .pw-card:nth-child(3n+1) { transform: rotate(-.8deg); }
+    .pw-card:nth-child(3n+2) { transform: rotate(.6deg); }
+    .pw-img { width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block; }
+    .pw-cap { padding: 13px 14px; font-family: var(--font-display); font-weight: 700; font-size: .88rem; letter-spacing: -.015em; line-height: 1.3; }
+    .pw-card.neon { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
+    .pw-card.neon .pw-cap { color: #0B1220; }
+    .disclaim { font-size: .76rem; color: var(--ink-soft); text-align: center; margin-top: 20px; line-height: 1.6; }
+
+    /* ── Live deals ── */
+    .live-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .live-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .live-top { padding: 20px 22px 0; }
+    .live-brand { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
+    .live-desc { font-size: .84rem; color: var(--ink-soft); line-height: 1.6; margin: 7px 0 0; }
+    .live-foot { margin-top: auto; padding: 16px 22px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .live-rate { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; letter-spacing: -.03em; }
+    .live-rate span { font-size: .8rem; font-weight: 600; color: var(--ink-soft); }
+
+    /* ── FAQ ── */
+    .faq { max-width: 760px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid var(--line); }
+    .faq-q { width: 100%; text-align: left; background: none; border: 0; cursor: pointer; padding: 20px 44px 20px 0; font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; color: var(--ink); position: relative; letter-spacing: -.01em; }
+    .faq-q::after { content: '+'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; font-weight: 400; color: var(--neon-line); transition: transform .22s var(--snap); }
+    .faq-item.open .faq-q::after { transform: translateY(-50%) rotate(45deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s var(--snap); }
+    .faq-item.open .faq-a { max-height: 340px; }
+    .faq-a p { font-size: .91rem; color: var(--ink-soft); line-height: 1.7; padding: 0 0 20px; margin: 0; }
+
+    /* ── Features / demo ── */
     .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
     .feature-row { display: flex; gap: 16px; align-items: flex-start; padding: 16px 18px; border-radius: 14px; border: 1px solid transparent; transition: all .2s var(--snap); }
     .feature-row:hover { border-color: var(--line); background: var(--card); box-shadow: var(--shadow-sm); }
     .feature-title { font-size: 1rem; font-weight: 600; margin-bottom: 3px; }
     .feature-desc { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; }
-
     .demo-card { padding: 26px; }
     .demo-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
     .demo-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
@@ -143,54 +243,22 @@
     .demo-metric { border: 1px solid var(--line); border-radius: 12px; padding: 12px 8px; text-align: center; background: var(--paper); }
     .demo-metric-val { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
     .demo-metric-label { font-size: .6rem; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin-top: 2px; }
-    .goal-float { position: absolute; bottom: -18px; right: -12px; }
-
-    /* ── Testimonials ── */
-    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-    .testi-card { padding: 28px 24px 24px; }
-    .testi-stars { font-size: .9rem; letter-spacing: 2px; margin-bottom: 14px; }
-    .testi-text { font-size: .92rem; line-height: 1.7; margin-bottom: 20px; font-weight: 400; color: var(--ink); }
-    .testi-author { display: flex; align-items: center; gap: 12px; }
-    .testi-avatar {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: var(--blue-tint); color: var(--blue-deep);
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; flex-shrink: 0;
-    }
-    .testi-name { font-size: .88rem; font-weight: 600; }
-    .testi-role { font-size: .76rem; color: var(--ink-soft); font-weight: 400; }
 
     /* ── Big CTA ── */
     .cta-slab { padding: clamp(48px, 6vw, 80px) clamp(24px, 5vw, 64px); text-align: center; overflow: hidden; position: relative; }
     .cta-slab > :not(.cta-orbit):not(.cta-ring) { position: relative; z-index: 1; }
-    /* slow counter-rotating dashed rings behind the dark CTA */
-    .cta-ring {
-      position: absolute; width: 560px; height: 560px;
-      top: 50%; left: 50%; margin: -280px 0 0 -280px;
-      border-radius: 50%;
-      border: 1.5px dashed rgba(255,255,255,.13);
-      animation: spin 70s linear infinite;
-      pointer-events: none;
-    }
-    .cta-ring::before {
-      content: ''; position: absolute; inset: 70px;
-      border-radius: 50%;
-      border: 1.5px dashed rgba(255,255,255,.09);
-      animation: spin 50s linear infinite reverse;
-    }
+    .cta-ring { position: absolute; width: 560px; height: 560px; top: 50%; left: 50%; margin: -280px 0 0 -280px; border-radius: 50%; border: 1.5px dashed rgba(56,182,255,.22); animation: spin 70s linear infinite; pointer-events: none; }
+    .cta-ring::before { content: ''; position: absolute; inset: 70px; border-radius: 50%; border: 1.5px dashed rgba(56,182,255,.16); animation: spin 50s linear infinite reverse; }
     .cta-slab .h-display { color: #fff; }
-    .cta-slab .hl-lime { color: #fff; background: rgba(255,255,255,.14); }
-    .cta-sub { color: rgba(255,255,255,.66); font-size: 1.02rem; margin: 18px auto 34px; max-width: 460px; }
-    /* concentric cirqle rings glowing softly behind the CTA copy */
-    .cta-orbit {
-      position: absolute; top: 50%; left: 50%;
-      width: 640px; height: 640px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background: repeating-radial-gradient(circle at center, rgba(255,255,255,.07) 0 1px, transparent 1px 52px);
-      -webkit-mask-image: radial-gradient(circle at center, #000 25%, transparent 70%);
-      mask-image: radial-gradient(circle at center, #000 25%, transparent 70%);
-      pointer-events: none;
+    .cta-slab .hl { background: var(--neon); color: #0B1220; padding: 0 6px; }
+    .cta-sub { color: rgba(255,255,255,.7); font-size: 1.02rem; margin: 18px auto 34px; max-width: 460px; }
+    .cta-orbit { position: absolute; top: 50%; left: 50%; width: 640px; height: 640px; transform: translate(-50%,-50%); border-radius: 50%; background: repeating-radial-gradient(circle at center, rgba(56,182,255,.10) 0 1px, transparent 1px 52px); -webkit-mask-image: radial-gradient(circle at center, #000 25%, transparent 70%); mask-image: radial-gradient(circle at center, #000 25%, transparent 70%); pointer-events: none; }
+
+    /* ── Sticky mobile CTA ── */
+    .sticky-cta { display: none; }
+    @media (max-width: 600px) {
+      .sticky-cta { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.94); backdrop-filter: blur(10px); border-top: 1px solid var(--line); gap: 10px; }
+      .sticky-cta .btn { flex: 1; }
     }
 
     @media (max-width: 900px) {
@@ -198,23 +266,27 @@
       .hero-sub, .hero-proof, .hero-actions { margin-left: auto; margin-right: auto; justify-content: center; }
       .hero-visual { margin-top: 22px; }
       .hero-visual .floaty { display: none; }
-      .deco-coin2 { left: 0; } .deco-ring { right: 0; }
-      .stats-strip { grid-template-columns: repeat(2, 1fr); }
-      .steps-grid, .testi-grid { grid-template-columns: 1fr; }
-      .features-grid { grid-template-columns: 1fr; }
-      .goal-float { right: 6px; }
+      .facts-strip { grid-template-columns: repeat(2, 1fr); }
+      .steps-grid, .live-grid { grid-template-columns: 1fr; }
+      .features-grid, .calc-grid { grid-template-columns: 1fr; }
+      .pwall { grid-template-columns: repeat(2, 1fr); height: 460px; }
     }
-    /* Phones: bigger headline, drop the side visual + proof line, keep tiles 2-up */
     @media (max-width: 600px) {
       .hero-h { font-size: clamp(3.1rem, 14vw, 4.2rem); margin-top: 6px; }
       .hero-proof { display: none; }
       .hero-visual { display: none; }
       .hero { padding-top: 28px; }
-      .stats-strip { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .facts-strip { grid-template-columns: 1fr 1fr; gap: 12px; }
+      body { padding-bottom: 68px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hcar-row, .pw-col { animation: none !important; }
+      .hcar-row { flex-wrap: wrap; width: auto; }
+      .pwall { height: auto; -webkit-mask-image: none; mask-image: none; }
     }
   </style>
 </head>
-<body>
+<body class="theme-neon">
 
   <!-- ══ NAV ══ -->
   <nav class="nav">
@@ -235,70 +307,79 @@
     <span class="hero-blob blob-a" aria-hidden="true"></span>
     <span class="hero-blob blob-b" aria-hidden="true"></span>
     <div>
-      <h1 class="hero-h fade-up d1">Get <span class="hl hl-lime">paid</span> to shop.<br>For real.</h1>
+      <h1 class="hero-h fade-up d1">Get <span class="hl">paid</span> to shop.<br>For real.</h1>
       <p class="hero-sub fade-up d2">Buy from brands you already love, post it on your socials, and watch <span class="squiggle">actual money</span> land in your wallet. No points. No vouchers. Cash.</p>
       <div class="hero-actions fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
         <a href="signup.html" class="btn btn-lg">Sign up</a>
       </div>
       <div class="hero-proof fade-up d4">
-        <div class="proof-faces">
-          <span class="proof-face" style="background:var(--blue)"><i class="ico ico-user ico-white"></i></span>
-          <span class="proof-face" style="background:var(--blue-deep)"><i class="ico ico-user ico-white"></i></span>
-          <span class="proof-face" style="background:var(--blue)"><i class="ico ico-user ico-white"></i></span>
-          <span class="proof-face" style="background:var(--blue-deep)"><i class="ico ico-user ico-white"></i></span>
-        </div>
-        <span class="proof-text"><b>£2M+ paid out</b> · rated 4.9★ by members</span>
+        <span class="proof-text"><b>Real cash to your bank.</b> Never points, never vouchers. Free to join.</span>
       </div>
     </div>
 
     <div class="hero-visual fade-up d3">
       <div class="orbit" aria-hidden="true" style="top:50%; left:50%; transform:translate(-50%,-50%)"></div>
-      <!-- Wallet phone -->
+      <!-- Illustrative wallet — labelled as an example, not a real account -->
       <div class="wallet-phone">
         <div class="wp-top">
-          <span class="wp-hello">Morning, Alex</span>
-          <span class="chip">7-day streak</span>
+          <span class="wp-hello">Your wallet</span>
+          <span class="chip">Example</span>
         </div>
         <div class="wp-balance-card">
-          <div class="wp-balance-label">Your wallet</div>
+          <div class="wp-balance-label">Cleared balance</div>
           <div class="wp-balance">£<span id="balanceCount">0</span>.80</div>
-          <div class="wp-balance-up">↑ £12.40 this month</div>
+          <div class="wp-balance-up">Ready to withdraw</div>
         </div>
         <div class="wp-item">
-          <span class="wp-item-icon" style="background:var(--sky)"><i class="ico ico-bag ico-deep"></i></span>
-          <span><span class="wp-item-name">Nike — just ordered</span><br><span class="wp-item-sub">Pending cashback</span></span>
+          <span class="wp-item-icon"><i class="ico ico-bag ico-deep"></i></span>
+          <span><span class="wp-item-name">Nike — receipt uploaded</span><br><span class="wp-item-sub">Clearing</span></span>
           <span class="wp-item-cash">+£3.50</span>
         </div>
         <div class="wp-item">
-          <span class="wp-item-icon" style="background:var(--pink)"><i class="ico ico-sparkles ico-deep"></i></span>
-          <span><span class="wp-item-name">ASOS — post shared</span><br><span class="wp-item-sub">Confirmed</span></span>
+          <span class="wp-item-icon"><i class="ico ico-sparkles ico-deep"></i></span>
+          <span><span class="wp-item-name">ASOS — post shared</span><br><span class="wp-item-sub">Approved</span></span>
           <span class="wp-item-cash">+£2.10</span>
         </div>
         <div class="wp-item">
-          <span class="wp-item-icon" style="background:var(--tang)"><i class="ico ico-cup ico-deep"></i></span>
-          <span><span class="wp-item-name">Costa — loyalty bonus</span><br><span class="wp-item-sub">Paid out</span></span>
+          <span class="wp-item-icon"><i class="ico ico-cup ico-deep"></i></span>
+          <span><span class="wp-item-name">Costa — cleared</span><br><span class="wp-item-sub">In your wallet</span></span>
           <span class="wp-item-cash">+£0.80</span>
         </div>
       </div>
       <div class="floaty" style="position:absolute; top:20px; right:clamp(-6px,1vw,10px); z-index:3">
-        <span class="sticker sticker-lime">✓ Post verified in 8s</span>
+        <span class="sticker sticker-lime">Cash, not points</span>
       </div>
-
     </div>
   </header>
 
-  <!-- ══ STATS ══ -->
+  <!-- ══ WHAT'S TRUE (replaced the invented stats strip) ══ -->
   <section class="section" style="padding-top:clamp(14px,2.4vw,30px);padding-bottom:0">
-    <div class="stats-strip">
-      <div class="card stat-card reveal"><span class="stat-num"><span class="count" data-target="50" data-suffix="K+">0</span></span><span class="stat-label">Active members</span></div>
-      <div class="card card-lime stat-card reveal reveal-delay-1"><span class="stat-num">£<span class="count" data-target="2" data-suffix="M+">0</span></span><span class="stat-label">Cashback paid out</span></div>
-      <div class="card card-sky stat-card reveal reveal-delay-2"><span class="stat-num"><span class="count" data-target="500" data-suffix="+">0</span></span><span class="stat-label">Partner brands</span></div>
-      <div class="card card-pink stat-card reveal reveal-delay-3"><span class="stat-num"><span class="count" data-target="4.9" data-suffix="★">0</span></span><span class="stat-label">App store rating</span></div>
+    <div class="facts-strip">
+      <div class="card fact-card reveal">
+        <span class="fact-ico"><i class="ico ico-bolt"></i></span>
+        <div class="fact-title">Real money</div>
+        <div class="fact-sub">Withdrawn to your bank, not held as points or vouchers.</div>
+      </div>
+      <div class="card fact-card reveal reveal-delay-1">
+        <span class="fact-ico"><i class="ico ico-lock"></i></span>
+        <div class="fact-title">Payouts via Stripe</div>
+        <div class="fact-sub">We never see or store your bank details.</div>
+      </div>
+      <div class="card fact-card reveal reveal-delay-2">
+        <span class="fact-ico"><i class="ico ico-tag"></i></span>
+        <div class="fact-title">Rates published upfront</div>
+        <div class="fact-sub">Every deal shows its cashback rate before you shop.</div>
+      </div>
+      <div class="card fact-card reveal reveal-delay-3">
+        <span class="fact-ico"><i class="ico ico-user"></i></span>
+        <div class="fact-title">Free to join</div>
+        <div class="fact-sub">No fee, no tiers, no minimum spend to take part.</div>
+      </div>
     </div>
   </section>
 
-  <!-- ══ TICKER (below the stats tiles) ══ -->
+  <!-- ══ LIVE PARTNER TICKER — real brands and rates from /campaigns ══ -->
   <div class="ticker" aria-hidden="true">
     <div class="ticker-track" id="tickerTop"></div>
   </div>
@@ -307,26 +388,85 @@
   <section class="section" id="how">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Three steps to<br><span class="hl hl-pink">free money.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">No gimmicks. No complicated points systems. Just real cashback in your pocket.</p>
+        <h2 class="h-display reveal reveal-delay-1">Three steps to<br><span class="hl">cashback.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">No gimmicks, no points systems. Shop, post, get paid in cash.</p>
       </div>
       <div class="steps-grid">
         <div class="card card-hover step-card reveal">
           <span class="coin coin-sky">1</span>
           <h3 class="step-title">Shop</h3>
-          <p class="step-desc">Browse 500+ partner brands through Cirqle. Click through and shop as you normally would — no voucher codes needed.</p>
+          <p class="step-desc">Browse our partner brands and shop as you normally would. No voucher codes, no browser extension to install.</p>
         </div>
         <div class="card card-hover step-card card-lime reveal reveal-delay-1">
           <span class="coin coin-pink">2</span>
           <h3 class="step-title">Post</h3>
-          <p class="step-desc">Share your haul on social. Tag <strong>@cirqle</strong> and the brand you bought from, then we verify your post automatically in seconds.</p>
+          <p class="step-desc">Share your haul on Instagram, tag <strong>@cirqle</strong> and the brand, then upload your receipt in the app.</p>
         </div>
         <div class="card card-hover step-card reveal reveal-delay-2">
           <span class="coin coin-lime">3</span>
-          <h3 class="step-title">Earn cashback</h3>
-          <p class="step-desc">Real money lands in your Cirqle wallet within 24 hours. Withdraw to your bank, PayPal, or keep stacking it up.</p>
+          <h3 class="step-title">Get paid</h3>
+          <p class="step-desc">We read your receipt and check your post. Once it's approved, your cashback clears about three days after your post date — then withdraw it to your bank.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ══ CASHBACK CALCULATOR — driven by real published rates ══ -->
+  <section class="section" id="calculator" style="padding-top:0">
+    <div class="section-inner calc-grid">
+      <div>
+        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Move the slider and pick what you actually buy. The rates come straight from our live deals, so this is what's genuinely on offer today.</p>
+        <div class="calc-out reveal reveal-delay-3" style="margin-top:28px">
+          <div class="calc-out-label">Estimated cashback a year</div>
+          <div class="calc-out-val" id="calcOut">£0</div>
+          <div class="calc-out-sub" id="calcSub">Choose a category to start</div>
+        </div>
+        <p class="calc-note">An estimate, not a promise — it assumes you post and get approved on every eligible purchase, at the average published rate for that category. Your actual cashback depends on what you buy and which deals are live.</p>
+      </div>
+      <div class="card calc-card reveal reveal-delay-2">
+        <div class="calc-row">
+          <div class="calc-label"><span>Monthly spend</span><b id="calcSpendLabel">£150</b></div>
+          <input type="range" class="calc-range" id="calcSpend" min="20" max="1000" step="10" value="150" aria-label="Monthly spend in pounds">
+        </div>
+        <div class="calc-row" style="margin-bottom:0">
+          <div class="calc-label"><span>Category</span></div>
+          <div class="calc-cats" id="calcCats"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ POST → PAID CAROUSEL ══ -->
+  <section class="section" id="flow" style="padding-top:0">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">From post to <span class="hl">paid.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Real brands, real published rates. Example earnings shown to illustrate how each rate works out.</p>
+      </div>
+    </div>
+    <div class="hcar reveal">
+      <div class="hcar-row r1" id="carRow1"></div>
+      <div class="hcar-row r2" id="carRow2"></div>
+    </div>
+  </section>
+
+  <!-- ══ PHOTO WALL ══
+       Licensed stock photography with brand messaging only. Deliberately NOT
+       testimonials: no quotes, no names, no earnings attributed to anyone, so
+       nothing here implies the people shown endorse or use Cirqle. -->
+  <section class="section" id="wall">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">Shop at <span class="hl">Cirqle.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Cirqle is a cashback platform for people who were going to buy it anyway.</p>
+      </div>
+      <div class="pwall reveal">
+        <div class="pw-col k1" id="pwCol1"></div>
+        <div class="pw-col k2" id="pwCol2"></div>
+        <div class="pw-col k3" id="pwCol3"></div>
+      </div>
+      <p class="disclaim">Photography is licensed stock, used for illustration. The people shown are models, not Cirqle members, and are not endorsing Cirqle.</p>
     </div>
   </section>
 
@@ -334,24 +474,24 @@
   <section class="section" id="features" style="padding-top:0">
     <div class="section-inner features-grid">
       <div>
-        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">Built for people<br>who <span class="squiggle squiggle-lime">actually shop.</span></h2>
+        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">Built for people<br>who <span class="squiggle">actually shop.</span></h2>
         <p class="h-sub reveal reveal-delay-2">Every feature designed to make earning effortless. You shouldn't have to work hard to get money back.</p>
         <div style="margin-top:34px; display:flex; flex-direction:column; gap:8px">
           <div class="feature-row reveal">
             <span class="coin coin-lime" style="font-size:1rem"><i class="ico ico-bolt"></i></span>
-            <div><div class="feature-title">Instant verification</div><div class="feature-desc">Tag the brand in your post and your claim is confirmed automatically the moment you upload your receipt.</div></div>
+            <div><div class="feature-title">Receipts read automatically</div><div class="feature-desc">Upload a photo and we read the total, date and retailer for you. Every claim is then checked by our team before it's approved.</div></div>
           </div>
           <div class="feature-row reveal reveal-delay-1">
             <span class="coin coin-pink" style="font-size:1rem"><i class="ico ico-target"></i></span>
-            <div><div class="feature-title">Deals picked for you</div><div class="feature-desc">Cashback offers tailored to the brands you actually shop at, not random suggestions.</div></div>
+            <div><div class="feature-title">Deals you'd actually use</div><div class="feature-desc">Cashback offers from brands people genuinely shop at, with the rate shown upfront on every deal.</div></div>
           </div>
           <div class="feature-row reveal reveal-delay-2">
             <span class="coin coin-sky" style="font-size:1rem"><i class="ico ico-lock"></i></span>
-            <div><div class="feature-title">Secure withdrawals</div><div class="feature-desc">Your earnings are protected. Withdraw anytime to your bank account, PayPal, or Apple Pay.</div></div>
+            <div><div class="feature-title">Withdrawals through Stripe</div><div class="feature-desc">Send cleared cashback straight to your bank account. Stripe handles the details — we never store them.</div></div>
           </div>
           <div class="feature-row reveal reveal-delay-3">
             <span class="coin" style="font-size:1rem"><i class="ico ico-chart"></i></span>
-            <div><div class="feature-title">Full earnings dashboard</div><div class="feature-desc">Track every penny — pending payouts, streaks, and your top performing brands.</div></div>
+            <div><div class="feature-title">Track every claim</div><div class="feature-desc">See exactly what's clearing, what's approved and what's ready to withdraw.</div></div>
           </div>
         </div>
       </div>
@@ -360,16 +500,16 @@
         <div class="card demo-card">
           <div class="demo-head">
             <span class="demo-title">Your earnings</span>
-            <span class="chip">This week</span>
+            <span class="chip">Example</span>
           </div>
           <div class="demo-chart" aria-hidden="true">
-            <div class="demo-bar" style="height:45%;background:#CFE0EE;animation-delay:.05s" data-val="£8"></div>
-            <div class="demo-bar" style="height:60%;background:#AFCEE4;animation-delay:.12s" data-val="£12"></div>
-            <div class="demo-bar" style="height:35%;background:#CFE0EE;animation-delay:.19s" data-val="£6"></div>
-            <div class="demo-bar" style="height:80%;background:#7FB0D2;animation-delay:.26s" data-val="£16"></div>
-            <div class="demo-bar" style="height:55%;background:#AFCEE4;animation-delay:.33s" data-val="£11"></div>
-            <div class="demo-bar" style="height:70%;background:#7FB0D2;animation-delay:.40s" data-val="£14"></div>
-            <div class="demo-bar" style="height:92%;background:var(--blue);animation-delay:.47s" data-val="£18"></div>
+            <div class="demo-bar" style="height:45%;background:#CDEEFF;animation-delay:.05s" data-val="£8"></div>
+            <div class="demo-bar" style="height:60%;background:#A8E2FF;animation-delay:.12s" data-val="£12"></div>
+            <div class="demo-bar" style="height:35%;background:#CDEEFF;animation-delay:.19s" data-val="£6"></div>
+            <div class="demo-bar" style="height:80%;background:#66D4FF;animation-delay:.26s" data-val="£16"></div>
+            <div class="demo-bar" style="height:55%;background:#A8E2FF;animation-delay:.33s" data-val="£11"></div>
+            <div class="demo-bar" style="height:70%;background:#66D4FF;animation-delay:.40s" data-val="£14"></div>
+            <div class="demo-bar" style="height:92%;background:#38B6FF;animation-delay:.47s" data-val="£18"></div>
           </div>
           <div class="demo-metrics">
             <div class="demo-metric"><div class="demo-metric-val">£85</div><div class="demo-metric-label">This month</div></div>
@@ -377,58 +517,55 @@
             <div class="demo-metric"><div class="demo-metric-val">32</div><div class="demo-metric-label">Brands</div></div>
           </div>
         </div>
-        <div class="goal-float floaty"><span class="sticker sticker-tang">£15 from your monthly goal!</span></div>
+        <div class="goal-float floaty" style="position:absolute;bottom:-18px;right:-12px"><span class="sticker sticker-tang">Example dashboard</span></div>
       </div>
     </div>
   </section>
 
-  <!-- ══ TICKER 2 (reverse, pink) ══ -->
-  <div class="ticker ticker-pink" aria-hidden="true">
-    <div class="ticker-track rev" id="tickerBottom"></div>
-  </div>
-
-  <!-- ══ TESTIMONIALS ══ -->
-  <section class="section" id="reviews">
+  <!-- ══ LIVE DEALS — pulled from the real catalogue ══ -->
+  <section class="section" id="deals" style="padding-top:0">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Shoppers <span class="hl hl-sky">love</span> Cirqle.</h2>
+        <h2 class="h-display reveal reveal-delay-1">Live right <span class="hl">now.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Straight from our deals catalogue — these are the actual rates on offer.</p>
       </div>
-      <div class="testi-grid">
-        <div class="card card-hover testi-card reveal">
-          <div class="testi-stars" aria-label="5 stars"><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i></div>
-          <p class="testi-text">"I literally made back £80 in one month just from my normal shopping. I buy this stuff anyway — Cirqle just pays me for it now. Insane."</p>
-          <div class="testi-author">
-            <span class="testi-avatar" style="background:var(--pink)">S</span>
-            <div>
-              <div class="testi-name">Sophie T.</div>
-              <div class="testi-role">Fashion lover, London</div>
-            </div>
-          </div>
-          <div style="margin-top:14px"><span class="chip" style="background:var(--blue-tint); color:var(--blue-deep)">Earned £320 total</span></div>
+      <div class="live-grid" id="liveDeals"></div>
+      <div style="text-align:center;margin-top:30px">
+        <a href="browse.html" class="btn btn-lg btn-lime">See all deals</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FAQ ══ -->
+  <section class="section" id="faq" style="padding-top:0">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">Straight <span class="hl">answers.</span></h2>
+      </div>
+      <div class="faq reveal">
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">Is this actually real money?</button>
+          <div class="faq-a"><p>Yes. Cashback is paid in pounds and withdrawn to your bank account through Stripe. There are no points, no vouchers and no store credit.</p></div>
         </div>
-        <div class="card card-hover testi-card card-lime reveal reveal-delay-1">
-          <div class="testi-stars" aria-label="5 stars"><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i></div>
-          <p class="testi-text">"I was sceptical at first but the cashback actually arrives. Within 24 hours. No fuss. My friends all downloaded it after I showed them my wallet balance."</p>
-          <div class="testi-author">
-            <span class="testi-avatar" style="background:var(--sky)">J</span>
-            <div>
-              <div class="testi-name">Jamie O.</div>
-              <div class="testi-role">Gym enthusiast, Manchester</div>
-            </div>
-          </div>
-          <div style="margin-top:14px"><span class="chip" style="background:var(--blue-tint); color:var(--blue-deep)">Earned £215 total</span></div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">How long until I get paid?</button>
+          <div class="faq-a"><p>Your claim clears about three days after the date of your post, provided it's been approved. Once it's cleared it sits in your wallet and you can withdraw it whenever you like.</p></div>
         </div>
-        <div class="card card-hover testi-card reveal reveal-delay-2">
-          <div class="testi-stars" aria-label="5 stars"><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i></div>
-          <p class="testi-text">"The post verification is SO fast. I upload my Instagram story and the cashback is in my account before I even close the app. Wild."</p>
-          <div class="testi-author">
-            <span class="testi-avatar" style="background:var(--tang)">P</span>
-            <div>
-              <div class="testi-name">Priya K.</div>
-              <div class="testi-role">Content creator, Birmingham</div>
-            </div>
-          </div>
-          <div style="margin-top:14px"><span class="chip" style="background:var(--blue-tint); color:var(--blue-deep)">Earned £540 total</span></div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">Is my claim approved automatically?</button>
+          <div class="faq-a"><p>No. We read your receipt automatically to save you typing, but a person on our team reviews and approves every claim. That's how we keep the deals honest for the brands funding them.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">How do I withdraw?</button>
+          <div class="faq-a"><p>To your bank account, via Stripe. You'll verify your identity and add your bank details on Stripe's own secure form — we never see or store them.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">What's the catch?</button>
+          <div class="faq-a"><p>Brands pay us to reach real customers who post about them, and we pass a share of that to you. You have to actually buy the thing, actually post about it, and tag the brand and @cirqle. If you weren't going to buy it anyway, the cashback isn't worth it.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">Does it cost anything?</button>
+          <div class="faq-a"><p>No. Joining is free, there are no tiers, and there's no fee taken out of your cashback.</p></div>
         </div>
       </div>
     </div>
@@ -440,8 +577,8 @@
       <div class="card card-ink cta-slab reveal">
         <span class="cta-ring" aria-hidden="true"></span>
         <div class="cta-orbit" aria-hidden="true"></div>
-        <h2 class="h-display">Ready to get <span class="hl hl-lime">paid</span><br>to shop?</h2>
-        <p class="cta-sub">Join 50,000+ members already earning cashback. Signing up takes 60 seconds.</p>
+        <h2 class="h-display">Ready to get <span class="hl">paid</span><br>to shop?</h2>
+        <p class="cta-sub">Signing up takes about a minute, and it's free.</p>
         <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap">
           <a href="signup.html" class="btn btn-lg btn-lime">Sign up →</a>
           <a href="browse.html" class="btn btn-lg">Browse Deals</a>
@@ -456,13 +593,7 @@
       <div class="footer-top">
         <div>
           <a href="index.html" class="footer-logo">cirqle</a>
-          <p class="footer-desc">The smarter way to shop. Earn real cashback every time you buy from your favourite brands.</p>
-          <div class="footer-social">
-            <a href="#" class="social-link" aria-label="X / Twitter">𝕏</a>
-            <a href="#" class="social-link" aria-label="Instagram"><i class="ico ico-instagram"></i></a>
-            <a href="#" class="social-link" aria-label="Facebook"><i class="ico ico-facebook"></i></a>
-            <a href="#" class="social-link" aria-label="YouTube">▶</a>
-          </div>
+          <p class="footer-desc">The smarter way to shop. Earn real cashback when you buy from brands you already love.</p>
         </div>
         <div class="footer-col">
           <h4>Product</h4>
@@ -470,7 +601,7 @@
             <li><a href="#how">How it works</a></li>
             <li><a href="browse.html">Browse Deals</a></li>
             <li><a href="pricing.html">Pricing</a></li>
-            <li><a href="blog.html">Changelog</a></li>
+            <li><a href="#faq">FAQ</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -502,91 +633,230 @@
     </div>
   </footer>
 
-  <script>
-    // ── Build ticker strips (duplicated for seamless loop) ──
-    const brandsTop = [['bag','Nike','13%'],['shirt','ASOS','10%'],['cup','Costa','6%'],['cup','Deliveroo','8%'],['sparkles','Boots','15%'],['device','Apple','5%'],['dumbbell','Gymshark','20%'],['plane','Ryanair','7%'],['play','GAME','9%'],['home','IKEA','7%'],['cup','Dominos','11%']];
-    const brandsBottom = [['book','Waterstones','8%'],['play','Spotify','12%'],['bag','Tesco','4%'],['dumbbell','PureGym','14%'],['tag','Enterprise','9%'],['bag','Primark','6%'],['plane','TUI','9%'],['laptop','Currys','11%'],['sparkles','M&S','7%'],['play','Cineworld','13%'],['cup','Wagamama','10%']];
-    function fillTicker(id, list) {
-      const track = document.getElementById(id);
-      if (!track) return;
-      const items = list.map(([e, name, pc]) =>
-        `<span class="tick-item">${name} <b>· ${pc} back</b></span><span class="tick-dot"></span>`).join('');
-      track.innerHTML = items + items; // duplicate for the -50% loop
-    }
-    fillTicker('tickerTop', brandsTop);
-    fillTicker('tickerBottom', brandsBottom);
+  <!-- ══ STICKY MOBILE CTA ══ -->
+  <div class="sticky-cta">
+    <a href="signup.html" class="btn btn-lime">Sign up free</a>
+    <a href="browse.html" class="btn">Browse Deals</a>
+  </div>
 
-    // ── Counter animation ──
-    const counters = document.querySelectorAll('.count');
-    const counterObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        const el = e.target;
-        const target = +el.dataset.target;
-        const suffix = el.dataset.suffix || '';
-        const step = target / (1600 / 16);
-        const fmt = v => Number.isInteger(target) ? Math.floor(v).toLocaleString() : v.toFixed(1);
-        let cur = 0;
-        const timer = setInterval(() => {
-          cur = Math.min(cur + step, target);
-          el.textContent = fmt(cur) + suffix;
-          if (cur >= target) clearInterval(timer);
-        }, 16);
-        counterObs.unobserve(el);
+  <script src="assets/api.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var API = window.CIRQLE_API_BASE;
+    var esc = function (s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
       });
-    }, { threshold: 0.5 });
-    counters.forEach(c => counterObs.observe(c));
+    };
+
+    // ── Photo wall: licensed stock + brand copy only. No quotes, no names,
+    //    no earnings — nothing that could read as a testimonial. ──
+    var WALL_LINES = ['Cirqle is a cashback platform', 'Shop at Cirqle'];
+    (function buildWall() {
+      var cols = [document.getElementById('pwCol1'), document.getElementById('pwCol2'), document.getElementById('pwCol3')];
+      if (!cols[0]) return;
+      var html = [[], [], []];
+      for (var i = 1; i <= 12; i++) {
+        var line = WALL_LINES[i % 2];
+        var neon = (i % 5 === 0) ? ' neon' : '';
+        html[(i - 1) % 3].push(
+          '<div class="pw-card' + neon + '">' +
+            '<img class="pw-img" src="assets/photos/p' + i + '.jpg" alt="" loading="lazy" decoding="async">' +
+            '<div class="pw-cap">' + line + '</div>' +
+          '</div>'
+        );
+      }
+      cols.forEach(function (col, n) {
+        if (col) col.innerHTML = html[n].join('') + html[n].join('');   // duplicated for the -50% loop
+      });
+    })();
+
+    // ── Everything below needs the real catalogue ──
+    var CATEGORY_FALLBACK = 'Fashion & Beauty';
+
+    fetch(API + '/campaigns')
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (deals) {
+        deals = (deals || []).filter(function (d) {
+          // Drop test rows and anything without a real rate, so a half-filled
+          // catalogue row can never render as "0% back" on the homepage.
+          return d && d.brand && d.rate > 0 && !/test merchant/i.test(d.brand);
+        });
+        if (!deals.length) return;
+        buildTicker(deals);
+        buildCarousel(deals);
+        buildLiveDeals(deals);
+        buildCalculator(deals);
+      })
+      .catch(function () { /* offline: the page still reads fine without these */ });
+
+    // Real brands, real rates — replaces the old hardcoded list.
+    function buildTicker(deals) {
+      var track = document.getElementById('tickerTop');
+      if (!track) return;
+      var items = deals.map(function (d) {
+        return '<span class="tick-item">' + esc(d.brand) + ' <b>· ' + Math.round(d.rate) + '% back</b></span><span class="tick-dot"></span>';
+      }).join('');
+      track.innerHTML = items + items;
+    }
+
+    // Post → paid tiles. Brand and rate are real; the post caption and the
+    // worked example are illustrative, and the section header says so.
+    var CAPTIONS = ['Story tagged @cirqle', 'Haul post · 2 tags', 'Reel · tagged', 'Grid post', 'Unboxing story', 'Receipt uploaded'];
+    function buildCarousel(deals) {
+      var r1 = document.getElementById('carRow1'), r2 = document.getElementById('carRow2');
+      if (!r1 || !r2) return;
+      var tiles = deals.map(function (d, i) {
+        var paid = (i % 4 === 3);
+        var photo = 'assets/photos/w' + ((i % 12) + 1) + '.jpg';
+        var spend = 40 + (i % 6) * 15;
+        var earn = (spend * (d.rate || 0) / 100).toFixed(2);
+        return '<div class="htile' + (paid ? ' paid' : '') + '">' +
+            '<div class="htile-shot">' +
+              '<img class="htile-img" src="' + photo + '" alt="" loading="lazy" decoding="async">' +
+              '<span class="htile-state">' + (paid ? 'Paid' : 'Posted') + '</span>' +
+            '</div>' +
+            '<div class="htile-body">' +
+              '<div class="htile-brand">' + esc(d.brand) + '</div>' +
+              '<div class="htile-cap">' + CAPTIONS[i % CAPTIONS.length] + '</div>' +
+              '<div class="htile-foot">' +
+                '<span class="htile-rate">' + Math.round(d.rate) + '% back</span>' +
+                '<span class="htile-amt">£' + earn + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+      });
+      var half = Math.ceil(tiles.length / 2);
+      var a = tiles.slice(0, half).join(''), b = tiles.slice(half).join('');
+      r1.innerHTML = a + a;
+      r2.innerHTML = b + b;
+    }
+
+    function buildLiveDeals(deals) {
+      var grid = document.getElementById('liveDeals');
+      if (!grid) return;
+      var top = deals.slice().sort(function (x, y) { return (y.rate || 0) - (x.rate || 0); }).slice(0, 3);
+      grid.innerHTML = top.map(function (d, i) {
+        // NB: no .reveal here — enhance.js collects .reveal elements once at
+        // load, so anything injected later would stay stuck at opacity 0.
+        return '<div class="card card-hover live-card">' +
+            '<div class="live-top">' +
+              '<div class="live-brand">' + esc(d.brand) + '</div>' +
+              '<p class="live-desc">' + esc(d.cardDesc || d.cardTitle || '') + '</p>' +
+            '</div>' +
+            '<div class="live-foot">' +
+              '<span class="live-rate">' + Math.round(d.rate) + '%<span> back</span></span>' +
+              '<a href="browse.html" class="btn btn-sm btn-lime">View deal</a>' +
+            '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    // Average the real published rate per category, then project a year.
+    function buildCalculator(deals) {
+      var cats = {};
+      deals.forEach(function (d) {
+        var c = (d.category || '').trim();
+        if (!c || !d.rate) return;
+        (cats[c] = cats[c] || []).push(d.rate);
+      });
+      var names = Object.keys(cats).sort();
+      if (!names.length) return;
+      var wrap = document.getElementById('calcCats');
+      var spend = document.getElementById('calcSpend');
+      var spendLabel = document.getElementById('calcSpendLabel');
+      var out = document.getElementById('calcOut');
+      var sub = document.getElementById('calcSub');
+      if (!wrap || !spend) return;
+
+      var active = names.indexOf(CATEGORY_FALLBACK) > -1 ? CATEGORY_FALLBACK : names[0];
+      wrap.innerHTML = names.map(function (n) {
+        return '<button type="button" class="calc-cat" data-cat="' + esc(n) + '" aria-pressed="' +
+               (n === active ? 'true' : 'false') + '">' + esc(n) + '</button>';
+      }).join('');
+
+      function avg(c) {
+        var a = cats[c] || [];
+        return a.reduce(function (s, v) { return s + v; }, 0) / (a.length || 1);
+      }
+      function render() {
+        var v = +spend.value;
+        var rate = avg(active);
+        spendLabel.textContent = '£' + v;
+        out.textContent = '£' + Math.round(v * 12 * rate / 100).toLocaleString();
+        sub.textContent = 'On £' + v + ' a month in ' + active.toLowerCase() +
+                          ', at an average ' + rate.toFixed(1) + '% across our live deals.';
+      }
+      spend.addEventListener('input', render);
+      wrap.addEventListener('click', function (e) {
+        var btn = e.target.closest('.calc-cat');
+        if (!btn) return;
+        active = btn.dataset.cat;
+        wrap.querySelectorAll('.calc-cat').forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
+        render();
+      });
+      render();
+    }
+
+    // ── FAQ accordion ──
+    document.querySelectorAll('.faq-q').forEach(function (q) {
+      q.addEventListener('click', function () {
+        var item = q.parentElement;
+        var open = item.classList.toggle('open');
+        q.setAttribute('aria-expanded', String(open));
+      });
+    });
 
     // ── Wallet balance count-up ──
-    const balEl = document.getElementById('balanceCount');
+    var balEl = document.getElementById('balanceCount');
     if (balEl) {
-      let val = 0;
-      const t = setInterval(() => {
+      var val = 0;
+      var t = setInterval(function () {
         val += 1.4;
         if (val >= 47) { balEl.textContent = '47'; clearInterval(t); }
         else balEl.textContent = Math.floor(val);
       }, 30);
     }
 
-    // ── Hero life: wallet tilt on pointer + periodic "cashback arriving" ping ──
+    // ── Hero life: wallet tilt + periodic "cashback arriving" ping ──
     (function () {
-      const rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const phone = document.querySelector('.wallet-phone');
-      if (!phone || rm) return;
-
-      // 3D tilt follows the cursor over the visual (desktop pointers only)
-      const vis = document.querySelector('.hero-visual');
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var phone = document.querySelector('.wallet-phone');
+      if (!phone) return;
+      var vis = document.querySelector('.hero-visual');
       if (vis && window.matchMedia('(pointer: fine)').matches) {
         vis.style.perspective = '900px';
-        vis.addEventListener('pointermove', e => {
-          const r = vis.getBoundingClientRect();
-          const dx = (e.clientX - r.left) / r.width - .5;
-          const dy = (e.clientY - r.top) / r.height - .5;
-          phone.style.transform = `rotateY(${(dx * 7).toFixed(2)}deg) rotateX(${(-dy * 7).toFixed(2)}deg)`;
+        vis.addEventListener('pointermove', function (e) {
+          var r = vis.getBoundingClientRect();
+          var dx = (e.clientX - r.left) / r.width - .5;
+          var dy = (e.clientY - r.top) / r.height - .5;
+          phone.style.transform = 'rotateY(' + (dx * 7).toFixed(2) + 'deg) rotateX(' + (-dy * 7).toFixed(2) + 'deg)';
         });
-        vis.addEventListener('pointerleave', () => { phone.style.transform = ''; });
+        vis.addEventListener('pointerleave', function () { phone.style.transform = ''; });
       }
-
-      // every few seconds one wallet row pulses, like cashback just landed
-      const items = phone.querySelectorAll('.wp-item');
+      var items = phone.querySelectorAll('.wp-item');
       if (items.length) {
-        let i = 0;
-        setInterval(() => {
-          const el = items[i++ % items.length];
+        var i = 0;
+        setInterval(function () {
+          var el = items[i++ % items.length];
           el.classList.remove('ping');
-          void el.offsetWidth;           // restart the animation
+          void el.offsetWidth;
           el.classList.add('ping');
         }, 5200);
       }
     })();
 
     // ── Smooth anchor scroll ──
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-      a.addEventListener('click', e => {
-        const target = document.querySelector(a.getAttribute('href'));
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var target = document.querySelector(a.getAttribute('href'));
         if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       });
     });
+  })();
   </script>
   <script src="assets/enhance.js"></script>
 </body>
