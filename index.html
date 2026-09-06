@@ -38,12 +38,12 @@
     .hw-col { display: flex; flex-direction: column; gap: 12px; }
     .hw-col:nth-child(2n) { transform: translateY(-7%); }
     .hw-col:nth-child(3n) { transform: translateY(4%); }
-    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: grayscale(.92) contrast(.92); }
+    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: saturate(.88) contrast(.94); }
     .hero-scrim {
       z-index: 1;
       /* A real vignette: a bright pool behind the copy falling off to a dark
-         edge, so the wall sits back and the eye lands on the headline. The
-         photos are near-monochrome for the same reason — no colour competing. */
+         edge. The photos keep their colour — the vignette and the scrim are
+         what hold them back, rather than draining them. */
       background:
         radial-gradient(100% 78% at 42% 46%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.72) 42%, rgba(255,255,255,.30) 74%, rgba(18,28,42,.22) 100%),
         linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(241,249,255,.10) 40%, rgba(241,249,255,.88) 90%, #F1F9FF 100%);
@@ -114,21 +114,18 @@
     .loop-arrow { fill: var(--neon); }
     .loop-node {
       position: absolute; transform: translate(-50%, -50%);
-      width: 27%; aspect-ratio: 1; border-radius: 50%;
+      width: 34%; aspect-ratio: 1; border-radius: 50%;
       background: var(--card); border: 1px solid var(--line);
       box-shadow: 0 8px 22px rgba(11,18,32,.10);
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
     }
-    .loop-node .ico { width: 15px; height: 15px; color: var(--neon-line); }
+    .loop-node .ico { width: 17px; height: 17px; color: var(--neon-line); }
     .loop-node.on {
       background: linear-gradient(150deg, var(--neon-soft), var(--neon));
       border-color: transparent; box-shadow: 0 12px 30px rgba(56,182,255,.5);
     }
     .loop-node.on .ico { color: #0B1220; }
-    .loop-w { font-family: var(--font-display); font-weight: 700; font-size: clamp(.82rem, 2.3vw, 1rem); letter-spacing: -.02em; }
-    .loop-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 46%; text-align: center; }
-    .loop-hub-line { font-family: var(--font-display); font-weight: 600; font-size: clamp(.78rem, 2vw, .92rem); line-height: 1.35; letter-spacing: -.02em; color: var(--ink-soft); }
-    .loop-hub-line b { color: var(--ink); font-weight: 700; }
+    .loop-w { font-family: var(--font-display); font-weight: 700; font-size: clamp(.9rem, 2.6vw, 1.12rem); letter-spacing: -.02em; }
 
     /* ── Cashback calculator ── */
     .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
@@ -420,9 +417,6 @@
         <div class="loop-node on" style="left:17.96%; top:68.5%">
           <i class="ico ico-cash"></i>
           <span class="loop-w">Earn</span>
-        </div>
-        <div class="loop-hub">
-          <span class="loop-hub-line">Paid in pounds.<br><b>Not points.</b></span>
         </div>
       </div>
     </div>
