@@ -96,8 +96,8 @@
     .fact-sub { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
 
     /* ── The cirqle ring (hero, right of the headline) ──
-       Small on purpose: it's a mark beside the title, not a diagram. A bead
-       runs the loop so the money is visibly going somewhere. */
+       Small on purpose: it's a mark beside the title, not a diagram. Static:
+       the arrows carry the direction, so nothing here needs to move. */
     .loop { position: relative; width: min(370px, 80vw); aspect-ratio: 1; margin: 0 auto; }
     .loop::before {
       content: ''; position: absolute; inset: 6%; border-radius: 50%;
@@ -107,13 +107,7 @@
     .loop-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
     .loop-ring { fill: none; stroke: url(#loopGrad); stroke-width: .7; stroke-linecap: round; }
     .loop-ring-faint { fill: none; stroke: var(--neon); stroke-width: .35; opacity: .22; }
-    .loop-spin { transform-origin: 50% 50%; animation: spin 46s linear infinite; }
-    .loop-spin-rev { transform-origin: 50% 50%; animation: spin 64s linear infinite reverse; }
     .loop-arrow { fill: var(--neon); }
-    /* the travelling bead — cashback making the round trip */
-    .loop-orbit { transform-origin: 50% 50%; animation: spin 9s linear infinite; }
-    .loop-bead { fill: var(--neon); }
-    .loop-bead-glow { fill: var(--neon); opacity: .28; }
     .loop-node {
       position: absolute; transform: translate(-50%, -50%);
       width: 27%; aspect-ratio: 1; border-radius: 50%;
@@ -125,20 +119,12 @@
     .loop-node.on {
       background: linear-gradient(150deg, var(--neon-soft), var(--neon));
       border-color: transparent; box-shadow: 0 12px 30px rgba(56,182,255,.5);
-      animation: earnPulse 3.6s ease-in-out infinite;
     }
     .loop-node.on .ico { color: #0B1220; }
-    @keyframes earnPulse {
-      0%, 100% { box-shadow: 0 12px 30px rgba(56,182,255,.5), 0 0 0 0 rgba(56,182,255,.42); }
-      55% { box-shadow: 0 12px 30px rgba(56,182,255,.5), 0 0 0 14px rgba(56,182,255,0); }
-    }
     .loop-w { font-family: var(--font-display); font-weight: 700; font-size: clamp(.82rem, 2.3vw, 1rem); letter-spacing: -.02em; }
     .loop-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 46%; text-align: center; }
     .loop-hub-line { font-family: var(--font-display); font-weight: 600; font-size: clamp(.78rem, 2vw, .92rem); line-height: 1.35; letter-spacing: -.02em; color: var(--ink-soft); }
     .loop-hub-line b { color: var(--ink); font-weight: 700; }
-    @media (prefers-reduced-motion: reduce) {
-      .loop-spin, .loop-spin-rev, .loop-orbit, .loop-node.on { animation: none; }
-    }
 
     /* ── Cashback calculator ── */
     .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
@@ -177,7 +163,7 @@
     }
     .band > .hcar { margin-left: calc(-1 * clamp(18px, 4vw, 44px)); margin-right: calc(-1 * clamp(18px, 4vw, 44px)); }
     /* the steps follow the band closely — they're the same idea continued */
-    #steps { padding-top: clamp(34px, 4.2vw, 58px); }
+    #steps { padding-top: clamp(34px, 4.2vw, 58px); padding-bottom: clamp(26px, 3.2vw, 44px); }
 
     /* ── Post → paid carousel (horizontal) ── */
     .hcar { display: flex; flex-direction: column; gap: 14px; overflow: hidden; min-height: 404px;
@@ -189,8 +175,11 @@
     @keyframes slideL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     @keyframes slideR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
     .htile { width: 218px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
-    .htile-shot { height: 104px; position: relative; display: flex; align-items: center; justify-content: center; padding: 18px; background: linear-gradient(150deg, #F4FBFF, #E6F6FF); border-bottom: 1px solid var(--line-soft); }
-    .htile-img { max-width: 100%; max-height: 56px; width: auto; height: auto; object-fit: contain; display: block; }
+    .htile-shot { height: 104px; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; border-bottom: 1px solid var(--line-soft); overflow: hidden; }
+    /* The panel is painted the logo's own background colour (sampled from the
+       file's border pixels), so a contained logo reads as filling the whole
+       panel rather than floating in a box. */
+    .htile-img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--ink); }
     .htile-body { padding: 12px 13px 13px; }
     .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
@@ -410,15 +399,11 @@
               <stop offset="100%" stop-color="#8FDDFF" />
             </linearGradient>
           </defs>
-          <circle class="loop-ring-faint loop-spin-rev" cx="50" cy="50" r="32.0" stroke-dasharray="1.2 4" />
-          <circle class="loop-ring loop-spin" cx="50" cy="50" r="37.0" stroke-dasharray="2.2 3.4" />
+          <circle class="loop-ring-faint" cx="50" cy="50" r="32.0" stroke-dasharray="1.2 4" />
+          <circle class="loop-ring" cx="50" cy="50" r="37.0" stroke-dasharray="2.2 3.4" />
             <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(82.04 31.5) rotate(60)" />
             <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(50.0 87.0) rotate(180)" />
             <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(17.96 31.5) rotate(300)" />
-          <g class="loop-orbit">
-            <circle class="loop-bead-glow" cx="50" cy="13.0" r="4.2" />
-            <circle class="loop-bead" cx="50" cy="13.0" r="1.9" />
-          </g>
         </svg>
         <div class="loop-node" style="left:50.0%; top:13.0%">
           <i class="ico ico-bag"></i>
@@ -535,7 +520,7 @@
   </section>
 
   <!-- ══ CASHBACK CALCULATOR — driven by real published rates ══ -->
-  <section class="section" id="calculator" style="padding-top:0">
+  <section class="section" id="calculator" style="padding-top:clamp(48px,6vw,86px)">
     <div class="section-inner calc-grid">
       <div>
         <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
@@ -747,6 +732,30 @@
         if (window.console) console.warn('Cirqle: deals unavailable —', err.message);
       });
 
+    // Each logo's own background colour, sampled from its border pixels, so the
+    // tile's image panel matches the mark and the two read as one block.
+    var LOGO_BG = {
+      'adidas': '#ffffff',
+      'airbnb': '#ff5a5f',
+      'amazon': '#ff6200',
+      'asos': '#ffffff',
+      'boots': '#ffffff',
+      'costa': '#6d1f37',
+      'currys': '#ffffff',
+      'deliveroo': '#00ccbc',
+      'domino-s': '#006490',
+      'gymshark': '#ffffff',
+      'h-m': '#ffffff',
+      'ikea': '#ffffff',
+      'jd-sports': '#ffffff',
+      'nike': '#ffffff',
+      'puregym': '#202020',
+      'sephora': '#ffffff',
+      'spotify': '#ffffff',
+      'trainline': '#ffffff',
+      'tui': '#70cbf4',
+      'uber-eats': '#ffffff'
+    };
     // Post → paid tiles. Brand and rate are real; the post caption and the
     // worked example are illustrative, and the section header says so.
     var CAPTIONS = ['Story tagged @cirqle', 'Haul post · 2 tags', 'Reel · tagged', 'Grid post', 'Unboxing story', 'Receipt uploaded'];
@@ -760,7 +769,7 @@
         var spend = 40 + (i % 6) * 15;
         var earn = (spend * (d.rate || 0) / 100).toFixed(2);
         return '<div class="htile' + (paid ? ' paid' : '') + ' t' + (i % 6) + '">' +
-            '<div class="htile-shot">' +
+            '<div class="htile-shot" style="background:' + (LOGO_BG[slug(d.brand)] || '#fff') + '">' +
               '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
               ' onerror="this.style.display=\'none\'">' +
               '<span class="htile-state">' + (paid ? 'Paid' : 'Posted') + '</span>' +
