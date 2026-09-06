@@ -170,6 +170,18 @@
     .calc-out-sub { font-size: .8rem; font-weight: 500; color: rgba(11,18,32,.75); margin-top: 4px; }
     .calc-note { font-size: .74rem; color: var(--ink-soft); margin-top: 14px; line-height: 1.55; }
 
+    /* ── Post → paid carousel (horizontal) ──
+       Sits on a tinted band so the white tiles read as cards on a surface,
+       and the section separates from the white page above and below it. */
+    .band {
+      background: linear-gradient(180deg, #F1F9FF 0%, #E7F5FF 55%, #F1F9FF 100%);
+      border-top: 1px solid rgba(56,182,255,.22);
+      border-bottom: 1px solid rgba(56,182,255,.22);
+      padding-top: clamp(48px, 6vw, 76px); padding-bottom: clamp(48px, 6vw, 76px);
+    }
+    /* the marquee is full-bleed inside the padded band */
+    .band > .hcar { margin-left: calc(-1 * clamp(18px, 4vw, 44px)); margin-right: calc(-1 * clamp(18px, 4vw, 44px)); }
+    .band .htile { box-shadow: 0 4px 14px rgba(11,18,32,.08); }
     /* ── Post → paid carousel (horizontal) ── */
     .hcar { display: flex; flex-direction: column; gap: 14px; overflow: hidden; min-height: 404px;
       -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
@@ -355,14 +367,14 @@
           <span class="loop-w">Earn</span>
         </div>
         <div class="loop-hub">
-          <span class="loop-hub-line">It goes round<br>in a <b>cirqle.</b></span>
+          <span class="loop-hub-line">Paid in pounds.<br><b>Not points.</b></span>
         </div>
       </div>
     </div>
   </header>
 
   <!-- ══ POST → PAID CAROUSEL ══ -->
-  <section class="section" id="flow" style="padding-top:0">
+  <section class="section band" id="flow">
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">From post to <span class="hl">paid.</span></h2>
