@@ -86,7 +86,13 @@
       font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: 1.04;
       letter-spacing: -0.035em; margin: 22px 0 20px;
     }
-    .hero-sub { font-size: clamp(1rem, 1.7vw, 1.15rem); color: var(--ink-soft); max-width: 480px; line-height: 1.7; margin-bottom: 34px; }
+    .hero-sub { font-size: clamp(1rem, 1.7vw, 1.15rem); color: var(--ink-soft); max-width: 480px; line-height: 1.7; margin-bottom: 22px; }
+    /* The three steps, compressed to one line under the sub-headline. */
+    .mini-steps { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; max-width: 500px; }
+    .ms { display: inline-flex; align-items: center; gap: 8px; font-size: .84rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
+    .ms-i { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; flex-shrink: 0; box-shadow: 0 3px 10px rgba(56,182,255,.35); }
+    .ms-i .ico { width: 13px; height: 13px; }
+    .ms-sep { width: 14px; height: 1px; background: linear-gradient(90deg, var(--neon), transparent); flex-shrink: 0; }
     .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
     .hero-proof { display: flex; align-items: center; gap: 10px; margin-top: 30px; flex-wrap: wrap; }
     .proof-text { font-size: .84rem; font-weight: 500; color: var(--ink-soft); }
@@ -100,30 +106,49 @@
     .fact-sub { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
 
     /* ── The cirqle ring (hero, right of the headline) ──
-       Small on purpose: it's a mark beside the title, not a diagram. */
-    .loop { position: relative; width: min(360px, 78vw); aspect-ratio: 1; margin: 0 auto; }
+       Small on purpose: it's a mark beside the title, not a diagram. A bead
+       runs the loop so the money is visibly going somewhere. */
+    .loop { position: relative; width: min(370px, 80vw); aspect-ratio: 1; margin: 0 auto; }
+    .loop::before {
+      content: ''; position: absolute; inset: 6%; border-radius: 50%;
+      background: radial-gradient(circle at 50% 45%, rgba(56,182,255,.22), rgba(56,182,255,.05) 55%, transparent 72%);
+      filter: blur(6px); pointer-events: none;
+    }
     .loop-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-    .loop-ring { fill: none; stroke: var(--neon); stroke-width: .5; stroke-linecap: round; opacity: .5; }
+    .loop-ring { fill: none; stroke: url(#loopGrad); stroke-width: .7; stroke-linecap: round; }
+    .loop-ring-faint { fill: none; stroke: var(--neon); stroke-width: .35; opacity: .22; }
     .loop-spin { transform-origin: 50% 50%; animation: spin 46s linear infinite; }
+    .loop-spin-rev { transform-origin: 50% 50%; animation: spin 64s linear infinite reverse; }
     .loop-arrow { fill: var(--neon); }
+    /* the travelling bead — cashback making the round trip */
+    .loop-orbit { transform-origin: 50% 50%; animation: spin 9s linear infinite; }
+    .loop-bead { fill: var(--neon); }
+    .loop-bead-glow { fill: var(--neon); opacity: .28; }
     .loop-node {
       position: absolute; transform: translate(-50%, -50%);
       width: 27%; aspect-ratio: 1; border-radius: 50%;
       background: var(--card); border: 1px solid var(--line);
       box-shadow: 0 8px 22px rgba(11,18,32,.10);
-      display: flex; align-items: center; justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
     }
-    .loop-node.on { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: transparent; box-shadow: 0 12px 28px rgba(56,182,255,.45); }
+    .loop-node .ico { width: 15px; height: 15px; color: var(--neon-line); }
+    .loop-node.on {
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon));
+      border-color: transparent; box-shadow: 0 12px 30px rgba(56,182,255,.5);
+      animation: earnPulse 3.6s ease-in-out infinite;
+    }
+    .loop-node.on .ico { color: #0B1220; }
+    @keyframes earnPulse {
+      0%, 100% { box-shadow: 0 12px 30px rgba(56,182,255,.5), 0 0 0 0 rgba(56,182,255,.42); }
+      55% { box-shadow: 0 12px 30px rgba(56,182,255,.5), 0 0 0 14px rgba(56,182,255,0); }
+    }
     .loop-w { font-family: var(--font-display); font-weight: 700; font-size: clamp(.82rem, 2.3vw, 1rem); letter-spacing: -.02em; }
     .loop-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 46%; text-align: center; }
     .loop-hub-line { font-family: var(--font-display); font-weight: 600; font-size: clamp(.78rem, 2vw, .92rem); line-height: 1.35; letter-spacing: -.02em; color: var(--ink-soft); }
     .loop-hub-line b { color: var(--ink); font-weight: 700; }
-
-    /* ── Three steps ── */
-    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
-    .step-n { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; font-family: var(--font-display); font-weight: 700; font-size: .84rem; margin-bottom: 12px; }
-    .step h3 { font-family: var(--font-display); font-size: 1.12rem; font-weight: 700; margin: 0 0 7px; letter-spacing: -.02em; }
-    .step p { font-size: .89rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
+    @media (prefers-reduced-motion: reduce) {
+      .loop-spin, .loop-spin-rev, .loop-orbit, .loop-node.on { animation: none; }
+    }
 
     /* ── Cashback calculator ── */
     .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
@@ -234,7 +259,10 @@
 
     @media (max-width: 900px) {
       .hero { grid-template-columns: 1fr; text-align: center; padding-top: 40px; }
-      .hero-sub, .hero-proof, .hero-actions { margin-left: auto; margin-right: auto; justify-content: center; }
+      .hero-sub, .hero-proof, .hero-actions, .mini-steps { margin-left: auto; margin-right: auto; justify-content: center; }
+      /* separators dangle at the end of a wrapped row — drop them once it wraps */
+      .ms-sep { display: none; }
+      .mini-steps { gap: 8px 18px; }
       .hero-visual { margin-top: 22px; }
       .facts-strip { grid-template-columns: repeat(2, 1fr); }
       .steps { grid-template-columns: 1fr; gap: 30px; }
@@ -278,6 +306,13 @@
     <div>
       <h1 class="hero-h fade-up d1">Get <span class="hl">paid</span> to shop.<br>For real.</h1>
       <p class="hero-sub fade-up d2">Buy from brands you already love, post it on your socials, and watch <span class="squiggle">actual money</span> land in your wallet. No points. No vouchers. Cash.</p>
+      <div class="mini-steps fade-up d2" aria-label="How it works, in three steps">
+        <span class="ms"><span class="ms-i"><i class="ico ico-bag"></i></span>Shop your brands</span>
+        <span class="ms-sep" aria-hidden="true"></span>
+        <span class="ms"><span class="ms-i"><i class="ico ico-instagram"></i></span>Post and tag us</span>
+        <span class="ms-sep" aria-hidden="true"></span>
+        <span class="ms"><span class="ms-i"><i class="ico ico-cash"></i></span>Earn real cash</span>
+      </div>
       <div class="hero-actions fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
         <a href="signup.html" class="btn btn-lg">Sign up</a>
@@ -290,20 +325,55 @@
     <div class="hero-visual fade-up d3">
       <div class="loop" aria-label="Shop, then post, then earn — and round again">
         <svg class="loop-svg" viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <linearGradient id="loopGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#66D4FF" />
+              <stop offset="55%" stop-color="#38B6FF" />
+              <stop offset="100%" stop-color="#8FDDFF" />
+            </linearGradient>
+          </defs>
+          <circle class="loop-ring-faint loop-spin-rev" cx="50" cy="50" r="32.0" stroke-dasharray="1.2 4" />
           <circle class="loop-ring loop-spin" cx="50" cy="50" r="37.0" stroke-dasharray="2.2 3.4" />
             <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(82.04 31.5) rotate(60)" />
             <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(50.0 87.0) rotate(180)" />
             <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(17.96 31.5) rotate(300)" />
+          <g class="loop-orbit">
+            <circle class="loop-bead-glow" cx="50" cy="13.0" r="4.2" />
+            <circle class="loop-bead" cx="50" cy="13.0" r="1.9" />
+          </g>
         </svg>
-          <div class="loop-node" style="left:50.0%; top:13.0%"><span class="loop-w">Shop</span></div>
-          <div class="loop-node" style="left:82.04%; top:68.5%"><span class="loop-w">Post</span></div>
-          <div class="loop-node on" style="left:17.96%; top:68.5%"><span class="loop-w">Earn</span></div>
+        <div class="loop-node" style="left:50.0%; top:13.0%">
+          <i class="ico ico-bag"></i>
+          <span class="loop-w">Shop</span>
+        </div>
+        <div class="loop-node" style="left:82.04%; top:68.5%">
+          <i class="ico ico-instagram"></i>
+          <span class="loop-w">Post</span>
+        </div>
+        <div class="loop-node on" style="left:17.96%; top:68.5%">
+          <i class="ico ico-cash"></i>
+          <span class="loop-w">Earn</span>
+        </div>
         <div class="loop-hub">
           <span class="loop-hub-line">It goes round<br>in a <b>cirqle.</b></span>
         </div>
       </div>
     </div>
   </header>
+
+  <!-- ══ POST → PAID CAROUSEL ══ -->
+  <section class="section" id="flow" style="padding-top:0">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">From post to <span class="hl">paid.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Real brands, real published rates. Example earnings shown to illustrate how each rate works out.</p>
+      </div>
+    </div>
+    <div class="hcar reveal">
+      <div class="hcar-row r1" id="carRow1"></div>
+      <div class="hcar-row r2" id="carRow2"></div>
+    </div>
+  </section>
 
   <!-- ══ WHAT'S TRUE (replaced the invented stats strip) ══ -->
   <section class="section" style="padding-top:clamp(14px,2.4vw,30px);padding-bottom:0">
@@ -328,47 +398,6 @@
         <div class="fact-title">Free to join</div>
         <div class="fact-sub">No fee, no tiers, no minimum spend to take part.</div>
       </div>
-    </div>
-  </section>
-
-  <!-- ══ HOW IT WORKS — the ring itself now lives in the hero ══ -->
-  <section class="section" id="how" style="padding-top:0">
-    <div class="section-inner">
-      <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Shop. Post. <span class="hl">Earn.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Three steps, and the cashback from one buys the next thing. That loop is where the name comes from.</p>
-      </div>
-      <div class="steps">
-        <div class="step reveal reveal-delay-1">
-          <span class="step-n">1</span>
-          <h3>Shop</h3>
-          <p>Browse our partner brands and shop as you normally would. No voucher codes, no browser extension to install.</p>
-        </div>
-        <div class="step reveal reveal-delay-2">
-          <span class="step-n">2</span>
-          <h3>Post</h3>
-          <p>Share your haul on Instagram, tag @cirqle and the brand, then upload your receipt in the app.</p>
-        </div>
-        <div class="step reveal reveal-delay-3">
-          <span class="step-n">3</span>
-          <h3>Earn</h3>
-          <p>We read your receipt and check your post. Once approved, your cashback clears about three days later — then withdraw it to your bank.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ POST → PAID CAROUSEL ══ -->
-  <section class="section" id="flow" style="padding-top:0">
-    <div class="section-inner">
-      <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">From post to <span class="hl">paid.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Real brands, real published rates. Example earnings shown to illustrate how each rate works out.</p>
-      </div>
-    </div>
-    <div class="hcar reveal">
-      <div class="hcar-row r1" id="carRow1"></div>
-      <div class="hcar-row r2" id="carRow2"></div>
     </div>
   </section>
 
