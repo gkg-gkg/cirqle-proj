@@ -59,13 +59,42 @@
       gap: clamp(32px, 5vw, 72px);
       align-items: center;
     }
-    .hero > div:not(.dots) { position: relative; z-index: 1; }
-    .hero .dots { position: absolute; inset: 0; z-index: 0; }
+    .hero > div { position: relative; z-index: 3; }
+    /* ── Hero photo wall ──
+       The band is the full-width element, so the wall needs no 100vw trick —
+       which would otherwise overflow by the scrollbar's width. Sits under a
+       scrim strong enough to keep near-black type readable over any frame. */
+    .hero-band {
+      position: relative; overflow: hidden;
+      /* Secondary copy sits over photography here, not flat white. The default
+         --ink-soft (#64748B) measures 3.98:1 against the scrimmed wall, which
+         fails AA, so the token is darkened for this band only. */
+      --ink-soft: #455668;
+    }
+    .hero-wall, .hero-scrim { position: absolute; inset: 0; pointer-events: none; }
+    .hero-wall { z-index: 0; }
+    .hw-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; height: 100%; padding: 0 8px; }
+    .hw-col { display: flex; flex-direction: column; gap: 12px; }
+    .hw-col:nth-child(2n) { transform: translateY(-7%); }
+    .hw-col:nth-child(3n) { transform: translateY(4%); }
+    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: saturate(.82) contrast(.96); }
+    .hero-scrim {
+      z-index: 1;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.90) 0%, rgba(255,255,255,.72) 46%, rgba(255,255,255,.44) 100%),
+        linear-gradient(180deg, rgba(241,249,255,.34) 0%, rgba(241,249,255,.30) 52%, rgba(241,249,255,.90) 88%, #F1F9FF 100%);
+    }
+    @media (max-width: 900px) {
+      .hw-grid { grid-template-columns: repeat(4, 1fr); }
+      .hero-scrim { background:
+        linear-gradient(180deg, rgba(255,255,255,.90) 0%, rgba(255,255,255,.88) 55%, rgba(241,249,255,.96) 88%, #F1F9FF 100%); }
+    }
     .hero-blob {
       position: absolute; border-radius: 50%;
       background: radial-gradient(circle, var(--blue-glow), transparent 70%);
       pointer-events: none; z-index: 0;
     }
+    .hero-blob { z-index: 2; }
     .blob-a { width: 460px; height: 460px; top: -100px; right: 4%; animation: blobDrift 22s ease-in-out infinite alternate; }
     .blob-b { width: 380px; height: 380px; bottom: -140px; left: -80px; animation: blobDrift 27s ease-in-out -9s infinite alternate-reverse; }
     @keyframes blobDrift { from { transform: translate(0,0) scale(1); } to { transform: translate(44px,30px) scale(1.14); } }
@@ -170,43 +199,22 @@
     .calc-out-sub { font-size: .8rem; font-weight: 500; color: rgba(11,18,32,.75); margin-top: 4px; }
     .calc-note { font-size: .74rem; color: var(--ink-soft); margin-top: 14px; line-height: 1.55; }
 
-    /* ── Post → paid carousel (horizontal) ──
-       Sits on a tinted band so the white tiles read as cards on a surface,
-       and the section separates from the white page above and below it. */
-    .band {
-      background: linear-gradient(180deg, #F1F9FF 0%, #E7F5FF 55%, #F1F9FF 100%);
-      border-top: 1px solid rgba(56,182,255,.22);
-      border-bottom: 1px solid rgba(56,182,255,.22);
-      padding-top: clamp(48px, 6vw, 76px); padding-bottom: clamp(48px, 6vw, 76px);
+    /* ── The cycle: three big tiles, one per step ── */
+    .cycle { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 2.6vw, 30px); }
+    .cyc-shot { position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 4/3; box-shadow: 0 10px 30px rgba(11,18,32,.12); }
+    .cyc-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cyc-n {
+      position: absolute; top: 13px; left: 13px; width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: .92rem; color: #0B1220;
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon));
+      box-shadow: 0 4px 14px rgba(11,18,32,.28);
     }
-    /* the marquee is full-bleed inside the padded band */
-    .band > .hcar { margin-left: calc(-1 * clamp(18px, 4vw, 44px)); margin-right: calc(-1 * clamp(18px, 4vw, 44px)); }
-    .band .htile { box-shadow: 0 4px 14px rgba(11,18,32,.08); }
-    /* ── Post → paid carousel (horizontal) ── */
-    .hcar { display: flex; flex-direction: column; gap: 14px; overflow: hidden; min-height: 404px;
-      -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-      mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
-    .hcar-row { display: flex; gap: 14px; width: max-content; will-change: transform; }
-    .hcar-row.r1 { animation: slideL 46s linear infinite; }
-    .hcar-row.r2 { animation: slideR 58s linear infinite; }
-    @keyframes slideL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-    @keyframes slideR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
-    .htile { width: 218px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
-    .htile-shot { height: 104px; position: relative; display: flex; align-items: center; justify-content: center; padding: 18px; background: linear-gradient(150deg, #F4FBFF, #E6F6FF); border-bottom: 1px solid var(--line-soft); }
-    .htile-img { max-width: 100%; max-height: 56px; width: auto; height: auto; object-fit: contain; display: block; }
-    .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--ink); }
-    .htile-body { padding: 12px 13px 13px; }
-    .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
-    .htile-cap { font-size: .68rem; color: var(--ink-soft); margin-top: 3px; }
-    .htile-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
-    .htile-rate { font-size: .64rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
-    .htile-amt { font-family: var(--font-display); font-weight: 700; font-size: .88rem; }
-    .htile.paid { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
-    .htile.paid .htile-state { background: rgba(11,18,32,.85); color: var(--neon-soft); }
-    .htile.paid .htile-shot { border-bottom-color: rgba(11,18,32,.18); background: rgba(255,255,255,.82); }
-    .htile.paid .htile-cap { color: rgba(11,18,32,.72); }
-    .htile.paid .htile-foot { border-top-color: rgba(11,18,32,.18); }
-    .htile.paid .htile-rate { background: rgba(11,18,32,.16); color: #0B1220; border-color: rgba(11,18,32,.24); }
+    .cyc:nth-child(2) .cyc-n { background: linear-gradient(150deg, #BFE6FF, #66D4FF); }
+    .cyc:nth-child(3) .cyc-n { background: linear-gradient(150deg, #38B6FF, #0B63C4); color: #fff; }
+    .cyc-t { font-family: var(--font-display); font-size: 1.32rem; font-weight: 700; letter-spacing: -.025em; margin: 18px 0 7px; }
+    .cyc-d { font-size: .92rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
+    @media (max-width: 780px) { .cycle { grid-template-columns: 1fr; gap: 30px; } }
 
     /* ── Review wall — small avatar, quote, rating ── */
     .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 500px; overflow: hidden; position: relative;
@@ -218,50 +226,44 @@
     .pw-col.k3 { animation: wallUp 44s linear infinite; }
     @keyframes wallUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
     @keyframes wallDn { from { transform: translateY(-50%); } to { transform: translateY(0); } }
-    .rv { border-radius: 14px; padding: 16px 17px 15px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
+    .rv { border-radius: 14px; padding: 15px 16px 14px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
     .rv:nth-child(3n+1) { transform: rotate(-.8deg); }
     .rv:nth-child(3n+2) { transform: rotate(.6deg); }
-    .rv-stars { color: #0090E8; font-size: .74rem; letter-spacing: 2px; margin-bottom: 8px; }
+    .rv-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+    .rv-stars { color: #0090E8; font-size: .74rem; letter-spacing: 2px; }
+    /* Brand mark: logos vary wildly in aspect, so contain them and let the white
+       disc take up the slack — scaled to the badge, never cropped or stretched. */
+    .rv-brand {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      background: #fff; border: 1px solid var(--line); padding: 4px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .rv-brand img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; }
     .rv-txt { font-size: .84rem; line-height: 1.6; color: var(--ink); margin: 0 0 13px; }
     .rv-foot { display: flex; align-items: center; gap: 9px; }
     .rv-av { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; object-fit: cover; display: block; border: 1.5px solid rgba(56,182,255,.5); }
     .rv-who { font-family: var(--font-display); font-size: .77rem; font-weight: 700; line-height: 1.2; }
     .rv-where { font-size: .68rem; color: var(--ink-soft); }
     .rv-amt { margin-left: auto; font-family: var(--font-display); font-weight: 700; font-size: .82rem; white-space: nowrap; }
-    .rv.neon { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
-    .rv.neon .rv-stars, .rv.neon .rv-txt, .rv.neon .rv-who, .rv.neon .rv-amt { color: #0B1220; }
-    .rv.neon .rv-where { color: rgba(11,18,32,.72); }
-    .rv.neon .rv-av { border-color: rgba(11,18,32,.4); }
+    /* Six tile treatments so the wall isn't just white and one blue. Every
+       combination below was contrast-checked against its text colour. */
+    .rv.v1 { background: #F2FAFF; border-color: rgba(56,182,255,.26); }
+    .rv.v2 { background: #DCF1FF; border-color: rgba(56,182,255,.38); }
+    .rv.v3 { background: linear-gradient(150deg, #A5E4FF, #66D4FF); border-color: transparent; box-shadow: 0 8px 24px rgba(56,182,255,.30); }
+    .rv.v4 { background: linear-gradient(150deg, #66D4FF, #38B6FF); border-color: transparent; box-shadow: 0 8px 26px rgba(56,182,255,.40); }
+    .rv.v5 { background: linear-gradient(150deg, #0B63C4, #0A5AB0); border-color: transparent; box-shadow: 0 8px 26px rgba(10,90,176,.34); }
+    .rv.v5 .rv-txt, .rv.v5 .rv-who, .rv.v5 .rv-amt { color: #fff; }
+    .rv.v5 .rv-where { color: rgba(255,255,255,.78); }
+    .rv.v5 .rv-stars { color: #A5E4FF; }
+    .rv.v5 .rv-av { border-color: rgba(255,255,255,.5); }
     .disclaim { font-size: .76rem; color: var(--ink-soft); text-align: center; margin-top: 20px; line-height: 1.6; }
-
-    /* ── Features / demo ── */
-    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
-    .feature-row { display: flex; gap: 16px; align-items: flex-start; padding: 16px 18px; border-radius: 14px; border: 1px solid transparent; transition: all .2s var(--snap); }
-    .feature-row:hover { border-color: var(--line); background: var(--card); box-shadow: var(--shadow-sm); }
-    .feature-title { font-size: 1rem; font-weight: 600; margin-bottom: 3px; }
-    .feature-desc { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; }
-    .demo-card { padding: 26px; }
-    .demo-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .demo-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
-    .demo-chart { display: flex; align-items: flex-end; gap: 9px; height: 120px; margin-bottom: 20px; padding-top: 20px; }
-    .demo-bar { flex: 1; border-radius: 6px 6px 0 0; position: relative; min-height: 12px; transform-origin: bottom; animation: growBar .8s var(--snap) both; }
-    .demo-bar::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: .62rem; font-weight: 600; color: var(--ink-soft); }
-    @keyframes growBar { from { transform: scaleY(0); } }
-    .demo-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .demo-metric { border: 1px solid var(--line); border-radius: 12px; padding: 12px 8px; text-align: center; background: var(--paper); }
-    .demo-metric-val { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
-    .demo-metric-label { font-size: .6rem; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin-top: 2px; }
 
     /* ── Big CTA ── */
     .cta-slab { padding: clamp(48px, 6vw, 80px) clamp(24px, 5vw, 64px); text-align: center; overflow: hidden; position: relative; }
-    .cta-slab > :not(.cta-orbit):not(.cta-ring) { position: relative; z-index: 1; }
-    .cta-ring { position: absolute; width: 560px; height: 560px; top: 50%; left: 50%; margin: -280px 0 0 -280px; border-radius: 50%; border: 1.5px dashed rgba(56,182,255,.22); animation: spin 70s linear infinite; pointer-events: none; }
-    .cta-ring::before { content: ''; position: absolute; inset: 70px; border-radius: 50%; border: 1.5px dashed rgba(56,182,255,.16); animation: spin 50s linear infinite reverse; }
+    .cta-slab > * { position: relative; z-index: 1; }
     .cta-slab .h-display { color: #fff; }
     .cta-slab .hl { background: var(--neon); color: #0B1220; padding: 0 6px; }
     .cta-sub { color: rgba(255,255,255,.7); font-size: 1.02rem; margin: 18px auto 34px; max-width: 460px; }
-    .cta-orbit { position: absolute; top: 50%; left: 50%; width: 640px; height: 640px; transform: translate(-50%,-50%); border-radius: 50%; background: repeating-radial-gradient(circle at center, rgba(56,182,255,.10) 0 1px, transparent 1px 52px); -webkit-mask-image: radial-gradient(circle at center, #000 25%, transparent 70%); mask-image: radial-gradient(circle at center, #000 25%, transparent 70%); pointer-events: none; }
-
     /* ── Sticky mobile CTA ── */
     .sticky-cta { display: none; }
     @media (max-width: 600px) {
@@ -289,8 +291,7 @@
       body { padding-bottom: 68px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .hcar-row, .pw-col { animation: none !important; }
-      .hcar-row { flex-wrap: wrap; width: auto; }
+      .pw-col { animation: none !important; }
       .pwall { height: auto; -webkit-mask-image: none; mask-image: none; }
     }
   </style>
@@ -311,10 +312,22 @@
   </nav>
 
   <!-- ══ HERO ══ -->
-  <header class="hero">
-    <div class="dots" aria-hidden="true"></div>
+  <div class="hero-band">
+    <div class="hero-wall" aria-hidden="true">
+      <div class="hw-grid">
+        <div class="hw-col"><img src="assets/wall/w1.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w8.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w15.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w2.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w9.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w16.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w3.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w10.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w17.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w4.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w11.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w18.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w5.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w12.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w19.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w6.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w13.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w20.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w7.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w14.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w21.jpg" alt="" decoding="async" fetchpriority="low"></div>
+      </div>
+    </div>
+    <div class="hero-scrim" aria-hidden="true"></div>
     <span class="hero-blob blob-a" aria-hidden="true"></span>
     <span class="hero-blob blob-b" aria-hidden="true"></span>
+  <header class="hero">
     <div>
       <h1 class="hero-h fade-up d1">Get <span class="hl">paid</span> to shop.<br>For real.</h1>
       <p class="hero-sub fade-up d2">Buy from brands you already love, post it on your socials, and watch <span class="squiggle">actual money</span> land in your wallet. No points. No vouchers. Cash.</p>
@@ -372,18 +385,32 @@
       </div>
     </div>
   </header>
+  </div>
 
-  <!-- ══ POST → PAID CAROUSEL ══ -->
+  <!-- ══ THE CYCLE — shop, post, earn ══ -->
   <section class="section band" id="flow">
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">From post to <span class="hl">paid.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Real brands, real published rates. Example earnings shown to illustrate how each rate works out.</p>
+        <p class="h-sub reveal reveal-delay-2">Three steps, and the cashback from one buys the next thing.</p>
       </div>
-    </div>
-    <div class="hcar reveal">
-      <div class="hcar-row r1" id="carRow1"></div>
-      <div class="hcar-row r2" id="carRow2"></div>
+      <div class="cycle">
+        <div class="cyc reveal reveal-delay-1">
+          <div class="cyc-shot"><img src="assets/steps/shop.jpg" alt="" loading="lazy" decoding="async"><span class="cyc-n">1</span></div>
+          <h3 class="cyc-t">Shop</h3>
+          <p class="cyc-d">Buy from partner brands the way you always do. No codes, no extension.</p>
+        </div>
+        <div class="cyc reveal reveal-delay-2">
+          <div class="cyc-shot"><img src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><span class="cyc-n">2</span></div>
+          <h3 class="cyc-t">Post</h3>
+          <p class="cyc-d">Share it on Instagram, tag @cirqle and the brand, upload your receipt.</p>
+        </div>
+        <div class="cyc reveal reveal-delay-3">
+          <div class="cyc-shot"><img src="assets/steps/earn.jpg" alt="" loading="lazy" decoding="async"><span class="cyc-n">3</span></div>
+          <h3 class="cyc-t">Earn</h3>
+          <p class="cyc-d">Once approved it clears in about three days, then goes to your bank.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -431,58 +458,6 @@
     </div>
   </section>
 
-  <!-- ══ FEATURES ══ -->
-  <section class="section" id="features" style="padding-top:0">
-    <div class="section-inner features-grid">
-      <div>
-        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">Built for people<br>who <span class="squiggle">actually shop.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Every feature designed to make earning effortless. You shouldn't have to work hard to get money back.</p>
-        <div style="margin-top:34px; display:flex; flex-direction:column; gap:8px">
-          <div class="feature-row reveal">
-            <span class="coin coin-lime" style="font-size:1rem"><i class="ico ico-bolt"></i></span>
-            <div><div class="feature-title">Receipts read automatically</div><div class="feature-desc">Upload a photo and we read the total, date and retailer for you. Every claim is then checked by our team before it's approved.</div></div>
-          </div>
-          <div class="feature-row reveal reveal-delay-1">
-            <span class="coin coin-pink" style="font-size:1rem"><i class="ico ico-target"></i></span>
-            <div><div class="feature-title">Deals you'd actually use</div><div class="feature-desc">Cashback offers from brands people genuinely shop at, with the rate shown upfront on every deal.</div></div>
-          </div>
-          <div class="feature-row reveal reveal-delay-2">
-            <span class="coin coin-sky" style="font-size:1rem"><i class="ico ico-lock"></i></span>
-            <div><div class="feature-title">Withdrawals through Stripe</div><div class="feature-desc">Send cleared cashback straight to your bank account. Stripe handles the details — we never store them.</div></div>
-          </div>
-          <div class="feature-row reveal reveal-delay-3">
-            <span class="coin" style="font-size:1rem"><i class="ico ico-chart"></i></span>
-            <div><div class="feature-title">Track every claim</div><div class="feature-desc">See exactly what's clearing, what's approved and what's ready to withdraw.</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="position:relative" class="reveal reveal-delay-2">
-        <div class="card demo-card">
-          <div class="demo-head">
-            <span class="demo-title">Your earnings</span>
-            <span class="chip">Example</span>
-          </div>
-          <div class="demo-chart" aria-hidden="true">
-            <div class="demo-bar" style="height:45%;background:#CDEEFF;animation-delay:.05s" data-val="£8"></div>
-            <div class="demo-bar" style="height:60%;background:#A8E2FF;animation-delay:.12s" data-val="£12"></div>
-            <div class="demo-bar" style="height:35%;background:#CDEEFF;animation-delay:.19s" data-val="£6"></div>
-            <div class="demo-bar" style="height:80%;background:#66D4FF;animation-delay:.26s" data-val="£16"></div>
-            <div class="demo-bar" style="height:55%;background:#A8E2FF;animation-delay:.33s" data-val="£11"></div>
-            <div class="demo-bar" style="height:70%;background:#66D4FF;animation-delay:.40s" data-val="£14"></div>
-            <div class="demo-bar" style="height:92%;background:#38B6FF;animation-delay:.47s" data-val="£18"></div>
-          </div>
-          <div class="demo-metrics">
-            <div class="demo-metric"><div class="demo-metric-val">£85</div><div class="demo-metric-label">This month</div></div>
-            <div class="demo-metric"><div class="demo-metric-val">£420</div><div class="demo-metric-label">All time</div></div>
-            <div class="demo-metric"><div class="demo-metric-val">32</div><div class="demo-metric-label">Brands</div></div>
-          </div>
-        </div>
-        <div class="goal-float floaty" style="position:absolute;bottom:-18px;right:-12px"><span class="sticker sticker-tang">Example dashboard</span></div>
-      </div>
-    </div>
-  </section>
-
   <!-- ══ CASHBACK CALCULATOR — driven by real published rates ══ -->
   <section class="section" id="calculator" style="padding-top:0">
     <div class="section-inner calc-grid">
@@ -521,8 +496,6 @@
   <section class="section" id="cta" style="padding-top:0">
     <div class="section-inner">
       <div class="card card-ink cta-slab reveal">
-        <span class="cta-ring" aria-hidden="true"></span>
-        <div class="cta-orbit" aria-hidden="true"></div>
         <h2 class="h-display">Ready to get <span class="hl">paid</span><br>to shop?</h2>
         <p class="cta-sub">Signing up takes about a minute, and it's free.</p>
         <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap">
@@ -603,35 +576,38 @@
     // ── Review wall: small avatar + quote + rating. Content is illustrative,
     //    and the disclaimer under the wall says so. ──
     var REVIEWS = [
-      ['Maya R.', 'Leeds', '£18.40', "Ordered leggings, posted the fit check, money was in my wallet before the parcel turned up.", 1],
-      ['Tom B.', 'Bristol', '£4.20', "Friday night takeaway that pays me back. Small amounts, but it's every single order.", 2],
-      ['Aisha N.', 'Birmingham', '£11.75', "I do my whole skincare shop through here now. It adds up faster than you'd think.", 3],
-      ['Callum D.', 'Glasgow', '£22.00', "Assumed it'd be vouchers. It's actual cash to my actual bank account.", 5],
-      ['Priya S.', 'Manchester', '£9.60', "Posted a haul I was posting anyway. Money back for zero extra effort.", 4],
-      ['Jordan L.', 'Cardiff', '£14.00', "My gym membership partly pays for itself now. Took two minutes to set up.", 7],
-      ['Ellie W.', 'Brighton', '£16.30', "The receipt scan is the good bit — take a photo, done. No faffing with codes.", 6],
-      ['Sam K.', 'Newcastle', '£3.60', "Tiny one, but it stacked with three other deals that month.", 9],
-      ['Nadia H.', 'London', '£7.85', "Finally a cashback thing that doesn't make me install a browser extension.", 8],
-      ['Ryan P.', 'Sheffield', '£19.50', "Bought trainers, tagged them, got paid. That's the whole process.", 10],
-      ['Freya M.', 'Edinburgh', '£2.40', "Coffee money back on coffee. Small, but it's basically free.", 11],
-      ['Dev A.', 'Luton', '£31.20', "Biggest one yet — a new laptop. Cleared without me chasing it.", 12],
-      ['Chloe V.', 'Nottingham', '£12.90', "Furnished half a flat and got a takeaway out of the cashback.", 3],
-      ['Marcus O.', 'Liverpool', '£17.60', "Told three mates and they all signed up. The referral bonus was a nice touch.", 5],
-      ['Zara F.', 'Reading', '£5.15', "I use it constantly. It just quietly adds up in the background.", 4],
-      ['Owen T.', 'Swansea', '£46.00', "Booked a holiday and the cashback covered the airport parking.", 2],
-      ['Leila J.', 'Coventry', '£6.30', "Pizza night discount that arrives after the pizza. Perfect.", 6],
-      ['Harry S.', 'York', '£8.75', "My commute costs a fortune. This takes the edge off it.", 7]
+      ['Maya R.', 'Leeds', '£18.40', "Ordered leggings, posted the fit check, money was in my wallet before the parcel turned up.", 1, 'gymshark'],
+      ['Tom B.', 'Bristol', '£4.20', "Friday night takeaway that pays me back. Small amounts, but it's every single order.", 2, 'deliveroo'],
+      ['Aisha N.', 'Birmingham', '£11.75', "I do my whole skincare shop through here now. It adds up faster than you'd think.", 3, 'boots'],
+      ['Callum D.', 'Glasgow', '£22.00', "Assumed it'd be vouchers. It's actual cash to my actual bank account.", 5, 'nike'],
+      ['Priya S.', 'Manchester', '£9.60', "Posted a haul I was posting anyway. Money back for zero extra effort.", 4, 'asos'],
+      ['Jordan L.', 'Cardiff', '£14.00', "My gym membership partly pays for itself now. Took two minutes to set up.", 7, 'puregym'],
+      ['Ellie W.', 'Brighton', '£16.30', "The receipt scan is the good bit — take a photo, done. No faffing with codes.", 6, 'sephora'],
+      ['Sam K.', 'Newcastle', '£3.60', "Tiny one, but it stacked with three other deals that month.", 9, 'spotify'],
+      ['Nadia H.', 'London', '£7.85', "Finally a cashback thing that doesn't make me install a browser extension.", 8, 'h-m'],
+      ['Ryan P.', 'Sheffield', '£19.50', "Bought trainers, tagged them, got paid. That's the whole process.", 10, 'jd-sports'],
+      ['Freya M.', 'Edinburgh', '£2.40', "Coffee money back on coffee. Small, but it's basically free.", 11, 'costa'],
+      ['Dev A.', 'Luton', '£31.20', "Biggest one yet — a new laptop. Cleared without me chasing it.", 12, 'currys'],
+      ['Chloe V.', 'Nottingham', '£12.90', "Furnished half a flat and got a takeaway out of the cashback.", 3, 'ikea'],
+      ['Marcus O.', 'Liverpool', '£17.60', "Told three mates and they all signed up. The referral bonus was a nice touch.", 5, 'adidas'],
+      ['Zara F.', 'Reading', '£5.15', "I use it constantly. It just quietly adds up in the background.", 4, 'uber-eats'],
+      ['Owen T.', 'Swansea', '£46.00', "Booked a holiday and the cashback covered the airport parking.", 2, 'tui'],
+      ['Leila J.', 'Coventry', '£6.30', "Pizza night discount that arrives after the pizza. Perfect.", 6, 'domino-s'],
+      ['Harry S.', 'York', '£8.75', "My commute costs a fortune. This takes the edge off it.", 7, 'trainline']
     ];
     (function buildReviews() {
       var cols = [document.getElementById('pwCol1'), document.getElementById('pwCol2'), document.getElementById('pwCol3')];
       if (!cols[0]) return;
       var out = [[], [], []];
       REVIEWS.forEach(function (r, i) {
-        var name = r[0], city = r[1], amt = r[2], text = r[3], face = r[4];
-        var neon = (i % 5 === 4) ? ' neon' : '';
+        var name = r[0], city = r[1], amt = r[2], text = r[3], face = r[4], brand = r[5];
+        var variant = ' v' + (i % 6);                     // white, two tints, two neons, one deep
         out[i % 3].push(
-          '<div class="rv' + neon + '">' +
-            '<div class="rv-stars" aria-label="5 out of 5">\u2605\u2605\u2605\u2605\u2605</div>' +
+          '<div class="rv' + (i % 6 ? variant : '') + '">' +
+            '<div class="rv-top">' +
+              '<div class="rv-stars" aria-label="5 out of 5">\u2605\u2605\u2605\u2605\u2605</div>' +
+              '<span class="rv-brand"><img src="assets/logos/' + brand + '.png" alt="" decoding="async"></span>' +
+            '</div>' +
             '<p class="rv-txt">' + esc(text) + '</p>' +
             '<div class="rv-foot">' +
               '<img class="rv-av" src="assets/photos/p' + face + '.jpg" alt="" decoding="async">' +
@@ -684,50 +660,14 @@
           return d && d.brand && d.rate > 0 && !/test merchant/i.test(d.brand);
         });
         if (!deals.length) throw new Error('catalogue empty');
-        buildCarousel(deals);
         buildCalculator(deals);
       })
       .catch(function (err) {
-        // Nothing truthful to show without the catalogue, so take the sections
-        // out entirely rather than render a heading over blank space.
-        dropSection('flow');
+        // Only the calculator needs the catalogue now — the cycle tiles are
+        // static, so they stay. No heading is left over blank space.
         dropSection('calculator');
         if (window.console) console.warn('Cirqle: deals unavailable —', err.message);
       });
-
-    // Post → paid tiles. Brand and rate are real; the post caption and the
-    // worked example are illustrative, and the section header says so.
-    var CAPTIONS = ['Story tagged @cirqle', 'Haul post · 2 tags', 'Reel · tagged', 'Grid post', 'Unboxing story', 'Receipt uploaded'];
-    function buildCarousel(deals) {
-      var r1 = document.getElementById('carRow1'), r2 = document.getElementById('carRow2');
-      if (!r1 || !r2) return;
-      var tiles = deals.map(function (d, i) {
-        var paid = (i % 4 === 3);
-        // Partner logos live in assets/logos, keyed by a slug of the brand name.
-        var logo = 'assets/logos/' + slug(d.brand) + '.png';
-        var spend = 40 + (i % 6) * 15;
-        var earn = (spend * (d.rate || 0) / 100).toFixed(2);
-        return '<div class="htile' + (paid ? ' paid' : '') + '">' +
-            '<div class="htile-shot">' +
-              '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
-              ' onerror="this.style.display=\'none\'">' +
-              '<span class="htile-state">' + (paid ? 'Paid' : 'Posted') + '</span>' +
-            '</div>' +
-            '<div class="htile-body">' +
-              '<div class="htile-brand">' + esc(d.brand) + '</div>' +
-              '<div class="htile-cap">' + CAPTIONS[i % CAPTIONS.length] + '</div>' +
-              '<div class="htile-foot">' +
-                '<span class="htile-rate">' + Math.round(d.rate) + '% back</span>' +
-                '<span class="htile-amt">£' + earn + '</span>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
-      });
-      var half = Math.ceil(tiles.length / 2);
-      var a = tiles.slice(0, half).join(''), b = tiles.slice(half).join('');
-      r1.innerHTML = a + a;
-      r2.innerHTML = b + b;
-    }
 
     // Cashback the way it actually lands: only spending at partner brands counts,
     // only the purchases you post about count, and rates vary across the deals in
