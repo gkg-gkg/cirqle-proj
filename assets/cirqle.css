@@ -51,8 +51,8 @@
   --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* shape */
-  --r-card: 18px;
-  --r-chip: 999px;
+  --r-card: 14px;
+  --r-chip: 10px;   /* was a full pill — squarer reads less playful */
   --bw: 1px;                                          /* hairline border */
   --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.07);
   --shadow:    0 4px 16px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.05);

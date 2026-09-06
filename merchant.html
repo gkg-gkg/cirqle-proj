@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=9" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=10" />
   <style>
     /* categorical series colors — validated colorblind-safe (dataviz skill) */
     :root { --s-views:#2a78d6; --s-clicks:#1baf7a; --s-claims:#eda100; }
@@ -117,7 +117,7 @@
     table.deals td { padding: 12px; border-bottom: 2px dashed rgba(31,27,19,.14); font-weight: 600; }
     table.deals td.num, table.deals th.num { text-align: right; font-variant-numeric: tabular-nums; }
     table.deals tr:last-child td { border-bottom: none; }
-    .ref-toggle { font: inherit; font-size: .74rem; font-weight: 800; padding: 4px 12px; border-radius: 999px; border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+    .ref-toggle { font: inherit; font-size: .74rem; font-weight: 800; padding: 4px 12px; border-radius: 7px; border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink-soft); cursor: pointer; }
     .ref-toggle.on { background: var(--lime); border-color: var(--ink); color: var(--ink); }
     .ref-toggle:disabled { opacity: .5; cursor: default; }
     .ref-paid { font-size: .7rem; color: var(--ink-soft); margin-top: 4px; }
@@ -171,7 +171,7 @@
     .sub-title { font-weight: 700; font-size: .9rem; }
     .sub-meta { font-size: .76rem; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
     .sub-reason { font-size: .78rem; color: #a62222; font-weight: 600; margin-top: 4px; }
-    .sbadge { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; padding: 4px 10px; border-radius: 999px; flex-shrink: 0; }
+    .sbadge { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; padding: 4px 10px; border-radius: 7px; flex-shrink: 0; }
     .sbadge.pending { background: var(--tang); }
     .sbadge.approved { background: #DDF5E3; color: #1c7c3a; }
     .sbadge.rejected { background: #FBE0E0; color: #a62222; }
@@ -182,7 +182,7 @@
     .mtab:hover { color: var(--ink); }
     .mtab.active { color: var(--ink); }
     .mtab.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--blue-deep); }
-    .mtab .tab-badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 6px; font-size: .68rem; line-height: 18px; text-align: center; border-radius: 999px; background: var(--blue-tint); color: var(--blue-deep); vertical-align: middle; }
+    .mtab .tab-badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 6px; font-size: .68rem; line-height: 18px; text-align: center; border-radius: 7px; background: var(--blue-tint); color: var(--blue-deep); vertical-align: middle; }
     .pane-head { margin-bottom: 20px; }
 
     /* ── Posts tiles ── */
@@ -215,7 +215,7 @@
     .logo-thumb { width: 74px; height: 74px; border-radius: 50%; flex-shrink: 0; background: var(--paper-deep); border: var(--bw) solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--ink-soft); font-size: 1.4rem; }
     .logo-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .cat-checks { display: flex; flex-wrap: wrap; gap: 8px; }
-    .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: var(--bw) solid var(--line); border-radius: 999px; font-size: .82rem; font-weight: 600; cursor: pointer; user-select: none; }
+    .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: var(--bw) solid var(--line); border-radius: 7px; font-size: .82rem; font-weight: 600; cursor: pointer; user-select: none; }
     .cat-chip input { position: absolute; opacity: 0; pointer-events: none; }
     .cat-chip.on { background: var(--blue-tint); border-color: var(--blue-deep); color: var(--blue-deep); }
     .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -231,7 +231,7 @@
     .pv-logo img { width: 100%; height: 100%; object-fit: cover; }
     .pv-name { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; margin-top: 12px; }
     .pv-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .pv-cat { font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--paper-deep); }
+    .pv-cat { font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: 7px; background: var(--paper-deep); }
     .pv-bio { font-size: .82rem; color: var(--ink-soft); line-height: 1.55; margin-top: 12px; }
     .pv-section { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin: 16px 0 8px; }
     .pv-socials { display: flex; flex-direction: column; gap: 7px; }
