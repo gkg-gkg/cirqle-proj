@@ -134,11 +134,42 @@
     .fact-title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; letter-spacing: -.02em; }
     .fact-sub { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
 
-    /* ── How it works ── */
-    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-    .step-card { padding: 34px 26px 30px; }
-    .step-title { font-size: 1.35rem; font-weight: 700; margin: 16px 0 10px; }
-    .step-desc { font-size: .9rem; color: var(--ink-soft); line-height: 1.7; }
+    /* ── How it works: the cirqle ──
+       Shop -> Post -> Earn -> Shop again. The three steps genuinely loop, so
+       they're drawn as a ring: the brand name is the diagram. */
+    .loop-wrap { max-width: 620px; margin: 0 auto; }
+    .loop { position: relative; width: 100%; aspect-ratio: 1; }
+    .loop-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .loop-ring { fill: none; stroke: var(--neon); stroke-width: .5; stroke-linecap: round; opacity: .5; }
+    .loop-spin { transform-origin: 50% 50%; animation: spin 46s linear infinite; }
+    .loop-arrow { fill: var(--neon); }
+    .loop-node {
+      position: absolute; transform: translate(-50%, -50%);
+      width: 30%; aspect-ratio: 1; border-radius: 50%;
+      background: var(--card); border: 1px solid var(--line);
+      box-shadow: 0 10px 30px rgba(11,18,32,.10);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 2px;
+    }
+    .loop-node.on { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: transparent; box-shadow: 0 14px 34px rgba(56,182,255,.45); }
+    .loop-n { font-family: var(--font-display); font-size: .62rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); }
+    .loop-node.on .loop-n { color: rgba(11,18,32,.7); }
+    .loop-w { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.1rem, 3.4vw, 1.7rem); letter-spacing: -.03em; line-height: 1; }
+    .loop-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 34%; }
+    .loop-hub-mark { font-family: var(--font-display); font-weight: 700; font-size: clamp(1rem, 2.8vw, 1.35rem); letter-spacing: -.04em; color: var(--ink); }
+    .loop-hub-sub { font-size: clamp(.6rem, 1.5vw, .72rem); color: var(--ink-soft); line-height: 1.45; margin-top: 3px; }
+    .loop-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 34px; }
+    .loop-leg h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin: 0 0 5px; }
+    .loop-leg p { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; margin: 0; }
+    .loop-leg-n { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); color: #0B1220; font-family: var(--font-display); font-weight: 700; font-size: .72rem; margin-bottom: 9px; }
+    @media (max-width: 700px) {
+      /* A ring can't hold legible text on a phone — stack it instead. */
+      .loop { aspect-ratio: auto; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+      .loop-svg, .loop-hub { display: none; }
+      .loop-node { position: static; transform: none; width: 148px; }
+      .loop-legend { grid-template-columns: 1fr; gap: 22px; margin-top: 26px; text-align: center; }
+    }
+    @media (prefers-reduced-motion: reduce) { .loop-spin { animation: none; } }
 
     /* ── Cashback calculator ── */
     .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
@@ -168,10 +199,9 @@
     .hcar-row.r2 { animation: slideR 58s linear infinite; }
     @keyframes slideL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     @keyframes slideR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
-    .hcar:hover .hcar-row { animation-play-state: paused; }
     .htile { width: 218px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
-    .htile-shot { height: 104px; position: relative; overflow: hidden; border-bottom: 1px solid var(--line-soft); }
-    .htile-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .htile-shot { height: 104px; position: relative; display: flex; align-items: center; justify-content: center; padding: 18px; background: linear-gradient(150deg, #F4FBFF, #E6F6FF); border-bottom: 1px solid var(--line-soft); }
+    .htile-img { max-width: 100%; max-height: 56px; width: auto; height: auto; object-fit: contain; display: block; }
     .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: var(--ink); }
     .htile-body { padding: 12px 13px 13px; }
     .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
@@ -181,13 +211,13 @@
     .htile-amt { font-family: var(--font-display); font-weight: 700; font-size: .88rem; }
     .htile.paid { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
     .htile.paid .htile-state { background: rgba(11,18,32,.85); color: var(--neon-soft); }
-    .htile.paid .htile-shot { border-bottom-color: rgba(11,18,32,.18); }
+    .htile.paid .htile-shot { border-bottom-color: rgba(11,18,32,.18); background: rgba(255,255,255,.82); }
     .htile.paid .htile-cap { color: rgba(11,18,32,.72); }
     .htile.paid .htile-foot { border-top-color: rgba(11,18,32,.18); }
     .htile.paid .htile-rate { background: rgba(11,18,32,.16); color: #0B1220; border-color: rgba(11,18,32,.24); }
 
-    /* ── Photo wall ── */
-    .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 520px; overflow: hidden; position: relative;
+    /* ── Review wall — small avatar, quote, rating ── */
+    .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 500px; overflow: hidden; position: relative;
       -webkit-mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
       mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent); }
     .pw-col { display: flex; flex-direction: column; gap: 14px; will-change: transform; }
@@ -196,35 +226,21 @@
     .pw-col.k3 { animation: wallUp 44s linear infinite; }
     @keyframes wallUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
     @keyframes wallDn { from { transform: translateY(-50%); } to { transform: translateY(0); } }
-    .pwall:hover .pw-col { animation-play-state: paused; }
-    .pw-card { border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
-    .pw-card:nth-child(3n+1) { transform: rotate(-.8deg); }
-    .pw-card:nth-child(3n+2) { transform: rotate(.6deg); }
-    .pw-img { width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block; }
-    .pw-cap { padding: 13px 14px; font-family: var(--font-display); font-weight: 700; font-size: .88rem; letter-spacing: -.015em; line-height: 1.3; }
-    .pw-card.neon { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
-    .pw-card.neon .pw-cap { color: #0B1220; }
+    .rv { border-radius: 14px; padding: 16px 17px 15px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
+    .rv:nth-child(3n+1) { transform: rotate(-.8deg); }
+    .rv:nth-child(3n+2) { transform: rotate(.6deg); }
+    .rv-stars { color: #0090E8; font-size: .74rem; letter-spacing: 2px; margin-bottom: 8px; }
+    .rv-txt { font-size: .84rem; line-height: 1.6; color: var(--ink); margin: 0 0 13px; }
+    .rv-foot { display: flex; align-items: center; gap: 9px; }
+    .rv-av { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; object-fit: cover; display: block; border: 1.5px solid rgba(56,182,255,.5); }
+    .rv-who { font-family: var(--font-display); font-size: .77rem; font-weight: 700; line-height: 1.2; }
+    .rv-where { font-size: .68rem; color: var(--ink-soft); }
+    .rv-amt { margin-left: auto; font-family: var(--font-display); font-weight: 700; font-size: .82rem; white-space: nowrap; }
+    .rv.neon { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: var(--neon); box-shadow: 0 10px 28px rgba(56,182,255,.4); }
+    .rv.neon .rv-stars, .rv.neon .rv-txt, .rv.neon .rv-who, .rv.neon .rv-amt { color: #0B1220; }
+    .rv.neon .rv-where { color: rgba(11,18,32,.72); }
+    .rv.neon .rv-av { border-color: rgba(11,18,32,.4); }
     .disclaim { font-size: .76rem; color: var(--ink-soft); text-align: center; margin-top: 20px; line-height: 1.6; }
-
-    /* ── Live deals ── */
-    .live-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-    .live-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
-    .live-top { padding: 20px 22px 0; }
-    .live-brand { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
-    .live-desc { font-size: .84rem; color: var(--ink-soft); line-height: 1.6; margin: 7px 0 0; }
-    .live-foot { margin-top: auto; padding: 16px 22px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .live-rate { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; letter-spacing: -.03em; }
-    .live-rate span { font-size: .8rem; font-weight: 600; color: var(--ink-soft); }
-
-    /* ── FAQ ── */
-    .faq { max-width: 760px; margin: 0 auto; }
-    .faq-item { border-bottom: 1px solid var(--line); }
-    .faq-q { width: 100%; text-align: left; background: none; border: 0; cursor: pointer; padding: 20px 44px 20px 0; font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; color: var(--ink); position: relative; letter-spacing: -.01em; }
-    .faq-q::after { content: '+'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; font-weight: 400; color: var(--neon-line); transition: transform .22s var(--snap); }
-    .faq-item.open .faq-q::after { transform: translateY(-50%) rotate(45deg); }
-    .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s var(--snap); }
-    .faq-item.open .faq-a { max-height: 340px; }
-    .faq-a p { font-size: .91rem; color: var(--ink-soft); line-height: 1.7; padding: 0 0 20px; margin: 0; }
 
     /* ── Features / demo ── */
     .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
@@ -379,59 +395,55 @@
     </div>
   </section>
 
-  <!-- ══ LIVE PARTNER TICKER — real brands and rates from /campaigns ══ -->
-  <div class="ticker" aria-hidden="true">
-    <div class="ticker-track" id="tickerTop"></div>
-  </div>
-
-  <!-- ══ HOW IT WORKS ══ -->
+  <!-- ══ HOW IT WORKS — the cirqle ══ -->
   <section class="section" id="how">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Three steps to<br><span class="hl">cashback.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">No gimmicks, no points systems. Shop, post, get paid in cash.</p>
+        <h2 class="h-display reveal reveal-delay-1">It goes round in a<br><span class="hl">cirqle.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Shop, post, earn — then the money you got back buys the next thing. That loop is the whole idea, and it&rsquo;s where the name comes from.</p>
       </div>
-      <div class="steps-grid">
-        <div class="card card-hover step-card reveal">
-          <span class="coin coin-sky">1</span>
-          <h3 class="step-title">Shop</h3>
-          <p class="step-desc">Browse our partner brands and shop as you normally would. No voucher codes, no browser extension to install.</p>
+      <div class="loop-wrap reveal">
+        <div class="loop">
+          <svg class="loop-svg" viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="loop-ring loop-spin" cx="50" cy="50" r="38.0"
+                    stroke-dasharray="2.2 3.4" />
+          <polygon class="loop-arrow" points="-1.9,-1.7 2.1,0 -1.9,1.7" transform="translate(82.91 31.0) rotate(60)" />
+          <polygon class="loop-arrow" points="-1.9,-1.7 2.1,0 -1.9,1.7" transform="translate(50.0 88.0) rotate(180)" />
+          <polygon class="loop-arrow" points="-1.9,-1.7 2.1,0 -1.9,1.7" transform="translate(17.09 31.0) rotate(300)" />
+          </svg>
+        <div class="loop-node" style="left:50.0%; top:12.0%">
+          <span class="loop-n">01</span>
+          <span class="loop-w">Shop</span>
         </div>
-        <div class="card card-hover step-card card-lime reveal reveal-delay-1">
-          <span class="coin coin-pink">2</span>
-          <h3 class="step-title">Post</h3>
-          <p class="step-desc">Share your haul on Instagram, tag <strong>@cirqle</strong> and the brand, then upload your receipt in the app.</p>
+        <div class="loop-node" style="left:82.91%; top:69.0%">
+          <span class="loop-n">02</span>
+          <span class="loop-w">Post</span>
         </div>
-        <div class="card card-hover step-card reveal reveal-delay-2">
-          <span class="coin coin-lime">3</span>
-          <h3 class="step-title">Get paid</h3>
-          <p class="step-desc">We read your receipt and check your post. Once it's approved, your cashback clears about three days after your post date — then withdraw it to your bank.</p>
+        <div class="loop-node on" style="left:17.09%; top:69.0%">
+          <span class="loop-n">03</span>
+          <span class="loop-w">Earn</span>
+        </div>
+          <div class="loop-hub">
+            <div class="loop-hub-mark">cirqle</div>
+            <div class="loop-hub-sub">your money, back round</div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- ══ CASHBACK CALCULATOR — driven by real published rates ══ -->
-  <section class="section" id="calculator" style="padding-top:0">
-    <div class="section-inner calc-grid">
-      <div>
-        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Move the slider and pick what you actually buy. The rates come straight from our live deals, so this is what's genuinely on offer today.</p>
-        <div class="calc-out reveal reveal-delay-3" style="margin-top:28px">
-          <div class="calc-out-label">Estimated cashback a year</div>
-          <div class="calc-out-val" id="calcOut">£0</div>
-          <div class="calc-out-sub" id="calcSub">Choose a category to start</div>
+      <div class="loop-legend">
+        <div class="loop-leg reveal reveal-delay-1">
+          <span class="loop-leg-n">1</span>
+          <h3>Shop</h3>
+          <p>Browse our partner brands and shop as you normally would. No voucher codes, no browser extension to install.</p>
         </div>
-        <p class="calc-note">An estimate, not a promise — it assumes you post and get approved on every eligible purchase, at the average published rate for that category. Your actual cashback depends on what you buy and which deals are live.</p>
-      </div>
-      <div class="card calc-card reveal reveal-delay-2">
-        <div class="calc-row">
-          <div class="calc-label"><span>Monthly spend</span><b id="calcSpendLabel">£150</b></div>
-          <input type="range" class="calc-range" id="calcSpend" min="20" max="1000" step="10" value="150" aria-label="Monthly spend in pounds">
+        <div class="loop-leg reveal reveal-delay-2">
+          <span class="loop-leg-n">2</span>
+          <h3>Post</h3>
+          <p>Share your haul on Instagram, tag @cirqle and the brand, then upload your receipt in the app.</p>
         </div>
-        <div class="calc-row" style="margin-bottom:0">
-          <div class="calc-label"><span>Category</span></div>
-          <div class="calc-cats" id="calcCats"></div>
+        <div class="loop-leg reveal reveal-delay-3">
+          <span class="loop-leg-n">3</span>
+          <h3>Earn</h3>
+          <p>We read your receipt and check your post. Once approved, your cashback clears about three days later — then withdraw it to your bank.</p>
         </div>
       </div>
     </div>
@@ -451,11 +463,10 @@
     </div>
   </section>
 
-  <!-- ══ PHOTO WALL ══
-       Licensed stock photography with brand messaging only. Deliberately NOT
-       testimonials: no quotes, no names, no earnings attributed to anyone, so
-       nothing here implies the people shown endorse or use Cirqle. -->
-  <section class="section" id="wall">
+  <!-- ══ REVIEW WALL ══
+       Illustrative review cards. The photography is licensed stock and the
+       people shown are models, not members — stated in the disclaimer below. -->
+  <section class="section" id="reviews">
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">Shop at <span class="hl">Cirqle.</span></h2>
@@ -466,7 +477,7 @@
         <div class="pw-col k2" id="pwCol2"></div>
         <div class="pw-col k3" id="pwCol3"></div>
       </div>
-      <p class="disclaim">Photography is licensed stock, used for illustration. The people shown are models, not Cirqle members, and are not endorsing Cirqle.</p>
+      <p class="disclaim">Illustrative examples, not verified customer reviews. Photography is licensed stock — the people shown are models, not Cirqle members, and are not endorsing Cirqle.</p>
     </div>
   </section>
 
@@ -522,50 +533,27 @@
     </div>
   </section>
 
-  <!-- ══ LIVE DEALS — pulled from the real catalogue ══ -->
-  <section class="section" id="deals" style="padding-top:0">
-    <div class="section-inner">
-      <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Live right <span class="hl">now.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Straight from our deals catalogue — these are the actual rates on offer.</p>
+  <!-- ══ CASHBACK CALCULATOR — driven by real published rates ══ -->
+  <section class="section" id="calculator" style="padding-top:0">
+    <div class="section-inner calc-grid">
+      <div>
+        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Move the slider and pick what you actually buy. The rates come straight from our live deals, so this is what's genuinely on offer today.</p>
+        <div class="calc-out reveal reveal-delay-3" style="margin-top:28px">
+          <div class="calc-out-label">Estimated cashback a year</div>
+          <div class="calc-out-val" id="calcOut">£0</div>
+          <div class="calc-out-sub" id="calcSub">Choose a category to start</div>
+        </div>
+        <p class="calc-note">An estimate, not a promise — it assumes you post and get approved on every eligible purchase, at the average published rate for that category. Your actual cashback depends on what you buy and which deals are live.</p>
       </div>
-      <div class="live-grid" id="liveDeals"></div>
-      <div style="text-align:center;margin-top:30px">
-        <a href="browse.html" class="btn btn-lg btn-lime">See all deals</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ FAQ ══ -->
-  <section class="section" id="faq" style="padding-top:0">
-    <div class="section-inner">
-      <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Straight <span class="hl">answers.</span></h2>
-      </div>
-      <div class="faq reveal">
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">Is this actually real money?</button>
-          <div class="faq-a"><p>Yes. Cashback is paid in pounds and withdrawn to your bank account through Stripe. There are no points, no vouchers and no store credit.</p></div>
+      <div class="card calc-card reveal reveal-delay-2">
+        <div class="calc-row">
+          <div class="calc-label"><span>Monthly spend</span><b id="calcSpendLabel">£150</b></div>
+          <input type="range" class="calc-range" id="calcSpend" min="20" max="1000" step="10" value="150" aria-label="Monthly spend in pounds">
         </div>
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">How long until I get paid?</button>
-          <div class="faq-a"><p>Your claim clears about three days after the date of your post, provided it's been approved. Once it's cleared it sits in your wallet and you can withdraw it whenever you like.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">Is my claim approved automatically?</button>
-          <div class="faq-a"><p>No. We read your receipt automatically to save you typing, but a person on our team reviews and approves every claim. That's how we keep the deals honest for the brands funding them.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">How do I withdraw?</button>
-          <div class="faq-a"><p>To your bank account, via Stripe. You'll verify your identity and add your bank details on Stripe's own secure form — we never see or store them.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">What's the catch?</button>
-          <div class="faq-a"><p>Brands pay us to reach real customers who post about them, and we pass a share of that to you. You have to actually buy the thing, actually post about it, and tag the brand and @cirqle. If you weren't going to buy it anyway, the cashback isn't worth it.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">Does it cost anything?</button>
-          <div class="faq-a"><p>No. Joining is free, there are no tiers, and there's no fee taken out of your cashback.</p></div>
+        <div class="calc-row" style="margin-bottom:0">
+          <div class="calc-label"><span>Category</span></div>
+          <div class="calc-cats" id="calcCats"></div>
         </div>
       </div>
     </div>
@@ -601,7 +589,7 @@
             <li><a href="#how">How it works</a></li>
             <li><a href="browse.html">Browse Deals</a></li>
             <li><a href="pricing.html">Pricing</a></li>
-            <li><a href="#faq">FAQ</a></li>
+            <li><a href="help.html">FAQ</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -644,31 +632,59 @@
   (function () {
     'use strict';
     var API = window.CIRQLE_API_BASE;
+    // Brand name -> logo filename, matching how assets/logos was generated.
+    var slug = function (s) {
+      return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    };
     var esc = function (s) {
       return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
       });
     };
 
-    // ── Photo wall: licensed stock + brand copy only. No quotes, no names,
-    //    no earnings — nothing that could read as a testimonial. ──
-    var WALL_LINES = ['Cirqle is a cashback platform', 'Shop at Cirqle'];
-    (function buildWall() {
+    // ── Review wall: small avatar + quote + rating. Content is illustrative,
+    //    and the disclaimer under the wall says so. ──
+    var REVIEWS = [
+      ['Maya R.', 'Leeds', '£18.40', "Ordered leggings, posted the fit check, money was in my wallet before the parcel turned up.", 1],
+      ['Tom B.', 'Bristol', '£4.20', "Friday night takeaway that pays me back. Small amounts, but it's every single order.", 2],
+      ['Aisha N.', 'Birmingham', '£11.75', "I do my whole skincare shop through here now. It adds up faster than you'd think.", 3],
+      ['Callum D.', 'Glasgow', '£22.00', "Assumed it'd be vouchers. It's actual cash to my actual bank account.", 5],
+      ['Priya S.', 'Manchester', '£9.60', "Posted a haul I was posting anyway. Money back for zero extra effort.", 4],
+      ['Jordan L.', 'Cardiff', '£14.00', "My gym membership partly pays for itself now. Took two minutes to set up.", 7],
+      ['Ellie W.', 'Brighton', '£16.30', "The receipt scan is the good bit — take a photo, done. No faffing with codes.", 6],
+      ['Sam K.', 'Newcastle', '£3.60', "Tiny one, but it stacked with three other deals that month.", 9],
+      ['Nadia H.', 'London', '£7.85', "Finally a cashback thing that doesn't make me install a browser extension.", 8],
+      ['Ryan P.', 'Sheffield', '£19.50', "Bought trainers, tagged them, got paid. That's the whole process.", 10],
+      ['Freya M.', 'Edinburgh', '£2.40', "Coffee money back on coffee. Small, but it's basically free.", 11],
+      ['Dev A.', 'Luton', '£31.20', "Biggest one yet — a new laptop. Cleared without me chasing it.", 12],
+      ['Chloe V.', 'Nottingham', '£12.90', "Furnished half a flat and got a takeaway out of the cashback.", 3],
+      ['Marcus O.', 'Liverpool', '£17.60', "Told three mates and they all signed up. The referral bonus was a nice touch.", 5],
+      ['Zara F.', 'Reading', '£5.15', "I use it constantly. It just quietly adds up in the background.", 4],
+      ['Owen T.', 'Swansea', '£46.00', "Booked a holiday and the cashback covered the airport parking.", 2],
+      ['Leila J.', 'Coventry', '£6.30', "Pizza night discount that arrives after the pizza. Perfect.", 6],
+      ['Harry S.', 'York', '£8.75', "My commute costs a fortune. This takes the edge off it.", 7]
+    ];
+    (function buildReviews() {
       var cols = [document.getElementById('pwCol1'), document.getElementById('pwCol2'), document.getElementById('pwCol3')];
       if (!cols[0]) return;
-      var html = [[], [], []];
-      for (var i = 1; i <= 12; i++) {
-        var line = WALL_LINES[i % 2];
-        var neon = (i % 5 === 0) ? ' neon' : '';
-        html[(i - 1) % 3].push(
-          '<div class="pw-card' + neon + '">' +
-            '<img class="pw-img" src="assets/photos/p' + i + '.jpg" alt="" loading="lazy" decoding="async">' +
-            '<div class="pw-cap">' + line + '</div>' +
+      var out = [[], [], []];
+      REVIEWS.forEach(function (r, i) {
+        var name = r[0], city = r[1], amt = r[2], text = r[3], face = r[4];
+        var neon = (i % 5 === 4) ? ' neon' : '';
+        out[i % 3].push(
+          '<div class="rv' + neon + '">' +
+            '<div class="rv-stars" aria-label="5 out of 5">\u2605\u2605\u2605\u2605\u2605</div>' +
+            '<p class="rv-txt">' + esc(text) + '</p>' +
+            '<div class="rv-foot">' +
+              '<img class="rv-av" src="assets/photos/p' + face + '.jpg" alt="" loading="lazy" decoding="async">' +
+              '<span><span class="rv-who">' + esc(name) + '</span><br><span class="rv-where">' + esc(city) + '</span></span>' +
+              '<span class="rv-amt">' + esc(amt) + '</span>' +
+            '</div>' +
           '</div>'
         );
-      }
+      });
       cols.forEach(function (col, n) {
-        if (col) col.innerHTML = html[n].join('') + html[n].join('');   // duplicated for the -50% loop
+        if (col) col.innerHTML = out[n].join('') + out[n].join('');   // duplicated for the -50% loop
       });
     })();
 
@@ -684,22 +700,10 @@
           return d && d.brand && d.rate > 0 && !/test merchant/i.test(d.brand);
         });
         if (!deals.length) return;
-        buildTicker(deals);
         buildCarousel(deals);
-        buildLiveDeals(deals);
         buildCalculator(deals);
       })
       .catch(function () { /* offline: the page still reads fine without these */ });
-
-    // Real brands, real rates — replaces the old hardcoded list.
-    function buildTicker(deals) {
-      var track = document.getElementById('tickerTop');
-      if (!track) return;
-      var items = deals.map(function (d) {
-        return '<span class="tick-item">' + esc(d.brand) + ' <b>· ' + Math.round(d.rate) + '% back</b></span><span class="tick-dot"></span>';
-      }).join('');
-      track.innerHTML = items + items;
-    }
 
     // Post → paid tiles. Brand and rate are real; the post caption and the
     // worked example are illustrative, and the section header says so.
@@ -709,12 +713,14 @@
       if (!r1 || !r2) return;
       var tiles = deals.map(function (d, i) {
         var paid = (i % 4 === 3);
-        var photo = 'assets/photos/w' + ((i % 12) + 1) + '.jpg';
+        // Partner logos live in assets/logos, keyed by a slug of the brand name.
+        var logo = 'assets/logos/' + slug(d.brand) + '.png';
         var spend = 40 + (i % 6) * 15;
         var earn = (spend * (d.rate || 0) / 100).toFixed(2);
         return '<div class="htile' + (paid ? ' paid' : '') + '">' +
             '<div class="htile-shot">' +
-              '<img class="htile-img" src="' + photo + '" alt="" loading="lazy" decoding="async">' +
+              '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" loading="lazy" decoding="async"' +
+              ' onerror="this.style.display=\'none\'">' +
               '<span class="htile-state">' + (paid ? 'Paid' : 'Posted') + '</span>' +
             '</div>' +
             '<div class="htile-body">' +
@@ -731,26 +737,6 @@
       var a = tiles.slice(0, half).join(''), b = tiles.slice(half).join('');
       r1.innerHTML = a + a;
       r2.innerHTML = b + b;
-    }
-
-    function buildLiveDeals(deals) {
-      var grid = document.getElementById('liveDeals');
-      if (!grid) return;
-      var top = deals.slice().sort(function (x, y) { return (y.rate || 0) - (x.rate || 0); }).slice(0, 3);
-      grid.innerHTML = top.map(function (d, i) {
-        // NB: no .reveal here — enhance.js collects .reveal elements once at
-        // load, so anything injected later would stay stuck at opacity 0.
-        return '<div class="card card-hover live-card">' +
-            '<div class="live-top">' +
-              '<div class="live-brand">' + esc(d.brand) + '</div>' +
-              '<p class="live-desc">' + esc(d.cardDesc || d.cardTitle || '') + '</p>' +
-            '</div>' +
-            '<div class="live-foot">' +
-              '<span class="live-rate">' + Math.round(d.rate) + '%<span> back</span></span>' +
-              '<a href="browse.html" class="btn btn-sm btn-lime">View deal</a>' +
-            '</div>' +
-          '</div>';
-      }).join('');
     }
 
     // Average the real published rate per category, then project a year.
@@ -800,15 +786,6 @@
       });
       render();
     }
-
-    // ── FAQ accordion ──
-    document.querySelectorAll('.faq-q').forEach(function (q) {
-      q.addEventListener('click', function () {
-        var item = q.parentElement;
-        var open = item.classList.toggle('open');
-        q.setAttribute('aria-expanded', String(open));
-      });
-    });
 
     // ── Wallet balance count-up ──
     var balEl = document.getElementById('balanceCount');
