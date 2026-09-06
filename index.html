@@ -45,6 +45,9 @@
       background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220;
     }
     body.theme-neon .sticker-lime { background: var(--neon); color: #0B1220; }
+    /* Wordmark matches the primary button. Logotypes are exempt from the
+       WCAG contrast minimum, so the neon is fine here where it isn't for copy. */
+    body.theme-neon .logo, body.theme-neon .footer-logo { color: var(--neon); }
     body.theme-neon .card-lime { border-color: rgba(56,182,255,.42); background: #F3FBFF; }
 
     /* ── HERO ── */
@@ -78,13 +81,6 @@
       0%, 100% { box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.35); }
       50% { box-shadow: 0 8px 30px rgba(56,182,255,.55), 0 0 0 8px rgba(56,182,255,.10), inset 0 1px 0 rgba(255,255,255,.35); }
     }
-    .wallet-phone { transition: transform .35s var(--snap); will-change: transform; }
-    .wp-item.ping { animation: itemPing 1.5s var(--snap); }
-    @keyframes itemPing {
-      0% { box-shadow: 0 0 0 0 rgba(56,182,255,.42); }
-      65% { box-shadow: 0 0 0 9px rgba(56,182,255,0); }
-      100% { box-shadow: 0 0 0 0 rgba(56,182,255,0); }
-    }
     .hero-h {
       font-family: var(--font-display); font-weight: 700;
       font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: 1.04;
@@ -96,37 +92,6 @@
     .proof-text { font-size: .84rem; font-weight: 500; color: var(--ink-soft); }
     .proof-text b { color: var(--ink); font-weight: 600; }
 
-    /* wallet phone */
-    .hero-visual { position: relative; display: flex; justify-content: center; }
-    .wallet-phone {
-      width: min(310px, 80vw); background: var(--card);
-      border: 1px solid var(--line); border-radius: 26px;
-      box-shadow: var(--shadow-lg); padding: 18px; position: relative; z-index: 2;
-    }
-    .wp-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .wp-hello { font-size: .76rem; font-weight: 600; color: var(--ink-soft); }
-    .wp-balance-card {
-      background: linear-gradient(135deg, var(--neon-soft), var(--neon));
-      color: #0B1220; border-radius: 16px; padding: 16px 18px; margin-bottom: 12px;
-      box-shadow: 0 10px 26px rgba(56,182,255,.34);
-    }
-    .wp-balance-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; opacity: .78; }
-    .wp-balance { font-family: var(--font-display); font-weight: 700; font-size: 2.2rem; letter-spacing: -0.03em; line-height: 1.15; }
-    .wp-balance-up { font-size: .72rem; font-weight: 600; color: rgba(11,18,32,.72); }
-    .wp-item {
-      display: flex; align-items: center; gap: 10px;
-      border: 1px solid var(--line); border-radius: 12px;
-      padding: 10px 12px; margin-bottom: 9px; background: var(--paper);
-    }
-    .wp-item-icon {
-      width: 34px; height: 34px; border-radius: 50%;
-      background: var(--blue-tint);
-      display: flex; align-items: center; justify-content: center; font-size: .95rem; flex-shrink: 0;
-    }
-    .wp-item-name { font-size: .76rem; font-weight: 600; line-height: 1.25; }
-    .wp-item-sub { font-size: .64rem; color: var(--ink-soft); font-weight: 500; }
-    .wp-item-cash { margin-left: auto; font-family: var(--font-display); font-weight: 700; font-size: .88rem; color: var(--ink); }
-
     /* ── Truth tiles (replaced the invented stats) ── */
     .facts-strip { max-width: 1140px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) clamp(56px,7vw,90px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; position: relative; z-index: 1; }
     .fact-card { text-align: center; padding: 26px 16px; }
@@ -134,48 +99,38 @@
     .fact-title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; letter-spacing: -.02em; }
     .fact-sub { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
 
-    /* ── How it works: the cirqle ──
-       Shop -> Post -> Earn -> Shop again. The three steps genuinely loop, so
-       they're drawn as a ring: the brand name is the diagram. */
-    .loop-wrap { max-width: 620px; margin: 0 auto; }
-    .loop { position: relative; width: 100%; aspect-ratio: 1; }
+    /* ── The cirqle ring (hero, right of the headline) ──
+       Small on purpose: it's a mark beside the title, not a diagram. */
+    .loop { position: relative; width: min(360px, 78vw); aspect-ratio: 1; margin: 0 auto; }
     .loop-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
     .loop-ring { fill: none; stroke: var(--neon); stroke-width: .5; stroke-linecap: round; opacity: .5; }
     .loop-spin { transform-origin: 50% 50%; animation: spin 46s linear infinite; }
     .loop-arrow { fill: var(--neon); }
     .loop-node {
       position: absolute; transform: translate(-50%, -50%);
-      width: 30%; aspect-ratio: 1; border-radius: 50%;
+      width: 27%; aspect-ratio: 1; border-radius: 50%;
       background: var(--card); border: 1px solid var(--line);
-      box-shadow: 0 10px 30px rgba(11,18,32,.10);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; gap: 2px;
+      box-shadow: 0 8px 22px rgba(11,18,32,.10);
+      display: flex; align-items: center; justify-content: center;
     }
-    .loop-node.on { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: transparent; box-shadow: 0 14px 34px rgba(56,182,255,.45); }
-    .loop-n { font-family: var(--font-display); font-size: .62rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); }
-    .loop-node.on .loop-n { color: rgba(11,18,32,.7); }
-    .loop-w { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.1rem, 3.4vw, 1.7rem); letter-spacing: -.03em; line-height: 1; }
-    .loop-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 34%; }
-    .loop-hub-mark { font-family: var(--font-display); font-weight: 700; font-size: clamp(1rem, 2.8vw, 1.35rem); letter-spacing: -.04em; color: var(--ink); }
-    .loop-hub-sub { font-size: clamp(.6rem, 1.5vw, .72rem); color: var(--ink-soft); line-height: 1.45; margin-top: 3px; }
-    .loop-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 34px; }
-    .loop-leg h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin: 0 0 5px; }
-    .loop-leg p { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; margin: 0; }
-    .loop-leg-n { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); color: #0B1220; font-family: var(--font-display); font-weight: 700; font-size: .72rem; margin-bottom: 9px; }
-    @media (max-width: 700px) {
-      /* A ring can't hold legible text on a phone — stack it instead. */
-      .loop { aspect-ratio: auto; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-      .loop-svg, .loop-hub { display: none; }
-      .loop-node { position: static; transform: none; width: 148px; }
-      .loop-legend { grid-template-columns: 1fr; gap: 22px; margin-top: 26px; text-align: center; }
-    }
-    @media (prefers-reduced-motion: reduce) { .loop-spin { animation: none; } }
+    .loop-node.on { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: transparent; box-shadow: 0 12px 28px rgba(56,182,255,.45); }
+    .loop-w { font-family: var(--font-display); font-weight: 700; font-size: clamp(.82rem, 2.3vw, 1rem); letter-spacing: -.02em; }
+    .loop-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 46%; text-align: center; }
+    .loop-hub-line { font-family: var(--font-display); font-weight: 600; font-size: clamp(.78rem, 2vw, .92rem); line-height: 1.35; letter-spacing: -.02em; color: var(--ink-soft); }
+    .loop-hub-line b { color: var(--ink); font-weight: 700; }
+
+    /* ── Three steps ── */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+    .step-n { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; font-family: var(--font-display); font-weight: 700; font-size: .84rem; margin-bottom: 12px; }
+    .step h3 { font-family: var(--font-display); font-size: 1.12rem; font-weight: 700; margin: 0 0 7px; letter-spacing: -.02em; }
+    .step p { font-size: .89rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
 
     /* ── Cashback calculator ── */
     .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
     .calc-card { padding: 28px; }
     .calc-row { margin-bottom: 20px; }
-    .calc-label { display: flex; justify-content: space-between; align-items: baseline; font-size: .82rem; font-weight: 600; margin-bottom: 9px; }
+    .calc-label { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: .82rem; font-weight: 600; margin-bottom: 9px; }
+    .calc-label em { font-style: normal; color: var(--ink-soft); font-weight: 500; }
     .calc-label b { font-family: var(--font-display); font-size: 1.05rem; }
     .calc-range { width: 100%; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--blue-tint); outline: none; }
     .calc-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(56,182,255,.55); cursor: pointer; }
@@ -191,7 +146,7 @@
     .calc-note { font-size: .74rem; color: var(--ink-soft); margin-top: 14px; line-height: 1.55; }
 
     /* ── Post → paid carousel (horizontal) ── */
-    .hcar { display: flex; flex-direction: column; gap: 14px; overflow: hidden;
+    .hcar { display: flex; flex-direction: column; gap: 14px; overflow: hidden; min-height: 404px;
       -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
       mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
     .hcar-row { display: flex; gap: 14px; width: max-content; will-change: transform; }
@@ -281,16 +236,14 @@
       .hero { grid-template-columns: 1fr; text-align: center; padding-top: 40px; }
       .hero-sub, .hero-proof, .hero-actions { margin-left: auto; margin-right: auto; justify-content: center; }
       .hero-visual { margin-top: 22px; }
-      .hero-visual .floaty { display: none; }
       .facts-strip { grid-template-columns: repeat(2, 1fr); }
-      .steps-grid, .live-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; gap: 30px; }
       .features-grid, .calc-grid { grid-template-columns: 1fr; }
       .pwall { grid-template-columns: repeat(2, 1fr); height: 460px; }
     }
     @media (max-width: 600px) {
       .hero-h { font-size: clamp(3.1rem, 14vw, 4.2rem); margin-top: 6px; }
       .hero-proof { display: none; }
-      .hero-visual { display: none; }
       .hero { padding-top: 28px; }
       .facts-strip { grid-template-columns: 1fr 1fr; gap: 12px; }
       body { padding-bottom: 68px; }
@@ -335,36 +288,19 @@
     </div>
 
     <div class="hero-visual fade-up d3">
-      <div class="orbit" aria-hidden="true" style="top:50%; left:50%; transform:translate(-50%,-50%)"></div>
-      <!-- Illustrative wallet — labelled as an example, not a real account -->
-      <div class="wallet-phone">
-        <div class="wp-top">
-          <span class="wp-hello">Your wallet</span>
-          <span class="chip">Example</span>
+      <div class="loop" aria-label="Shop, then post, then earn — and round again">
+        <svg class="loop-svg" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="loop-ring loop-spin" cx="50" cy="50" r="37.0" stroke-dasharray="2.2 3.4" />
+            <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(82.04 31.5) rotate(60)" />
+            <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(50.0 87.0) rotate(180)" />
+            <polygon class="loop-arrow" points="-2.1,-1.9 2.3,0 -2.1,1.9" transform="translate(17.96 31.5) rotate(300)" />
+        </svg>
+          <div class="loop-node" style="left:50.0%; top:13.0%"><span class="loop-w">Shop</span></div>
+          <div class="loop-node" style="left:82.04%; top:68.5%"><span class="loop-w">Post</span></div>
+          <div class="loop-node on" style="left:17.96%; top:68.5%"><span class="loop-w">Earn</span></div>
+        <div class="loop-hub">
+          <span class="loop-hub-line">It goes round<br>in a <b>cirqle.</b></span>
         </div>
-        <div class="wp-balance-card">
-          <div class="wp-balance-label">Cleared balance</div>
-          <div class="wp-balance">£<span id="balanceCount">0</span>.80</div>
-          <div class="wp-balance-up">Ready to withdraw</div>
-        </div>
-        <div class="wp-item">
-          <span class="wp-item-icon"><i class="ico ico-bag ico-deep"></i></span>
-          <span><span class="wp-item-name">Nike — receipt uploaded</span><br><span class="wp-item-sub">Clearing</span></span>
-          <span class="wp-item-cash">+£3.50</span>
-        </div>
-        <div class="wp-item">
-          <span class="wp-item-icon"><i class="ico ico-sparkles ico-deep"></i></span>
-          <span><span class="wp-item-name">ASOS — post shared</span><br><span class="wp-item-sub">Approved</span></span>
-          <span class="wp-item-cash">+£2.10</span>
-        </div>
-        <div class="wp-item">
-          <span class="wp-item-icon"><i class="ico ico-cup ico-deep"></i></span>
-          <span><span class="wp-item-name">Costa — cleared</span><br><span class="wp-item-sub">In your wallet</span></span>
-          <span class="wp-item-cash">+£0.80</span>
-        </div>
-      </div>
-      <div class="floaty" style="position:absolute; top:20px; right:clamp(-6px,1vw,10px); z-index:3">
-        <span class="sticker sticker-lime">Cash, not points</span>
       </div>
     </div>
   </header>
@@ -395,53 +331,26 @@
     </div>
   </section>
 
-  <!-- ══ HOW IT WORKS — the cirqle ══ -->
-  <section class="section" id="how">
+  <!-- ══ HOW IT WORKS — the ring itself now lives in the hero ══ -->
+  <section class="section" id="how" style="padding-top:0">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">It goes round in a<br><span class="hl">cirqle.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Shop, post, earn — then the money you got back buys the next thing. That loop is the whole idea, and it&rsquo;s where the name comes from.</p>
+        <h2 class="h-display reveal reveal-delay-1">Shop. Post. <span class="hl">Earn.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Three steps, and the cashback from one buys the next thing. That loop is where the name comes from.</p>
       </div>
-      <div class="loop-wrap reveal">
-        <div class="loop">
-          <svg class="loop-svg" viewBox="0 0 100 100" aria-hidden="true">
-            <circle class="loop-ring loop-spin" cx="50" cy="50" r="38.0"
-                    stroke-dasharray="2.2 3.4" />
-          <polygon class="loop-arrow" points="-1.9,-1.7 2.1,0 -1.9,1.7" transform="translate(82.91 31.0) rotate(60)" />
-          <polygon class="loop-arrow" points="-1.9,-1.7 2.1,0 -1.9,1.7" transform="translate(50.0 88.0) rotate(180)" />
-          <polygon class="loop-arrow" points="-1.9,-1.7 2.1,0 -1.9,1.7" transform="translate(17.09 31.0) rotate(300)" />
-          </svg>
-        <div class="loop-node" style="left:50.0%; top:12.0%">
-          <span class="loop-n">01</span>
-          <span class="loop-w">Shop</span>
-        </div>
-        <div class="loop-node" style="left:82.91%; top:69.0%">
-          <span class="loop-n">02</span>
-          <span class="loop-w">Post</span>
-        </div>
-        <div class="loop-node on" style="left:17.09%; top:69.0%">
-          <span class="loop-n">03</span>
-          <span class="loop-w">Earn</span>
-        </div>
-          <div class="loop-hub">
-            <div class="loop-hub-mark">cirqle</div>
-            <div class="loop-hub-sub">your money, back round</div>
-          </div>
-        </div>
-      </div>
-      <div class="loop-legend">
-        <div class="loop-leg reveal reveal-delay-1">
-          <span class="loop-leg-n">1</span>
+      <div class="steps">
+        <div class="step reveal reveal-delay-1">
+          <span class="step-n">1</span>
           <h3>Shop</h3>
           <p>Browse our partner brands and shop as you normally would. No voucher codes, no browser extension to install.</p>
         </div>
-        <div class="loop-leg reveal reveal-delay-2">
-          <span class="loop-leg-n">2</span>
+        <div class="step reveal reveal-delay-2">
+          <span class="step-n">2</span>
           <h3>Post</h3>
           <p>Share your haul on Instagram, tag @cirqle and the brand, then upload your receipt in the app.</p>
         </div>
-        <div class="loop-leg reveal reveal-delay-3">
-          <span class="loop-leg-n">3</span>
+        <div class="step reveal reveal-delay-3">
+          <span class="step-n">3</span>
           <h3>Earn</h3>
           <p>We read your receipt and check your post. Once approved, your cashback clears about three days later — then withdraw it to your bank.</p>
         </div>
@@ -538,18 +447,26 @@
     <div class="section-inner calc-grid">
       <div>
         <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Move the slider and pick what you actually buy. The rates come straight from our live deals, so this is what's genuinely on offer today.</p>
+        <p class="h-sub reveal reveal-delay-2">Only spending at our partner brands earns cashback, and only when you post about it &mdash; so this asks for both. Rates come straight from our live deals.</p>
         <div class="calc-out reveal reveal-delay-3" style="margin-top:28px">
-          <div class="calc-out-label">Estimated cashback a year</div>
-          <div class="calc-out-val" id="calcOut">£0</div>
+          <div class="calc-out-label">Realistic cashback a year</div>
+          <div class="calc-out-val" id="calcOut">&mdash;</div>
           <div class="calc-out-sub" id="calcSub">Choose a category to start</div>
         </div>
-        <p class="calc-note">An estimate, not a promise — it assumes you post and get approved on every eligible purchase, at the average published rate for that category. Your actual cashback depends on what you buy and which deals are live.</p>
+        <p class="calc-note">A range, not a promise. The low end uses the lowest published rate in that category and the high end the average, applied only to the share of purchases you actually post and get approved. Real cashback depends on which deals are live when you shop.</p>
       </div>
       <div class="card calc-card reveal reveal-delay-2">
         <div class="calc-row">
-          <div class="calc-label"><span>Monthly spend</span><b id="calcSpendLabel">£150</b></div>
-          <input type="range" class="calc-range" id="calcSpend" min="20" max="1000" step="10" value="150" aria-label="Monthly spend in pounds">
+          <div class="calc-label"><span>Monthly spend <em>at partner brands</em></span><b id="calcSpendLabel">£80</b></div>
+          <input type="range" class="calc-range" id="calcSpend" min="10" max="400" step="10" value="80" aria-label="Monthly spend at partner brands, in pounds">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label"><span>How often you post about a purchase</span></div>
+          <div class="calc-cats" id="calcPost">
+            <button type="button" class="calc-cat" data-post="0.25" aria-pressed="false">Now and then</button>
+            <button type="button" class="calc-cat" data-post="0.5" aria-pressed="true">About half</button>
+            <button type="button" class="calc-cat" data-post="0.8" aria-pressed="false">Most times</button>
+          </div>
         </div>
         <div class="calc-row" style="margin-bottom:0">
           <div class="calc-label"><span>Category</span></div>
@@ -676,7 +593,7 @@
             '<div class="rv-stars" aria-label="5 out of 5">\u2605\u2605\u2605\u2605\u2605</div>' +
             '<p class="rv-txt">' + esc(text) + '</p>' +
             '<div class="rv-foot">' +
-              '<img class="rv-av" src="assets/photos/p' + face + '.jpg" alt="" loading="lazy" decoding="async">' +
+              '<img class="rv-av" src="assets/photos/p' + face + '.jpg" alt="" decoding="async">' +
               '<span><span class="rv-who">' + esc(name) + '</span><br><span class="rv-where">' + esc(city) + '</span></span>' +
               '<span class="rv-amt">' + esc(amt) + '</span>' +
             '</div>' +
@@ -691,19 +608,51 @@
     // ── Everything below needs the real catalogue ──
     var CATEGORY_FALLBACK = 'Fashion & Beauty';
 
-    fetch(API + '/campaigns')
-      .then(function (r) { return r.ok ? r.json() : []; })
+    // The catalogue drives the carousel and the calculator. It used to be a bare
+    // fetch with a silent catch, so a slow or failed request left both sections
+    // as empty strips under their headings. Now: time out, retry, and if it
+    // still fails, remove those sections instead of showing a gap.
+    function getCampaigns(attempt) {
+      var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+      var timer = setTimeout(function () { ctrl && ctrl.abort(); }, 8000);
+      return fetch(API + '/campaigns', ctrl ? { signal: ctrl.signal } : undefined)
+        .then(function (r) {
+          clearTimeout(timer);
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .catch(function (err) {
+          clearTimeout(timer);
+          if (attempt < 2) return new Promise(function (res) {
+            setTimeout(function () { res(getCampaigns(attempt + 1)); }, 900 * (attempt + 1));
+          });
+          throw err;
+        });
+    }
+
+    function dropSection(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    }
+
+    getCampaigns(0)
       .then(function (deals) {
         deals = (deals || []).filter(function (d) {
           // Drop test rows and anything without a real rate, so a half-filled
           // catalogue row can never render as "0% back" on the homepage.
           return d && d.brand && d.rate > 0 && !/test merchant/i.test(d.brand);
         });
-        if (!deals.length) return;
+        if (!deals.length) throw new Error('catalogue empty');
         buildCarousel(deals);
         buildCalculator(deals);
       })
-      .catch(function () { /* offline: the page still reads fine without these */ });
+      .catch(function (err) {
+        // Nothing truthful to show without the catalogue, so take the sections
+        // out entirely rather than render a heading over blank space.
+        dropSection('flow');
+        dropSection('calculator');
+        if (window.console) console.warn('Cirqle: deals unavailable —', err.message);
+      });
 
     // Post → paid tiles. Brand and rate are real; the post caption and the
     // worked example are illustrative, and the section header says so.
@@ -719,7 +668,7 @@
         var earn = (spend * (d.rate || 0) / 100).toFixed(2);
         return '<div class="htile' + (paid ? ' paid' : '') + '">' +
             '<div class="htile-shot">' +
-              '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" loading="lazy" decoding="async"' +
+              '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
               ' onerror="this.style.display=\'none\'">' +
               '<span class="htile-state">' + (paid ? 'Paid' : 'Posted') + '</span>' +
             '</div>' +
@@ -739,7 +688,10 @@
       r2.innerHTML = b + b;
     }
 
-    // Average the real published rate per category, then project a year.
+    // Cashback the way it actually lands: only spending at partner brands counts,
+    // only the purchases you post about count, and rates vary across the deals in
+    // a category — so this reports a range, from the category's lowest published
+    // rate to its average, rather than one confident-looking number.
     function buildCalculator(deals) {
       var cats = {};
       deals.forEach(function (d) {
@@ -748,83 +700,58 @@
         (cats[c] = cats[c] || []).push(d.rate);
       });
       var names = Object.keys(cats).sort();
-      if (!names.length) return;
+      if (!names.length) throw new Error('no categories');
+
       var wrap = document.getElementById('calcCats');
+      var postWrap = document.getElementById('calcPost');
       var spend = document.getElementById('calcSpend');
       var spendLabel = document.getElementById('calcSpendLabel');
       var out = document.getElementById('calcOut');
       var sub = document.getElementById('calcSub');
-      if (!wrap || !spend) return;
+      if (!wrap || !spend || !postWrap) return;
 
-      var active = names.indexOf(CATEGORY_FALLBACK) > -1 ? CATEGORY_FALLBACK : names[0];
+      var active = names.indexOf('Fashion & Beauty') > -1 ? 'Fashion & Beauty' : names[0];
+      var postRate = 0.5;
+
       wrap.innerHTML = names.map(function (n) {
         return '<button type="button" class="calc-cat" data-cat="' + esc(n) + '" aria-pressed="' +
                (n === active ? 'true' : 'false') + '">' + esc(n) + '</button>';
       }).join('');
 
-      function avg(c) {
-        var a = cats[c] || [];
-        return a.reduce(function (s, v) { return s + v; }, 0) / (a.length || 1);
+      function stats(c) {
+        var a = cats[c] || [0];
+        var lo = Math.min.apply(null, a);
+        var avg = a.reduce(function (s, v) { return s + v; }, 0) / a.length;
+        return { lo: lo, hi: avg };
       }
       function render() {
         var v = +spend.value;
-        var rate = avg(active);
+        var s = stats(active);
+        var eligible = v * 12 * postRate;          // £ a year actually claimed on
+        var lo = Math.round(eligible * s.lo / 100);
+        var hi = Math.round(eligible * s.hi / 100);
         spendLabel.textContent = '£' + v;
-        out.textContent = '£' + Math.round(v * 12 * rate / 100).toLocaleString();
-        sub.textContent = 'On £' + v + ' a month in ' + active.toLowerCase() +
-                          ', at an average ' + rate.toFixed(1) + '% across our live deals.';
+        out.textContent = (lo === hi) ? ('£' + lo) : ('£' + lo + '\u2013£' + hi);
+        sub.textContent = 'On £' + v + ' a month at ' + active.toLowerCase() +
+          ' partners, posting about ' + Math.round(postRate * 100) + '% of them, at ' +
+          s.lo.toFixed(0) + '\u2013' + s.hi.toFixed(1) + '% across our live deals.';
+      }
+      function wire(container, onPick) {
+        container.addEventListener('click', function (e) {
+          var btn = e.target.closest('.calc-cat');
+          if (!btn) return;
+          container.querySelectorAll('.calc-cat').forEach(function (b) {
+            b.setAttribute('aria-pressed', String(b === btn));
+          });
+          onPick(btn);
+          render();
+        });
       }
       spend.addEventListener('input', render);
-      wrap.addEventListener('click', function (e) {
-        var btn = e.target.closest('.calc-cat');
-        if (!btn) return;
-        active = btn.dataset.cat;
-        wrap.querySelectorAll('.calc-cat').forEach(function (b) {
-          b.setAttribute('aria-pressed', String(b === btn));
-        });
-        render();
-      });
+      wire(wrap, function (b) { active = b.dataset.cat; });
+      wire(postWrap, function (b) { postRate = parseFloat(b.dataset.post); });
       render();
     }
-
-    // ── Wallet balance count-up ──
-    var balEl = document.getElementById('balanceCount');
-    if (balEl) {
-      var val = 0;
-      var t = setInterval(function () {
-        val += 1.4;
-        if (val >= 47) { balEl.textContent = '47'; clearInterval(t); }
-        else balEl.textContent = Math.floor(val);
-      }, 30);
-    }
-
-    // ── Hero life: wallet tilt + periodic "cashback arriving" ping ──
-    (function () {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var phone = document.querySelector('.wallet-phone');
-      if (!phone) return;
-      var vis = document.querySelector('.hero-visual');
-      if (vis && window.matchMedia('(pointer: fine)').matches) {
-        vis.style.perspective = '900px';
-        vis.addEventListener('pointermove', function (e) {
-          var r = vis.getBoundingClientRect();
-          var dx = (e.clientX - r.left) / r.width - .5;
-          var dy = (e.clientY - r.top) / r.height - .5;
-          phone.style.transform = 'rotateY(' + (dx * 7).toFixed(2) + 'deg) rotateX(' + (-dy * 7).toFixed(2) + 'deg)';
-        });
-        vis.addEventListener('pointerleave', function () { phone.style.transform = ''; });
-      }
-      var items = phone.querySelectorAll('.wp-item');
-      if (items.length) {
-        var i = 0;
-        setInterval(function () {
-          var el = items[i++ % items.length];
-          el.classList.remove('ping');
-          void el.offsetWidth;
-          el.classList.add('ping');
-        }, 5200);
-      }
-    })();
 
     // ── Smooth anchor scroll ──
     document.querySelectorAll('a[href^="#"]').forEach(function (a) {
