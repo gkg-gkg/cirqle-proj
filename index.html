@@ -306,15 +306,16 @@
     .cta-sub { color: rgba(255,255,255,.7); font-size: 1.02rem; margin: 18px auto 34px; max-width: 460px; }
     @media (max-width: 900px) {
       /* The carousel goes back to a CSS transform — the same mechanism as the
-         review wall, which has always been the smooth one on a phone — and the
-         row is cut down to fit: one row of 8 tiles doubled, at 150px each, is a
-         2,560×150 layer. That is about one wall column. The old row was
-         4,600×215, and the scroll-driven version was a 9,300px scroller being
-         moved from JS every frame. */
-      .hcar { min-height: 0; gap: 0; -webkit-mask-image: none; mask-image: none; }
-      .hcar .r2 { display: none; }
+         review wall, which has always been the smooth one on a phone — and both
+         rows are cut down to fit: 6 tiles doubled at 150px each is a 1,920×169
+         layer per row. Two of those is less total animated area than the two
+         wall columns beside them. The old row was a single 4,600×215 slab, and
+         the scroll-driven version was a 9,300px scroller moved from JS every
+         frame; both were far past what a phone composites comfortably. */
+      .hcar { min-height: 0; gap: 10px; -webkit-mask-image: none; mask-image: none; }
       .hcar-row { gap: 10px; }
-      .hcar.run .r1 { animation-duration: 34s; }
+      .hcar.run .r1 { animation-duration: 26s; }
+      .hcar.run .r2 { animation-duration: 32s; }
       .htile { width: 150px; }
       .htile-shot { height: 76px; }
       .htile-body { padding: 9px 10px 10px; }
@@ -800,10 +801,11 @@
         }
         car.classList.remove('swipe');
         if (small.matches) {
-          // Eight brands, doubled, in a single row — see the stylesheet note.
-          var few = tiles.slice(0, 8).join('');
-          r1.innerHTML = few + few;
-          r2.innerHTML = '';
+          // Six brands a row, doubled, so each animated row stays small — see
+          // the stylesheet note.
+          var m1 = tiles.slice(0, 6).join(''), m2 = tiles.slice(6, 12).join('');
+          r1.innerHTML = m1 + m1;
+          r2.innerHTML = m2 + m2;
         } else {
           r1.innerHTML = a + a;
           r2.innerHTML = b + b;
