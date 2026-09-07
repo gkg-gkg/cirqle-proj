@@ -86,7 +86,7 @@
     }
     .hero-h {
       font-family: var(--font-display); font-weight: 700;
-      font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: 1.04;
+      font-size: clamp(2.9rem, 6.6vw, 5.1rem); line-height: 1.04;
       letter-spacing: -0.035em; margin: 22px 0 20px;
     }
     .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 600px; margin: 0 auto 22px; line-height: 1.7; }
@@ -98,9 +98,6 @@
     .ms-sep { width: 14px; height: 1px; background: linear-gradient(90deg, var(--neon), transparent); flex-shrink: 0; }
     .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center; }
     .hero-actions .btn-lg { font-size: .94rem; padding: 12px 24px; }
-    .hero-proof { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 30px; flex-wrap: wrap; }
-    .proof-text { font-size: .84rem; font-weight: 500; color: var(--ink-soft); }
-    .proof-text b { color: var(--ink); font-weight: 600; }
 
     /* ── Truth tiles (replaced the invented stats) ── */
     .facts-strip { max-width: 1140px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) clamp(56px,7vw,90px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; position: relative; z-index: 1; }
@@ -361,9 +358,8 @@
       .rv-who { font-size: .72rem; }
       .rv-where { font-size: .64rem; }
       .rv-amt { font-size: .76rem; }
-      .hero-h { font-size: clamp(2.7rem, 12vw, 3.6rem); margin-top: 6px; }
+      .hero-h { font-size: clamp(3rem, 13.2vw, 4rem); margin-top: 6px; }
       .hero-sub { font-size: 1rem; margin-bottom: 26px; }
-      .hero-proof { display: none; }
       /* This bottom padding is the strip of wall left showing under the
          buttons — it is what keeps them above the wall rather than on its edge. */
       .hero { padding-top: 28px; padding-bottom: 58px; }
@@ -445,9 +441,6 @@
       <div class="hero-actions btn-row fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
         <a href="signup.html" class="btn btn-lg">Sign up</a>
-      </div>
-      <div class="hero-proof fade-up d4">
-        <span class="proof-text"><b>Real cash to your bank.</b> Never points, never vouchers. Free to join.</span>
       </div>
     </div>
 
