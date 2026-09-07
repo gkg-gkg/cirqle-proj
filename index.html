@@ -45,7 +45,7 @@
     .hw-col { display: flex; flex-direction: column; gap: 12px; }
     .hw-col:nth-child(2n) { transform: translateY(-7%); }
     .hw-col:nth-child(3n) { transform: translateY(4%); }
-    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: saturate(1.06) contrast(.95); }
+    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: saturate(1.2) contrast(.97); }
     .hero-scrim {
       z-index: 1;
       /* A real vignette: a bright pool behind the copy falling off to a dark
@@ -187,7 +187,10 @@
     /* The panel is painted the logo's own background colour (sampled from the
        file's border pixels), so a contained logo reads as filling the whole
        panel rather than floating in a box. */
-    .htile-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    /* The mark sits in the panel rather than being scaled to fill it. At the
+       old size a 128px file had to cover ~220 device pixels on a phone; inset
+       like this it covers ~150, so the PNGs that have no vector stay crisp. */
+    .htile-img { width: 100%; height: 100%; object-fit: contain; display: block; padding: 17px 26px; }
     .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 7px; background: rgba(255,255,255,.92); color: var(--ink); }
     .htile-body { padding: 12px 13px 13px; }
     .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
@@ -327,6 +330,7 @@
       .hcar.run .r2 { animation-duration: 32s; }
       .htile { width: 150px; }
       .htile-shot { height: 76px; }
+      .htile-img { padding: 12px 18px; }
       .htile-body { padding: 9px 10px 10px; }
       .htile-brand { font-size: .78rem; }
       .htile-cap { font-size: .62rem; }
@@ -640,6 +644,17 @@
     var slug = function (s) {
       return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     };
+    // Brands we hold as SVG. Vector never blurs, at any zoom or pixel ratio —
+    // the PNGs were 32-128px being drawn into a panel that asks for ~220 device
+    // pixels on a phone, which is what made them soft. The rest stay PNG; there
+    // is no source that reliably serves current, full-colour marks for them.
+    var SVG_LOGOS = {
+      'nike': 1, 'adidas': 1, 'h-m': 1, 'spotify': 1, 'boots': 1,
+      'ikea': 1, 'uber-eats': 1, 'tui': 1, 'deliveroo': 1, 'airbnb': 1
+    };
+    var logoSrc = function (name) {
+      return 'assets/logos/' + name + (SVG_LOGOS[name] ? '.svg' : '.png');
+    };
     var esc = function (s) {
       return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
@@ -679,7 +694,7 @@
           '<div class="rv' + (i % 6 ? variant : '') + '">' +
             '<div class="rv-top">' +
               '<div class="rv-stars" aria-label="5 out of 5">\u2605\u2605\u2605\u2605\u2605</div>' +
-              '<span class="rv-brand"><img src="assets/logos/' + brand + '.png" alt="" decoding="async"></span>' +
+              '<span class="rv-brand"><img src="' + logoSrc(brand) + '" alt="" decoding="async"></span>' +
             '</div>' +
             '<p class="rv-txt">' + esc(text) + '</p>' +
             '<div class="rv-foot">' +
@@ -778,7 +793,7 @@
       var tiles = deals.map(function (d, i) {
         var paid = (i % 4 === 3);
         // Partner logos live in assets/logos, keyed by a slug of the brand name.
-        var logo = 'assets/logos/' + slug(d.brand) + '.png';
+        var logo = logoSrc(slug(d.brand));
         var spend = 40 + (i % 6) * 15;
         var earn = (spend * (d.rate || 0) / 100).toFixed(2);
         return '<div class="htile' + (paid ? ' paid' : '') + ' t' + (i % 6) + '">' +
