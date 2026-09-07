@@ -48,9 +48,13 @@
     }
     @media (max-width: 900px) {
       .hw-grid { grid-template-columns: repeat(4, 1fr); }
+      /* The bright pool over the copy is unchanged — it is what keeps the
+         near-black headline readable over photography. Only the bottom fade
+         moves: in a taller band the old 88% stop whited out a big block of
+         wall, so it starts later and lighter and the photos hold on further. */
       .hero-scrim { background:
-        radial-gradient(120% 62% at 50% 40%, rgba(255,255,255,.92) 0%, rgba(255,255,255,.80) 55%, rgba(18,28,42,.20) 100%),
-        linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(241,249,255,.30) 45%, rgba(241,249,255,.92) 88%, #F1F9FF 100%); }
+        radial-gradient(125% 72% at 50% 50%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 58%, rgba(18,28,42,.18) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(241,249,255,.30) 45%, rgba(241,249,255,.34) 72%, rgba(241,249,255,.88) 95%, #F1F9FF 100%); }
     }
     .hero-blob {
       position: absolute; border-radius: 50%;
@@ -173,7 +177,7 @@
     .hcar.swipe::-webkit-scrollbar { display: none; }
     .hcar.swipe .r2 { display: none; }
     .hcar.swipe .htile { scroll-snap-align: center; }
-    .htile { width: 218px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+    .htile { width: 218px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid #fff; box-shadow: var(--shadow-sm); }
     .htile-shot { height: 104px; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; border-bottom: 1px solid var(--line-soft); overflow: hidden; }
     /* The panel is painted the logo's own background colour (sampled from the
        file's border pixels), so a contained logo reads as filling the whole
@@ -189,10 +193,10 @@
     /* Six tile treatments, matching the review wall. The logo panel always
        stays light — most brand marks are dark and would vanish on a blue fill. */
     .htile.t1 { background: #F2FAFF; }
-    .htile.t2 { background: #DCF1FF; border-color: rgba(56,182,255,.34); }
-    .htile.t3 { background: linear-gradient(150deg, #A5E4FF, #66D4FF); border-color: transparent; box-shadow: 0 8px 22px rgba(56,182,255,.30); }
-    .htile.t4 { background: linear-gradient(150deg, #66D4FF, #38B6FF); border-color: transparent; box-shadow: 0 10px 26px rgba(56,182,255,.40); }
-    .htile.t5 { background: linear-gradient(150deg, #2F97E8, #0F6FCC); border-color: transparent; box-shadow: 0 10px 26px rgba(15,111,204,.34); }
+    .htile.t2 { background: #DCF1FF; }
+    .htile.t3 { background: linear-gradient(150deg, #A5E4FF, #66D4FF); box-shadow: 0 8px 22px rgba(56,182,255,.30); }
+    .htile.t4 { background: linear-gradient(150deg, #66D4FF, #38B6FF); box-shadow: 0 10px 26px rgba(56,182,255,.40); }
+    .htile.t5 { background: linear-gradient(150deg, #2F97E8, #0F6FCC); box-shadow: 0 10px 26px rgba(15,111,204,.34); }
     .htile.t3 .htile-cap, .htile.t4 .htile-cap { color: rgba(11,18,32,.72); }
     .htile.t3 .htile-foot, .htile.t4 .htile-foot { border-top-color: rgba(11,18,32,.18); }
     .htile.t3 .htile-rate, .htile.t4 .htile-rate { background: rgba(11,18,32,.16); color: #0B1220; border-color: rgba(11,18,32,.24); }
@@ -360,6 +364,15 @@
          cost a full screen of scrolling to say it. */
       #facts { display: none; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
+      /* The wall is the whole point of this band on a phone; at the old height
+         it read as a stripe behind the headline rather than a wall. Give it a
+         share of the viewport and centre the copy in it.
+         The taller band spreads the scrim's bright pool over more pixels, so
+         more photo shows through behind the sub-headline: measured against the
+         darkest backdrop it now sits on, #455668 fell to 4.44:1. This band
+         already darkens the token for exactly this reason — it goes one step
+         further on phones, to 5.36:1. */
+      .hero-band { min-height: 76vh; display: flex; flex-direction: column; justify-content: center; --ink-soft: #3B4A58; }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
          with the carousel for the same budget. */
