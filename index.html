@@ -15,7 +15,7 @@
     .hero {
       position: relative; z-index: 1;
       max-width: 820px; margin: 0 auto;
-      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(72px, 9vw, 118px);
+      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(56px, 6vw, 88px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -25,10 +25,17 @@
        scrim strong enough to keep near-black type readable over any frame. */
     .hero-band {
       position: relative; overflow: hidden;
+      /* The band has to be taller than the copy for the copy to sit low in it —
+         otherwise "bottom" and "middle" are the same place. The wall fills the
+         band, so this is also what decides how much wall there is. */
+      min-height: 86vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
       /* Secondary copy sits over photography here, not flat white. The default
          --ink-soft (#64748B) measures 3.98:1 against the scrimmed wall, which
-         fails AA, so the token is darkened for this band only. */
-      --ink-soft: #455668;
+         fails AA, so the token is darkened for this band only. Since the copy
+         moved down onto the livelier part of the wall, #455668 was itself
+         bottoming out at 4.27:1 on the darkest frames — hence one step further. */
+      --ink-soft: #3B4A58;
     }
     .hero-wall, .hero-scrim { position: absolute; inset: 0; pointer-events: none; }
     .hero-wall { z-index: 0; }
@@ -43,8 +50,8 @@
          edge. The photos keep their colour — the vignette and the scrim are
          what hold them back, rather than draining them. */
       background:
-        radial-gradient(100% 80% at 50% 48%, rgba(255,255,255,.86) 0%, rgba(255,255,255,.66) 42%, rgba(255,255,255,.24) 74%, rgba(18,28,42,.22) 100%),
-        linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(241,249,255,.10) 40%, rgba(241,249,255,.88) 90%, #F1F9FF 100%);
+        radial-gradient(105% 64% at 50% 72%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(241,249,255,.10) 45%, rgba(241,249,255,.16) 88%, rgba(241,249,255,.86) 98%, #F1F9FF 100%);
     }
     @media (max-width: 900px) {
       .hw-grid { grid-template-columns: repeat(4, 1fr); }
@@ -53,8 +60,8 @@
          moves: in a taller band the old 88% stop whited out a big block of
          wall, so it starts later and lighter and the photos hold on further. */
       .hero-scrim { background:
-        radial-gradient(125% 72% at 50% 50%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 58%, rgba(18,28,42,.18) 100%),
-        linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(241,249,255,.30) 45%, rgba(241,249,255,.34) 72%, rgba(241,249,255,.88) 95%, #F1F9FF 100%); }
+        radial-gradient(130% 66% at 50% 72%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(241,249,255,.26) 45%, rgba(241,249,255,.30) 88%, rgba(241,249,255,.86) 98%, #F1F9FF 100%); }
     }
     .hero-blob {
       position: absolute; border-radius: 50%;
@@ -89,7 +96,8 @@
     .ms-i { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; flex-shrink: 0; box-shadow: 0 3px 10px rgba(56,182,255,.35); }
     .ms-i .ico { width: 13px; height: 13px; }
     .ms-sep { width: 14px; height: 1px; background: linear-gradient(90deg, var(--neon), transparent); flex-shrink: 0; }
-    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: center; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center; }
+    .hero-actions .btn-lg { font-size: .94rem; padding: 12px 24px; }
     .hero-proof { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 30px; flex-wrap: wrap; }
     .proof-text { font-size: .84rem; font-weight: 500; color: var(--ink-soft); }
     .proof-text b { color: var(--ink); font-weight: 600; }
@@ -356,7 +364,9 @@
       .hero-h { font-size: clamp(2.7rem, 12vw, 3.6rem); margin-top: 6px; }
       .hero-sub { font-size: 1rem; margin-bottom: 26px; }
       .hero-proof { display: none; }
-      .hero { padding-top: 28px; }
+      /* This bottom padding is the strip of wall left showing under the
+         buttons — it is what keeps them above the wall rather than on its edge. */
+      .hero { padding-top: 28px; padding-bottom: 58px; }
       /* The three steps repeat the "Shop. Post. Earn." section further down —
          one telling is enough on a phone. */
       .mini-steps { display: none; }
@@ -364,6 +374,7 @@
          cost a full screen of scrolling to say it. */
       #facts { display: none; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
+      .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* The wall is the whole point of this band on a phone; at the old height
          it read as a stripe behind the headline rather than a wall. Give it a
          share of the viewport and centre the copy in it.
@@ -372,7 +383,7 @@
          darkest backdrop it now sits on, #455668 fell to 4.44:1. This band
          already darkens the token for exactly this reason — it goes one step
          further on phones, to 5.36:1. */
-      .hero-band { min-height: 76vh; display: flex; flex-direction: column; justify-content: center; --ink-soft: #3B4A58; }
+      .hero-band { min-height: 76vh; }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
          with the carousel for the same budget. */
