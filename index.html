@@ -17,7 +17,7 @@
       /* Wide enough that "Get paid to shop." still holds one line at the
          larger size — the markup's <br> is what sets the two-line shape. */
       max-width: 980px; margin: 0 auto;
-      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(56px, 6vw, 88px);
+      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(88px, 9vw, 132px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -52,8 +52,13 @@
          edge. The photos keep their colour — the vignette and the scrim are
          what hold them back, rather than draining them. */
       background:
-        radial-gradient(105% 64% at 50% 72%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
-        linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(243,249,252,.10) 45%, rgba(243,249,252,.16) 88%, rgba(243,249,252,.86) 98%, #F3F9FC 100%);
+        /* Topmost layer, and the reason it is first: the vignette below ends on
+           rgba(18,28,42,.16), so it darkens the foot of the band and the linear
+           fade underneath can never reach the page colour. Without this the join
+           to the section below steps by ~29 levels — a visible seam. */
+        linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
+        radial-gradient(105% 64% at 50% 67%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%);
     }
     @media (max-width: 900px) {
       .hw-grid { grid-template-columns: repeat(4, 1fr); }
@@ -62,18 +67,10 @@
          moves: in a taller band the old 88% stop whited out a big block of
          wall, so it starts later and lighter and the photos hold on further. */
       .hero-scrim { background:
-        radial-gradient(130% 66% at 50% 72%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
-        linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(243,249,252,.26) 45%, rgba(243,249,252,.30) 88%, rgba(243,249,252,.86) 98%, #F3F9FC 100%); }
+        linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
+        radial-gradient(130% 66% at 50% 67%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(255,255,255,.26) 45%, rgba(255,255,255,.30) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%); }
     }
-    .hero-blob {
-      position: absolute; border-radius: 50%;
-      background: radial-gradient(circle, var(--blue-glow), transparent 70%);
-      pointer-events: none; z-index: 0;
-    }
-    .hero-blob { z-index: 2; }
-    .blob-a { width: 460px; height: 460px; top: -100px; right: 4%; animation: blobDrift 22s ease-in-out infinite alternate; }
-    .blob-b { width: 380px; height: 380px; bottom: -140px; left: -80px; animation: blobDrift 27s ease-in-out -9s infinite alternate-reverse; }
-    @keyframes blobDrift { from { transform: translate(0,0) scale(1); } to { transform: translate(44px,30px) scale(1.14); } }
     /* the marker sweep: ink type on a solid neon bar */
     .hero-h .hl {
       background: linear-gradient(var(--neon), var(--neon)) no-repeat 0 54% / 0% 46%;
@@ -139,10 +136,11 @@
        The carousel sits on a blue band so the tiles read as cards on a surface;
        the review wall gets a paler one so the two don't compete. */
     .band {
-      background: linear-gradient(180deg, #F3F9FC 0%, #EBF4FB 55%, #F3F9FC 100%);
-      border-top: 1px solid rgba(56,182,255,.22);
-      border-bottom: 1px solid rgba(56,182,255,.22);
-      padding-top: clamp(28px, 3.4vw, 46px);
+      /* Tint off for now — the carousel sits straight on the page. The hairline
+         borders went with it: on a white band against a white page they read as
+         stray blue lines rather than an edge. */
+      background: var(--paper);
+      padding-top: clamp(60px, 6.5vw, 96px);
       padding-bottom: clamp(44px, 5.4vw, 84px);
     }
     .band-soft {
@@ -364,7 +362,7 @@
       .hero-sub { font-size: 1rem; margin-bottom: 26px; }
       /* This bottom padding is the strip of wall left showing under the
          buttons — it is what keeps them above the wall rather than on its edge. */
-      .hero { padding-top: 28px; padding-bottom: 58px; }
+      .hero { padding-top: 28px; padding-bottom: 90px; }
       /* The three steps repeat the "Shop. Post. Earn." section further down —
          one telling is enough on a phone. */
       .mini-steps { display: none; }
@@ -386,8 +384,6 @@
          main thread every frame for as long as the page was open — competing
          with the carousel for the same budget. */
       .hero-actions .btn-lime { animation: none; }
-      /* Two big radial-gradient layers drifting forever behind the hero. */
-      .hero-blob { animation: none; }
     }
     @media (prefers-reduced-motion: reduce) {
       /* Reduced motion gets the swipe strip too — handled by the script, which
@@ -427,8 +423,6 @@
       </div>
     </div>
     <div class="hero-scrim" aria-hidden="true"></div>
-    <span class="hero-blob blob-a" aria-hidden="true"></span>
-    <span class="hero-blob blob-b" aria-hidden="true"></span>
   <header class="hero">
     <div>
       <h1 class="hero-h fade-up d1">Get <span class="hl">paid</span> to shop.<br>For real.</h1>
