@@ -667,7 +667,12 @@ body::after {
 /* ══════════════════════════════════════
    CONTENT-PAGE HELPERS (about, legal, etc.)
    ══════════════════════════════════════ */
-.page { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; padding: clamp(44px, 7vw, 80px) clamp(20px, 4vw, 44px) 90px; }
+/* overflow-x: clip contains the decorative layers — dot fields, glow blobs,
+   orbit rings — that are deliberately positioned past the page edges. On a
+   phone those spilled far enough to give the whole document a sideways
+   scroll. `clip` rather than `hidden` so the page never becomes a scroll
+   container and sticky children keep working. */
+.page { position: relative; z-index: 1; overflow-x: clip; max-width: 880px; margin: 0 auto; padding: clamp(44px, 7vw, 80px) clamp(20px, 4vw, 44px) 90px; }
 .page-wide { max-width: 1140px; }
 .page-hero { text-align: center; margin-bottom: clamp(44px, 6vw, 72px); }
 .prose h2 { font-size: 1.5rem; margin: 40px 0 14px; }
@@ -754,8 +759,21 @@ body::after {
 @media (max-width: 560px) {
   .footer-top { grid-template-columns: 1fr; }
   .footer-bottom { flex-direction: column; text-align: center; }
-  .btn-lg { width: 100%; }
   .back-top { right: 16px; bottom: 16px; }
+}
+/* Phones: shrink the big buttons rather than stretching them full-width.
+   A stretched .btn-lg forced every pair of actions to stack into two huge
+   slabs; sized down they stay side by side and read as one row. Forms that
+   genuinely want a full-width control set width:100% inline, which still wins. */
+@media (max-width: 600px) {
+  .btn-lg { font-size: .92rem; padding: 12px 18px; }
+  /* A row of actions stays a row. Buttons share the width evenly and their
+     labels shrink to fit instead of pushing the second button onto a new line. */
+  .btn-row { display: flex; flex-wrap: nowrap; gap: 10px; align-items: stretch; }
+  .btn-row > .btn { flex: 1 1 0; min-width: 0; padding-left: 10px; padding-right: 10px; }
+}
+@media (max-width: 380px) {
+  .btn-lg { font-size: .86rem; padding: 11px 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

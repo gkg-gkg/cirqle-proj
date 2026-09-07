@@ -37,7 +37,22 @@
       mask-image: radial-gradient(circle at center, #000 25%, transparent 70%);
       pointer-events: none;
     }
-    @media(max-width:700px){ .stats-row, .values-grid, .team-grid { grid-template-columns: 1fr; } }
+    @media(max-width:700px){ .values-grid { grid-template-columns: 1fr; } }
+    /* Phones: these three carry a word and a short label each, so stacking them
+       turned about a line of text into three full-height slabs. Keep them in a
+       row and shrink the type to match. Same for the team cards. */
+    @media(max-width:600px){
+      .stats-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 44px; }
+      .stat-c { padding: 16px 8px; }
+      .stat-v { font-size: 1.5rem; }
+      .stat-l { font-size: .66rem; margin-top: 4px; line-height: 1.35; }
+      .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .team-card { padding: 16px 8px; }
+      .team-av { width: 44px; height: 44px; margin-bottom: 8px; }
+      .team-name { font-size: .8rem; }
+      .team-role { font-size: .64rem; line-height: 1.35; }
+      .cta-box { padding: 32px 20px; margin-top: 44px; }
+    }
   </style>
 </head>
 <body>

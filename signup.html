@@ -70,7 +70,10 @@
       .perks-list { display: none; }
       .auth-card { max-width: 100%; }
     }
-    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } .auth-card { padding: 26px 20px; } }
+    /* First and last name are short enough to share a line even on a small
+       phone — stacking them just made the form a screen longer. */
+    @media (max-width: 480px) { .form-row { gap: 10px; } .auth-card { padding: 26px 20px; } }
+    @media (max-width: 360px) { .form-row { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
