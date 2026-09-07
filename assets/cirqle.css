@@ -25,8 +25,8 @@
   --neon-line:   #0090E8;  /* 3.41:1 — icons and borders, never text */
   --blue:        #0072D6;  /* 4.80:1 — the only blue allowed to be text */
   --blue-deep:   #005CB0;  /* hover / active / focus */
-  --blue-tint:   #E8F7FF;  /* palest blue — soft surfaces & highlights */
-  --blue-pale:   #F3FBFF;  /* barely-there blue panel */
+  --blue-tint:   #ECF6FB;  /* palest blue — soft surfaces & highlights */
+  --blue-pale:   #F5FBFD;  /* barely-there blue panel */
   --blue-glow:   rgba(56,182,255,.26);   /* spotlight wash */
   --blue-ring:   rgba(56,182,255,.60);   /* spotlight border */
 
