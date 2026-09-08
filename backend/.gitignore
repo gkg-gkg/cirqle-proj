@@ -1,5 +1,9 @@
 .env
 cirqle.db
+# ...and the dated copies taken before a migration, which `git add -A`
+# otherwise sweeps into a commit.
+cirqle.db.stale-*
+cirqle.db.bak*
 media/
 receipts/
 __pycache__/

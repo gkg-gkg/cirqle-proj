@@ -39,6 +39,12 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_column('receipt', 'purchase_date')
-    op.drop_column('receipt', 'basket_currency')
-    op.drop_column('receipt', 'basket_total')
+    # batch_alter_table, not three plain drop_columns: SQLite only learned
+    # ALTER TABLE ... DROP COLUMN in 3.35, and the runtime here ships 3.34, so
+    # a direct drop fails on a local database. Batch mode rebuilds the table
+    # instead. On Postgres — which is what production runs — it emits the same
+    # plain ALTERs it would have anyway.
+    with op.batch_alter_table('receipt') as batch:
+        batch.drop_column('purchase_date')
+        batch.drop_column('basket_currency')
+        batch.drop_column('basket_total')

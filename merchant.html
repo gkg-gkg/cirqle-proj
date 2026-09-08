@@ -188,7 +188,11 @@
 
     /* Deals table */
     .deals-card { padding: 24px 22px; margin-bottom: 24px; overflow-x: auto; }
-    table.deals { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 520px; }
+    /* Eight columns now (revenue and the repeat-visits control joined the
+       original six), so the table needs the room or it crushes instead of
+       scrolling — which is what a min-width sized for six did. */
+    table.deals { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 760px; }
+    table.deals td:first-child { min-width: 130px; }
     table.deals th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); font-weight: 800; padding: 0 12px 10px; border-bottom: var(--bw) solid var(--line); }
     table.deals td { padding: 12px; border-bottom: 2px dashed rgba(31,27,19,.14); font-weight: 600; }
     table.deals td.num, table.deals th.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -504,9 +508,10 @@
       <div class="card stat-card fade-up"><div class="stat-label">Pending</div><div class="stat-val">£<span id="sPending">0</span></div></div>
     </div>
 
-    <div class="dash-grid">
-      <!-- Left: this merchant's own campaigns + how each performs -->
-      <div class="card deals-card fade-up">
+    <!-- Full width, not a grid column: with revenue and the repeat-visits
+         control the table runs to eight columns, and it was being crushed
+         into 1.5fr rather than given room. The chart and funnel sit below. -->
+    <div class="card deals-card fade-up">
         <div class="panel-title">Your campaigns</div>
         <div class="panel-sub">How each of your deals is performing — the numbers behind the chart.</div>
         <table class="deals">
@@ -518,21 +523,20 @@
           </tr></thead>
           <tbody id="dealsBody"></tbody>
         </table>
-      </div>
+    </div>
 
-      <!-- Right: 30-day trend chart tile + conversion funnel -->
-      <div class="dash-right">
-        <div class="card chart-card fade-up">
-          <div class="panel-title">Last 30 days</div>
-          <div class="panel-sub">Views, clicks &amp; claims per day. <span id="convNote"></span></div>
-          <div class="legend" id="legend"></div>
-          <div class="chart-box" id="chartBox"></div>
-        </div>
-        <div class="card funnel-card fade-up">
-          <div class="panel-title">Conversion funnel</div>
-          <div class="panel-sub">How views turn into clicks and claims.</div>
-          <div id="funnel"></div>
-        </div>
+    <!-- Trend and funnel side by side, as direct grid children. -->
+    <div class="dash-grid">
+      <div class="card chart-card fade-up">
+        <div class="panel-title">Last 30 days</div>
+        <div class="panel-sub">Views, clicks &amp; claims per day. <span id="convNote"></span></div>
+        <div class="legend" id="legend"></div>
+        <div class="chart-box" id="chartBox"></div>
+      </div>
+      <div class="card funnel-card fade-up">
+        <div class="panel-title">Conversion funnel</div>
+        <div class="panel-sub">How views turn into clicks and claims.</div>
+        <div id="funnel"></div>
       </div>
     </div>
 
@@ -609,7 +613,7 @@
 
         <div class="card fade-up">
           <div class="panel-title">Return rate by month they joined</div>
-          <div class="panel-sub">Each row is the customers who first bought that month. A blank cell means not enough time has passed to judge it yet.</div>
+          <div class="panel-sub">Each row is the customers who first bought that month. A blank cell means we can't answer it honestly yet — either not enough time has passed, or too few people joined that month to report on.</div>
           <div class="cohort-wrap"><table class="cohort" id="cohortTable"></table></div>
         </div>
       </div>
@@ -1648,7 +1652,9 @@
           ${usable.map(p => `
             <div class="path-row">
               <span class="path-who">${PATH_LABEL[p.path]}</span>
-              <span class="path-track"><span class="path-fill path-${p.path}" style="width:${Math.min(100, p[m.key])}%"></span></span>
+              <span class="path-track">${p.enough
+                ? `<span class="path-fill path-${p.path}" style="width:${Math.min(100, p[m.key])}%"></span>`
+                : ''}</span>
               <span class="path-val">${p.enough ? p[m.key] + '%' : '—'}</span>
             </div>`).join('')}
         </div>`).join('') +
@@ -1671,8 +1677,11 @@
           .toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
         const cells = r.cells.map(c => {
           // An unfinished window has no answer yet, and a cohort too small to
-          // report on has one we shouldn't give. Both render blank.
-          if (!c.matured || !r.enough) return '<td class="ch ch-na" title="Not enough data yet">·</td>';
+          // report on has one we shouldn't give. Both render blank, but the
+          // tooltip says which — they call for different things from a
+          // merchant (wait vs get more customers).
+          if (!r.enough) return '<td class="ch ch-na" title="Too few customers joined this month to report on">·</td>';
+          if (!c.matured) return '<td class="ch ch-na" title="Not enough time has passed yet">·</td>';
           return `<td class="ch ch-${cohortStep(c.rate)}">${c.rate}%</td>`;
         }).join('');
         return `<tr><th class="ch-row">${label}</th><td class="num">${fmtInt(r.size)}</td>${cells}</tr>`;

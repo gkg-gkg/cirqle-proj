@@ -48,7 +48,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_column('campaign', 'visit_earn')
-    op.drop_column('campaign', 'visits_enabled')
-    op.drop_index('ix_receipt_claim_kind', table_name='receipt')
-    op.drop_column('receipt', 'claim_kind')
+    # See d41f7b0c8e35 for why this is batched rather than four plain drops:
+    # SQLite below 3.35 cannot DROP COLUMN, and the local runtime is 3.34.
+    with op.batch_alter_table('campaign') as batch:
+        batch.drop_column('visit_earn')
+        batch.drop_column('visits_enabled')
+    with op.batch_alter_table('receipt') as batch:
+        batch.drop_index('ix_receipt_claim_kind')
+        batch.drop_column('claim_kind')
