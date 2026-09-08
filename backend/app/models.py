@@ -4,7 +4,7 @@
 JSON shapes we accept and return — kept separate so we never leak the password
 hash to the browser.
 """
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
@@ -118,6 +118,16 @@ class Campaign(SQLModel, table=True):
     # Whether this deal pays referral bonuses. Off by default: a merchant opts a
     # deal in deliberately, so nobody is enrolled by simply funding the wallet.
     referrals_enabled: bool = False
+    # Whether shoppers can log a repeat visit on this deal without posting about
+    # it again. Off by default for the same reason as referrals above — funding
+    # a wallet must never enrol a deal the brand didn't choose.
+    #
+    # `visit_earn` is what one of those is worth, in £. It is deliberately its
+    # own figure rather than a fraction of `earn`: cashback here is a flat
+    # amount the merchant sets per campaign, and a repeat visit is worth
+    # something different to them than a first one with a post attached.
+    visits_enabled: bool = False
+    visit_earn: float = 0
     bg: str = "var(--paper-deep)"
     tags: str = "[]"           # JSON-encoded list[str]
     images: str = "[]"         # JSON-encoded list[str] of image URLs
@@ -175,7 +185,18 @@ class Receipt(SQLModel, table=True):
     """
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True, foreign_key="user.id")
-    post_id: str = Field(index=True)                 # the Instagram post it proves
+    # The Instagram post this claim proves. Empty on a visit claim, which is a
+    # receipt with no post behind it — see `claim_kind`.
+    post_id: str = Field(default="", index=True)
+    # post  -> the original kind: a purchase backed by an Instagram post.
+    # visit -> just the receipt. Earns less (the merchant sets how much, and
+    #          only if they opt in), but counts fully towards the merchant's
+    #          customer and retention figures.
+    #
+    # This exists because a claim used to require a post, which meant a regular
+    # who came back four times without posting was recorded once. Every
+    # retention number in customers.py was really measuring repeat POSTING.
+    claim_kind: str = Field(default="post", index=True)
     campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
     brand: str = ""                                  # snapshot of the deal's brand
     amount: float = 0                                # cashback £ (snapshot of deal.earn)
@@ -205,6 +226,23 @@ class Receipt(SQLModel, table=True):
     check_score: int = 0                             # 0-100, how well it matches the deal
     check_data: str = "{}"                           # JSON: extracted fields + reasons
     checked_at: Optional[datetime] = None
+    # ── What the receipt was worth, lifted out of check_data (Phase 9) ──
+    # The same numbers the check already read, kept as real columns because
+    # `check_data` is JSON stored as TEXT — deliberately, so the shape matches on
+    # SQLite and Postgres — and TEXT cannot be summed or grouped portably. The
+    # merchant's revenue figures are aggregates over these three.
+    #
+    # `basket_total` is what the customer SPENT; `amount` above is what the deal
+    # PAID them back. Cashback stays a flat per-campaign figure, so the two are
+    # independent: this column is the revenue side, and nothing about it changes
+    # what anyone is owed.
+    basket_total: Optional[float] = None             # £ printed on the receipt
+    basket_currency: str = ""                        # ISO code, e.g. "GBP"; "" if none printed
+    # What the receipt says, NOT when it was uploaded. Retention is measured
+    # between purchases, and a member can upload three receipts in one sitting.
+    # Left null when the date was illegible rather than falling back to the
+    # upload time, which would quietly corrupt every interval computed from it.
+    purchase_date: Optional[date] = None
     # The receipt's own order/transaction number, as printed. Indexed, NOT
     # unique yet — extraction can misread, and a unique constraint would reject
     # honest uploads while this is still advisory.
@@ -759,11 +797,26 @@ class DealStat(BaseModel):
     cashback: float
     referralsEnabled: bool = False   # does this deal pay referral bonuses?
     referralsPaid: float = 0         # £ of bonuses it has paid out
+    revenue: float = 0               # £ shoppers spent on this deal (read off receipts)
+    visitsEnabled: bool = False      # can shoppers log a repeat visit without posting?
+    visitEarn: float = 0             # £ one logged visit pays
+    visitClaims: int = 0             # how many have been logged
 
 
 class DealReferralsIn(BaseModel):
     """Merchant switching referral bonuses on or off for one of their deals."""
     enabled: bool
+
+
+class DealVisitsIn(BaseModel):
+    """Merchant opening a deal to repeat visits, and saying what one is worth.
+
+    `earn` is £ per logged visit. Zero is allowed and means "count the visit,
+    pay nothing" — a merchant may want the retention data without the outlay,
+    though in practice nobody uploads for nothing.
+    """
+    enabled: bool
+    earn: float = 0
 
 
 class AdminReferralOut(BaseModel):
@@ -800,6 +853,166 @@ class MerchantStats(BaseModel):
     conversion: float        # claims / views, as a percentage
     timeseries: list[TimePoint]
     deals: list[DealStat]
+    # ── What the deals earned, not just what they cost (Phase 9) ──
+    # Every figure below is measured only on claims whose receipt total was
+    # legible, which is almost never all of them. `revenueCoverage` says how
+    # many, and the dashboard prints it beside the money so a partial number is
+    # never mistaken for the whole.
+    revenue: float = 0           # £ shoppers spent, summed off their receipts
+    averageBasket: float = 0     # revenue / claims it was measured on
+    revenueCoverage: float = 0   # % of credited claims with a legible total
+    programmeCost: float = 0     # cashback given + referral bonuses + fees paid
+    returnOnCashback: float = 0  # revenue / programmeCost — £ earned per £ spent
+    discountRate: float = 0      # programmeCost / revenue, as a percentage
+
+
+# ── The merchant's customers, and whether they come back (Phase B) ──
+class CustomerOut(BaseModel):
+    """One person's history with one merchant.
+
+    Identified by Instagram handle only. A merchant recognises a regular from
+    it, and it is content the member already chose to publish — their real name
+    and email are deliberately not here.
+    """
+    userId: int
+    handle: str
+    claims: int
+    spend: float                     # £ they've spent (where receipts were legible)
+    cashbackPaid: float              # £ this merchant paid them
+    firstClaim: date
+    lastClaim: date
+    sticky: bool                     # came back, ≥7 days later
+    acquisition: str                 # referred | direct
+    referredByHandle: str = ""       # who brought them, if anyone
+    referredCount: int = 0           # people they brought to THIS merchant
+
+
+class CohortCell(BaseModel):
+    monthsAfter: int
+    rate: float
+    matured: bool                    # false = not enough time has passed to say
+
+
+class CohortRow(BaseModel):
+    cohort: str                      # YYYY-MM of the customers' first claim
+    size: int
+    enough: bool                     # false = too few people to report on
+    cells: list[CohortCell]
+
+
+class PathStat(BaseModel):
+    """Retention for one acquisition path — the referred-vs-direct comparison."""
+    path: str                        # referred | direct
+    customers: int
+    enough: bool
+    repeatRate: float
+    thirdClaimRate: float
+    longRunRate: float               # still claiming 90+ days after their first
+    spendPerCustomer: float
+
+
+class CustomerSummary(BaseModel):
+    customers: int
+    sticky: int
+    repeatRate: float
+    thirdClaimRate: float
+    returnRate30: float
+    returnRate60: float
+    returnRate90: float
+    medianDaysToSecond: Optional[int] = None
+    claimsPerCustomer: float
+    revenuePerCustomer: float
+    lapsed: int
+    referredCustomers: int
+    referralBonusesPaid: float
+
+
+class MerchantCustomersOut(BaseModel):
+    summary: CustomerSummary
+    customers: list[CustomerOut]
+    cohorts: list[CohortRow]
+    byPath: list[PathStat]
+    # Every figure here counts claims, and a claim needs an Instagram post — so
+    # a regular who returns without posting is invisible. The portal prints this
+    # rather than letting a merchant assume the numbers are a full census.
+    caveat: str = ""
+
+
+# ── The referral network and its tree (Phase C) ──
+class TreeNode(BaseModel):
+    """One customer in a referral chain, with everyone they brought nested below.
+
+    `peopleBelow` / `spendBelow` roll up the whole subtree, which is what turns
+    "referred three people" into "worth £1,240 to you".
+    """
+    userId: int
+    handle: str
+    claims: int
+    spend: float
+    sticky: bool
+    firstClaim: date
+    peopleBelow: int
+    spendBelow: float
+    truncated: bool = False          # more below than we sent (depth or width cap)
+    referred: list["TreeNode"] = []
+
+
+TreeNode.model_rebuild()
+
+
+class ReferrerScore(BaseModel):
+    """One member's track record at bringing people to this merchant."""
+    userId: int
+    handle: str
+    referred: int
+    stickyReferred: int
+    qualityScore: float              # % of their referees who came back
+    referredSpend: float             # £ their direct referees spent
+    networkSpend: float              # £ their whole chain spent
+    networkPeople: int
+    bonusesPaid: float               # £ of referrer bonuses this merchant funded
+    returnOnBonus: float             # network spend per £1 of bonus
+
+
+class NetworkSummary(BaseModel):
+    multiplier: float                # referred customers per referring member
+    depth: int                       # longest chain; >1 means real word of mouth
+    referrers: int
+    referredCustomers: int
+    referredSpend: float
+    bonusesPaid: float
+    returnOnBonus: float
+    topReferrers: list[ReferrerScore]
+
+
+# ── Benchmarks and incrementality (Phase E) ──
+class BenchmarkMeasure(BaseModel):
+    measure: str                     # repeatRate | returnRate30 | claimsPerCustomer
+    value: float                     # this merchant's figure
+    comparedTo: float                # the reference they're held against
+    source: str                      # cirqle (peer median) | industry (published)
+    strong: float                    # what a strong performer looks like
+    ahead: bool
+
+
+class BenchmarkOut(BaseModel):
+    measures: list[BenchmarkMeasure]
+    peerCategory: str = ""           # "" when there aren't enough peers to say
+    peerCount: int = 0
+
+
+class IncrementalityOut(BaseModel):
+    """An ESTIMATE of how much of this spend bought genuinely new custom.
+
+    Not a lift study — there is no control group. Everything that renders these
+    numbers has to say so.
+    """
+    newCustomers: int
+    newShare: float
+    incrementalRevenue: float
+    costPerIncrementalPound: float
+    costPerNewCustomer: float
+    basis: str = ""                  # the caveat, rendered next to the figures
 
 
 class MerchantMessageIn(BaseModel):
@@ -935,7 +1148,10 @@ class ReferralStat(BaseModel):
     postId: Optional[str] = None      # referrer's own claimed post for this campaign, if found
     imageUrl: Optional[str] = None
     claims: int                        # number of claims they referred
-    referredCashback: float            # sum of the referred claims' amounts (not a reward figure)
+    # What those claims COST the merchant in cashback — not what the referrer
+    # earned, and not revenue. The portal labels it "Cashback paid" for exactly
+    # that reason; the field name is left alone so nothing reading it breaks.
+    referredCashback: float
 
 
 # ── Merchant billing / prepaid balance (Phase 6b) ──

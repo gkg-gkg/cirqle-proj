@@ -184,3 +184,70 @@ def send_merchant_reset(to: str, business_name: str, token: str) -> bool:
         "This link expires in 1 hour and can only be used once. If you didn't "
         "request it, ignore this email — nothing has changed.")
     return send_email(to, "Reset your Cirqle merchant password", text, html)
+
+
+def _report_rows(rows: list) -> str:
+    """The figures table for the monthly report, as inline-styled HTML.
+
+    Every row is (label, value, note). The note carries the caveat that makes
+    the number honest — coverage on revenue, the maturity of a retention rate —
+    because a figure in an email has no tooltip to hover.
+    """
+    cells = []
+    for label, value, note in rows:
+        cells.append(
+            f'<tr>'
+            f'<td style="padding:10px 0;border-bottom:1px solid #eee;'
+            f'font-size:14px;color:#444">{label}'
+            + (f'<div style="font-size:12px;color:#999;margin-top:2px">{note}</div>'
+               if note else "")
+            + f'</td>'
+            f'<td style="padding:10px 0;border-bottom:1px solid #eee;'
+            f'font-size:16px;font-weight:600;text-align:right;'
+            f'white-space:nowrap">{value}</td>'
+            f'</tr>')
+    return ('<table style="width:100%;border-collapse:collapse;margin:8px 0 24px">'
+            + "".join(cells) + '</table>')
+
+
+def send_merchant_report(to: str, business_name: str, period: str,
+                         rows: list, headline: str) -> bool:
+    """The monthly performance summary for a brand.
+
+    This is the only time most merchants see their numbers — a brand that funded
+    a campaign and then never logs in still has to know what it bought, and an
+    email is the one channel that reaches them. It links back to the portal for
+    everything it doesn't fit.
+    """
+    url = f"{site_base()}/merchant.html"
+    name = business_name or "there"
+
+    text_rows = "\n".join(
+        f"  {label}: {value}" + (f"  ({note})" if note else "")
+        for label, value, note in rows)
+    text = (f"Hi {name},\n\n"
+            f"Your Cirqle summary for {period}.\n\n"
+            f"{headline}\n\n"
+            f"{text_rows}\n\n"
+            f"See the full picture, including which customers came back and who "
+            f"referred them:\n{url}\n\n"
+            f"Reply to this email if anything looks wrong — we read every one.")
+
+    html = f"""\
+<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+            max-width:480px;margin:0 auto;padding:32px 24px;color:#1a1a1a">
+  <div style="font-size:20px;font-weight:600;letter-spacing:-0.02em">Cirqle</div>
+  <h1 style="font-size:22px;font-weight:600;margin:28px 0 6px">Your {period} summary</h1>
+  <p style="font-size:15px;line-height:1.6;color:#444;margin:0 0 20px">{headline}</p>
+  {_report_rows(rows)}
+  <a href="{url}" style="display:inline-block;background:#1a1a1a;color:#fff;
+     text-decoration:none;padding:13px 24px;border-radius:8px;font-size:15px;
+     font-weight:500">Open your dashboard</a>
+  <p style="font-size:13px;line-height:1.6;color:#888;margin:28px 0 0;
+            border-top:1px solid #eee;padding-top:20px">
+    Revenue is read from the receipts shoppers uploaded, so it covers the claims
+    we could read a total from — the dashboard shows exactly how many. Reply to
+    this email if anything looks wrong.
+  </p>
+</div>"""
+    return send_email(to, f"Cirqle — your {period} summary", text, html)

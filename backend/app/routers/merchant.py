@@ -8,18 +8,26 @@ deals (the `Campaign` rows linked by `merchant_id`) and to message the admin.
 Merchant auth uses a JWT with a typ="merchant" claim (see security.py) so a
 merchant token can't reach user endpoints and vice-versa.
 """
+import csv
+import io
 import json
 import secrets
 from datetime import date, datetime, timedelta
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
+from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
+                     UploadFile, File)
 from sqlmodel import Session, select
 
 from .. import mailer, passwords, tokens
 from ..db import get_session
 from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       CampaignSubmission, CampaignSubmissionIn,
-                      CampaignSubmissionOut, DealEvent, DealStat, EmailIn,
+                      BenchmarkOut, IncrementalityOut,
+                      CampaignSubmissionOut, CohortRow, CustomerOut,
+                      CustomerSummary, MerchantCustomersOut, NetworkSummary,
+                      PathStat, TreeNode,
+                      DealEvent, DealStat, EmailIn,
                       Mention, MessageOut, ResetPasswordIn,
                       Merchant, MerchantApplication, MerchantAuthOut,
                       MerchantCreatedOut, MerchantCreateIn, MerchantMessage,
@@ -28,10 +36,15 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       CheckoutSessionOut, MerchantStats, MerchantThreadOut,
                       PlanOut, RefundIn, SubscribeIn, SubscriptionOut,
                       TopUpQuote,
-                      DealReferralsIn, MerchantTransaction, Receipt,
+                      DealReferralsIn, DealVisitsIn,
+                      MerchantTransaction, Receipt,
                       ReferralReward, ReferralStat, RejectSubmissionIn,
                       TaggedPostOut, TimePoint, TopUpIn, User, WalletOut)
 from ..activity import log_activity
+from ..benchmarks import compare
+from ..customers import (build_customers, cohorts, incrementality,
+                         network_summary, referral_tree, split_by_path,
+                         summary as customer_summary)
 from ..ratelimit import rate_limit
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
@@ -42,11 +55,19 @@ from ..payments import (OVERAGE_RATE, TIERS, PaymentError,
                         payments_configured, quote_topup, refund_topup)
 from .auth import SENT_MESSAGE
 from .campaigns import require_admin
+# The deal's cashback is stored as printed text ("£13.00"); this is the parser
+# that turns it back into a number, and validating a visit rate against the
+# posted one needs the same reading of it.
+from .receipts import _earn_to_amount
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
 
 _TIMESERIES_DAYS = 30
 _CASHBACK_GIVEN = ("confirmed", "paid")
+# Receipt currencies that count toward a merchant's revenue. "" is included
+# because most UK receipts don't print a currency at all, and Cirqle trades in
+# pounds — an explicit foreign code is the only thing worth excluding.
+_REVENUE_CURRENCIES = ("", "GBP")
 
 
 def _json_list(raw: str) -> list[str]:
@@ -296,6 +317,40 @@ def set_deal_referrals(campaign_id: int, data: DealReferralsIn,
     return next(d for d in stats.deals if d.campaignId == campaign_id)
 
 
+@router.patch("/deals/{campaign_id}/visits", response_model=DealStat)
+def set_deal_visits(campaign_id: int, data: DealVisitsIn,
+                    merchant: Merchant = Depends(get_current_merchant),
+                    session: Session = Depends(get_session)):
+    """Let shoppers log a repeat visit to this deal without posting again.
+
+    Off by default, like referral bonuses: funding a wallet must never enrol a
+    deal the brand didn't choose. Switching it off stops new visit claims; ones
+    already made are left alone, since that cashback is money the member has.
+    """
+    campaign = session.get(Campaign, campaign_id)
+    if campaign is None or campaign.merchant_id != merchant.id:
+        raise HTTPException(status_code=404, detail="No such deal.")
+    if data.earn < 0:
+        raise HTTPException(status_code=422,
+                            detail="A visit can't be worth less than nothing.")
+    # Guarding against a fat finger, not a business rule: a repeat visit paying
+    # more than the posted claim would make posting the worse option.
+    posted = _earn_to_amount(campaign.earn)
+    if posted and data.earn > posted:
+        raise HTTPException(
+            status_code=422,
+            detail=f"A visit can't pay more than the deal itself (£{posted:.2f}).")
+
+    campaign.visits_enabled = bool(data.enabled)
+    campaign.visit_earn = round(data.earn, 2)
+    session.add(campaign)
+    session.commit()
+    session.refresh(campaign)
+
+    stats = _compute_stats(merchant, session)
+    return next(d for d in stats.deals if d.campaignId == campaign_id)
+
+
 # ── Billing: prepaid balance that funds shopper cashback ──
 def _month_topups(merchant_id: int, session: Session) -> float:
     """£ of credit topped up since the 1st — what the allowance is measured against.
@@ -526,6 +581,23 @@ def billing_checkout(data: TopUpIn, request: Request,
 
 
 # ── Merchant dashboard stats ──
+def _spend(receipt: Receipt) -> Optional[float]:
+    """What this claim is worth as revenue, or None if it can't be counted.
+
+    Three ways a claim contributes nothing. It never cleared, so the merchant
+    got no sale they're paying us for; the receipt's total was never legible, in
+    which case it is missing rather than zero; or it is priced in a currency
+    that isn't ours, and silently adding dollars to a pound total is worse than
+    leaving them out. A blank currency counts — most UK receipts don't print
+    one, and excluding them would throw away nearly every row.
+    """
+    if receipt.status not in _CASHBACK_GIVEN or receipt.basket_total is None:
+        return None
+    if receipt.basket_currency not in _REVENUE_CURRENCIES:
+        return None
+    return receipt.basket_total
+
+
 def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
     campaigns = session.exec(
         select(Campaign).where(Campaign.merchant_id == merchant.id)
@@ -561,6 +633,30 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
         sum(r.amount for r in receipts if r.status == "pending"), 2)
     conversion = round(claims / views * 100, 1) if views else 0.0
 
+    # ── What the deals earned ──
+    # Cashback is a flat per-campaign figure, so revenue can't be inferred from
+    # it — it has to come off the receipts themselves. Coverage is measured
+    # against credited claims only: a rejected claim isn't missing revenue, it
+    # is a claim that was never worth any.
+    spends = [s for s in (_spend(r) for r in receipts) if s is not None]
+    credited = sum(1 for r in receipts if r.status in _CASHBACK_GIVEN)
+    revenue = round(sum(spends), 2)
+    average_basket = round(revenue / len(spends), 2) if spends else 0.0
+    coverage = round(len(spends) / credited * 100, 1) if credited else 0.0
+
+    referrals_paid = round(sum(w.amount for w in rewards), 2)
+    fees_paid = round(sum(
+        t.amount for t in session.exec(
+            select(MerchantTransaction).where(
+                MerchantTransaction.merchant_id == merchant.id,
+                MerchantTransaction.kind.in_(("platform_fee", "subscription")),
+            )
+        ).all()), 2)
+    programme_cost = round(cashback_given + referrals_paid + fees_paid, 2)
+    return_on_cashback = (round(revenue / programme_cost, 2)
+                          if programme_cost else 0.0)
+    discount_rate = round(programme_cost / revenue * 100, 1) if revenue else 0.0
+
     # ── Per-deal breakdown ──
     deals = []
     for c in campaigns:
@@ -576,6 +672,11 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
             referralsEnabled=c.referrals_enabled,
             referralsPaid=round(sum(w.amount for w in rewards
                                     if w.campaign_id == c.id), 2),
+            revenue=round(sum(s for s in (_spend(r) for r in c_receipts)
+                              if s is not None), 2),
+            visitsEnabled=c.visits_enabled,
+            visitEarn=c.visit_earn,
+            visitClaims=sum(1 for r in c_receipts if r.claim_kind == "visit"),
         ))
 
     return MerchantStats(
@@ -583,6 +684,9 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
         cashbackGiven=cashback_given, pendingCashback=pending_cashback,
         conversion=conversion,
         timeseries=_build_timeseries(events, receipts), deals=deals,
+        revenue=revenue, averageBasket=average_basket, revenueCoverage=coverage,
+        programmeCost=programme_cost, returnOnCashback=return_on_cashback,
+        discountRate=discount_rate,
     )
 
 
@@ -620,6 +724,118 @@ def stats(merchant: Merchant = Depends(get_current_merchant),
 
 
 # ── Merchant <-> admin messages ──
+_POST_CAVEAT = ("Every claim needs an Instagram post, so a customer who returns "
+                "without posting isn't counted here. Treat these as a floor.")
+
+
+@router.get("/customers", response_model=MerchantCustomersOut)
+def customers(merchant: Merchant = Depends(get_current_merchant),
+              session: Session = Depends(get_session)):
+    """Who bought, how often, and whether they came back.
+
+    Aggregates and per-person history for this merchant's own deals only — a
+    merchant never sees that a member also shops somewhere else.
+    """
+    records = build_customers(merchant.id, session)
+    today = date.today()
+
+    paths = split_by_path(records, today)
+    return MerchantCustomersOut(
+        summary=CustomerSummary(**customer_summary(records, session, merchant.id,
+                                                   today)),
+        customers=[
+            CustomerOut(
+                userId=c.user_id, handle=c.handle, claims=c.claims, spend=c.spend,
+                cashbackPaid=c.cashback, firstClaim=c.first, lastClaim=c.last,
+                sticky=c.sticky, acquisition=c.acquisition,
+                referredByHandle=c.referred_by_handle,
+                referredCount=c.referred_count,
+            ) for c in records
+        ],
+        cohorts=[CohortRow(**row) for row in cohorts(records, today)],
+        byPath=[PathStat(path=name, **stats) for name, stats in paths.items()],
+        caveat=_POST_CAVEAT,
+    )
+
+
+@router.get("/network", response_model=NetworkSummary)
+def network(merchant: Merchant = Depends(get_current_merchant),
+            session: Session = Depends(get_session)):
+    """How this merchant's referral network is performing, and who is building it."""
+    return NetworkSummary(**network_summary(
+        build_customers(merchant.id, session), session, merchant.id))
+
+
+@router.get("/customers/{user_id}/tree", response_model=TreeNode)
+def customer_tree(user_id: int,
+                  merchant: Merchant = Depends(get_current_merchant),
+                  session: Session = Depends(get_session)):
+    """Everyone this customer brought, and everyone they brought in turn.
+
+    Built only from claims on this merchant's own deals, so a merchant learns
+    who someone referred TO THEM and nothing about where else that member shops.
+    A customer who has never bought here isn't theirs to look at — 404.
+    """
+    tree = referral_tree(build_customers(merchant.id, session), user_id)
+    if tree is None:
+        raise HTTPException(status_code=404, detail="Not one of your customers.")
+    return TreeNode(**tree)
+
+
+_INCREMENTALITY_BASIS = (
+    "An estimate, not a lift study. It treats revenue from customers who are "
+    "new to you on Cirqle as the incremental part — so it ignores any repeat "
+    "custom your deals also created, and it can't know whether a 'new' customer "
+    "had shopped with you before joining Cirqle.")
+
+
+@router.get("/benchmarks", response_model=BenchmarkOut)
+def benchmarks(merchant: Merchant = Depends(get_current_merchant),
+               session: Session = Depends(get_session)):
+    """How this merchant's retention compares to their category, or the industry."""
+    return BenchmarkOut(**compare(merchant, session))
+
+
+@router.get("/incrementality", response_model=IncrementalityOut)
+def incrementality_estimate(merchant: Merchant = Depends(get_current_merchant),
+                            session: Session = Depends(get_session)):
+    """Roughly how much of the spend bought new custom. Clearly an estimate."""
+    stats = _compute_stats(merchant, session)
+    records = build_customers(merchant.id, session)
+    return IncrementalityOut(
+        **incrementality(records, stats.revenue, stats.programmeCost, date.today()),
+        basis=_INCREMENTALITY_BASIS,
+    )
+
+
+@router.get("/customers.csv")
+def customers_csv(merchant: Merchant = Depends(get_current_merchant),
+                  session: Session = Depends(get_session)):
+    """The customers table as a CSV, for a merchant who wants it in a spreadsheet.
+
+    Same columns and the same limits as the portal — Instagram handle, never a
+    name or an email — so exporting can't reveal more than the screen does.
+    """
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["handle", "visits", "spend", "cashback_paid", "first_claim",
+                     "last_claim", "regular", "found_you", "referred_by",
+                     "people_referred"])
+    for c in build_customers(merchant.id, session):
+        writer.writerow([
+            c.handle, c.claims, f"{c.spend:.2f}", f"{c.cashback:.2f}",
+            c.first.isoformat(), c.last.isoformat(),
+            "yes" if c.sticky else "no", c.acquisition,
+            c.referred_by_handle, c.referred_count,
+        ])
+
+    filename = f"cirqle-customers-{date.today().isoformat()}.csv"
+    return Response(
+        content=buffer.getvalue(), media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/messages", response_model=list[MerchantMessageOut])
 def list_messages(merchant: Merchant = Depends(get_current_merchant),
                   session: Session = Depends(get_session)):

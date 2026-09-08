@@ -90,11 +90,14 @@ def _resolve_referral(raw_handle: str, campaign_id: Optional[int], user: User,
             detail="Choose which deal this receipt is for before saying who referred you.")
 
     # Their claims on THIS deal. A rejected one doesn't count: the admin has
-    # already thrown it out, so it's no evidence they promoted anything.
+    # already thrown it out, so it's no evidence they promoted anything. Nor
+    # does a visit claim — it proves they shopped here, not that they posted
+    # anything anyone could have been referred BY.
     claims = session.exec(
         select(Receipt).where(
             Receipt.user_id == referrer.id,
             Receipt.campaign_id == campaign_id,
+            Receipt.claim_kind == "post",
             Receipt.status != "rejected",
         )
     ).all()
@@ -126,25 +129,56 @@ def list_receipts(
              dependencies=[rate_limit("receipts", limit=30, window=3600)])
 def create_receipt(
     background: BackgroundTasks,
-    post_id: str = Form(...),
+    post_id: str = Form(""),
     campaign_id: Optional[int] = Form(None),
     referred_by_handle: Optional[str] = Form(None),
     image: UploadFile = File(...),
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Upload a receipt for one of this user's posts, tied to a deal.
+    """Upload a receipt, either against one of this user's posts or on its own.
 
-    One receipt per (user, post): re-uploading replaces it and resets to pending.
+    With a `post_id` this is the original kind of claim: one receipt per
+    (user, post), and re-uploading for the same post replaces it and resets to
+    pending.
+
+    Without one it is a VISIT claim — a repeat trip the member didn't post
+    about. It earns whatever the merchant set for that campaign, and there is no
+    replacement rule, because two visit claims are two separate visits and
+    collapsing them would erase exactly the repeat-custom signal the whole
+    feature exists to capture.
+
     `referred_by_handle` is optional — the Instagram handle of the person whose
     post led this user to buy. Attribution only: no reward is granted here.
     """
-    if not post_id.strip():
-        raise HTTPException(status_code=422, detail="post_id is required.")
+    post_id = post_id.strip()
+    kind = "post" if post_id else "visit"
+
+    campaign = session.get(Campaign, campaign_id) if campaign_id else None
+    if kind == "visit":
+        # A visit claim has no post to anchor it, so the deal has to be named —
+        # otherwise there is nothing to say whose shop the receipt is from.
+        if campaign is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Choose which deal this receipt is for.")
+        if not campaign.visits_enabled:
+            raise HTTPException(
+                status_code=422,
+                detail=("This deal doesn't accept repeat visits yet — share a "
+                        "post to claim it."))
 
     referrer_id: Optional[int] = None
     referral_handle, referral_status = "", ""
     if referred_by_handle and referred_by_handle.strip():
+        if kind == "visit":
+            # Being referred is about how you found the place, which is the
+            # first visit. Letting a repeat trip name a referrer would pay a
+            # bonus for a customer the merchant already had.
+            raise HTTPException(
+                status_code=422,
+                detail="You can only name who referred you on your first claim "
+                       "for a deal, when you post about it.")
         referrer_id, referral_handle, referral_status = _resolve_referral(
             referred_by_handle, campaign_id, user, session)
 
@@ -164,10 +198,13 @@ def create_receipt(
     # Byte-identical only, so there are no false positives, but equally it is
     # beaten by re-saving the photo. Catching that needs the receipt's own
     # order number, which arrives with the extraction step.
+    # A visit claim has no post, so it has no replacement case either — every
+    # identical image is a duplicate, full stop.
     clash = next(
         (r for r in session.exec(
             select(Receipt).where(Receipt.image_sha256 == digest)).all()
-         if not (r.user_id == user.id and r.post_id == post_id)),
+         if not (kind == "post" and r.user_id == user.id
+                 and r.post_id == post_id)),
         None,
     )
     if clash is not None:
@@ -178,19 +215,26 @@ def create_receipt(
                    "claim. Please upload the receipt for this purchase.")
 
     # Snapshot the deal's brand + cashback amount so the claim is self-contained.
+    # A visit is worth what the merchant set for one, which is its own figure
+    # rather than a share of the posted rate.
     brand, amount = "", 0.0
-    if campaign_id is not None:
-        camp = session.get(Campaign, campaign_id)
-        if camp:
-            brand = camp.brand
-            amount = _earn_to_amount(camp.earn)
+    if campaign is not None:
+        brand = campaign.brand
+        amount = (campaign.visit_earn if kind == "visit"
+                  else _earn_to_amount(campaign.earn))
 
     # Cashback is NOT confirmed on upload. The claim stays 'pending' and clears
     # automatically 3 days after the post date (see app/cashback.py); admin can
     # reject it within that window.
+    #
+    # Only a post claim can replace an earlier one. Visit claims all carry
+    # post_id = "", so looking one up by (user, post_id) would match the
+    # member's LAST visit and overwrite it — turning a customer's repeat trips
+    # into a single row, which is the precise opposite of what they are for.
     existing = session.exec(
-        select(Receipt).where(Receipt.user_id == user.id, Receipt.post_id == post_id)
-    ).first()
+        select(Receipt).where(Receipt.user_id == user.id,
+                              Receipt.post_id == post_id)
+    ).first() if kind == "post" else None
     if existing:
         # Drop the photo this one replaces. Without it the old object stays in
         # the private bucket forever with nothing pointing at it — billed, and
@@ -210,7 +254,8 @@ def create_receipt(
         receipt = existing
     else:
         receipt = Receipt(
-            user_id=user.id, post_id=post_id, campaign_id=campaign_id,
+            user_id=user.id, post_id=post_id, claim_kind=kind,
+            campaign_id=campaign_id,
             brand=brand, amount=amount, image_key=key, image_sha256=digest,
             status="pending", referred_by_user_id=referrer_id,
             referred_by_handle=referral_handle, referral_status=referral_status,
@@ -226,7 +271,9 @@ def create_receipt(
     if os.environ.get("CIRQLE_RECEIPT_CHECK", "on") != "off":
         background.add_task(check_receipt, receipt.id)
 
-    mention = session.get(Mention, post_id)
+    # A visit claim has no post, so its 3-day clearing window runs from the
+    # upload instead — which is what clears_at() already falls back to.
+    mention = session.get(Mention, post_id) if post_id else None
     post_ts = parse_post_ts(mention.timestamp) if mention else None
     return _receipt_out(receipt, effective_status(receipt, post_ts))
 

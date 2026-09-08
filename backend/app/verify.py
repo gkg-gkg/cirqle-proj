@@ -35,7 +35,7 @@ still add up will read as fine.
 import json
 import os
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from pydantic import BaseModel
@@ -332,6 +332,60 @@ def _score(reading: ReceiptReading, receipt: Receipt, campaign: Optional[Campaig
     return score, reasons
 
 
+def apply_reading(receipt: Receipt, reading: dict) -> None:
+    """Copy the three money/date fields out of a reading onto the Receipt row.
+
+    Takes a plain dict rather than a ReceiptReading so the backfill can pass the
+    `reading` block straight out of a stored `check_data`, and both paths fill
+    the columns identically. Anything unreadable stays null — see the column
+    comments on Receipt for why a fallback would be worse than a gap.
+    """
+    total = reading.get("total")
+    receipt.basket_total = float(total) if isinstance(total, (int, float)) else None
+    receipt.basket_currency = (reading.get("currency") or "")[:8]
+    receipt.purchase_date = _date_or_none(reading.get("purchase_date") or "")
+
+
+def _date_or_none(iso: str):
+    """'YYYY-MM-DD' -> date. None for '' or anything that won't parse."""
+    try:
+        return datetime.strptime(iso, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def apply_reading(receipt: Receipt, reading: dict) -> None:
+    """Copy the spend/date fields out of a reading onto the Receipt's columns.
+
+    Takes a plain dict rather than a ReceiptReading so the backfill can hand it
+    the `reading` block straight out of a stored `check_data` and fill the
+    columns exactly the way a fresh check would.
+
+    Anything unreadable is left as None. A receipt whose total didn't come out
+    must not read as a £0 purchase, and a missing date must not fall back to the
+    upload time — see the column comments on Receipt.
+    """
+    total = reading.get("total")
+    # bool is an int subclass, and `True` must not become £1.00.
+    receipt.basket_total = (float(total)
+                            if isinstance(total, (int, float))
+                            and not isinstance(total, bool) else None)
+    receipt.basket_currency = (reading.get("currency") or "")[:8]
+    receipt.purchase_date = _iso_to_date(reading.get("purchase_date") or "")
+
+
+def _iso_to_date(iso: str) -> Optional[date]:
+    """'YYYY-MM-DD' -> date. None for '' or anything that won't parse.
+
+    `_date` above already normalises whatever was printed to this shape, so this
+    only has to reverse that one format.
+    """
+    try:
+        return datetime.strptime(iso, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
 def check_receipt(receipt_id: int) -> None:
     """Read receipt `receipt_id` and record what we made of it. Never raises.
 
@@ -361,6 +415,8 @@ def check_receipt(receipt_id: int) -> None:
             receipt.receipt_number = reading.order_number[:100]
             receipt.check_data = json.dumps(
                 {"reading": reading.model_dump(), "reasons": reasons})
+            # The same numbers again, as columns the merchant dashboard can sum.
+            apply_reading(receipt, reading.model_dump())
         except Exception as exc:  # noqa: BLE001 — a failed check must not break anything
             receipt.check_status = "error"
             receipt.check_score = 0
