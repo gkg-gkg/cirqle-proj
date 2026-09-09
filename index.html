@@ -229,16 +229,6 @@
     .cyc-t { font-family: var(--font-display); font-size: 1.24rem; font-weight: 700; letter-spacing: -.025em; margin: 18px 0 6px; }
     .cyc-d { font-size: .89rem; color: var(--ink-soft); line-height: 1.6; margin: 0; }
 
-    /* ── Two ways to share ──
-       Posting and referring are the same step seen from two angles, so they sit
-       as a pair under the cycle rather than becoming a fourth tile inside it. */
-    .ways { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(14px, 2vw, 20px); margin-top: clamp(22px, 3vw, 34px); }
-    .way { display: flex; gap: 15px; align-items: flex-start; padding: 20px 22px; }
-    .way-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
-    .way-t { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
-    .way-d { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; margin: 5px 0 0; }
-    @media (max-width: 780px) { .ways { grid-template-columns: 1fr; } }
-
     /* phone */
     .ph {
       width: 142px; border-radius: 20px 20px 0 0; background: #0B1220;
@@ -443,7 +433,7 @@
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">From share to <span class="hl">paid.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Real brands, real published rates. Example earnings shown to illustrate how each rate works out.</p>
+        <p class="h-sub reveal reveal-delay-2" id="flowSub">Takeaways, trainers, gym memberships, tech and city breaks &mdash; every live deal at its published rate. The &pound; figures are worked examples.</p>
       </div>
     </div>
     <div class="hcar reveal" id="flowCar">
@@ -485,22 +475,6 @@
           <p class="cyc-d">Once approved your cashback clears in about three days, then goes to your bank.</p>
         </div>
       </div>
-      <div class="ways">
-        <div class="card way reveal reveal-delay-1">
-          <span class="way-ico"><i class="ico ico-instagram"></i></span>
-          <div>
-            <div class="way-t">Share with your followers</div>
-            <p class="way-d">Post your buy on Instagram, tag @cirqle and the brand, then upload the receipt. Approved claims earn that deal's published rate on what you spent.</p>
-          </div>
-        </div>
-        <div class="card way reveal reveal-delay-2">
-          <span class="way-ico"><i class="ico ico-users"></i></span>
-          <div>
-            <div class="way-t">Share with your friends</div>
-            <p class="way-d">Send them your link. When a friend buys through your post and their first claim is approved, you get £1 and they get 50p &mdash; on top of your own cashback.</p>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -537,7 +511,7 @@
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">What earning here <span class="hl">looks like.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Worked examples of shopping, posting and referring friends &mdash; and what landed in the wallet.</p>
+        <p class="h-sub reveal reveal-delay-2">Illustrative feedback from people using Cirqle to shop, share and get paid.</p>
       </div>
       <div class="pwall reveal">
         <div class="pw-col k1" id="pwCol1"></div>
@@ -575,8 +549,8 @@
           </div>
         </div>
         <div class="calc-row">
-          <div class="calc-label"><span>Friends referred <em>in a year</em></span><b id="calcRefsLabel">3</b></div>
-          <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends referred in a year">
+          <div class="calc-label"><span>Friends referred <em>in a month</em></span><b id="calcRefsLabel">3</b></div>
+          <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends referred in a month">
           <p class="calc-note" style="margin-top:8px">&pound;1 of cashback per referral, paid once their first claim is approved.</p>
         </div>
         <div class="calc-row" style="margin-bottom:0">
@@ -805,6 +779,24 @@
     // example are illustrative, and the section header says so.
     var CAPTIONS = ['Story tagged @cirqle', 'Haul post · 2 tags', 'Link sent to a friend', 'Grid post', 'Unboxing story', 'Friend referred'];
     function buildCarousel(deals) {
+      // How many deals, across how many categories — counted from the catalogue
+      // rather than typed into the markup, so the claim can't go stale as
+      // merchants join or leave. The markup keeps a number-free fallback for the
+      // case where the catalogue never arrives (this section is hidden then).
+      var sub = document.getElementById('flowSub');
+      if (sub) {
+        var catCount = {};
+        deals.forEach(function (d) {
+          var c = (d.category || '').trim();
+          if (c) catCount[c] = 1;
+        });
+        var nCats = Object.keys(catCount).length;
+        sub.textContent = deals.length + (deals.length === 1 ? ' live deal' : ' live deals') +
+          (nCats > 1 ? ' across ' + nCats + ' categories' : '') +
+          ' \u2014 takeaways, trainers, gym memberships, tech and city breaks, ' +
+          'each at its published rate. The £ figures are worked examples.';
+      }
+
       var car = document.getElementById('flowCar');
       var r1 = document.getElementById('carRow1'), r2 = document.getElementById('carRow2');
       if (!car || !r1 || !r2) return;
@@ -910,7 +902,7 @@
         var n = +refs.value;
         var s = stats(active);
         var eligible = v * 12 * postRate;          // £ a year actually claimed on
-        var bonus = n * REFERRAL_REWARD;           // £ a year from referrals
+        var bonus = n * 12 * REFERRAL_REWARD;      // £ a year, from n referrals a month
         var lo = Math.round(eligible * s.lo / 100 + bonus);
         var hi = Math.round(eligible * s.hi / 100 + bonus);
         spendLabel.textContent = '£' + v;
@@ -924,7 +916,7 @@
         sub.textContent = 'On £' + v + ' a month at ' + active.toLowerCase() +
           ' partners, posting about ' + Math.round(postRate * 100) + '% of them, at ' +
           rates + '% across our live deals' +
-          (n ? ', plus £' + bonus + ' from ' + n + (n === 1 ? ' friend' : ' friends') + ' referred.' : '.');
+          (n ? ', plus £' + bonus + ' from ' + n + (n === 1 ? ' friend' : ' friends') + ' referred a month.' : '.');
       }
       function wire(container, onPick) {
         container.addEventListener('click', function (e) {
