@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#38B6FF" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%2338B6FF' stroke-width='12'/%3E%3C/svg%3E" />
-  <title>Cirqle — Shop. Post. Earn Cashback.</title>
+  <title>Cirqle — Shop. Share. Get Paid.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
@@ -14,7 +14,7 @@
     /* ── HERO ── */
     .hero {
       position: relative; z-index: 1;
-      /* Wide enough that "Get paid to shop." still holds one line at the
+      /* Wide enough that "Shop. Share." still holds one line at the
          larger size — the markup's <br> is what sets the two-line shape. */
       max-width: 980px; margin: 0 auto;
       padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(88px, 9vw, 132px);
@@ -89,12 +89,6 @@
       letter-spacing: -0.035em; margin: 22px 0 20px;
     }
     .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 600px; margin: 0 auto 22px; line-height: 1.7; }
-    /* The three steps, compressed to one line under the sub-headline. */
-    .mini-steps { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 14px; margin: 0 auto 30px; }
-    .ms { display: inline-flex; align-items: center; gap: 8px; font-size: .84rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
-    .ms-i { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; flex-shrink: 0; box-shadow: 0 3px 10px rgba(56,182,255,.35); }
-    .ms-i .ico { width: 13px; height: 13px; }
-    .ms-sep { width: 14px; height: 1px; background: linear-gradient(90deg, var(--neon), transparent); flex-shrink: 0; }
     .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center; }
     .hero-actions .btn-lg { font-size: .94rem; padding: 12px 24px; }
 
@@ -152,7 +146,7 @@
     /* the steps follow the band closely — they're the same idea continued */
     #steps { padding-top: clamp(50px, 6.2vw, 96px); padding-bottom: clamp(26px, 3.2vw, 44px); }
 
-    /* ── Post → paid carousel (horizontal) ──
+    /* ── Share → paid carousel (horizontal) ──
        Two modes, and the JS picks one so markup and behaviour can't disagree:
        `.run` is the desktop auto-marquee, `.swipe` is a strip you scroll
        yourself. Neither is on until the tiles exist — a marquee started on an
@@ -234,6 +228,16 @@
     }
     .cyc-t { font-family: var(--font-display); font-size: 1.24rem; font-weight: 700; letter-spacing: -.025em; margin: 18px 0 6px; }
     .cyc-d { font-size: .89rem; color: var(--ink-soft); line-height: 1.6; margin: 0; }
+
+    /* ── Two ways to share ──
+       Posting and referring are the same step seen from two angles, so they sit
+       as a pair under the cycle rather than becoming a fourth tile inside it. */
+    .ways { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(14px, 2vw, 20px); margin-top: clamp(22px, 3vw, 34px); }
+    .way { display: flex; gap: 15px; align-items: flex-start; padding: 20px 22px; }
+    .way-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .way-t { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
+    .way-d { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; margin: 5px 0 0; }
+    @media (max-width: 780px) { .ways { grid-template-columns: 1fr; } }
 
     /* phone */
     .ph {
@@ -341,9 +345,6 @@
          clipped second row, animating a 172×2500 layer nobody could see. */
       .pw-col.k3 { display: none; }
       .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(48px, 8vw, 80px); }
-      /* separators dangle at the end of a wrapped row — drop them once it wraps */
-      .ms-sep { display: none; }
-      .mini-steps { gap: 8px 18px; }
       .facts-strip { grid-template-columns: repeat(2, 1fr); }
       .steps { grid-template-columns: 1fr; gap: 30px; }
       .features-grid, .calc-grid { grid-template-columns: 1fr; }
@@ -367,9 +368,6 @@
       /* This bottom padding is the strip of wall left showing under the
          buttons — it is what keeps them above the wall rather than on its edge. */
       .hero { padding-top: 28px; padding-bottom: 90px; }
-      /* The three steps repeat the "Shop. Post. Earn." section further down —
-         one telling is enough on a phone. */
-      .mini-steps { display: none; }
       /* Same reasoning for the four claim tiles: they restate the hero copy and
          cost a full screen of scrolling to say it. */
       #facts { display: none; }
@@ -429,15 +427,8 @@
     <div class="hero-scrim" aria-hidden="true"></div>
   <header class="hero">
     <div>
-      <h1 class="hero-h fade-up d1">Get <span class="hl">paid</span> to shop.<br>For real.</h1>
-      <p class="hero-sub fade-up d2">Buy from brands you already love, post it on your socials, and watch <span class="squiggle">actual money</span> land in your wallet. No points. No vouchers. Cash.</p>
-      <div class="mini-steps fade-up d2" aria-label="How it works, in three steps">
-        <span class="ms"><span class="ms-i"><i class="ico ico-bag"></i></span>Shop your brands</span>
-        <span class="ms-sep" aria-hidden="true"></span>
-        <span class="ms"><span class="ms-i"><i class="ico ico-instagram"></i></span>Post and tag us</span>
-        <span class="ms-sep" aria-hidden="true"></span>
-        <span class="ms"><span class="ms-i"><i class="ico ico-cash"></i></span>Earn real cash</span>
-      </div>
+      <h1 class="hero-h fade-up d1">Shop. Share.<br>Get <span class="hl">Paid</span>.</h1>
+      <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, and earn <span class="squiggle">real cash</span>, straight to your wallet.</p>
       <div class="hero-actions btn-row fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
         <a href="signup.html" class="btn btn-lg">Sign up</a>
@@ -447,11 +438,11 @@
   </header>
   </div>
 
-  <!-- ══ POST → PAID CAROUSEL ══ -->
+  <!-- ══ SHARE → PAID CAROUSEL ══ -->
   <section class="section band" id="flow">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">From post to <span class="hl">paid.</span></h2>
+        <h2 class="h-display reveal reveal-delay-1">From share to <span class="hl">paid.</span></h2>
         <p class="h-sub reveal reveal-delay-2">Real brands, real published rates. Example earnings shown to illustrate how each rate works out.</p>
       </div>
     </div>
@@ -461,11 +452,11 @@
     </div>
   </section>
 
-  <!-- ══ THE CYCLE — shop, post, earn ══ -->
+  <!-- ══ THE CYCLE — shop, share, earn ══ -->
   <section class="section" id="steps">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Shop. Post. <span class="hl">Earn.</span></h2>
+        <h2 class="h-display reveal reveal-delay-1">Shop. Share. <span class="hl">Earn.</span></h2>
         <p class="h-sub reveal reveal-delay-2">Three steps, and the cashback from one buys the next thing.</p>
       </div>
       <div class="cycle">
@@ -482,8 +473,8 @@
             <span class="cyc-n">2</span>
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
           </div>
-          <h3 class="cyc-t">Post</h3>
-          <p class="cyc-d">Share it on Instagram, tag @cirqle and the brand, then upload your receipt.</p>
+          <h3 class="cyc-t">Share</h3>
+          <p class="cyc-d">Post it on Instagram tagging @cirqle and the brand, or send your link to friends. Then upload your receipt.</p>
         </div>
         <div class="cyc reveal reveal-delay-3">
           <div class="cyc-stage">
@@ -491,7 +482,23 @@
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-bal"><span>Wallet</span><b>£47.80</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w50"></span><b class="ps-amt">+£3.50</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w40"></span><b class="ps-amt">+£2.10</b></div><div class="ps-btn">Withdraw</div></div></div>
           </div>
           <h3 class="cyc-t">Earn</h3>
-          <p class="cyc-d">Once approved it clears in about three days, then goes to your bank.</p>
+          <p class="cyc-d">Once approved your cashback clears in about three days, then goes to your bank.</p>
+        </div>
+      </div>
+      <div class="ways">
+        <div class="card way reveal reveal-delay-1">
+          <span class="way-ico"><i class="ico ico-instagram"></i></span>
+          <div>
+            <div class="way-t">Share with your followers</div>
+            <p class="way-d">Post your buy on Instagram, tag @cirqle and the brand, then upload the receipt. Approved claims earn that deal's published rate on what you spent.</p>
+          </div>
+        </div>
+        <div class="card way reveal reveal-delay-2">
+          <span class="way-ico"><i class="ico ico-users"></i></span>
+          <div>
+            <div class="way-t">Share with your friends</div>
+            <p class="way-d">Send them your link. When a friend buys through your post and their first claim is approved, you get £1 and they get 50p &mdash; on top of your own cashback.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -529,8 +536,8 @@
   <section class="section band-soft" id="reviews">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Shop at <span class="hl">Cirqle.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Cirqle is a cashback platform for people who were going to buy it anyway.</p>
+        <h2 class="h-display reveal reveal-delay-1">What earning here <span class="hl">looks like.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Worked examples of shopping, posting and referring friends &mdash; and what landed in the wallet.</p>
       </div>
       <div class="pwall reveal">
         <div class="pw-col k1" id="pwCol1"></div>
@@ -546,13 +553,13 @@
     <div class="section-inner calc-grid">
       <div>
         <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Only spending at our partner brands earns cashback, and only when you post about it &mdash; so this asks for both. Rates come straight from our live deals.</p>
+        <p class="h-sub reveal reveal-delay-2">Both halves of sharing pay: the cashback you earn by posting a purchase, and the &pound;1 you earn per friend referred. Rates come straight from our live deals.</p>
         <div class="calc-out reveal reveal-delay-3" style="margin-top:28px">
-          <div class="calc-out-label">Realistic cashback a year</div>
+          <div class="calc-out-label">Realistic earnings a year</div>
           <div class="calc-out-val" id="calcOut">&mdash;</div>
           <div class="calc-out-sub" id="calcSub">Choose a category to start</div>
         </div>
-        <p class="calc-note">A range, not a promise. The low end uses the lowest published rate in that category and the high end the average, applied only to the share of purchases you actually post and get approved. Real cashback depends on which deals are live when you shop.</p>
+        <p class="calc-note">A range, not a promise. The low end uses the lowest published rate in that category and the high end the average, applied only to the share of purchases you actually post and get approved. Referrals are counted at &pound;1 each &mdash; what you earn when a friend buys through your post and their first claim is approved. Real earnings depend on which deals are live when you shop.</p>
       </div>
       <div class="card calc-card reveal reveal-delay-2">
         <div class="calc-row">
@@ -567,6 +574,11 @@
             <button type="button" class="calc-cat" data-post="0.8" aria-pressed="false">Most times</button>
           </div>
         </div>
+        <div class="calc-row">
+          <div class="calc-label"><span>Friends referred <em>in a year</em></span><b id="calcRefsLabel">3</b></div>
+          <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends referred in a year">
+          <p class="calc-note" style="margin-top:8px">&pound;1 of cashback per referral, paid once their first claim is approved.</p>
+        </div>
         <div class="calc-row" style="margin-bottom:0">
           <div class="calc-label"><span>Category</span></div>
           <div class="calc-cats" id="calcCats"></div>
@@ -579,7 +591,7 @@
   <section class="section" id="cta" style="padding-top:0">
     <div class="section-inner">
       <div class="card card-ink cta-slab reveal">
-        <h2 class="h-display">Ready to get <span class="hl">paid</span><br>to shop?</h2>
+        <h2 class="h-display">Ready to shop, share<br>and get <span class="hl">paid</span>?</h2>
         <p class="cta-sub">Signing up takes about a minute, and it's free.</p>
         <div class="btn-row" style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap">
           <a href="signup.html" class="btn btn-lg btn-lime">Sign up →</a>
@@ -595,12 +607,12 @@
       <div class="footer-top">
         <div>
           <a href="index.html" class="footer-logo">cirqle</a>
-          <p class="footer-desc">The smarter way to shop. Earn real cashback when you buy from brands you already love.</p>
+          <p class="footer-desc">The smarter way to shop. Earn real cashback when you buy from brands you already love, then share them with your friends.</p>
         </div>
         <div class="footer-col">
           <h4>Product</h4>
           <ul class="footer-links">
-            <li><a href="#how">How it works</a></li>
+            <li><a href="#steps">How it works</a></li>
             <li><a href="browse.html">Browse Deals</a></li>
             <li><a href="pricing.html">Pricing</a></li>
             <li><a href="help.html">FAQ</a></li>
@@ -664,6 +676,8 @@
     // ── Review wall: small avatar + quote + rating. Content is illustrative,
     //    and the disclaimer under the wall says so. ──
     var REVIEWS = [
+      ['Sophie T.', 'Fashion lover, London', '£80.00', "I buy from Gymshark and ASOS anyway \u2014 Cirqle just pays me for posting my unboxings. Made \u00a380 last month.", 4, 'gymshark'],
+      ['Jamie O.', 'Gym enthusiast, Manchester', '£45.00', "I dropped my Cirqle link into my group chat and earned \u00a345 before I even posted on Instagram. Easiest money ever.", 9, 'puregym'],
       ['Maya R.', 'Leeds', '£18.40', "Ordered leggings, posted the fit check, money was in my wallet before the parcel turned up.", 1, 'gymshark'],
       ['Tom B.', 'Bristol', '£4.20', "Friday night takeaway that pays me back. Small amounts, but it's every single order.", 2, 'deliveroo'],
       ['Aisha N.', 'Birmingham', '£11.75', "I do my whole skincare shop through here now. It adds up faster than you'd think.", 3, 'boots'],
@@ -712,6 +726,10 @@
 
     // ── Everything below needs the real catalogue ──
     var CATEGORY_FALLBACK = 'Fashion & Beauty';
+    // What one verified referral pays the referrer — REWARD_REFERRER in
+    // backend/app/referrals.py. The referee's 50p is theirs, not the referrer's,
+    // so it is deliberately not counted here.
+    var REFERRAL_REWARD = 1;
 
     // The catalogue drives the carousel and the calculator. It used to be a bare
     // fetch with a silent catch, so a slow or failed request left both sections
@@ -783,9 +801,9 @@
       'tui': '#70cbf4',
       'uber-eats': '#ffffff'
     };
-    // Post → paid tiles. Brand and rate are real; the post caption and the
-    // worked example are illustrative, and the section header says so.
-    var CAPTIONS = ['Story tagged @cirqle', 'Haul post · 2 tags', 'Reel · tagged', 'Grid post', 'Unboxing story', 'Receipt uploaded'];
+    // Share → paid tiles. Brand and rate are real; the caption and the worked
+    // example are illustrative, and the section header says so.
+    var CAPTIONS = ['Story tagged @cirqle', 'Haul post · 2 tags', 'Link sent to a friend', 'Grid post', 'Unboxing story', 'Friend referred'];
     function buildCarousel(deals) {
       var car = document.getElementById('flowCar');
       var r1 = document.getElementById('carRow1'), r2 = document.getElementById('carRow2');
@@ -800,7 +818,7 @@
             '<div class="htile-shot" style="background:' + (LOGO_BG[slug(d.brand)] || '#fff') + '">' +
               '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
               ' onerror="this.style.display=\'none\'">' +
-              '<span class="htile-state">' + (paid ? 'Paid' : 'Posted') + '</span>' +
+              '<span class="htile-state">' + (paid ? 'Paid' : 'Shared') + '</span>' +
             '</div>' +
             '<div class="htile-body">' +
               '<div class="htile-brand">' + esc(d.brand) + '</div>' +
@@ -847,10 +865,12 @@
       });
     }
 
-    // Cashback the way it actually lands: only spending at partner brands counts,
+    // Earnings the way they actually land: only spending at partner brands counts,
     // only the purchases you post about count, and rates vary across the deals in
     // a category — so this reports a range, from the category's lowest published
-    // rate to its average, rather than one confident-looking number.
+    // rate to its average, rather than one confident-looking number. Referrals sit
+    // on top as a flat £1 each (REWARD_REFERRER in the backend), so they shift both
+    // ends of the range by the same amount rather than widening it.
     function buildCalculator(deals) {
       var cats = {};
       deals.forEach(function (d) {
@@ -865,9 +885,11 @@
       var postWrap = document.getElementById('calcPost');
       var spend = document.getElementById('calcSpend');
       var spendLabel = document.getElementById('calcSpendLabel');
+      var refs = document.getElementById('calcRefs');
+      var refsLabel = document.getElementById('calcRefsLabel');
       var out = document.getElementById('calcOut');
       var sub = document.getElementById('calcSub');
-      if (!wrap || !spend || !postWrap) return;
+      if (!wrap || !spend || !postWrap || !refs) return;
 
       var active = names.indexOf('Fashion & Beauty') > -1 ? 'Fashion & Beauty' : names[0];
       var postRate = 0.5;
@@ -885,15 +907,24 @@
       }
       function render() {
         var v = +spend.value;
+        var n = +refs.value;
         var s = stats(active);
         var eligible = v * 12 * postRate;          // £ a year actually claimed on
-        var lo = Math.round(eligible * s.lo / 100);
-        var hi = Math.round(eligible * s.hi / 100);
+        var bonus = n * REFERRAL_REWARD;           // £ a year from referrals
+        var lo = Math.round(eligible * s.lo / 100 + bonus);
+        var hi = Math.round(eligible * s.hi / 100 + bonus);
         spendLabel.textContent = '£' + v;
+        refsLabel.textContent = String(n);
         out.textContent = (lo === hi) ? ('£' + lo) : ('£' + lo + '\u2013£' + hi);
+        // A category holding one deal has no range to report — "7–7.0%" was the
+        // same rate printed twice.
+        var rates = (s.lo.toFixed(1) === s.hi.toFixed(1))
+          ? s.hi.toFixed(1).replace(/\.0$/, '')
+          : s.lo.toFixed(0) + '\u2013' + s.hi.toFixed(1);
         sub.textContent = 'On £' + v + ' a month at ' + active.toLowerCase() +
           ' partners, posting about ' + Math.round(postRate * 100) + '% of them, at ' +
-          s.lo.toFixed(0) + '\u2013' + s.hi.toFixed(1) + '% across our live deals.';
+          rates + '% across our live deals' +
+          (n ? ', plus £' + bonus + ' from ' + n + (n === 1 ? ' friend' : ' friends') + ' referred.' : '.');
       }
       function wire(container, onPick) {
         container.addEventListener('click', function (e) {
@@ -907,6 +938,7 @@
         });
       }
       spend.addEventListener('input', render);
+      refs.addEventListener('input', render);
       wire(wrap, function (b) { active = b.dataset.cat; });
       wire(postWrap, function (b) { postRate = parseFloat(b.dataset.post); });
       render();
