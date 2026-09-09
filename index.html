@@ -19,7 +19,7 @@
       max-width: 980px; margin: 0 auto;
       /* The band bottom-aligns its contents, so this bottom padding is the only
          thing holding the copy up off the foot of the wall. */
-      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(120px, 12vw, 178px);
+      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(150px, 14vw, 214px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -59,7 +59,7 @@
            fade underneath can never reach the page colour. Without this the join
            to the section below steps by ~29 levels — a visible seam. */
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(105% 64% at 50% 61%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
+        radial-gradient(105% 64% at 50% 56%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
         linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%);
     }
     @media (max-width: 900px) {
@@ -70,7 +70,7 @@
          wall, so it starts later and lighter and the photos hold on further. */
       .hero-scrim { background:
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(130% 66% at 50% 61%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
+        radial-gradient(130% 66% at 50% 56%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
         linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(255,255,255,.26) 45%, rgba(255,255,255,.30) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%); }
     }
     /* the marker sweep: ink type on a solid neon bar */
@@ -254,7 +254,25 @@
     .ps-row { display: flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 8px; padding: 5px 6px; min-width: 0; }
     .ps-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--blue-tint); flex-shrink: 0; }
     .ps-amt { margin-left: auto; font-family: var(--font-display); font-size: .55rem; color: var(--ink); white-space: nowrap; }
-    @media (max-width: 780px) { .cycle { grid-template-columns: 1fr; gap: 24px; } }
+    @media (max-width: 780px) {
+      /* Stacked, these were three full screens of scrolling to read three
+         short paragraphs. As a snapped strip they're one flick apart, and the
+         next tile's edge showing is what says it can be flicked. Full-bleed to
+         both screen edges, with the section's own padding put back as scroll
+         padding so the first tile still lines up with the heading above it. */
+      .cycle {
+        display: flex; gap: 14px;
+        overflow-x: auto; overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        margin: 0 calc(-1 * clamp(20px, 4vw, 44px));
+        padding: 4px clamp(20px, 4vw, 44px) 10px;
+      }
+      .cycle::-webkit-scrollbar { display: none; }
+      /* Not 100%: the sliver of the next card is the affordance. */
+      .cyc { flex: 0 0 84%; min-width: 0; scroll-snap-align: center; }
+    }
 
     /* ── Review wall — small avatar, quote, rating ── */
     .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 500px; overflow: hidden; position: relative;
@@ -328,9 +346,19 @@
       /* The wall shows two columns at this width. The third still existed on a
          clipped second row, animating a 172×2500 layer nobody could see. */
       .pw-col.k3 { display: none; }
-      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(70px, 10vw, 112px); }
+      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(92px, 12vw, 140px); }
       .steps { grid-template-columns: 1fr; gap: 30px; }
-      .features-grid, .calc-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      /* One column, and the note moves below the sliders and the category
+         chips — above them it was qualifying a figure the reader hadn't set
+         yet. `display: contents` is what lets a nested child be reordered
+         against its parent's sibling. */
+      /* The column's children are flex items now, so the desktop 28-56px gap
+         applied between all five of them and the block fell apart. */
+      .calc-grid { display: flex; flex-direction: column; gap: 16px; }
+      .calc-grid > div:first-child { display: contents; }
+      .calc-card { order: 2; }
+      .calc-note { order: 3; margin-top: 18px; }
       .pwall { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 460px; }
     }
     @media (max-width: 600px) {
@@ -350,7 +378,7 @@
       .hero-sub { font-size: 1rem; margin-bottom: 26px; }
       /* This bottom padding is the strip of wall left showing under the
          buttons — it is what keeps them above the wall rather than on its edge. */
-      .hero { padding-top: 28px; padding-bottom: 122px; }
+      .hero { padding-top: 28px; padding-bottom: 150px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* The wall is the whole point of this band on a phone; at the old height
@@ -361,7 +389,7 @@
          darkest backdrop it now sits on, #455668 fell to 4.44:1. This band
          already darkens the token for exactly this reason — it goes one step
          further on phones, to 5.36:1. */
-      .hero-band { min-height: 86vh; }
+      .hero-band { min-height: 96vh; }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
          with the carousel for the same budget. */
