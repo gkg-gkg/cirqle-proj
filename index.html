@@ -19,7 +19,7 @@
       max-width: 980px; margin: 0 auto;
       /* The band bottom-aligns its contents, so this bottom padding is the only
          thing holding the copy up off the foot of the wall. */
-      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(88px, 9vw, 132px);
+      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(120px, 12vw, 178px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -59,7 +59,7 @@
            fade underneath can never reach the page colour. Without this the join
            to the section below steps by ~29 levels — a visible seam. */
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(105% 64% at 50% 67%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
+        radial-gradient(105% 64% at 50% 61%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
         linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%);
     }
     @media (max-width: 900px) {
@@ -70,7 +70,7 @@
          wall, so it starts later and lighter and the photos hold on further. */
       .hero-scrim { background:
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(130% 66% at 50% 67%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
+        radial-gradient(130% 66% at 50% 61%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
         linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(255,255,255,.26) 45%, rgba(255,255,255,.30) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%); }
     }
     /* the marker sweep: ink type on a solid neon bar */
@@ -90,7 +90,7 @@
       font-size: clamp(3.2rem, 7.6vw, 6rem); line-height: 1.02;
       letter-spacing: -0.035em; margin: 22px 0 20px;
     }
-    .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 600px; margin: 0 auto 22px; line-height: 1.7; }
+    .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 700px; margin: 0 auto 22px; line-height: 1.7; }
     /* --blue is the only blue that passes as text (4.80:1); --neon would not. */
     .hero-jump { color: var(--blue); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid rgba(0,114,214,.38); transition: border-color .18s var(--snap); }
     .hero-jump:hover { border-bottom-color: var(--blue); }
@@ -328,7 +328,7 @@
       /* The wall shows two columns at this width. The third still existed on a
          clipped second row, animating a 172×2500 layer nobody could see. */
       .pw-col.k3 { display: none; }
-      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(48px, 8vw, 80px); }
+      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(70px, 10vw, 112px); }
       .steps { grid-template-columns: 1fr; gap: 30px; }
       .features-grid, .calc-grid { grid-template-columns: 1fr; }
       .pwall { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 460px; }
@@ -350,7 +350,7 @@
       .hero-sub { font-size: 1rem; margin-bottom: 26px; }
       /* This bottom padding is the strip of wall left showing under the
          buttons — it is what keeps them above the wall rather than on its edge. */
-      .hero { padding-top: 28px; padding-bottom: 90px; }
+      .hero { padding-top: 28px; padding-bottom: 122px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* The wall is the whole point of this band on a phone; at the old height
