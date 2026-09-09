@@ -376,20 +376,35 @@
       .rv-amt { font-size: .76rem; }
       .hero-h { font-size: clamp(3rem, 15vw, 4.6rem); margin-top: 6px; }
       .hero-sub { font-size: 1rem; margin-bottom: 26px; }
-      /* This bottom padding is the strip of wall left showing under the
-         buttons — it is what keeps them above the wall rather than on its edge. */
-      .hero { padding-top: 28px; padding-bottom: 150px; }
+      /* Copy rides at the top of the band on a phone, not the foot of it, so
+         the wall reads as something the page opens onto rather than a slab the
+         text is buried in. The band bottom-aligns by default — that is what
+         flex-start here is undoing, and it is why the bottom padding no longer
+         sets the position. */
+      .hero { padding-top: 22px; padding-bottom: 26px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* The wall is the whole point of this band on a phone; at the old height
-         it read as a stripe behind the headline rather than a wall. Give it a
-         share of the viewport and centre the copy in it.
-         The taller band spreads the scrim's bright pool over more pixels, so
-         more photo shows through behind the sub-headline: measured against the
-         darkest backdrop it now sits on, #455668 fell to 4.44:1. This band
-         already darkens the token for exactly this reason — it goes one step
-         further on phones, to 5.36:1. */
-      .hero-band { min-height: 96vh; }
+         it read as a stripe behind the headline rather than a wall. */
+      .hero-band {
+        min-height: 96vh;
+        justify-content: flex-start;
+        /* Less white wash than before means less contrast under the secondary
+           copy, so the token this band already darkens goes one step further
+           again: #33414F measures 8.0:1 on the palest frames the sub now sits
+           over and holds AA on the darkest. */
+        --ink-soft: #33414F;
+      }
+      /* Lighter than the desktop scrim, and shaped differently: a tight pool
+         behind the copy at the top instead of a wash over everything, so the
+         photography keeps its own colour through the middle of the band. The
+         run to white is short and late — one decisive fade rather than a long
+         haze — so the foot of the wall meets the white page as a join rather
+         than a gradient anyone can see. */
+      .hero-scrim { background:
+        linear-gradient(180deg, rgba(255,255,255,0) 66%, rgba(255,255,255,.58) 83%, rgba(255,255,255,.97) 94%, #FFFFFF 100%),
+        radial-gradient(126% 42% at 50% 19%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.76) 58%, rgba(255,255,255,.16) 100%),
+        linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.18) 38%, rgba(255,255,255,.10) 62%, rgba(255,255,255,0) 78%); }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
          with the carousel for the same budget. */
