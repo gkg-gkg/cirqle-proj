@@ -57,18 +57,25 @@ def main() -> int:
                     help="report what would change without writing")
     args = ap.parse_args()
 
-    filled = no_reading = 0
+    # Broken out rather than lumped into one "no reading" count, because the
+    # three causes call for completely different responses: a receipt that
+    # predates the automated check is expected and permanent, one whose check
+    # errored may be worth re-running, and one Textract simply couldn't read is
+    # the honest limit of the technique. A single number hides which you have.
+    filled = unchecked = errored = unreadable = 0
     with Session(engine) as session:
         receipts = session.exec(select(Receipt)).all()
         for r in receipts:
+            if r.check_status == "error":
+                errored += 1
+                continue
             reading = reading_of(r)
             if not reading:
-                no_reading += 1
+                unchecked += 1
                 continue
             apply_reading(r, reading)
             if r.basket_total is None:
-                # Checked, but the total was never legible.
-                no_reading += 1
+                unreadable += 1
                 continue
             filled += 1
             if not args.dry_run:
@@ -79,8 +86,14 @@ def main() -> int:
     total = len(receipts)
     coverage = round(filled / total * 100, 1) if total else 0.0
     verb = "would fill" if args.dry_run else "filled"
-    print(f"{total} receipts · {verb} {filled} · {no_reading} with no legible "
-          f"total · coverage {coverage}%")
+    print(f"{total} receipts · {verb} {filled} · coverage {coverage}%")
+    if unchecked:
+        print(f"  {unchecked} never went through the automated check "
+              f"(uploaded before it existed, or it never ran)")
+    if errored:
+        print(f"  {errored} errored during the check — the image couldn't be read")
+    if unreadable:
+        print(f"  {unreadable} were checked but no total was legible")
     return 0
 
 
