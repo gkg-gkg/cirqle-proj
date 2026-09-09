@@ -18,9 +18,8 @@
          larger size — the markup's <br> is what sets the two-line shape. */
       max-width: 980px; margin: 0 auto;
       /* The band bottom-aligns its contents, so this bottom padding is the only
-         thing holding the copy up off the foot of the wall. Lowering it drops
-         the headline, sub and buttons further down the photography. */
-      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(52px, 5.4vw, 78px);
+         thing holding the copy up off the foot of the wall. */
+      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(88px, 9vw, 132px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -33,7 +32,7 @@
       /* The band has to be taller than the copy for the copy to sit low in it —
          otherwise "bottom" and "middle" are the same place. The wall fills the
          band, so this is also what decides how much wall there is. */
-      min-height: 86vh;
+      min-height: 96vh;
       display: flex; flex-direction: column; justify-content: flex-end;
       /* Secondary copy sits over photography here, not flat white. The default
          --ink-soft (#64748B) measures 3.98:1 against the scrimmed wall, which
@@ -60,7 +59,7 @@
            fade underneath can never reach the page colour. Without this the join
            to the section below steps by ~29 levels — a visible seam. */
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(105% 64% at 50% 73%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
+        radial-gradient(105% 64% at 50% 67%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
         linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%);
     }
     @media (max-width: 900px) {
@@ -71,7 +70,7 @@
          wall, so it starts later and lighter and the photos hold on further. */
       .hero-scrim { background:
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(130% 66% at 50% 73%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
+        radial-gradient(130% 66% at 50% 67%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
         linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(255,255,255,.26) 45%, rgba(255,255,255,.30) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%); }
     }
     /* the marker sweep: ink type on a solid neon bar */
@@ -92,22 +91,11 @@
       letter-spacing: -0.035em; margin: 22px 0 20px;
     }
     .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 600px; margin: 0 auto 22px; line-height: 1.7; }
+    /* --blue is the only blue that passes as text (4.80:1); --neon would not. */
+    .hero-jump { color: var(--blue); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid rgba(0,114,214,.38); transition: border-color .18s var(--snap); }
+    .hero-jump:hover { border-bottom-color: var(--blue); }
     .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center; }
     .hero-actions .btn-lg { font-size: .94rem; padding: 12px 24px; }
-
-    /* ── Truth tiles (replaced the invented stats) ── */
-    .facts-strip { max-width: 1140px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) clamp(56px,7vw,90px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; position: relative; z-index: 1; }
-    .fact-card { text-align: center; padding: 26px 16px; }
-    .fact-ico { width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
-    .fact-title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; letter-spacing: -.02em; }
-    .fact-sub { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
-
-    /* ── Truth tiles (replaced the invented stats) ── */
-    .facts-strip { max-width: 1140px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) clamp(56px,7vw,90px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; position: relative; z-index: 1; }
-    .fact-card { text-align: center; padding: 26px 16px; }
-    .fact-ico { width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
-    .fact-title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; letter-spacing: -.02em; }
-    .fact-sub { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
 
     /* ── Cashback calculator ── */
     .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
@@ -340,8 +328,7 @@
       /* The wall shows two columns at this width. The third still existed on a
          clipped second row, animating a 172×2500 layer nobody could see. */
       .pw-col.k3 { display: none; }
-      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(30px, 5vw, 52px); }
-      .facts-strip { grid-template-columns: repeat(2, 1fr); }
+      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(48px, 8vw, 80px); }
       .steps { grid-template-columns: 1fr; gap: 30px; }
       .features-grid, .calc-grid { grid-template-columns: 1fr; }
       .pwall { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 460px; }
@@ -363,10 +350,7 @@
       .hero-sub { font-size: 1rem; margin-bottom: 26px; }
       /* This bottom padding is the strip of wall left showing under the
          buttons — it is what keeps them above the wall rather than on its edge. */
-      .hero { padding-top: 28px; padding-bottom: 62px; }
-      /* Same reasoning for the four claim tiles: they restate the hero copy and
-         cost a full screen of scrolling to say it. */
-      #facts { display: none; }
+      .hero { padding-top: 28px; padding-bottom: 90px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* The wall is the whole point of this band on a phone; at the old height
@@ -377,7 +361,7 @@
          darkest backdrop it now sits on, #455668 fell to 4.44:1. This band
          already darkens the token for exactly this reason — it goes one step
          further on phones, to 5.36:1. */
-      .hero-band { min-height: 76vh; }
+      .hero-band { min-height: 86vh; }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
          with the carousel for the same budget. */
@@ -398,7 +382,6 @@
   <nav class="nav">
     <a href="index.html" class="logo">cirqle</a>
     <ul class="nav-links">
-      <li><a href="how-it-works.html">How it works</a></li>
       <li><a href="browse.html">Browse Deals</a></li>
       <li><a href="for-brands.html">For brands</a></li>
     </ul>
@@ -425,7 +408,7 @@
   <header class="hero">
     <div>
       <h1 class="hero-h fade-up d1">Shop. Share.<br>Get <span class="hl">Paid</span>.</h1>
-      <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, and earn <span class="squiggle">real cash</span>, straight to your wallet.</p>
+      <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, and earn <span class="squiggle">real cash</span>, straight to your wallet. <a href="#calculator" class="hero-jump">Find out how much you could earn</a></p>
       <div class="hero-actions btn-row fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
         <a href="signup.html" class="btn btn-lg">Sign up</a>
@@ -440,7 +423,7 @@
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">From share to <span class="hl">paid.</span></h2>
-        <p class="h-sub reveal reveal-delay-2" id="flowSub">Takeaways, trainers, gym memberships, tech and city breaks &mdash; every live deal at its published rate. The &pound; figures are worked examples.</p>
+        <p class="h-sub reveal reveal-delay-2" id="flowSub">Takeaways, trainers, gym memberships, tech and city breaks &mdash; every live deal at its published rate.</p>
       </div>
     </div>
     <div class="hcar reveal" id="flowCar">
@@ -471,7 +454,7 @@
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
           </div>
           <h3 class="cyc-t">Share</h3>
-          <p class="cyc-d">Post it on Instagram tagging @cirqle and the brand, or send your link to friends. Then upload your receipt.</p>
+          <p class="cyc-d">Post on Instagram tagging @cirqle and the brand, then upload your receipt. Friends who buy after seeing it name your handle on theirs &mdash; and you both earn.</p>
         </div>
         <div class="cyc reveal reveal-delay-3">
           <div class="cyc-stage">
@@ -488,31 +471,6 @@
     </div>
   </section>
 
-  <!-- ══ WHAT'S TRUE (replaced the invented stats strip) ══ -->
-  <section class="section" id="facts" style="padding-top:clamp(14px,2.4vw,30px);padding-bottom:0">
-    <div class="facts-strip">
-      <div class="card fact-card reveal">
-        <span class="fact-ico"><i class="ico ico-bolt"></i></span>
-        <div class="fact-title">Real money</div>
-        <div class="fact-sub">Withdrawn to your bank, not held as points or vouchers.</div>
-      </div>
-      <div class="card fact-card reveal reveal-delay-1">
-        <span class="fact-ico"><i class="ico ico-lock"></i></span>
-        <div class="fact-title">Payouts via Stripe</div>
-        <div class="fact-sub">We never see or store your bank details.</div>
-      </div>
-      <div class="card fact-card reveal reveal-delay-2">
-        <span class="fact-ico"><i class="ico ico-tag"></i></span>
-        <div class="fact-title">Rates published upfront</div>
-        <div class="fact-sub">Every deal shows its cashback rate before you shop.</div>
-      </div>
-      <div class="card fact-card reveal reveal-delay-3">
-        <span class="fact-ico"><i class="ico ico-user"></i></span>
-        <div class="fact-title">Free to join</div>
-        <div class="fact-sub">No fee, no tiers, no minimum spend to take part.</div>
-      </div>
-    </div>
-  </section>
 
   <!-- ══ REVIEW WALL ══
        Illustrative review cards. The photography is licensed stock and the
@@ -596,7 +554,6 @@
         <div class="footer-col">
           <h4>Product</h4>
           <ul class="footer-links">
-            <li><a href="how-it-works.html">How it works</a></li>
             <li><a href="browse.html">Browse Deals</a></li>
             <li><a href="pricing.html">Pricing</a></li>
             <li><a href="help.html">FAQ</a></li>
@@ -661,7 +618,7 @@
     //    and the disclaimer under the wall says so. ──
     var REVIEWS = [
       ['Sophie T.', 'Fashion lover, London', '£80.00', "I buy from Gymshark and ASOS anyway \u2014 Cirqle just pays me for posting my unboxings. Made \u00a380 last month.", 4, 'gymshark'],
-      ['Jamie O.', 'Gym enthusiast, Manchester', '£45.00', "I dropped my Cirqle link into my group chat and earned \u00a345 before I even posted on Instagram. Easiest money ever.", 9, 'puregym'],
+      ['Jamie O.', 'Gym enthusiast, Manchester', '£45.00', "I post my gym hauls anyway, and my handle is in the group chat \u2014 mates put it on their receipts and I get a cut. \u00a345 so far.", 9, 'puregym'],
       ['Maya R.', 'Leeds', '£18.40', "Ordered leggings, posted the fit check, money was in my wallet before the parcel turned up.", 1, 'gymshark'],
       ['Tom B.', 'Bristol', '£4.20', "Friday night takeaway that pays me back. Small amounts, but it's every single order.", 2, 'deliveroo'],
       ['Aisha N.', 'Birmingham', '£11.75', "I do my whole skincare shop through here now. It adds up faster than you'd think.", 3, 'boots'],
@@ -804,7 +761,7 @@
         sub.textContent = deals.length + (deals.length === 1 ? ' live deal' : ' live deals') +
           (nCats > 1 ? ' across ' + nCats + ' categories' : '') +
           ' \u2014 takeaways, trainers, gym memberships, tech and city breaks, ' +
-          'each at its published rate. The £ figures are worked examples.';
+          'each at its published rate.';
       }
 
       var car = document.getElementById('flowCar');

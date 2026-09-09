@@ -43,14 +43,13 @@
     .link-d { font-size: .95rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
     .link-d b { color: var(--ink); font-weight: 600; }
 
-    /* The joint between two links. The white ring behind the lower one is what
-       makes them read as interlocked rather than as a Venn diagram — it cuts a
-       gap in the ring above at the crossing. It is painted the page colour, so
-       this connector only works on a white background. */
-    .joint { display: flex; justify-content: center; margin: -6px 0; }
-    .joint svg { display: block; width: 58px; height: 112px; }
-    .joint .r-line { fill: none; stroke: var(--neon); stroke-width: 6; }
-    .joint .r-cut  { fill: none; stroke: var(--paper); stroke-width: 13; }
+    /* The joint between two links: a hairline rail that fades in and out, with
+       one hollow ring riding it. The ring is the brand's circle at its smallest,
+       and the fade is what keeps the rail from reading as a hard divider. */
+    .joint { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 4px 0; }
+    .joint i { display: block; width: 1.5px; height: 26px; background: linear-gradient(180deg, transparent, var(--neon-line)); }
+    .joint i + i { background: linear-gradient(180deg, var(--neon-line), transparent); }
+    .joint span { display: block; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--neon); background: var(--paper); margin: 5px 0; }
     /* The last joint curls back into step one, so the loop is visible rather
        than just asserted in the copy. */
     .loop-back { text-align: center; margin-top: 6px; }
@@ -63,6 +62,13 @@
     .way-t { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
     .way-d { font-size: .87rem; color: var(--ink-soft); line-height: 1.6; margin: 5px 0 0; }
     .way-pay { display: inline-block; margin-top: 9px; font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+
+    /* ── The four claims the homepage used to carry ── */
+    .facts-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .fact-card { text-align: center; padding: 26px 16px; }
+    .fact-ico { width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .fact-title { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; letter-spacing: -.02em; }
+    .fact-sub { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
 
     /* ── The small print people actually need ── */
     .needs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -93,7 +99,7 @@
     .ps-amt { margin-left: auto; font-family: var(--font-display); font-size: .55rem; color: var(--ink); white-space: nowrap; }
 
     @media (max-width: 820px) {
-      .needs { grid-template-columns: repeat(2, 1fr); }
+      .needs, .facts-strip { grid-template-columns: repeat(2, 1fr); }
       .ways { grid-template-columns: 1fr; }
     }
     @media (max-width: 700px) {
@@ -101,7 +107,7 @@
          a paragraph at this width leaves both too narrow to read. */
       .link-row, .link-row.flip { grid-template-columns: 1fr; gap: 18px; padding: 20px; }
       .link-row .link-stage, .link-row.flip .link-stage { order: -1; min-height: 232px; }
-      .joint svg { width: 46px; height: 90px; }
+      .joint i { height: 20px; }
     }
   </style>
 </head>
@@ -109,7 +115,6 @@
   <nav class="nav">
     <a href="index.html" class="logo">cirqle</a>
     <ul class="nav-links">
-      <li><a href="how-it-works.html" aria-current="page">How it works</a></li>
       <li><a href="browse.html">Browse Deals</a></li>
       <li><a href="for-brands.html">For brands</a></li>
     </ul>
@@ -132,45 +137,33 @@
         <div>
           <span class="link-n">1</span>
           <h2 class="link-t">Shop</h2>
-          <p class="link-d">Find a deal you like on <a href="browse.html">Browse Deals</a>, then buy from the brand the way you normally would. <b>No codes, no browser extension, no special link to remember.</b> Every deal shows its cashback rate before you spend anything.</p>
+          <p class="link-d"><b>It has to be a brand we've partnered with</b> &mdash; those are the ones on <a href="browse.html">Browse Deals</a>, and each shows its cashback rate before you spend anything. Beyond that, buy however you like: <b>online or in a shop both count</b>, because what proves the purchase is your receipt, not a tracked link. No codes, no browser extension, nothing to remember at the till.</p>
         </div>
         <div class="link-stage">
           <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">Nike</span><span class="ps-chip">13% back</span></div><img class="ps-img" src="assets/steps/shop.jpg" alt="" loading="lazy" decoding="async"><span class="ps-line w70"></span><span class="ps-line w45"></span><div class="ps-btn">Shop now</div></div></div>
         </div>
       </div>
 
-      <div class="joint" aria-hidden="true">
-        <svg viewBox="0 0 58 112" role="presentation">
-          <ellipse class="r-line" cx="29" cy="34" rx="17" ry="29" />
-          <ellipse class="r-cut"  cx="29" cy="78" rx="17" ry="29" />
-          <ellipse class="r-line" cx="29" cy="78" rx="17" ry="29" />
-        </svg>
-      </div>
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
 
       <div class="card link-row flip reveal">
         <div>
           <span class="link-n">2</span>
           <h2 class="link-t">Share</h2>
-          <p class="link-d"><b>Two ways, and both of them pay.</b> Post it on Instagram tagging @cirqle and the brand, or send your link to a friend. Either way, upload your receipt so we can match the purchase to the deal.</p>
+          <p class="link-d"><b>Two ways to earn here, and you can use either or both.</b> Post it on Instagram tagging @cirqle and the brand. And when you upload your receipt, that is also where you name the friend whose post sent you &mdash; you type their Instagram handle into the claim. Every claim needs the receipt; the post and the handle are what decide how much it pays.</p>
         </div>
         <div class="link-stage">
           <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
         </div>
       </div>
 
-      <div class="joint" aria-hidden="true">
-        <svg viewBox="0 0 58 112" role="presentation">
-          <ellipse class="r-line" cx="29" cy="34" rx="17" ry="29" />
-          <ellipse class="r-cut"  cx="29" cy="78" rx="17" ry="29" />
-          <ellipse class="r-line" cx="29" cy="78" rx="17" ry="29" />
-        </svg>
-      </div>
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
 
       <div class="card link-row reveal">
         <div>
           <span class="link-n">3</span>
           <h2 class="link-t">Earn</h2>
-          <p class="link-d">We check the claim by hand. Once it is approved, your cashback <b>clears three days after the date you shared</b> and moves into your wallet — then it is yours to withdraw to your bank.</p>
+          <p class="link-d">We check the claim &mdash; that the receipt matches the deal, and that the post is really yours. Once it is approved your cashback <b>clears three days after the date you posted</b>, then sits in your wallet as cash. Withdraw it to your bank whenever you are past &pound;5; there is no expiry and no store credit, just your own bank account.</p>
         </div>
         <div class="link-stage">
           <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-bal"><span>Wallet</span><b>£47.80</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w50"></span><b class="ps-amt">+£3.50</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w40"></span><b class="ps-amt">+£2.10</b></div><div class="ps-btn">Withdraw</div></div></div>
@@ -178,13 +171,7 @@
       </div>
 
       <div class="loop-back reveal">
-        <div class="joint" aria-hidden="true">
-          <svg viewBox="0 0 58 112" role="presentation">
-            <ellipse class="r-line" cx="29" cy="34" rx="17" ry="29" />
-            <ellipse class="r-cut"  cx="29" cy="78" rx="17" ry="29" />
-            <ellipse class="r-line" cx="29" cy="78" rx="17" ry="29" />
-          </svg>
-        </div>
+        <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
         <p>And back to the top: the cashback from one shop is what buys the next one. That is the cirqle.</p>
       </div>
     </div>
@@ -192,30 +179,30 @@
     <!-- ══ THE SHARE STEP, IN FULL ══ -->
     <div class="prose reveal" style="margin-top:64px">
       <h2>The two ways to share</h2>
-      <p>Sharing is the step that earns, so it is worth knowing both routes. You can use either, or both on the same purchase.</p>
+      <p>Sharing is the step that earns, so it's worth knowing both routes. Post on Instagram, refer a friend, or do both on the same purchase &mdash; they stack, and a referral bonus is paid on top of your own cashback.</p>
     </div>
     <div class="ways" style="margin-top:22px">
       <div class="card way reveal">
         <span class="way-ico"><i class="ico ico-instagram"></i></span>
         <div>
-          <div class="way-t">Share with your followers</div>
-          <p class="way-d">Post your buy on Instagram, tag <b>@cirqle</b> and the brand, then upload the receipt. We match the post to your handle and the receipt to the deal.</p>
-          <span class="way-pay">Earns the deal's published rate</span>
+          <div class="way-t">Post it on Instagram</div>
+          <p class="way-d">Tag <b>@cirqle</b> and the brand in the caption, then upload your receipt and pick the post it belongs to. We match the post to the handle on your account and the receipt to the deal. It doesn't need to be polished &mdash; it needs to be real, and it needs to stay up until we've checked it.</p>
+          <span class="way-pay">Earns the deal's published rate on what you spent</span>
         </div>
       </div>
       <div class="card way reveal reveal-delay-1">
         <span class="way-ico"><i class="ico ico-users"></i></span>
         <div>
-          <div class="way-t">Share with your friends</div>
-          <p class="way-d">Send them your link. When a friend buys through your post and enters your handle on their receipt, you both get paid once their first claim on that deal is approved.</p>
-          <span class="way-pay">£1 to you, 50p to them</span>
+          <div class="way-t">Refer a friend</div>
+          <p class="way-d">There's no link to send. Your friend buys after seeing your post, and <b>types your Instagram handle into their own claim</b> when they upload their receipt. You're both paid once that claim is approved and clears. It has to be their first claim on that deal, and your post has to come before their purchase &mdash; the post is what referred them.</p>
+          <span class="way-pay">&pound;1 to you, 50p to them, funded by the brand</span>
         </div>
       </div>
     </div>
 
     <div class="prose reveal" style="margin-top:52px">
       <h2>Been back since?</h2>
-      <p>Some brands also accept a <b>repeat visit</b>. Once you have claimed one of their deals, a later receipt from the same brand can be logged on its own — no post needed. It pays a smaller fixed amount that the brand sets, and the deal page tells you when it is available.</p>
+      <p>Some brands also accept a <b>repeat visit</b>. Once you've claimed one of their deals the usual way, a later receipt from that same brand can be logged on its own &mdash; no post, no tagging. It pays a smaller fixed amount the brand sets rather than the deal's percentage, and it can't be used to credit a referrer. The deal page says when a brand has it switched on.</p>
     </div>
 
     <!-- ══ WHAT YOU NEED ══ -->
@@ -236,12 +223,38 @@
       <div class="card need reveal reveal-delay-2">
         <span class="need-ico"><i class="ico ico-clock"></i></span>
         <div class="need-t">Three days</div>
-        <div class="need-d">How long an approved claim takes to clear, counted from the date you shared.</div>
+        <div class="need-d">How long an approved claim takes to clear, counted from the date you posted.</div>
       </div>
       <div class="card need reveal reveal-delay-3">
         <span class="need-ico"><i class="ico ico-cash"></i></span>
         <div class="need-t">£5 to withdraw</div>
         <div class="need-d">The minimum payout. Bank transfer via Stripe — we never see your details.</div>
+      </div>
+    </div>
+
+    <div class="prose reveal" style="margin-top:52px">
+      <h2>What we promise</h2>
+    </div>
+    <div class="facts-strip" style="margin-top:22px">
+      <div class="card fact-card reveal">
+        <span class="fact-ico"><i class="ico ico-bolt"></i></span>
+        <div class="fact-title">Real money</div>
+        <div class="fact-sub">Withdrawn to your bank, not held as points or vouchers.</div>
+      </div>
+      <div class="card fact-card reveal reveal-delay-1">
+        <span class="fact-ico"><i class="ico ico-lock"></i></span>
+        <div class="fact-title">Payouts via Stripe</div>
+        <div class="fact-sub">We never see or store your bank details.</div>
+      </div>
+      <div class="card fact-card reveal reveal-delay-2">
+        <span class="fact-ico"><i class="ico ico-tag"></i></span>
+        <div class="fact-title">Rates published upfront</div>
+        <div class="fact-sub">Every deal shows its cashback rate before you shop.</div>
+      </div>
+      <div class="card fact-card reveal reveal-delay-3">
+        <span class="fact-ico"><i class="ico ico-user"></i></span>
+        <div class="fact-title">Free to join</div>
+        <div class="fact-sub">No fee, no tiers, no minimum spend to take part.</div>
       </div>
     </div>
 
