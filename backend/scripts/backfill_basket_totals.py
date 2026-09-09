@@ -20,7 +20,17 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BACKEND_DIR))
+
+# Before app.db, which picks its engine from DATABASE_URL at import time. The
+# API gets that from .env via main.py; a script that skips main.py has to load
+# it itself or it silently falls back to a local SQLite file — which on the
+# server is an empty one, so the run fails with "no such table: receipt"
+# rather than touching production. Same as alembic/env.py and
+# scripts/migrate_merchant_profile.py.
+from dotenv import load_dotenv                              # noqa: E402
+load_dotenv(BACKEND_DIR / ".env")
 
 from sqlmodel import Session, select                        # noqa: E402
 

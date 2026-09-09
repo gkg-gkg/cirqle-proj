@@ -23,7 +23,15 @@ import sys
 from datetime import date
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BACKEND_DIR))
+
+# Before app.db / app.mailer, both of which read their configuration from the
+# environment at import time. Without this the script would quietly use a local
+# SQLite file and console email instead of the real database and SES. See
+# alembic/env.py, which does the same.
+from dotenv import load_dotenv                                  # noqa: E402
+load_dotenv(BACKEND_DIR / ".env")
 
 from sqlmodel import Session, select                            # noqa: E402
 
