@@ -43,7 +43,8 @@
   } catch (e) { /* ignore malformed session */ }
 
   // ── Consistent top banner across the main site ──
-  // Centre = Browse Deals + For brands; right = My Account / Dashboard chips.
+  // Centre = How it works + Browse Deals + For brands; right = My Account /
+  // Dashboard chips.
   // The chip for the page you're on is hidden, and there's no sign-out chip
   // (sign-out lives on the account page). Skipped on the auth pages + merchant
   // portal, which keep their own navs.
@@ -58,6 +59,7 @@
       else nav.insertBefore(navLinks, nav.firstChild);
     }
     navLinks.innerHTML =
+      '<li><a href="how-it-works.html">How it works</a></li>' +
       '<li><a href="browse.html">Browse Deals</a></li>' +
       '<li><a href="for-brands.html">For brands</a></li>';
 
@@ -105,6 +107,7 @@
     menu.className = 'nav-menu';
     menu.id = 'navMenu';
     var links = [
+      ['how-it-works.html', 'How it works'],
       ['browse.html', 'Browse Deals'],
       ['for-brands.html', 'For brands'],
       ['about.html', 'About'],

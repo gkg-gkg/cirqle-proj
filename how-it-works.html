@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%2338B6FF' stroke-width='12'/%3E%3C/svg%3E" />
+  <title>How Cirqle works</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
+  <style>
+    /* ── The chain ──
+       Three links, each the same phone mock the homepage tiles use, joined by
+       interlocking rings. The rings are the point: the steps are not a list,
+       they hook into each other and the last one feeds the first. */
+    .chain { margin: 0 auto; max-width: 860px; }
+    .link-row {
+      display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+      gap: clamp(20px, 4vw, 48px);
+      padding: clamp(22px, 3vw, 30px) clamp(22px, 3vw, 34px);
+    }
+    /* Even links mirror, so the eye zig-zags down the chain rather than
+       running down one straight edge. `direction` would flip the text too,
+       so the stage is moved with order instead. */
+    .link-row.flip .link-stage { order: -1; }
+    .link-stage {
+      position: relative; border-radius: 16px; overflow: hidden; min-height: 262px;
+      background: linear-gradient(160deg, #EEF5FB 0%, #DDEDF8 100%);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .link-row:nth-of-type(2) .link-stage { background: linear-gradient(160deg, #E9F3FA 0%, #CAE4F4 100%); }
+    .link-row:nth-of-type(3) .link-stage { background: linear-gradient(160deg, #E2F0F9 0%, #B1D8EF 100%); }
+    .link-n {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 50%; margin-bottom: 12px;
+      font-family: var(--font-display); font-weight: 700; font-size: .9rem; color: #0B1220;
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon));
+      box-shadow: 0 4px 12px rgba(56,182,255,.38);
+    }
+    .link-t { font-family: var(--font-display); font-weight: 700; letter-spacing: -.03em; font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 10px; }
+    .link-d { font-size: .95rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
+    .link-d b { color: var(--ink); font-weight: 600; }
+
+    /* The joint between two links. The white ring behind the lower one is what
+       makes them read as interlocked rather than as a Venn diagram — it cuts a
+       gap in the ring above at the crossing. It is painted the page colour, so
+       this connector only works on a white background. */
+    .joint { display: flex; justify-content: center; margin: -6px 0; }
+    .joint svg { display: block; width: 58px; height: 112px; }
+    .joint .r-line { fill: none; stroke: var(--neon); stroke-width: 6; }
+    .joint .r-cut  { fill: none; stroke: var(--paper); stroke-width: 13; }
+    /* The last joint curls back into step one, so the loop is visible rather
+       than just asserted in the copy. */
+    .loop-back { text-align: center; margin-top: 6px; }
+    .loop-back p { font-size: .9rem; color: var(--ink-soft); margin: 10px auto 0; max-width: 420px; line-height: 1.6; }
+
+    /* ── Two ways to share ── */
+    .ways { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(14px, 2vw, 20px); }
+    .way { display: flex; gap: 15px; align-items: flex-start; padding: 22px 24px; }
+    .way-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .way-t { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
+    .way-d { font-size: .87rem; color: var(--ink-soft); line-height: 1.6; margin: 5px 0 0; }
+    .way-pay { display: inline-block; margin-top: 9px; font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+
+    /* ── The small print people actually need ── */
+    .needs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .need { padding: 22px 18px; text-align: center; }
+    .need-ico { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 11px; display: flex; align-items: center; justify-content: center; background: var(--blue-tint); color: var(--blue-deep); }
+    .need-t { font-family: var(--font-display); font-weight: 700; font-size: .95rem; letter-spacing: -.02em; }
+    .need-d { font-size: .8rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.55; }
+
+    /* ── Phone mock — same markup and images as the homepage tiles ── */
+    .ph { width: 148px; border-radius: 20px 20px 0 0; background: #0B1220; padding: 7px 7px 0; margin-bottom: -14px; box-shadow: 0 -2px 30px rgba(11,18,32,.22); }
+    .ph-screen { background: #fff; border-radius: 14px 14px 0 0; padding: 9px 8px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 214px; }
+    .ph-notch { width: 40px; height: 4px; border-radius: 99px; background: #33405A; margin: 0 auto 6px; }
+    .ps-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .ps-brand { font-family: var(--font-display); font-weight: 700; font-size: .6rem; color: var(--ink); }
+    .ps-chip { font-size: .5rem; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: var(--neon); color: #0B1220; }
+    .ps-img { width: 100%; border-radius: 8px; object-fit: cover; display: block; height: 78px; }
+    .ps-img.tall { height: 92px; }
+    .ps-line { height: 5px; border-radius: 99px; background: #E4EBF2; display: block; }
+    .ps-line.w70 { width: 70%; } .ps-line.w45 { width: 45%; } .ps-line.w50 { width: 50%; } .ps-line.w40 { width: 40%; }
+    .ps-cap { font-size: .52rem; color: var(--ink-soft); line-height: 1.4; }
+    .ps-cap b { color: var(--blue); }
+    .ps-btn { margin-top: auto; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: .58rem; color: #0B1220; padding: 6px; border-radius: 7px; background: linear-gradient(180deg, var(--neon-soft), var(--neon)); }
+    .ps-bal { background: linear-gradient(140deg, var(--neon-soft), var(--neon)); border-radius: 9px; padding: 8px 9px; color: #0B1220; }
+    .ps-bal span { display: block; font-size: .45rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+    .ps-bal b { font-family: var(--font-display); font-size: .95rem; letter-spacing: -.02em; }
+    .ps-row { display: flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 8px; padding: 5px 6px; min-width: 0; }
+    .ps-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--blue-tint); flex-shrink: 0; }
+    .ps-amt { margin-left: auto; font-family: var(--font-display); font-size: .55rem; color: var(--ink); white-space: nowrap; }
+
+    @media (max-width: 820px) {
+      .needs { grid-template-columns: repeat(2, 1fr); }
+      .ways { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      /* One column, and the mock goes above its words — a phone screen next to
+         a paragraph at this width leaves both too narrow to read. */
+      .link-row, .link-row.flip { grid-template-columns: 1fr; gap: 18px; padding: 20px; }
+      .link-row .link-stage, .link-row.flip .link-stage { order: -1; min-height: 232px; }
+      .joint svg { width: 46px; height: 90px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html" class="logo">cirqle</a>
+    <ul class="nav-links">
+      <li><a href="how-it-works.html" aria-current="page">How it works</a></li>
+      <li><a href="browse.html">Browse Deals</a></li>
+      <li><a href="for-brands.html">For brands</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="signin.html" class="btn btn-sm" data-auth="out">My Account</a>      <a href="dashboard.html" class="btn btn-sm btn-ink" data-auth="in" style="display:none">My Account</a>
+      <a href="signin.html" class="btn btn-sm" data-auth="out">Dashboard</a>      <a href="feed.html" class="btn btn-sm btn-ink" data-auth="in" style="display:none">Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="dots" aria-hidden="true" style="top:-10px; left:-40px; right:-40px; height:320px"></div>
+    <div class="page-hero" style="position:relative">
+      <h1 class="h-display fade-up d1" style="margin-top:20px">Shop. Share. <span class="hl">Earn.</span><br>Three links, one loop.</h1>
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">Buy from a brand you already like, share it, and the cashback lands in your wallet as real money. Here is the whole thing, start to finish.</p>
+    </div>
+
+    <!-- ══ THE CHAIN ══ -->
+    <div class="chain">
+      <div class="card link-row reveal">
+        <div>
+          <span class="link-n">1</span>
+          <h2 class="link-t">Shop</h2>
+          <p class="link-d">Find a deal you like on <a href="browse.html">Browse Deals</a>, then buy from the brand the way you normally would. <b>No codes, no browser extension, no special link to remember.</b> Every deal shows its cashback rate before you spend anything.</p>
+        </div>
+        <div class="link-stage">
+          <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">Nike</span><span class="ps-chip">13% back</span></div><img class="ps-img" src="assets/steps/shop.jpg" alt="" loading="lazy" decoding="async"><span class="ps-line w70"></span><span class="ps-line w45"></span><div class="ps-btn">Shop now</div></div></div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true">
+        <svg viewBox="0 0 58 112" role="presentation">
+          <ellipse class="r-line" cx="29" cy="34" rx="17" ry="29" />
+          <ellipse class="r-cut"  cx="29" cy="78" rx="17" ry="29" />
+          <ellipse class="r-line" cx="29" cy="78" rx="17" ry="29" />
+        </svg>
+      </div>
+
+      <div class="card link-row flip reveal">
+        <div>
+          <span class="link-n">2</span>
+          <h2 class="link-t">Share</h2>
+          <p class="link-d"><b>Two ways, and both of them pay.</b> Post it on Instagram tagging @cirqle and the brand, or send your link to a friend. Either way, upload your receipt so we can match the purchase to the deal.</p>
+        </div>
+        <div class="link-stage">
+          <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true">
+        <svg viewBox="0 0 58 112" role="presentation">
+          <ellipse class="r-line" cx="29" cy="34" rx="17" ry="29" />
+          <ellipse class="r-cut"  cx="29" cy="78" rx="17" ry="29" />
+          <ellipse class="r-line" cx="29" cy="78" rx="17" ry="29" />
+        </svg>
+      </div>
+
+      <div class="card link-row reveal">
+        <div>
+          <span class="link-n">3</span>
+          <h2 class="link-t">Earn</h2>
+          <p class="link-d">We check the claim by hand. Once it is approved, your cashback <b>clears three days after the date you shared</b> and moves into your wallet — then it is yours to withdraw to your bank.</p>
+        </div>
+        <div class="link-stage">
+          <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-bal"><span>Wallet</span><b>£47.80</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w50"></span><b class="ps-amt">+£3.50</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w40"></span><b class="ps-amt">+£2.10</b></div><div class="ps-btn">Withdraw</div></div></div>
+        </div>
+      </div>
+
+      <div class="loop-back reveal">
+        <div class="joint" aria-hidden="true">
+          <svg viewBox="0 0 58 112" role="presentation">
+            <ellipse class="r-line" cx="29" cy="34" rx="17" ry="29" />
+            <ellipse class="r-cut"  cx="29" cy="78" rx="17" ry="29" />
+            <ellipse class="r-line" cx="29" cy="78" rx="17" ry="29" />
+          </svg>
+        </div>
+        <p>And back to the top: the cashback from one shop is what buys the next one. That is the cirqle.</p>
+      </div>
+    </div>
+
+    <!-- ══ THE SHARE STEP, IN FULL ══ -->
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>The two ways to share</h2>
+      <p>Sharing is the step that earns, so it is worth knowing both routes. You can use either, or both on the same purchase.</p>
+    </div>
+    <div class="ways" style="margin-top:22px">
+      <div class="card way reveal">
+        <span class="way-ico"><i class="ico ico-instagram"></i></span>
+        <div>
+          <div class="way-t">Share with your followers</div>
+          <p class="way-d">Post your buy on Instagram, tag <b>@cirqle</b> and the brand, then upload the receipt. We match the post to your handle and the receipt to the deal.</p>
+          <span class="way-pay">Earns the deal's published rate</span>
+        </div>
+      </div>
+      <div class="card way reveal reveal-delay-1">
+        <span class="way-ico"><i class="ico ico-users"></i></span>
+        <div>
+          <div class="way-t">Share with your friends</div>
+          <p class="way-d">Send them your link. When a friend buys through your post and enters your handle on their receipt, you both get paid once their first claim on that deal is approved.</p>
+          <span class="way-pay">£1 to you, 50p to them</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose reveal" style="margin-top:52px">
+      <h2>Been back since?</h2>
+      <p>Some brands also accept a <b>repeat visit</b>. Once you have claimed one of their deals, a later receipt from the same brand can be logged on its own — no post needed. It pays a smaller fixed amount that the brand sets, and the deal page tells you when it is available.</p>
+    </div>
+
+    <!-- ══ WHAT YOU NEED ══ -->
+    <div class="prose reveal" style="margin-top:52px">
+      <h2>What you need</h2>
+    </div>
+    <div class="needs" style="margin-top:22px">
+      <div class="card need reveal">
+        <span class="need-ico"><i class="ico ico-instagram"></i></span>
+        <div class="need-t">An Instagram handle</div>
+        <div class="need-d">Added to your account, so we can find the posts where you tagged us.</div>
+      </div>
+      <div class="card need reveal reveal-delay-1">
+        <span class="need-ico"><i class="ico ico-receipt"></i></span>
+        <div class="need-t">Your receipt</div>
+        <div class="need-d">A photo is fine. It is stored privately and only used to check the claim.</div>
+      </div>
+      <div class="card need reveal reveal-delay-2">
+        <span class="need-ico"><i class="ico ico-clock"></i></span>
+        <div class="need-t">Three days</div>
+        <div class="need-d">How long an approved claim takes to clear, counted from the date you shared.</div>
+      </div>
+      <div class="card need reveal reveal-delay-3">
+        <span class="need-ico"><i class="ico ico-cash"></i></span>
+        <div class="need-t">£5 to withdraw</div>
+        <div class="need-d">The minimum payout. Bank transfer via Stripe — we never see your details.</div>
+      </div>
+    </div>
+
+    <div class="prose reveal" style="margin-top:52px">
+      <h2>Why brands pay for this</h2>
+      <p>Brands spend heavily on influencer marketing. Cirqle points that money at real customers instead: you buy something you were going to buy, you tell people about it honestly, and the brand pays a commission. Your cashback is a share of that commission — which is why it is free to join and why the rate depends on the deal.</p>
+      <p>Still got questions? The <a href="help.html">help centre</a> covers the details, and the <a href="terms.html">terms</a> spell out when a claim can be withheld.</p>
+    </div>
+
+    <div class="card card-ink cta-box reveal" style="text-align:center; padding:44px 30px; margin-top:60px">
+      <h2 style="color:var(--paper); font-size:clamp(1.6rem,3.4vw,2.2rem)">Ready to start <span class="hl">earning?</span></h2>
+      <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Free to join, and your cashback goes straight to your bank.</p>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+        <a href="signup.html" class="btn btn-lg btn-lime">Create a free account →</a>
+        <a href="browse.html" class="btn btn-lg">Browse Deals</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/enhance.js"></script>
+</body>
+</html>

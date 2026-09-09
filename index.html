@@ -17,7 +17,10 @@
       /* Wide enough that "Shop. Share." still holds one line at the
          larger size — the markup's <br> is what sets the two-line shape. */
       max-width: 980px; margin: 0 auto;
-      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(88px, 9vw, 132px);
+      /* The band bottom-aligns its contents, so this bottom padding is the only
+         thing holding the copy up off the foot of the wall. Lowering it drops
+         the headline, sub and buttons further down the photography. */
+      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(52px, 5.4vw, 78px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -57,7 +60,7 @@
            fade underneath can never reach the page colour. Without this the join
            to the section below steps by ~29 levels — a visible seam. */
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(105% 64% at 50% 67%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
+        radial-gradient(105% 64% at 50% 73%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
         linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%);
     }
     @media (max-width: 900px) {
@@ -68,7 +71,7 @@
          wall, so it starts later and lighter and the photos hold on further. */
       .hero-scrim { background:
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(130% 66% at 50% 67%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
+        radial-gradient(130% 66% at 50% 73%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
         linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(255,255,255,.26) 45%, rgba(255,255,255,.30) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%); }
     }
     /* the marker sweep: ink type on a solid neon bar */
@@ -229,6 +232,9 @@
     .cyc-t { font-family: var(--font-display); font-size: 1.24rem; font-weight: 700; letter-spacing: -.025em; margin: 18px 0 6px; }
     .cyc-d { font-size: .89rem; color: var(--ink-soft); line-height: 1.6; margin: 0; }
 
+    /* The way through to the full explanation, under the three tiles. */
+    .steps-more { text-align: center; margin-top: clamp(26px, 3.4vw, 38px); }
+
     /* phone */
     .ph {
       width: 142px; border-radius: 20px 20px 0 0; background: #0B1220;
@@ -334,7 +340,7 @@
       /* The wall shows two columns at this width. The third still existed on a
          clipped second row, animating a 172×2500 layer nobody could see. */
       .pw-col.k3 { display: none; }
-      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(48px, 8vw, 80px); }
+      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(30px, 5vw, 52px); }
       .facts-strip { grid-template-columns: repeat(2, 1fr); }
       .steps { grid-template-columns: 1fr; gap: 30px; }
       .features-grid, .calc-grid { grid-template-columns: 1fr; }
@@ -357,7 +363,7 @@
       .hero-sub { font-size: 1rem; margin-bottom: 26px; }
       /* This bottom padding is the strip of wall left showing under the
          buttons — it is what keeps them above the wall rather than on its edge. */
-      .hero { padding-top: 28px; padding-bottom: 90px; }
+      .hero { padding-top: 28px; padding-bottom: 62px; }
       /* Same reasoning for the four claim tiles: they restate the hero copy and
          cost a full screen of scrolling to say it. */
       #facts { display: none; }
@@ -392,6 +398,7 @@
   <nav class="nav">
     <a href="index.html" class="logo">cirqle</a>
     <ul class="nav-links">
+      <li><a href="how-it-works.html">How it works</a></li>
       <li><a href="browse.html">Browse Deals</a></li>
       <li><a href="for-brands.html">For brands</a></li>
     </ul>
@@ -474,6 +481,9 @@
           <h3 class="cyc-t">Earn</h3>
           <p class="cyc-d">Once approved your cashback clears in about three days, then goes to your bank.</p>
         </div>
+      </div>
+      <div class="steps-more reveal reveal-delay-3">
+        <a href="how-it-works.html" class="btn btn-lg">Find out more &rarr;</a>
       </div>
     </div>
   </section>
@@ -586,7 +596,7 @@
         <div class="footer-col">
           <h4>Product</h4>
           <ul class="footer-links">
-            <li><a href="#steps">How it works</a></li>
+            <li><a href="how-it-works.html">How it works</a></li>
             <li><a href="browse.html">Browse Deals</a></li>
             <li><a href="pricing.html">Pricing</a></li>
             <li><a href="help.html">FAQ</a></li>
