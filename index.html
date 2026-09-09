@@ -381,13 +381,18 @@
          text is buried in. The band bottom-aligns by default — that is what
          flex-start here is undoing, and it is why the bottom padding no longer
          sets the position. */
-      .hero { padding-top: 22px; padding-bottom: 26px; }
+      .hero { padding-top: 22px; padding-bottom: 160px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* The wall is the whole point of this band on a phone; at the old height
          it read as a stripe behind the headline rather than a wall. */
       .hero-band {
-        min-height: 96vh;
+        /* Measured at 390px: the copy ends 321px down, and 96vh made the band
+           672px — twice what the design needs, so the wall ran on for half a
+           screen after the buttons. No viewport minimum any more: the band is
+           the copy plus the strip of wall under it, set by .hero's bottom
+           padding above. */
+        min-height: 0;
         justify-content: flex-start;
         /* Less white wash than before means less contrast under the secondary
            copy, so the token this band already darkens goes one step further
@@ -401,9 +406,15 @@
          run to white is short and late — one decisive fade rather than a long
          haze — so the foot of the wall meets the white page as a join rather
          than a gradient anyone can see. */
+      /* Both the pool and the fade are anchored in pixels, not percentages of
+         the band. Percentages stretched or squashed with the band height, so
+         shortening it would have dragged the pool up off the sub-headline and
+         the fade up behind the buttons. In px they stay put whatever the copy
+         reflows to: a 128px run to white off the bottom edge, and a pool that
+         covers the copy from the top edge down. */
       .hero-scrim { background:
-        linear-gradient(180deg, rgba(255,255,255,0) 66%, rgba(255,255,255,.58) 83%, rgba(255,255,255,.97) 94%, #FFFFFF 100%),
-        radial-gradient(126% 42% at 50% 19%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.76) 58%, rgba(255,255,255,.16) 100%),
+        linear-gradient(to top, #FFFFFF 0, rgba(255,255,255,.97) 22px, rgba(255,255,255,.58) 72px, rgba(255,255,255,0) 128px),
+        radial-gradient(150% 300px at 50% 120px, rgba(255,255,255,.93) 0%, rgba(255,255,255,.78) 55%, rgba(255,255,255,.14) 100%),
         linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.18) 38%, rgba(255,255,255,.10) 62%, rgba(255,255,255,0) 78%); }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
