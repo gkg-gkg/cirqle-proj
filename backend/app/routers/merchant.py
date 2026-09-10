@@ -8,17 +8,27 @@ deals (the `Campaign` rows linked by `merchant_id`) and to message the admin.
 Merchant auth uses a JWT with a typ="merchant" claim (see security.py) so a
 merchant token can't reach user endpoints and vice-versa.
 """
+import csv
+import io
 import json
 import secrets
 from datetime import date, datetime, timedelta
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
+from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
+                     UploadFile, File)
 from sqlmodel import Session, select
 
+from .. import mailer, passwords, tokens
 from ..db import get_session
 from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       CampaignSubmission, CampaignSubmissionIn,
-                      CampaignSubmissionOut, DealEvent, DealStat, Mention,
+                      BenchmarkOut, IncrementalityOut,
+                      CampaignSubmissionOut, CohortRow, CustomerOut,
+                      CustomerSummary, MerchantCustomersOut, NetworkSummary,
+                      PathStat, TreeNode,
+                      DealEvent, DealStat, EmailIn,
+                      Mention, MessageOut, ResetPasswordIn,
                       Merchant, MerchantApplication, MerchantAuthOut,
                       MerchantCreatedOut, MerchantCreateIn, MerchantMessage,
                       MerchantMessageIn, MerchantMessageOut, MerchantOut,
@@ -26,10 +36,16 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       CheckoutSessionOut, MerchantStats, MerchantThreadOut,
                       PlanOut, RefundIn, SubscribeIn, SubscriptionOut,
                       TopUpQuote,
-                      MerchantTransaction, Receipt, ReferralStat,
-                      RejectSubmissionIn, TaggedPostOut, TimePoint, TopUpIn,
-                      User)
+                      DealReferralsIn, DealVisitsIn,
+                      MerchantTransaction, Receipt,
+                      ReferralReward, ReferralStat, RejectSubmissionIn,
+                      TaggedPostOut, TimePoint, TopUpIn, User, WalletOut)
 from ..activity import log_activity
+from ..benchmarks import compare
+from ..customers import (build_customers, cohorts, incrementality,
+                         network_summary, referral_tree, split_by_path,
+                         summary as customer_summary)
+from ..ratelimit import rate_limit
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
 from ..storage import StorageError, delete_image, upload_image
@@ -37,12 +53,21 @@ from ..payments import (OVERAGE_RATE, TIERS, PaymentError,
                         create_portal_session, create_subscription_session,
                         create_topup_session, ensure_customer, month_start,
                         payments_configured, quote_topup, refund_topup)
+from .auth import SENT_MESSAGE
 from .campaigns import require_admin
+# The deal's cashback is stored as printed text ("£13.00"); this is the parser
+# that turns it back into a number, and validating a visit rate against the
+# posted one needs the same reading of it.
+from .receipts import _earn_to_amount
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
 
 _TIMESERIES_DAYS = 30
 _CASHBACK_GIVEN = ("confirmed", "paid")
+# Receipt currencies that count toward a merchant's revenue. "" is included
+# because most UK receipts don't print a currency at all, and Cirqle trades in
+# pounds — an explicit foreign code is the only thing worth excluding.
+_REVENUE_CURRENCIES = ("", "GBP")
 
 
 def _json_list(raw: str) -> list[str]:
@@ -73,9 +98,22 @@ def _message_out(msg: MerchantMessage) -> MerchantMessageOut:
 def signin(data: MerchantSigninIn, session: Session = Depends(get_session)):
     email = data.email.lower()
     m = session.exec(select(Merchant).where(Merchant.email == email)).first()
-    if m is None or not verify_password(data.password, m.password_hash):
+    if m is None:
+        # Keep the timing the same as a real account — see auth.py signin.
+        hash_password(data.password)
         raise HTTPException(status_code=401, detail="Incorrect email or password.")
-    return MerchantAuthOut(token=create_merchant_token(m.id), merchant=_merchant_out(m))
+    if m.must_set_password:
+        raise HTTPException(
+            status_code=403,
+            detail=("Check your email for the invite link and set a password to "
+                    "get started."))
+    if not verify_password(data.password, m.password_hash):
+        raise HTTPException(status_code=401, detail="Incorrect email or password.")
+    if m.email_verified_at is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Please confirm your email address first — check your inbox.")
+    return MerchantAuthOut(token=create_merchant_token(m), merchant=_merchant_out(m))
 
 
 @router.get("/me", response_model=MerchantOut)
@@ -225,13 +263,21 @@ def referrals(merchant: Merchant = Depends(get_current_merchant),
         if referrer is None:
             continue
         camp = campaign_by_id[campaign_id]
+        # Only claims that actually earned cashback count. A rejected or still-
+        # clearing claim isn't a referral the merchant got anything from, and
+        # counting it here while excluding it from `referredCashback` below made
+        # the two figures disagree.
+        credited = [r for r in group if r.status in _CASHBACK_GIVEN]
+        if not credited:
+            continue
         # The referrer's own claim on this campaign is the post that started
-        # the chain — "the referrer's Mention for the originating post".
+        # the chain — "the referrer's Mention for the originating post". Oldest
+        # first: with several posts on one deal, the chain starts at the first.
         origin = session.exec(
             select(Receipt).where(
                 Receipt.user_id == referrer_id,
                 Receipt.campaign_id == campaign_id,
-            )
+            ).order_by(Receipt.uploaded_at)
         ).first()
         mention = session.get(Mention, origin.post_id) if origin else None
         out.append(ReferralStat(
@@ -242,17 +288,77 @@ def referrals(merchant: Merchant = Depends(get_current_merchant),
             dealTitle=camp.card_title or camp.title or camp.brand,
             postId=(origin.post_id if origin else None),
             imageUrl=(mention.display_url if mention else None),
-            claims=len(group),
-            referredCashback=round(
-                sum(r.amount for r in group if r.status in _CASHBACK_GIVEN), 2),
+            claims=len(credited),
+            referredCashback=round(sum(r.amount for r in credited), 2),
         ))
     out.sort(key=lambda s: s.claims, reverse=True)
     return out
 
 
+@router.patch("/deals/{campaign_id}/referrals", response_model=DealStat)
+def set_deal_referrals(campaign_id: int, data: DealReferralsIn,
+                       merchant: Merchant = Depends(get_current_merchant),
+                       session: Session = Depends(get_session)):
+    """Turn referral bonuses on or off for one of this merchant's deals.
+
+    Off by default, so funding the referral wallet never silently enrols a deal
+    the brand didn't choose. Switching it off stops future bonuses; ones already
+    earned are money the member has, and are left alone.
+    """
+    campaign = session.get(Campaign, campaign_id)
+    if campaign is None or campaign.merchant_id != merchant.id:
+        raise HTTPException(status_code=404, detail="No such deal.")
+    campaign.referrals_enabled = bool(data.enabled)
+    session.add(campaign)
+    session.commit()
+    session.refresh(campaign)
+
+    stats = _compute_stats(merchant, session)
+    return next(d for d in stats.deals if d.campaignId == campaign_id)
+
+
+@router.patch("/deals/{campaign_id}/visits", response_model=DealStat)
+def set_deal_visits(campaign_id: int, data: DealVisitsIn,
+                    merchant: Merchant = Depends(get_current_merchant),
+                    session: Session = Depends(get_session)):
+    """Let shoppers log a repeat visit to this deal without posting again.
+
+    Off by default, like referral bonuses: funding a wallet must never enrol a
+    deal the brand didn't choose. Switching it off stops new visit claims; ones
+    already made are left alone, since that cashback is money the member has.
+    """
+    campaign = session.get(Campaign, campaign_id)
+    if campaign is None or campaign.merchant_id != merchant.id:
+        raise HTTPException(status_code=404, detail="No such deal.")
+    if data.earn < 0:
+        raise HTTPException(status_code=422,
+                            detail="A visit can't be worth less than nothing.")
+    # Guarding against a fat finger, not a business rule: a repeat visit paying
+    # more than the posted claim would make posting the worse option.
+    posted = _earn_to_amount(campaign.earn)
+    if posted and data.earn > posted:
+        raise HTTPException(
+            status_code=422,
+            detail=f"A visit can't pay more than the deal itself (£{posted:.2f}).")
+
+    campaign.visits_enabled = bool(data.enabled)
+    campaign.visit_earn = round(data.earn, 2)
+    session.add(campaign)
+    session.commit()
+    session.refresh(campaign)
+
+    stats = _compute_stats(merchant, session)
+    return next(d for d in stats.deals if d.campaignId == campaign_id)
+
+
 # ── Billing: prepaid balance that funds shopper cashback ──
 def _month_topups(merchant_id: int, session: Session) -> float:
-    """£ of credit topped up since the 1st — what the allowance is measured against."""
+    """£ of credit topped up since the 1st — what the allowance is measured against.
+
+    Both wallets count towards the one allowance. The allowance is about how much
+    money moves through the account, so keeping them separate would let a merchant
+    dodge the fee by routing credit through the referral wallet.
+    """
     rows = session.exec(
         select(MerchantTransaction).where(
             MerchantTransaction.merchant_id == merchant_id,
@@ -298,10 +404,18 @@ def _billing(merchant: Merchant, session: Session) -> BillingOut:
         select(Receipt).where(Receipt.campaign_id.in_(campaign_ids))
     ).all() if campaign_ids else []
 
-    # Only credit rows move the balance; fees are Cirqle's revenue, not credit.
-    credit_rows = [t for t in txn_rows if t.kind in ("topup", "refund")]
-    total_topped = round(sum(t.amount for t in credit_rows if t.kind == "topup"), 2)
-    balance_credit = round(sum(t.amount for t in credit_rows), 2)
+    # Only credit rows move a balance; fees are Cirqle's revenue, not credit.
+    # Each wallet is funded and spent separately — a full cashback balance pays
+    # for no referral bonuses, and vice versa.
+    def credit(wallet: str) -> tuple[float, float]:
+        rows = [t for t in txn_rows
+                if t.kind in ("topup", "refund") and t.wallet == wallet]
+        return (round(sum(t.amount for t in rows if t.kind == "topup"), 2),
+                round(sum(t.amount for t in rows), 2))
+
+    cash_topped, cash_credit = credit("cashback")
+    ref_topped, ref_credit = credit("referral")
+
     # Each fee has its own row; `fee` on a top-up row is context for that
     # top-up, so counting both would double it.
     fees_paid = round(sum(t.amount for t in txn_rows
@@ -310,21 +424,40 @@ def _billing(merchant: Merchant, session: Session) -> BillingOut:
     given = [r for r in receipts if r.status in _CASHBACK_GIVEN]
     cashback_given = round(sum(r.amount for r in given), 2)
     pending = round(sum(r.amount for r in receipts if r.status == "pending"), 2)
-    balance = round(balance_credit - cashback_given, 2)
+    balance = round(cash_credit - cashback_given, 2)
+
+    rewards = session.exec(
+        select(ReferralReward).where(
+            ReferralReward.merchant_id == merchant.id,
+            ReferralReward.status.in_(("available", "paid")),
+        )
+    ).all()
+    referral_paid = round(sum(r.amount for r in rewards), 2)
 
     _LABELS = {"topup": "Account top-up", "platform_fee": "Platform fee",
                "subscription": "Membership fee", "refund": "Refund to card"}
     txns = [BillingTxnOut(kind=t.kind, amount=round(t.amount, 2),
                           description=t.description or _LABELS.get(t.kind, "Charge"),
-                          date=t.created_at) for t in txn_rows]
+                          date=t.created_at, wallet=t.wallet) for t in txn_rows]
     txns += [BillingTxnOut(kind="cashback", amount=-round(r.amount, 2),
-                           description=f"Cashback — {r.brand}", date=r.uploaded_at)
+                           description=f"Cashback — {r.brand}", date=r.uploaded_at,
+                           wallet="cashback")
              for r in given]
+    txns += [BillingTxnOut(kind="referral", amount=-round(w.amount, 2),
+                           description="Referral bonus", date=w.created_at,
+                           wallet="referral")
+             for w in rewards]
     txns.sort(key=lambda t: t.date, reverse=True)
 
     return BillingOut(
-        balance=balance, totalToppedUp=total_topped, cashbackGiven=cashback_given,
+        balance=balance, totalToppedUp=cash_topped, cashbackGiven=cashback_given,
         pendingCashback=pending, feesPaid=fees_paid,
+        wallets=[
+            WalletOut(wallet="cashback", balance=balance, toppedUp=cash_topped,
+                      spent=cashback_given, pending=pending),
+            WalletOut(wallet="referral", balance=round(ref_credit - referral_paid, 2),
+                      toppedUp=ref_topped, spent=referral_paid, pending=0.0),
+        ],
         subscription=_subscription_out(merchant, session), transactions=txns,
     )
 
@@ -405,12 +538,21 @@ def _validate_topup(merchant: Merchant, amount: float) -> float:
     return credit
 
 
+def _validate_wallet(wallet: str) -> str:
+    """Which pot the money is for. Rejected rather than defaulted: silently
+    crediting the wrong wallet would be a real accounting error."""
+    if wallet not in ("cashback", "referral"):
+        raise HTTPException(status_code=422, detail="Unknown wallet.")
+    return wallet
+
+
 @router.get("/billing/quote", response_model=TopUpQuote)
-def topup_quote(amount: float,
+def topup_quote(amount: float, wallet: str = "cashback",
                 merchant: Merchant = Depends(get_current_merchant),
                 session: Session = Depends(get_session)):
     """What a top-up of `amount` will cost — so the merchant sees the platform
     fee before they commit, never as a surprise on the Stripe page."""
+    _validate_wallet(wallet)
     credit = _validate_topup(merchant, amount)
     return TopUpQuote(**quote_topup(merchant, credit,
                                     _month_topups(merchant.id, session)))
@@ -426,18 +568,36 @@ def billing_checkout(data: TopUpIn, request: Request,
     balance is credited by the webhook, never on the redirect.
     """
     _require_payments()
+    wallet = _validate_wallet(data.wallet)
     credit = _validate_topup(merchant, data.amount)
     quote = quote_topup(merchant, credit, _month_topups(merchant.id, session))
     try:
         customer_id = ensure_customer(merchant, session)
         url = create_topup_session(merchant, quote, customer_id,
-                                   request.headers.get("origin", ""))
+                                   request.headers.get("origin", ""), wallet)
     except PaymentError:
         raise HTTPException(status_code=502, detail="Could not start checkout. Please try again.")
     return CheckoutSessionOut(url=url)
 
 
 # ── Merchant dashboard stats ──
+def _spend(receipt: Receipt) -> Optional[float]:
+    """What this claim is worth as revenue, or None if it can't be counted.
+
+    Three ways a claim contributes nothing. It never cleared, so the merchant
+    got no sale they're paying us for; the receipt's total was never legible, in
+    which case it is missing rather than zero; or it is priced in a currency
+    that isn't ours, and silently adding dollars to a pound total is worse than
+    leaving them out. A blank currency counts — most UK receipts don't print
+    one, and excluding them would throw away nearly every row.
+    """
+    if receipt.status not in _CASHBACK_GIVEN or receipt.basket_total is None:
+        return None
+    if receipt.basket_currency not in _REVENUE_CURRENCIES:
+        return None
+    return receipt.basket_total
+
+
 def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
     campaigns = session.exec(
         select(Campaign).where(Campaign.merchant_id == merchant.id)
@@ -457,6 +617,12 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
     receipts = session.exec(
         select(Receipt).where(Receipt.campaign_id.in_(campaign_ids))
     ).all()
+    rewards = session.exec(
+        select(ReferralReward).where(
+            ReferralReward.campaign_id.in_(campaign_ids),
+            ReferralReward.status.in_(("available", "paid")),
+        )
+    ).all()
 
     views = sum(1 for e in events if e.kind == "view")
     clicks = sum(1 for e in events if e.kind == "click")
@@ -466,6 +632,30 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
     pending_cashback = round(
         sum(r.amount for r in receipts if r.status == "pending"), 2)
     conversion = round(claims / views * 100, 1) if views else 0.0
+
+    # ── What the deals earned ──
+    # Cashback is a flat per-campaign figure, so revenue can't be inferred from
+    # it — it has to come off the receipts themselves. Coverage is measured
+    # against credited claims only: a rejected claim isn't missing revenue, it
+    # is a claim that was never worth any.
+    spends = [s for s in (_spend(r) for r in receipts) if s is not None]
+    credited = sum(1 for r in receipts if r.status in _CASHBACK_GIVEN)
+    revenue = round(sum(spends), 2)
+    average_basket = round(revenue / len(spends), 2) if spends else 0.0
+    coverage = round(len(spends) / credited * 100, 1) if credited else 0.0
+
+    referrals_paid = round(sum(w.amount for w in rewards), 2)
+    fees_paid = round(sum(
+        t.amount for t in session.exec(
+            select(MerchantTransaction).where(
+                MerchantTransaction.merchant_id == merchant.id,
+                MerchantTransaction.kind.in_(("platform_fee", "subscription")),
+            )
+        ).all()), 2)
+    programme_cost = round(cashback_given + referrals_paid + fees_paid, 2)
+    return_on_cashback = (round(revenue / programme_cost, 2)
+                          if programme_cost else 0.0)
+    discount_rate = round(programme_cost / revenue * 100, 1) if revenue else 0.0
 
     # ── Per-deal breakdown ──
     deals = []
@@ -479,6 +669,14 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
             claims=len(c_receipts),
             cashback=round(sum(r.amount for r in c_receipts
                                if r.status in _CASHBACK_GIVEN), 2),
+            referralsEnabled=c.referrals_enabled,
+            referralsPaid=round(sum(w.amount for w in rewards
+                                    if w.campaign_id == c.id), 2),
+            revenue=round(sum(s for s in (_spend(r) for r in c_receipts)
+                              if s is not None), 2),
+            visitsEnabled=c.visits_enabled,
+            visitEarn=c.visit_earn,
+            visitClaims=sum(1 for r in c_receipts if r.claim_kind == "visit"),
         ))
 
     return MerchantStats(
@@ -486,6 +684,9 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
         cashbackGiven=cashback_given, pendingCashback=pending_cashback,
         conversion=conversion,
         timeseries=_build_timeseries(events, receipts), deals=deals,
+        revenue=revenue, averageBasket=average_basket, revenueCoverage=coverage,
+        programmeCost=programme_cost, returnOnCashback=return_on_cashback,
+        discountRate=discount_rate,
     )
 
 
@@ -523,6 +724,118 @@ def stats(merchant: Merchant = Depends(get_current_merchant),
 
 
 # ── Merchant <-> admin messages ──
+_POST_CAVEAT = ("Every claim needs an Instagram post, so a customer who returns "
+                "without posting isn't counted here. Treat these as a floor.")
+
+
+@router.get("/customers", response_model=MerchantCustomersOut)
+def customers(merchant: Merchant = Depends(get_current_merchant),
+              session: Session = Depends(get_session)):
+    """Who bought, how often, and whether they came back.
+
+    Aggregates and per-person history for this merchant's own deals only — a
+    merchant never sees that a member also shops somewhere else.
+    """
+    records = build_customers(merchant.id, session)
+    today = date.today()
+
+    paths = split_by_path(records, today)
+    return MerchantCustomersOut(
+        summary=CustomerSummary(**customer_summary(records, session, merchant.id,
+                                                   today)),
+        customers=[
+            CustomerOut(
+                userId=c.user_id, handle=c.handle, claims=c.claims, spend=c.spend,
+                cashbackPaid=c.cashback, firstClaim=c.first, lastClaim=c.last,
+                sticky=c.sticky, acquisition=c.acquisition,
+                referredByHandle=c.referred_by_handle,
+                referredCount=c.referred_count,
+            ) for c in records
+        ],
+        cohorts=[CohortRow(**row) for row in cohorts(records, today)],
+        byPath=[PathStat(path=name, **stats) for name, stats in paths.items()],
+        caveat=_POST_CAVEAT,
+    )
+
+
+@router.get("/network", response_model=NetworkSummary)
+def network(merchant: Merchant = Depends(get_current_merchant),
+            session: Session = Depends(get_session)):
+    """How this merchant's referral network is performing, and who is building it."""
+    return NetworkSummary(**network_summary(
+        build_customers(merchant.id, session), session, merchant.id))
+
+
+@router.get("/customers/{user_id}/tree", response_model=TreeNode)
+def customer_tree(user_id: int,
+                  merchant: Merchant = Depends(get_current_merchant),
+                  session: Session = Depends(get_session)):
+    """Everyone this customer brought, and everyone they brought in turn.
+
+    Built only from claims on this merchant's own deals, so a merchant learns
+    who someone referred TO THEM and nothing about where else that member shops.
+    A customer who has never bought here isn't theirs to look at — 404.
+    """
+    tree = referral_tree(build_customers(merchant.id, session), user_id)
+    if tree is None:
+        raise HTTPException(status_code=404, detail="Not one of your customers.")
+    return TreeNode(**tree)
+
+
+_INCREMENTALITY_BASIS = (
+    "An estimate, not a lift study. It treats revenue from customers who are "
+    "new to you on Cirqle as the incremental part — so it ignores any repeat "
+    "custom your deals also created, and it can't know whether a 'new' customer "
+    "had shopped with you before joining Cirqle.")
+
+
+@router.get("/benchmarks", response_model=BenchmarkOut)
+def benchmarks(merchant: Merchant = Depends(get_current_merchant),
+               session: Session = Depends(get_session)):
+    """How this merchant's retention compares to their category, or the industry."""
+    return BenchmarkOut(**compare(merchant, session))
+
+
+@router.get("/incrementality", response_model=IncrementalityOut)
+def incrementality_estimate(merchant: Merchant = Depends(get_current_merchant),
+                            session: Session = Depends(get_session)):
+    """Roughly how much of the spend bought new custom. Clearly an estimate."""
+    stats = _compute_stats(merchant, session)
+    records = build_customers(merchant.id, session)
+    return IncrementalityOut(
+        **incrementality(records, stats.revenue, stats.programmeCost, date.today()),
+        basis=_INCREMENTALITY_BASIS,
+    )
+
+
+@router.get("/customers.csv")
+def customers_csv(merchant: Merchant = Depends(get_current_merchant),
+                  session: Session = Depends(get_session)):
+    """The customers table as a CSV, for a merchant who wants it in a spreadsheet.
+
+    Same columns and the same limits as the portal — Instagram handle, never a
+    name or an email — so exporting can't reveal more than the screen does.
+    """
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["handle", "visits", "spend", "cashback_paid", "first_claim",
+                     "last_claim", "regular", "found_you", "referred_by",
+                     "people_referred"])
+    for c in build_customers(merchant.id, session):
+        writer.writerow([
+            c.handle, c.claims, f"{c.spend:.2f}", f"{c.cashback:.2f}",
+            c.first.isoformat(), c.last.isoformat(),
+            "yes" if c.sticky else "no", c.acquisition,
+            c.referred_by_handle, c.referred_count,
+        ])
+
+    filename = f"cirqle-customers-{date.today().isoformat()}.csv"
+    return Response(
+        content=buffer.getvalue(), media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/messages", response_model=list[MerchantMessageOut])
 def list_messages(merchant: Merchant = Depends(get_current_merchant),
                   session: Session = Depends(get_session)):
@@ -697,8 +1010,9 @@ def reject_submission(sub_id: int, data: RejectSubmissionIn,
 def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_session)):
     """Admin: turn an approved application into a merchant login.
 
-    Generates a one-time password (shown once, only the hash is stored) and
-    links the application's published deal to the new merchant so stats attribute.
+    No password is generated. The brand gets an emailed invite link and chooses
+    their own password, which also proves they own the address — so a working
+    password never has to be relayed by hand over chat or email.
     """
     app = session.get(MerchantApplication, data.applicationId)
     if app is None:
@@ -714,10 +1028,12 @@ def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_sessi
         raise HTTPException(status_code=409,
                             detail="A merchant login already exists for this email.")
 
-    password = secrets.token_urlsafe(9)
     merchant = Merchant(
         application_id=app.id, email=email,
-        password_hash=hash_password(password), business_name=app.brand,
+        # Unusable until they set their own via the invite link. Random rather
+        # than blank so no crafted input can ever match it.
+        password_hash=hash_password(secrets.token_urlsafe(32)),
+        business_name=app.brand, must_set_password=True,
     )
     session.add(merchant)
     session.commit()
@@ -731,8 +1047,104 @@ def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_sessi
             session.add(camp)
             session.commit()
 
+    raw = tokens.issue(session, "invite", "merchant", merchant.id)
+    delivered = mailer.send_merchant_invite(merchant.email, merchant.business_name, raw)
+
     log_activity(session, "Created merchant login", merchant.business_name)
-    return MerchantCreatedOut(merchant=_merchant_out(merchant), password=password)
+    return MerchantCreatedOut(
+        merchant=_merchant_out(merchant),
+        inviteSent=delivered,
+        message=(f"Invite emailed to {merchant.email}. They set their own "
+                 f"password from the link; it expires in 7 days."),
+    )
+
+
+# ── Setting and resetting a merchant password ────────────────────────────────
+# Mirrors the member flow in auth.py: generic answers so the endpoints can't be
+# used to find out which brands have accounts, single-use links, and a password
+# change that signs every other device out.
+
+@router.post("/set-password", response_model=MessageOut,
+             dependencies=[rate_limit("reset", limit=10, window=3600)])
+def set_password(data: ResetPasswordIn, session: Session = Depends(get_session)):
+    """Redeem an invite link: choose a password and confirm the address.
+
+    Reaching the inbox is what proves the address belongs to the brand, so this
+    completes verification as well as setting the password.
+    """
+    token = tokens.redeem(session, data.token, "invite")
+    if token is None or token.subject_type != "merchant":
+        raise HTTPException(
+            status_code=400,
+            detail="This link is invalid or has expired. Ask us for a new one.")
+    merchant = session.get(Merchant, token.subject_id)
+    if merchant is None:
+        raise HTTPException(status_code=400, detail="This link is no longer valid.")
+    passwords.validate(data.newPassword, merchant.email)
+
+    merchant.password_hash = hash_password(data.newPassword)
+    merchant.password_changed_at = datetime.utcnow()
+    merchant.email_verified_at = datetime.utcnow()
+    merchant.must_set_password = False
+    session.add(merchant)
+    session.commit()
+    return MessageOut(message="Password set. You can now sign in to the portal.")
+
+
+@router.post("/forgot-password", response_model=MessageOut,
+             dependencies=[rate_limit("forgot", limit=5, window=3600)])
+def forgot_password(data: EmailIn, session: Session = Depends(get_session)):
+    """Email a reset link. Always answers the same way — see auth.py."""
+    m = session.exec(select(Merchant).where(Merchant.email == data.email.lower())).first()
+    if m is not None:
+        # An account still on its invite gets the invite resent instead: it
+        # lasts longer, and "reset" makes no sense before a password exists.
+        if m.must_set_password:
+            raw = tokens.issue(session, "invite", "merchant", m.id)
+            mailer.send_merchant_invite(m.email, m.business_name, raw)
+        else:
+            raw = tokens.issue(session, "reset_password", "merchant", m.id)
+            mailer.send_merchant_reset(m.email, m.business_name, raw)
+    return MessageOut(message=SENT_MESSAGE)
+
+
+@router.post("/reset-password", response_model=MessageOut,
+             dependencies=[rate_limit("reset", limit=10, window=3600)])
+def reset_password(data: ResetPasswordIn, session: Session = Depends(get_session)):
+    """Set a new password from a reset link, signing every device out."""
+    token = tokens.redeem(session, data.token, "reset_password")
+    if token is None or token.subject_type != "merchant":
+        raise HTTPException(
+            status_code=400,
+            detail="This link is invalid or has expired. Request a new one.")
+    merchant = session.get(Merchant, token.subject_id)
+    if merchant is None:
+        raise HTTPException(status_code=400, detail="This link is no longer valid.")
+    passwords.validate(data.newPassword, merchant.email)
+
+    merchant.password_hash = hash_password(data.newPassword)
+    merchant.password_changed_at = datetime.utcnow()
+    if merchant.email_verified_at is None:
+        merchant.email_verified_at = datetime.utcnow()
+    session.add(merchant)
+    session.commit()
+    return MessageOut(message="Password updated. You can now sign in.")
+
+
+@router.post("/{merchant_id}/resend-invite", response_model=MessageOut,
+             dependencies=[Depends(require_admin)])
+def resend_invite(merchant_id: int, session: Session = Depends(get_session)):
+    """Admin: send a fresh invite link (the old one expired or never arrived)."""
+    merchant = session.get(Merchant, merchant_id)
+    if merchant is None:
+        raise HTTPException(status_code=404, detail="No such merchant.")
+    raw = tokens.issue(session, "invite", "merchant", merchant.id)
+    mailer.send_merchant_invite(merchant.email, merchant.business_name, raw)
+    merchant.must_set_password = True
+    session.add(merchant)
+    session.commit()
+    log_activity(session, "Resent merchant invite", merchant.business_name)
+    return MessageOut(message=f"Invite resent to {merchant.email}.")
 
 
 @router.post("/{merchant_id}/refund", response_model=BillingOut,
@@ -749,20 +1161,26 @@ def refund_balance(merchant_id: int, data: RefundIn,
     merchant = session.get(Merchant, merchant_id)
     if merchant is None:
         raise HTTPException(status_code=404, detail="No such merchant.")
+    wallet = _validate_wallet(data.wallet)
     amount = round(float(data.amount), 2)
     if amount <= 0:
         raise HTTPException(status_code=422, detail="Enter an amount above £0.")
 
+    # Refund out of the wallet being refunded, against that wallet's own
+    # top-ups. Mixing them would reverse a charge for one pot while taking the
+    # credit off the other.
     billing = _billing(merchant, session)
-    if amount > billing.balance:
+    available = next(w.balance for w in billing.wallets if w.wallet == wallet)
+    if amount > available:
         raise HTTPException(
             status_code=422,
-            detail=f"They only have £{billing.balance:.2f} of unused balance.")
+            detail=f"They only have £{available:.2f} of unused {wallet} balance.")
 
     topups = session.exec(
         select(MerchantTransaction)
         .where(MerchantTransaction.merchant_id == merchant_id,
-               MerchantTransaction.kind == "topup")
+               MerchantTransaction.kind == "topup",
+               MerchantTransaction.wallet == wallet)
         .order_by(MerchantTransaction.id.desc())
     ).all()
 

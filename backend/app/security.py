@@ -31,14 +31,19 @@ bearer_scheme = HTTPBearer(auto_error=True)
 PENDING_MESSAGE = ("Your account is awaiting approval. We'll let you know once "
                    "it's live.")
 REJECTED_MESSAGE = "This account hasn't been approved for Cirqle."
+# Shown before the email address has been confirmed — the gate that now comes
+# before admin approval.
+UNVERIFIED_MESSAGE = ("Please confirm your email address first — check your "
+                      "inbox for the link we sent you.")
 
 
 def approval_error(status: str) -> HTTPException:
-    """403 explaining why a not-yet-approved account is being turned away."""
-    return HTTPException(
-        status_code=403,
-        detail=PENDING_MESSAGE if status == "pending" else REJECTED_MESSAGE,
-    )
+    """403 explaining why an account that isn't usable yet is being turned away."""
+    detail = {
+        "unverified": UNVERIFIED_MESSAGE,
+        "pending": PENDING_MESSAGE,
+    }.get(status, REJECTED_MESSAGE)
+    return HTTPException(status_code=403, detail=detail)
 
 
 def hash_password(password: str) -> str:
@@ -52,9 +57,27 @@ def verify_password(password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(pw, password_hash.encode("utf-8"))
 
 
-def create_token(user_id: int) -> str:
+def password_stamp(account) -> str:
+    """The value the "pwd" claim carries: when this account's password last
+    changed, to microsecond precision.
+
+    Microseconds, not seconds, and deliberately so: a reset that happens in the
+    same second as the previous password change would otherwise produce an
+    identical stamp, and tokens issued before it would survive the reset — the
+    exact attack the reset exists to stop.
+
+    Falls back to created_at because the migration leaves password_changed_at
+    nullable (tightening it to NOT NULL would rebuild the table on SQLite and
+    destroy an expression-based index — see migration d5e1a8c30b47).
+    """
+    when = getattr(account, "password_changed_at", None) or account.created_at
+    return when.isoformat()
+
+
+def create_token(user) -> str:
     payload = {
-        "sub": str(user_id),
+        "sub": str(user.id),
+        "pwd": password_stamp(user),
         "exp": datetime.now(timezone.utc) + timedelta(days=TOKEN_EXPIRE_DAYS),
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -83,6 +106,10 @@ def get_current_user(
     user = session.get(User, user_id)
     if user is None:
         raise invalid
+    # Changing or resetting the password moves password_changed_at, so every
+    # token minted before it — including one a thief is holding — dies here.
+    if payload.get("pwd") != password_stamp(user):
+        raise invalid
     # A token minted before approval (or before the account was rejected /
     # revoked) stops working here, not just at sign-in.
     if user.status != "approved":
@@ -90,10 +117,11 @@ def get_current_user(
     return user
 
 
-def create_merchant_token(merchant_id: int) -> str:
+def create_merchant_token(merchant) -> str:
     payload = {
-        "sub": str(merchant_id),
+        "sub": str(merchant.id),
         "typ": "merchant",
+        "pwd": password_stamp(merchant),
         "exp": datetime.now(timezone.utc) + timedelta(days=TOKEN_EXPIRE_DAYS),
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -120,5 +148,7 @@ def get_current_merchant(
         raise invalid
     merchant = session.get(Merchant, merchant_id)
     if merchant is None:
+        raise invalid
+    if payload.get("pwd") != password_stamp(merchant):
         raise invalid
     return merchant

@@ -20,6 +20,11 @@ from .models import Receipt
 
 CONFIRM_DAYS = 3
 
+# Claims where the admin actually made a decision to approve. 'expired' is
+# excluded: it means the 3-day window closed without anyone acting, which is an
+# absence of a decision, not an approval.
+APPROVED_STATUSES = ("verified", "confirmed", "paid")
+
 
 def earn_to_amount(earn: str) -> float:
     """'£13.00' -> 13.0 ; '£0.90' -> 0.9 ; '' -> 0.0."""

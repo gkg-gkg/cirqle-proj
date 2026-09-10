@@ -4,10 +4,11 @@
 JSON shapes we accept and return — kept separate so we never leak the password
 hash to the browser.
 """
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import UniqueConstraint
 from sqlmodel import SQLModel, Field
 
 
@@ -24,7 +25,47 @@ class User(SQLModel, table=True):
     # index in the referral-attribution migration, not expressible as a plain
     # SQLModel Field(unique=True) since blank ("" = no handle set) must repeat.
     instagram_handle: str = ""
-    status: str = "pending"                          # pending -> approved / rejected
+    status: str = "unverified"                       # unverified -> pending -> approved / rejected
+    # Null until they click the link we email at signup. An account only joins
+    # the admin's approval queue once this is set, so the admin never reviews
+    # a fake or mistyped address.
+    email_verified_at: Optional[datetime] = None
+    pending_email: str = ""                          # a requested new address, not yet confirmed
+    # Bumped on every password change or reset. Login tokens carry this value,
+    # so changing the password instantly invalidates every existing session.
+    password_changed_at: datetime = Field(default_factory=datetime.utcnow)
+    # ── Cashing out (Stripe Connect) ──
+    # Paying a member real money means Stripe must verify who they are, so each
+    # one gets their own Connect account. Stripe holds the identity and bank
+    # details; we only mirror whether they're cleared to receive money.
+    stripe_account_id: str = Field(default="", index=True)
+    payouts_enabled: bool = False        # Stripe says we can send them money
+    payout_details_submitted: bool = False   # they finished the onboarding form
+    # Two accounts that are really one person, spotted through Stripe's own
+    # identity checks — used to refuse a referral between them. Both are HASHES:
+    # enough to compare two members, useless to anyone who reads the database.
+    #   payout_fingerprint   -> Stripe's fingerprint for their bank account
+    #   identity_fingerprint -> their verified name + date of birth
+    payout_fingerprint: str = Field(default="", index=True)
+    identity_fingerprint: str = Field(default="", index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Payout(SQLModel, table=True):
+    """One withdrawal of a member's cleared cashback to their bank.
+
+    Created when the member withdraws; `amount` is the total of the receipts
+    flipped to "paid" in that withdrawal, so the ledger and the money always
+    agree. Stripe moves the money in two hops — a Transfer to their connected
+    account, then Stripe's own payout to their bank — which is why "sent"
+    (we've transferred) is a different state from the money actually landing.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True, foreign_key="user.id")
+    amount: float = 0
+    status: str = "sent"                 # sent -> paid / failed
+    stripe_transfer_id: str = Field(default="", index=True)
+    failure_reason: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -91,6 +132,19 @@ class Campaign(SQLModel, table=True):
     location: str = ""         # e.g. "Online · UK"
     terms: str = ""            # HTML string
     brand_url: str = ""        # outbound shop link
+    # Whether this deal pays referral bonuses. Off by default: a merchant opts a
+    # deal in deliberately, so nobody is enrolled by simply funding the wallet.
+    referrals_enabled: bool = False
+    # Whether shoppers can log a repeat visit on this deal without posting about
+    # it again. Off by default for the same reason as referrals above — funding
+    # a wallet must never enrol a deal the brand didn't choose.
+    #
+    # `visit_earn` is what one of those is worth, in £. It is deliberately its
+    # own figure rather than a fraction of `earn`: cashback here is a flat
+    # amount the merchant sets per campaign, and a repeat visit is worth
+    # something different to them than a first one with a post attached.
+    visits_enabled: bool = False
+    visit_earn: float = 0
     bg: str = "var(--paper-deep)"
     tags: str = "[]"           # JSON-encoded list[str]
     images: str = "[]"         # JSON-encoded list[str] of image URLs
@@ -159,7 +213,18 @@ class Receipt(SQLModel, table=True):
     """
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True, foreign_key="user.id")
-    post_id: str = Field(index=True)                 # the Instagram post it proves
+    # The Instagram post this claim proves. Empty on a visit claim, which is a
+    # receipt with no post behind it — see `claim_kind`.
+    post_id: str = Field(default="", index=True)
+    # post  -> the original kind: a purchase backed by an Instagram post.
+    # visit -> just the receipt. Earns less (the merchant sets how much, and
+    #          only if they opt in), but counts fully towards the merchant's
+    #          customer and retention figures.
+    #
+    # This exists because a claim used to require a post, which meant a regular
+    # who came back four times without posting was recorded once. Every
+    # retention number in customers.py was really measuring repeat POSTING.
+    claim_kind: str = Field(default="post", index=True)
     campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
     brand: str = ""                                  # snapshot of the deal's brand
     amount: float = 0                                # cashback £ (snapshot of deal.earn)
@@ -167,7 +232,49 @@ class Receipt(SQLModel, table=True):
     image_sha256: str = ""                           # content hash, for duplicate detection
     status: str = "pending"                          # pending -> confirmed -> paid / rejected
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    # ── Referral attribution (Phase 8) ──
+    # Who this member says led them to the deal. `referred_by_handle` keeps the
+    # handle exactly as they typed it: the id below is the truth, but the raw
+    # text is what the member saw, so it's what a dispute has to be judged on.
     referred_by_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    referred_by_handle: str = ""
+    # Whether the referrer's OWN claim on this deal is approved yet, recorded at
+    # upload: "" no referral | pending (they claimed it, admin hasn't approved)
+    # | verified (approved). Advisory — no reward exists yet, and the real gate
+    # runs again when this claim confirms, since 'pending' can still become
+    # 'verified' (or be rejected) long after upload.
+    referral_status: str = ""
+    # ── Automated check (Phase 8) ──
+    # Filled in the background shortly after upload by app/verify.py. Advisory
+    # only for now: the admin still approves every claim, and these columns just
+    # put the reading of the receipt in front of them. `check_data` holds the
+    # extracted fields and the reasons as JSON TEXT (same trick as Campaign.tags)
+    # so the shape is identical on SQLite and Postgres.
+    check_status: str = ""                           # "" not run | ok | error
+    check_score: int = 0                             # 0-100, how well it matches the deal
+    check_data: str = "{}"                           # JSON: extracted fields + reasons
+    checked_at: Optional[datetime] = None
+    # ── What the receipt was worth, lifted out of check_data (Phase 9) ──
+    # The same numbers the check already read, kept as real columns because
+    # `check_data` is JSON stored as TEXT — deliberately, so the shape matches on
+    # SQLite and Postgres — and TEXT cannot be summed or grouped portably. The
+    # merchant's revenue figures are aggregates over these three.
+    #
+    # `basket_total` is what the customer SPENT; `amount` above is what the deal
+    # PAID them back. Cashback stays a flat per-campaign figure, so the two are
+    # independent: this column is the revenue side, and nothing about it changes
+    # what anyone is owed.
+    basket_total: Optional[float] = None             # £ printed on the receipt
+    basket_currency: str = ""                        # ISO code, e.g. "GBP"; "" if none printed
+    # What the receipt says, NOT when it was uploaded. Retention is measured
+    # between purchases, and a member can upload three receipts in one sitting.
+    # Left null when the date was illegible rather than falling back to the
+    # upload time, which would quietly corrupt every interval computed from it.
+    purchase_date: Optional[date] = None
+    # The receipt's own order/transaction number, as printed. Indexed, NOT
+    # unique yet — extraction can misread, and a unique constraint would reject
+    # honest uploads while this is still advisory.
+    receipt_number: str = Field(default="", index=True)
 
     # Performance-cashback audit trail, stamped at every admin approval (see
     # routers/receipts.py:_apply_shadow_scoring), flat campaigns included —
@@ -215,6 +322,13 @@ class Merchant(SQLModel, table=True):
     stripe_subscription_id: str = ""
     subscription_status: str = "none"                # none|active|past_due|canceled
     current_period_end: Optional[datetime] = None    # next renewal
+    # ── Email verification / password (mirrors User) ──
+    email_verified_at: Optional[datetime] = None
+    pending_email: str = ""
+    password_changed_at: datetime = Field(default_factory=datetime.utcnow)
+    # True between "admin created the account" and "merchant set their own
+    # password" — the invite link is the only way in until they do.
+    must_set_password: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -233,6 +347,13 @@ class MerchantTransaction(SQLModel, table=True):
     # subscription  -> a monthly plan fee (no credit)
     # refund        -> credit returned to their card (-)
     kind: str = "topup"
+    # Which pot this credit belongs to: "cashback" pays members their cashback,
+    # "referral" pays the £1 referral bonuses. Genuinely separate — an empty
+    # referral wallet stops bonuses even with a full cashback wallet — so a
+    # merchant can budget the two independently. Fee rows carry the wallet of
+    # the top-up they were charged on. Rows that predate this are "cashback",
+    # which is what they were.
+    wallet: str = "cashback"
     amount: float = 0            # £ of credit (negative for a refund)
     fee: float = 0               # £ platform fee charged alongside a top-up
     description: str = ""
@@ -252,6 +373,44 @@ class DealEvent(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     campaign_id: int = Field(index=True, foreign_key="campaign.id")
     kind: str = Field(index=True)                     # "view" | "click"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ReferralReward(SQLModel, table=True):
+    """One side's bonus for a referral (Phase 8).
+
+    A genuine referral pays twice: £1 to the referrer, 50p to the person they
+    referred. Both are created together once the REFERRED claim has cleared and
+    every check in app/referrals.py has passed, and both come out of the
+    merchant's referral wallet.
+
+    Each is a row of its own rather than money added onto a Receipt so cashback
+    and referral money never blur together: the merchant's statement has to show
+    them separately, and cancelling a bonus must not disturb anyone's cashback.
+    A claim carries at most one reward of each kind — enforced by the unique
+    (receipt_id, kind), which is what makes settling safe to re-run.
+    """
+    __table_args__ = (UniqueConstraint("receipt_id", "kind",
+                                       name="uq_referralreward_receipt_kind"),)
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    # Who is being paid — the referrer for the £1, the referee for the 50p.
+    user_id: int = Field(index=True, foreign_key="user.id")
+    kind: str = Field(index=True)      # "referrer" | "referee"
+    # The referred claim both bonuses hang off: B's purchase, which is the thing
+    # that has to clear before either side is paid.
+    receipt_id: int = Field(index=True, foreign_key="receipt.id")
+    campaign_id: Optional[int] = Field(default=None, foreign_key="campaign.id")
+    # Who funded it. Kept here rather than looked up through the campaign so the
+    # reward still says who paid if the campaign is later edited or deleted.
+    merchant_id: Optional[int] = Field(default=None, index=True,
+                                       foreign_key="merchant.id")
+    amount: float = 0
+    # available -> in the member's wallet, withdrawable
+    # paid      -> withdrawn to their bank
+    # cancelled -> the referred claim was rejected after the fact
+    status: str = Field(default="available", index=True)
+    cancel_reason: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -310,6 +469,30 @@ class AdminActivity(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class AuthToken(SQLModel, table=True):
+    """A single-use, expiring link token: email verification, password reset,
+    and confirming a change of email address.
+
+    One table serves both members and merchants — `subject_type` says which
+    table `subject_id` points into, so neither login needs its own machinery.
+
+    Only the SHA-256 *hash* of the token is stored, never the token itself. The
+    raw token is effectively a temporary password, so this means a database leak
+    can't be replayed to take over accounts — the same reasoning as
+    `User.password_hash`.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    kind: str                                        # verify_email | reset_password | change_email
+    subject_type: str                                # user | merchant
+    subject_id: int = Field(index=True)
+    token_hash: str = Field(index=True, unique=True)
+    new_email: str = ""                              # change_email only: the address being moved to
+    expires_at: datetime
+    used_at: Optional[datetime] = None               # set the moment it's redeemed
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+
 # ── What the browser sends ──
 class SignupIn(BaseModel):
     firstName: str
@@ -338,6 +521,34 @@ class PasswordChangeIn(BaseModel):
     newPassword: str
 
 
+class EmailIn(BaseModel):
+    """Used by forgot-password and resend-verification. Both always answer the
+    same way whether or not the address exists, so this can't be used to work
+    out who has an account."""
+    email: EmailStr
+
+
+class TokenIn(BaseModel):
+    """A token lifted from an emailed link."""
+    token: str
+
+
+class ResetPasswordIn(BaseModel):
+    token: str
+    newPassword: str
+
+
+class MessageOut(BaseModel):
+    message: str
+
+
+class TokenOut(BaseModel):
+    """A replacement login token. Changing a password signs out every other
+    device, so the device that made the change is handed a fresh token to carry
+    on with rather than being logged out of the page it's sitting on."""
+    token: str
+
+
 # ── What the API returns (never includes the password hash) ──
 class UserOut(BaseModel):
     firstName: str
@@ -345,6 +556,10 @@ class UserOut(BaseModel):
     email: EmailStr
     instagramHandle: str
     createdAt: Optional[datetime] = None
+    # An address the user asked to move to but hasn't confirmed yet. "" when
+    # there's nothing pending. Lets account.html show "confirm the link we sent
+    # to X" instead of appearing to have ignored the change.
+    pendingEmail: str = ""
 
 
 class AuthOut(BaseModel):
@@ -456,6 +671,8 @@ class ReceiptOut(BaseModel):
     status: str
     uploadedAt: datetime
     imageUrl: Optional[str] = None   # presigned GET (owner viewing); None in local mode
+    referredByHandle: str = ""
+    referralStatus: str = ""         # "" | pending | verified (see Receipt.referral_status)
 
 
 class AdminReceiptOut(BaseModel):
@@ -469,6 +686,11 @@ class AdminReceiptOut(BaseModel):
     status: str
     uploadedAt: datetime
     imageUrl: Optional[str] = None   # presigned GET, expires shortly
+    # Automated check, for the reviewer to read alongside the image.
+    checkStatus: str = ""            # "" not run | ok | error
+    checkScore: int = 0
+    checkSummary: str = ""           # one line: what the check made of it
+    checkReasons: list[str] = []     # the individual findings, worst first
 
 
 class ActivityItem(BaseModel):
@@ -479,12 +701,50 @@ class ActivityItem(BaseModel):
     imageUrl: Optional[str] = None   # presigned link to the user's own receipt
 
 
+class PayoutStatusOut(BaseModel):
+    """Whether this member can be paid, and what's stopping them if not."""
+    ready: bool                  # Stripe has cleared them to receive money
+    detailsSubmitted: bool       # they finished the form (checks may still run)
+    wallet: float                # £ cleared and available to withdraw
+    minimum: float               # £ smallest withdrawal we allow
+    canWithdraw: bool            # ready AND wallet >= minimum
+    reason: str = ""             # plain-English blocker, when canWithdraw is false
+
+
+class OnboardLinkOut(BaseModel):
+    """A one-time Stripe-hosted link for identity + bank details."""
+    url: str
+
+
+class PayoutOut(BaseModel):
+    id: int
+    amount: float
+    status: str
+    createdAt: datetime
+    failureReason: str = ""
+
+
+class ReferralItemOut(BaseModel):
+    """One referral on the member's dashboard. An unpaid one carries the reason,
+    so a bonus that hasn't arrived can say what it's waiting for."""
+    receiptId: int
+    brand: str
+    role: str            # referrer (earns £1) | referee (earns 50p)
+    handle: str          # the other member's Instagram handle
+    amount: float
+    status: str          # earned | waiting | cancelled
+    reason: str = ""
+    date: datetime
+
+
 class AccountStats(BaseModel):
     """Real per-user dashboard numbers, all derived from the user's receipts."""
-    totalEarned: float   # confirmed + paid
+    totalEarned: float   # confirmed + paid, cashback + referral bonuses
     pending: float       # awaiting verification
     wallet: float        # confirmed, available to withdraw
     paidOut: float       # already withdrawn
+    referralEarnings: float = 0   # of the above, £ earned by referring people
+    referralCount: int = 0        # how many referrals have been credited
     brandsUsed: int
     postsCount: int
     receiptsCount: int
@@ -570,10 +830,14 @@ class MerchantCreateIn(BaseModel):
 
 
 class MerchantCreatedOut(BaseModel):
-    """Returned once to the admin so they can pass on the credentials.
-    The plaintext password is shown here and never stored or shown again."""
+    """Returned to the admin after creating a merchant login.
+
+    No password: the brand is emailed an invite link and chooses their own, so
+    there's nothing for the admin to copy down or pass on.
+    """
     merchant: MerchantOut
-    password: str
+    inviteSent: bool
+    message: str
 
 
 class DealStat(BaseModel):
@@ -584,6 +848,44 @@ class DealStat(BaseModel):
     clicks: int
     claims: int
     cashback: float
+    referralsEnabled: bool = False   # does this deal pay referral bonuses?
+    referralsPaid: float = 0         # £ of bonuses it has paid out
+    revenue: float = 0               # £ shoppers spent on this deal (read off receipts)
+    visitsEnabled: bool = False      # can shoppers log a repeat visit without posting?
+    visitEarn: float = 0             # £ one logged visit pays
+    visitClaims: int = 0             # how many have been logged
+
+
+class DealReferralsIn(BaseModel):
+    """Merchant switching referral bonuses on or off for one of their deals."""
+    enabled: bool
+
+
+class DealVisitsIn(BaseModel):
+    """Merchant opening a deal to repeat visits, and saying what one is worth.
+
+    `earn` is £ per logged visit. Zero is allowed and means "count the visit,
+    pay nothing" — a merchant may want the retention data without the outlay,
+    though in practice nobody uploads for nothing.
+    """
+    enabled: bool
+    earn: float = 0
+
+
+class AdminReferralOut(BaseModel):
+    """One side of one referral, for the admin's review list."""
+    rewardId: Optional[int] = None      # null while nothing has been paid
+    receiptId: int
+    kind: str                           # referrer | referee
+    memberEmail: str
+    memberHandle: str
+    otherHandle: str                    # the member on the other side
+    brand: str
+    dealTitle: str
+    amount: float
+    status: str                         # earned | waiting | cancelled | paid
+    reason: str = ""
+    date: datetime
 
 
 class TimePoint(BaseModel):
@@ -604,6 +906,166 @@ class MerchantStats(BaseModel):
     conversion: float        # claims / views, as a percentage
     timeseries: list[TimePoint]
     deals: list[DealStat]
+    # ── What the deals earned, not just what they cost (Phase 9) ──
+    # Every figure below is measured only on claims whose receipt total was
+    # legible, which is almost never all of them. `revenueCoverage` says how
+    # many, and the dashboard prints it beside the money so a partial number is
+    # never mistaken for the whole.
+    revenue: float = 0           # £ shoppers spent, summed off their receipts
+    averageBasket: float = 0     # revenue / claims it was measured on
+    revenueCoverage: float = 0   # % of credited claims with a legible total
+    programmeCost: float = 0     # cashback given + referral bonuses + fees paid
+    returnOnCashback: float = 0  # revenue / programmeCost — £ earned per £ spent
+    discountRate: float = 0      # programmeCost / revenue, as a percentage
+
+
+# ── The merchant's customers, and whether they come back (Phase B) ──
+class CustomerOut(BaseModel):
+    """One person's history with one merchant.
+
+    Identified by Instagram handle only. A merchant recognises a regular from
+    it, and it is content the member already chose to publish — their real name
+    and email are deliberately not here.
+    """
+    userId: int
+    handle: str
+    claims: int
+    spend: float                     # £ they've spent (where receipts were legible)
+    cashbackPaid: float              # £ this merchant paid them
+    firstClaim: date
+    lastClaim: date
+    sticky: bool                     # came back, ≥7 days later
+    acquisition: str                 # referred | direct
+    referredByHandle: str = ""       # who brought them, if anyone
+    referredCount: int = 0           # people they brought to THIS merchant
+
+
+class CohortCell(BaseModel):
+    monthsAfter: int
+    rate: float
+    matured: bool                    # false = not enough time has passed to say
+
+
+class CohortRow(BaseModel):
+    cohort: str                      # YYYY-MM of the customers' first claim
+    size: int
+    enough: bool                     # false = too few people to report on
+    cells: list[CohortCell]
+
+
+class PathStat(BaseModel):
+    """Retention for one acquisition path — the referred-vs-direct comparison."""
+    path: str                        # referred | direct
+    customers: int
+    enough: bool
+    repeatRate: float
+    thirdClaimRate: float
+    longRunRate: float               # still claiming 90+ days after their first
+    spendPerCustomer: float
+
+
+class CustomerSummary(BaseModel):
+    customers: int
+    sticky: int
+    repeatRate: float
+    thirdClaimRate: float
+    returnRate30: float
+    returnRate60: float
+    returnRate90: float
+    medianDaysToSecond: Optional[int] = None
+    claimsPerCustomer: float
+    revenuePerCustomer: float
+    lapsed: int
+    referredCustomers: int
+    referralBonusesPaid: float
+
+
+class MerchantCustomersOut(BaseModel):
+    summary: CustomerSummary
+    customers: list[CustomerOut]
+    cohorts: list[CohortRow]
+    byPath: list[PathStat]
+    # Every figure here counts claims, and a claim needs an Instagram post — so
+    # a regular who returns without posting is invisible. The portal prints this
+    # rather than letting a merchant assume the numbers are a full census.
+    caveat: str = ""
+
+
+# ── The referral network and its tree (Phase C) ──
+class TreeNode(BaseModel):
+    """One customer in a referral chain, with everyone they brought nested below.
+
+    `peopleBelow` / `spendBelow` roll up the whole subtree, which is what turns
+    "referred three people" into "worth £1,240 to you".
+    """
+    userId: int
+    handle: str
+    claims: int
+    spend: float
+    sticky: bool
+    firstClaim: date
+    peopleBelow: int
+    spendBelow: float
+    truncated: bool = False          # more below than we sent (depth or width cap)
+    referred: list["TreeNode"] = []
+
+
+TreeNode.model_rebuild()
+
+
+class ReferrerScore(BaseModel):
+    """One member's track record at bringing people to this merchant."""
+    userId: int
+    handle: str
+    referred: int
+    stickyReferred: int
+    qualityScore: float              # % of their referees who came back
+    referredSpend: float             # £ their direct referees spent
+    networkSpend: float              # £ their whole chain spent
+    networkPeople: int
+    bonusesPaid: float               # £ of referrer bonuses this merchant funded
+    returnOnBonus: float             # network spend per £1 of bonus
+
+
+class NetworkSummary(BaseModel):
+    multiplier: float                # referred customers per referring member
+    depth: int                       # longest chain; >1 means real word of mouth
+    referrers: int
+    referredCustomers: int
+    referredSpend: float
+    bonusesPaid: float
+    returnOnBonus: float
+    topReferrers: list[ReferrerScore]
+
+
+# ── Benchmarks and incrementality (Phase E) ──
+class BenchmarkMeasure(BaseModel):
+    measure: str                     # repeatRate | returnRate30 | claimsPerCustomer
+    value: float                     # this merchant's figure
+    comparedTo: float                # the reference they're held against
+    source: str                      # cirqle (peer median) | industry (published)
+    strong: float                    # what a strong performer looks like
+    ahead: bool
+
+
+class BenchmarkOut(BaseModel):
+    measures: list[BenchmarkMeasure]
+    peerCategory: str = ""           # "" when there aren't enough peers to say
+    peerCount: int = 0
+
+
+class IncrementalityOut(BaseModel):
+    """An ESTIMATE of how much of this spend bought genuinely new custom.
+
+    Not a lift study — there is no control group. Everything that renders these
+    numbers has to say so.
+    """
+    newCustomers: int
+    newShare: float
+    incrementalRevenue: float
+    costPerIncrementalPound: float
+    costPerNewCustomer: float
+    basis: str = ""                  # the caveat, rendered next to the figures
 
 
 class MerchantMessageIn(BaseModel):
@@ -739,15 +1201,28 @@ class ReferralStat(BaseModel):
     postId: Optional[str] = None      # referrer's own claimed post for this campaign, if found
     imageUrl: Optional[str] = None
     claims: int                        # number of claims they referred
-    referredCashback: float            # sum of the referred claims' amounts (not a reward figure)
+    # What those claims COST the merchant in cashback — not what the referrer
+    # earned, and not revenue. The portal labels it "Cashback paid" for exactly
+    # that reason; the field name is left alone so nothing reading it breaks.
+    referredCashback: float
 
 
 # ── Merchant billing / prepaid balance (Phase 6b) ──
 class BillingTxnOut(BaseModel):
-    kind: str            # "topup" | "cashback"
-    amount: float        # positive for a top-up, negative for cashback given
+    kind: str            # "topup" | "cashback" | "referral"
+    amount: float        # positive for a top-up, negative for money paid out
     description: str
     date: datetime
+    wallet: str = "cashback"   # which wallet the row belongs to
+
+
+class WalletOut(BaseModel):
+    """One of the merchant's two prepaid wallets, as the billing page shows it."""
+    wallet: str              # "cashback" | "referral"
+    balance: float           # top-ups - what's been paid out of it
+    toppedUp: float          # £ ever added
+    spent: float             # £ paid out (cashback given, or referral bonuses)
+    pending: float           # £ committed but not yet deducted
 
 
 # ── Membership plans (merchant subscriptions) ──
@@ -784,22 +1259,27 @@ class TopUpQuote(BaseModel):
 
 
 class BillingOut(BaseModel):
-    balance: float           # sum(top-ups) - cashback given
+    # The cashback wallet. These four keep their original names so nothing that
+    # already reads them breaks; `wallets` below carries both pots.
+    balance: float           # cashback top-ups - cashback given
     totalToppedUp: float
     cashbackGiven: float     # confirmed + paid
     pendingCashback: float   # awaiting verification (not yet deducted)
     feesPaid: float          # platform + subscription fees charged to date
+    wallets: list[WalletOut] # cashback + referral, in that order
     subscription: SubscriptionOut
     transactions: list[BillingTxnOut]
 
 
 class TopUpIn(BaseModel):
     amount: float
+    wallet: str = "cashback"   # which pot to credit: cashback | referral
 
 
 class RefundIn(BaseModel):
     """Admin: return unused prepaid balance to the merchant's card."""
     amount: float
+    wallet: str = "cashback"   # which pot to refund from
 
 
 class SubscribeIn(BaseModel):
@@ -810,6 +1290,31 @@ class SubscribeIn(BaseModel):
 class CheckoutSessionOut(BaseModel):
     """The hosted Stripe page to send the merchant to (Checkout or Portal)."""
     url: str
+
+
+# ── Admin: member payouts ──
+class AdminPayoutOut(BaseModel):
+    id: int
+    userId: int
+    userName: str
+    userEmail: str
+    amount: float
+    status: str              # sent -> paid / failed
+    createdAt: datetime
+    failureReason: str = ""
+
+
+class AdminPayoutsOut(BaseModel):
+    """Withdrawals plus whether the Stripe balance can actually cover what
+    members are owed — merchant top-ups are what funds member payouts, so a
+    shortfall here means withdrawals will start failing."""
+    balanceAvailable: Optional[float] = None   # None when Stripe can't be reached
+    balancePending: Optional[float] = None
+    walletOwed: float                          # cleared cashback members can withdraw
+    shortfall: float                           # owed minus available (0 = funded)
+    totalPaidOut: float
+    failedCount: int
+    payouts: list[AdminPayoutOut]
 
 
 # ── Admin member administration (approval gate) ──
@@ -931,6 +1436,35 @@ class AdminFraudSignal(BaseModel):
     amount: float = 0          # £ across the flagged claims (some may already be paid)
     count: int = 0
     receiptIds: list[int] = []
+
+
+class AdminCheckBucket(BaseModel):
+    """One score band, and how the admin actually decided the claims in it."""
+    label: str                 # "80-89"
+    approved: int
+    rejected: int
+
+
+class AdminCheckCalibration(BaseModel):
+    """Evidence for setting an auto-approve threshold (Phase 3).
+
+    Compares what the automated check scored against what the admin actually
+    decided, so the cut-off comes from real decisions instead of a guess.
+    """
+    decided: int               # claims the admin approved or rejected AND that were checked
+    unchecked: int             # decided claims with no check — invisible to this report
+    approved: int
+    rejected: int
+    buckets: list[AdminCheckBucket]
+    # The single number that matters: the best score the admin ever REJECTED.
+    # Any auto-approve threshold must sit above it, or the machine would have
+    # approved something a human turned down.
+    highestRejectedScore: Optional[int] = None
+    suggestedThreshold: Optional[int] = None
+    # How many of the admin's approvals that threshold would have handled.
+    wouldAutoApprove: int = 0
+    coveragePct: int = 0
+    verdict: str = ""          # plain-English read of the numbers
 
 
 class AdminBulkVerifyIn(BaseModel):

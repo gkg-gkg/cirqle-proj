@@ -9,6 +9,8 @@ on the events we care about:
   invoice.paid                 -> a monthly membership fee was charged
   invoice.payment_failed       -> card failed; the portal shows a warning
   charge.refunded              -> credit returned to their card
+  account.updated              -> a member finished (or failed) identity checks
+  transfer.reversed            -> a member payout bounced back
 
 Nothing here trusts the browser: the redirect back to the site can be faked or
 dropped, so crediting only ever happens on a signed event.
@@ -22,7 +24,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
 from ..db import get_session
-from ..models import Merchant, MerchantTransaction
+from ..models import Merchant, MerchantTransaction, Payout, User
 from ..payments import TIERS, webhook_secret
 
 try:                                    # stripe <15 kept exceptions under .error
@@ -64,6 +66,10 @@ async def stripe_webhook(request: Request, session: Session = Depends(get_sessio
         _set_status_by_customer(obj.get("customer"), "past_due", session)
     elif kind == "charge.refunded":
         _charge_refunded(obj, session)
+    elif kind == "account.updated":
+        _sync_connect_account(obj, session)
+    elif kind == "transfer.reversed":
+        _transfer_reversed(obj, session)
 
     # 200 for everything else too, so Stripe doesn't retry events we ignore.
     return {"received": True}
@@ -119,13 +125,23 @@ def _credit_topup(cs: dict, meta: dict, session: Session) -> None:
     if credit <= 0:
         return
 
+    # Which pot to credit. Older sessions carry no wallet, and everything before
+    # two wallets existed was cashback, so that's the fallback.
+    wallet = meta.get("wallet") or "cashback"
+    if wallet not in ("cashback", "referral"):
+        wallet = "cashback"
+
     session.add(MerchantTransaction(
         merchant_id=merchant_id, kind="topup", amount=credit, fee=fee,
-        description="Card top-up", stripe_ref=ref,
+        wallet=wallet,
+        description=("Card top-up — referral wallet" if wallet == "referral"
+                     else "Card top-up"),
+        stripe_ref=ref,
     ))
     if fee > 0:
         session.add(MerchantTransaction(
             merchant_id=merchant_id, kind="platform_fee", amount=fee,
+            wallet=wallet,
             description="Platform fee on credit beyond your monthly allowance",
             stripe_ref=f"{ref}:fee",
         ))
@@ -197,8 +213,47 @@ def _charge_refunded(charge: dict, session: Session) -> None:
     refunded = round((charge.get("amount_refunded") or 0) / 100.0, 2)
     if refunded <= 0:
         return
+    # Which pot the money came out of. Charges made before two wallets existed
+    # carry no metadata, and all of those were cashback.
+    wallet = (charge.get("metadata") or {}).get("wallet") or "cashback"
+    if wallet not in ("cashback", "referral"):
+        wallet = "cashback"
     session.add(MerchantTransaction(
-        merchant_id=merchant.id, kind="refund", amount=-refunded,
-        description="Refund to card", stripe_ref=ref,
+        merchant_id=merchant.id, kind="refund", amount=-refunded, wallet=wallet,
+        description=("Refund to card — referral wallet" if wallet == "referral"
+                     else "Refund to card"),
+        stripe_ref=ref,
     ))
+    session.commit()
+
+
+def _sync_connect_account(acct: dict, session: Session) -> None:
+    """A member's Connect account changed — mirror whether they can be paid.
+
+    Stripe's checks finish asynchronously (sometimes minutes after the member
+    submits the form), so this is what flips "verifying" to "ready" without
+    them having to refresh and wait.
+    """
+    account_id = acct.get("id")
+    if not account_id:
+        return
+    user = session.exec(
+        select(User).where(User.stripe_account_id == account_id)).first()
+    if user is None:
+        return
+    user.payouts_enabled = bool(acct.get("payouts_enabled"))
+    user.payout_details_submitted = bool(acct.get("details_submitted"))
+    session.add(user)
+    session.commit()
+
+
+def _transfer_reversed(transfer: dict, session: Session) -> None:
+    """A payout bounced back — mark it failed so the member and admin can see."""
+    payout = session.exec(
+        select(Payout).where(Payout.stripe_transfer_id == transfer.get("id"))).first()
+    if payout is None or payout.status == "failed":
+        return
+    payout.status = "failed"
+    payout.failure_reason = "The transfer was reversed by Stripe."
+    session.add(payout)
     session.commit()

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 64px; }
     .stat-c { text-align: center; padding: 26px 16px; }
@@ -37,7 +37,22 @@
       mask-image: radial-gradient(circle at center, #000 25%, transparent 70%);
       pointer-events: none;
     }
-    @media(max-width:700px){ .stats-row, .values-grid, .team-grid { grid-template-columns: 1fr; } }
+    @media(max-width:700px){ .values-grid { grid-template-columns: 1fr; } }
+    /* Phones: these three carry a word and a short label each, so stacking them
+       turned about a line of text into three full-height slabs. Keep them in a
+       row and shrink the type to match. Same for the team cards. */
+    @media(max-width:600px){
+      .stats-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 44px; }
+      .stat-c { padding: 16px 8px; }
+      .stat-v { font-size: 1.5rem; }
+      .stat-l { font-size: .66rem; margin-top: 4px; line-height: 1.35; }
+      .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .team-card { padding: 16px 8px; }
+      .team-av { width: 44px; height: 44px; margin-bottom: 8px; }
+      .team-name { font-size: .8rem; }
+      .team-role { font-size: .64rem; line-height: 1.35; }
+      .cta-box { padding: 32px 20px; margin-top: 44px; }
+    }
   </style>
 </head>
 <body>
@@ -52,28 +67,28 @@
   <div class="page">
     <div class="dots" aria-hidden="true" style="top:-10px; left:-40px; right:-40px; height:360px"></div>
     <div class="page-hero" style="position:relative">
-      <h1 class="h-display fade-up d1" style="margin-top:20px">Shop. Post. <span class="hl hl-lime">Earn.</span><br>That's the whole idea.</h1>
-      <p class="h-sub fade-up d2" style="margin:16px auto 0">We built Cirqle to give shoppers real value back — not loyalty points, not vouchers, but actual money. Shop at your favourite brands, share it on social, and watch cashback land in your wallet.</p>
+      <h1 class="h-display fade-up d1" style="margin-top:20px">Shop. Share. <span class="hl hl-lime">Earn.</span><br>That's the whole idea.</h1>
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">We built Cirqle to give shoppers real value back — not loyalty points, not vouchers, but actual money. Shop at your favourite brands, share it &mdash; with your followers or your friends &mdash; and watch cashback land in your wallet.</p>
     </div>
 
     <div class="stats-row">
-      <div class="card stat-c fade-up d2"><div class="stat-v">£2M+</div><div class="stat-l">Cashback paid to members</div></div>
-      <div class="card card-lime stat-c fade-up d3"><div class="stat-v">500+</div><div class="stat-l">Brand partners</div></div>
-      <div class="card card-sky stat-c fade-up d4"><div class="stat-v">4.9★</div><div class="stat-l">Average member rating</div></div>
+      <div class="card stat-c fade-up d2"><div class="stat-v">Cash</div><div class="stat-l">Paid to your bank, not points</div></div>
+      <div class="card card-lime stat-c fade-up d3"><div class="stat-v">UK</div><div class="stat-l">Household-name brand partners</div></div>
+      <div class="card card-sky stat-c fade-up d4"><div class="stat-v">£0</div><div class="stat-l">Costs nothing to join</div></div>
     </div>
 
     <div class="prose reveal">
       <h2>Our story</h2>
       <p>Cirqle was founded in 2024 with a simple observation: brands spend billions on influencer marketing, yet everyday shoppers who organically share their purchases see nothing in return.</p>
       <p>We flipped that. Cirqle connects brands with real customers who genuinely love their products — and pays those customers cashback for sharing. Everyone wins: brands get authentic content, shoppers get money back.</p>
-      <p>Launched in the UK, Cirqle now works with over 500 brands across fashion, food, tech, travel and more — from household names to exciting indie labels.</p>
+      <p>Launched in the UK, Cirqle works with household-name brands across fashion, beauty, food, tech, travel and fitness — with new partners added as we grow.</p>
     </div>
 
     <div class="prose reveal" style="margin-top:48px">
       <h2>Our values</h2>
     </div>
     <div class="values-grid">
-      <div class="card card-hover value-card reveal"><span class="value-icon"><i class="ico ico-cash"></i></span><div class="value-title">Real money, always</div><div class="value-text">No points, no vouchers. Every penny of cashback is withdrawable to your bank or PayPal.</div></div>
+      <div class="card card-hover value-card reveal"><span class="value-icon"><i class="ico ico-cash"></i></span><div class="value-title">Real money, always</div><div class="value-text">No points, no vouchers. Every penny of cashback is withdrawable to your bank account.</div></div>
       <div class="card card-hover value-card card-lime reveal reveal-delay-1"><span class="value-icon"><i class="ico ico-lock"></i></span><div class="value-title">Privacy first</div><div class="value-text">We never sell your data. Your shopping habits are yours — we only use what's needed to track cashback.</div></div>
       <div class="card card-hover value-card card-pink reveal reveal-delay-2"><span class="value-icon"><i class="ico ico-users"></i></span><div class="value-title">Radical transparency</div><div class="value-text">Every cashback rate is published upfront. No hidden terms, no surprises after you've shopped.</div></div>
       <div class="card card-hover value-card card-sky reveal reveal-delay-3"><span class="value-icon"><i class="ico ico-rocket"></i></span><div class="value-title">Built for everyone</div><div class="value-text">Whether you spend £10 or £1,000, Cirqle works for you. No tiers, no minimum earnings to withdraw.</div></div>
@@ -81,18 +96,18 @@
 
     <div class="prose reveal" style="margin-top:48px">
       <h2>The team</h2>
-      <p>We're a small, ambitious team based in London, obsessed with making cashback the simplest, most rewarding thing you do online.</p>
+      <p>Three co-founders based in London, obsessed with making cashback the simplest, most rewarding thing you do online.</p>
     </div>
     <div class="team-grid">
-      <div class="card card-hover team-card reveal"><div class="team-av" style="background:var(--lime)"><i class="ico ico-briefcase ico-white"></i></div><div class="team-name">Garv Gupta</div><div class="team-role">Founder &amp; CEO</div></div>
-      <div class="card card-hover team-card reveal reveal-delay-1"><div class="team-av" style="background:var(--pink)"><i class="ico ico-laptop ico-deep"></i></div><div class="team-name">Sarah Chen</div><div class="team-role">Head of Product</div></div>
-      <div class="card card-hover team-card reveal reveal-delay-2"><div class="team-av" style="background:var(--sky)"><i class="ico ico-palette ico-deep"></i></div><div class="team-name">Jake Morris</div><div class="team-role">Head of Design</div></div>
+      <div class="card card-hover team-card reveal"><div class="team-av" style="background:var(--lime)"><i class="ico ico-briefcase ico-deep"></i></div><div class="team-name">Garv Gupta</div><div class="team-role">Co-founder &amp; CEO</div></div>
+      <div class="card card-hover team-card reveal reveal-delay-1"><div class="team-av" style="background:var(--sky)"><i class="ico ico-laptop ico-deep"></i></div><div class="team-name">Jay Shah</div><div class="team-role">Co-founder &amp; CTO</div></div>
+      <div class="card card-hover team-card reveal reveal-delay-2"><div class="team-av" style="background:var(--blue-tint)"><i class="ico ico-chart ico-deep"></i></div><div class="team-name">Prem Mehta</div><div class="team-role">Co-founder &amp; COO</div></div>
     </div>
 
     <div class="card card-ink cta-box reveal">
       <div class="cta-orbit" aria-hidden="true"></div>
       <h2 style="color:var(--paper); font-size:clamp(1.6rem,3.4vw,2.2rem)">Ready to start <span class="hl hl-lime" style="color:var(--ink)">earning?</span></h2>
-      <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Join thousands of UK shoppers getting real cashback every day.</p>
+      <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Free to join, and your cashback goes straight to your bank.</p>
       <a href="signup.html" class="btn btn-lg btn-lime">Create a free account →</a>
     </div>
   </div>

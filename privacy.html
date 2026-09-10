@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     .updated { font-size: .8rem; font-weight: 700; color: var(--ink-soft); margin-top: 12px; }
     .toc { border: var(--bw) solid var(--line); border-radius: 16px; background: var(--card); box-shadow: var(--shadow-sm); padding: 22px 26px; margin-bottom: 40px; }
@@ -22,6 +22,7 @@
     .prose table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: .9rem; }
     .prose th, .prose td { text-align: left; padding: 9px 12px; border: 1px solid var(--line); vertical-align: top; }
     .prose th { background: var(--paper-deep); font-weight: 700; }
+    .prose h3 { font-family: var(--font-display); font-weight: 800; font-size: 1.02rem; margin: 28px 0 10px; }
   </style>
 </head>
 <body>
@@ -37,7 +38,7 @@
   <div class="page">
     <div class="page-hero">
       <h1 class="h-display fade-up d1" style="margin-top:20px">Privacy <span class="hl hl-lime">Policy</span></h1>
-      <p class="updated fade-up d2">Last updated: 15 July 2026</p>
+      <p class="updated fade-up d2">Last updated: 8 September 2026</p>
     </div>
 
     <div class="toc fade-up d2">
@@ -68,7 +69,8 @@
         <h2>2. What data we collect</h2>
         <ul>
           <li><strong>Account data:</strong> your first and last name, email address, password (stored only as a secure bcrypt hash — never in plain text), your Instagram handle, and the date you signed up.</li>
-          <li><strong>Cashback claims:</strong> photos of receipts you upload (stored privately), the deal you claimed against, the Instagram post linked to the claim, and the cashback amount and its status (pending, confirmed, paid, or rejected).</li>
+          <li><strong>Cashback claims:</strong> photos of receipts you upload (stored privately), the deal you claimed against, the Instagram post linked to the claim (if any — a repeat visit can be logged without one), and the cashback amount and its status (pending, confirmed, paid, or rejected).</li>
+          <li><strong>What your receipt says:</strong> we read each receipt automatically to check the claim. From that reading we keep the shop's name, the total, the currency, the purchase date and the order or transaction number. We do this to confirm the purchase is genuine and not a duplicate, and to tell the brand what their deals earned. The reading is done by Amazon Textract inside our own AWS account — see section 5 — and it is not a chatbot or a system that learns from your data.</li>
           <li><strong>Instagram post data:</strong> where you provide an Instagram handle and refresh your feed, we collect public posts that tag our brand account — see section 4.</li>
           <li><strong>Technical data:</strong> our website is hosted on GitHub Pages and our API on Amazon Web Services (AWS). As part of normal operation and security, those providers process standard request data such as your IP address, the time of the request, and your browser type. We do not run our own advertising or analytics tracking.</li>
           <li><strong>Brand / partnership data:</strong> if you apply to partner with us as a brand, we collect the business and contact details you submit in that form.</li>
@@ -83,6 +85,7 @@
           <tr><th>What we do</th><th>Lawful basis</th></tr>
           <tr><td>Create and run your account and provide the cashback service</td><td>Performance of our contract with you</td></tr>
           <tr><td>Verify claims and prevent fraud, abuse, and duplicate accounts</td><td>Our legitimate interests</td></tr>
+          <tr><td>Show a brand your activity with that brand, so they can see what the cashback they funded achieved (section 5)</td><td>Performance of our contract, and our legitimate interests</td></tr>
           <tr><td>Keep the service secure, working, and debugged</td><td>Our legitimate interests</td></tr>
           <tr><td>Send service emails (claim received/confirmed/paid, sign-in codes, password resets)</td><td>Performance of our contract</td></tr>
           <tr><td>Send marketing emails, if you opt in</td><td>Your consent (you can withdraw it any time)</td></tr>
@@ -93,7 +96,7 @@
 
       <section id="instagram">
         <h2>4. Instagram data</h2>
-        <p>Cirqle's cashback model asks you to post about a purchase on Instagram and tag our account. To check that a qualifying post exists, we retrieve <strong>public</strong> Instagram posts that tag our brand account and match them to the Instagram handle on your account. For those posts we may process the post's URL, caption, timestamp, the posting account's username and display name, and public like/comment counts.</p>
+        <p>Cirqle's cashback model asks you to post about a purchase on Instagram and tag our account. (Once you have claimed a deal, some brands also let you log a repeat visit from just the receipt, with no post — that route involves no Instagram data at all.) To check that a qualifying post exists, we retrieve <strong>public</strong> Instagram posts that tag our brand account and match them to the Instagram handle on your account. For those posts we may process the post's URL, caption, timestamp, the posting account's username and display name, and public like/comment counts.</p>
         <p>We use this only to verify your cashback claim. You control which handle is on your account, and you can remove or change it at any time. This retrieval is performed for us by a third-party provider (see section 5). We are reviewing this mechanism and may change how post verification works in future; we will update this policy if we do.</p>
       </section>
 
@@ -105,10 +108,30 @@
           <li><strong>Apify</strong> — retrieves the public Instagram post data described in section 4.</li>
           <li><strong>GitHub (GitHub Pages)</strong> — serves our website.</li>
           <li><strong>Google Fonts</strong> — serves the fonts our pages use; this may involve your browser's IP address being seen by Google.</li>
-          <li><strong>Brand partners:</strong> if and when we settle cashback with a partner brand, we may share the minimum information needed to confirm a qualifying purchase — never more than necessary.</li>
+          <li><strong>Brand partners:</strong> a brand you have claimed cashback from can see your activity <em>with that brand</em>, in their partner dashboard. This is set out in full below.</li>
           <li><strong>A payment provider</strong> — when cashback withdrawals go live, to pay out your balance (not active yet).</li>
           <li><strong>Authorities or advisers</strong> — where we are legally required to disclose, or to protect our rights.</li>
         </ul>
+
+        <h3>What a brand can see about you</h3>
+        <p>When you claim cashback from a brand, that brand pays for it, and they get a dashboard showing how their deals performed. Because a claim is something you did with them, your activity appears in it. We think you should know exactly what that means, so here it is in full.</p>
+        <p><strong>A brand you have claimed from can see, about you:</strong></p>
+        <ul>
+          <li>Your Instagram handle, and the public post you tagged them in — its image, caption, and public like and comment counts.</li>
+          <li>How many times you have claimed with them, and the dates of your first and most recent claim.</li>
+          <li>The total printed on the receipts you uploaded to them, and the cashback they paid you.</li>
+          <li>Whether someone referred you to them and that person's Instagram handle — and, if you referred anyone to that same brand, their handles too.</li>
+        </ul>
+        <p><strong>A brand can never see:</strong></p>
+        <ul>
+          <li>Your name, email address, phone number, postal address, date of birth, or bank and payment details.</li>
+          <li>Your receipt images, or the individual items on them. Only the total is shared.</li>
+          <li>Anything at all about your activity with any other brand. Each brand sees only their own shop. A brand cannot learn that you also shop with a competitor, how much you spend elsewhere, or how many brands you use Cirqle with.</li>
+          <li>Your Cirqle balance, withdrawals, or account history.</li>
+        </ul>
+        <p>Where a brand's dashboard shows grouped statistics — for example the share of their customers who returned in a given month — we withhold any group containing fewer than five people, so that a figure can never be traced back to one person.</p>
+        <p>We share this because it is <strong>necessary for the contract</strong> between us: the brand funds your cashback, and cannot reasonably be asked to pay for purchases they are shown nothing about. It is also our <strong>legitimate interest</strong> in running a marketplace that brands will fund. Brands act as separate data controllers for what they see, and our partner agreement forbids them from using it to identify you beyond your handle, from combining it with data from elsewhere to do so, or from contacting you outside Cirqle.</p>
+        <p>If you would rather a brand did not see this, do not claim cashback from them. You can also ask us to delete your account at any time (section 8), which removes your claims from every brand dashboard.</p>
       </section>
 
       <section id="transfers">

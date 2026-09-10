@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     .hidden { display: none !important; }
 
@@ -78,12 +78,34 @@
     .clist-sub { font-size: .76rem; color: var(--ink-soft); }
     .clist-actions { display: flex; gap: 6px; }
     .mini { padding: 5px 11px; font-size: .78rem; border-radius: 10px; }
+    .alert-line { margin-top: 14px; padding: 12px 15px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: #FBE0E0; font-size: .86rem; font-weight: 700; }
     .rfilter { display: flex; gap: 8px; margin-bottom: 14px; }
-    .rbadge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
+    .rbadge { display: inline-block; padding: 2px 9px; border-radius: 7px; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
     .rbadge.pending { background: #FFF1D6; color: #8a5a00; }
     .rbadge.confirmed { background: #DDF5E3; color: #1c7c3a; }
     .rbadge.paid { background: #E9E9F5; color: #4a4a7a; }
     .rbadge.rejected { background: #FBE0E0; color: #a62222; }
+    /* Automated receipt check (advisory — the admin still decides) */
+    .rcheck { margin-top: 6px; font-size: .74rem; line-height: 1.45; }
+    .rcheck .score { display: inline-block; padding: 1px 7px; border-radius: 7px; font-size: .68rem; font-weight: 800; }
+    .rcheck.good .score { background: #DDF5E3; color: #1c7c3a; }
+    .rcheck.warn .score { background: #FFF1D6; color: #8a5a00; }
+    .rcheck.bad .score { background: #FBE0E0; color: #a62222; }
+    .rcheck ul { margin: 4px 0 0; padding-left: 15px; color: var(--ink-soft); }
+    .rcheck li { margin: 1px 0; }
+    /* Auto-approval readiness — how the check's scores line up with real decisions */
+    .cal { margin: 4px 0 14px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: 14px; background: var(--paper-deep); }
+    .cal h3 { margin: 0 0 6px; font-size: .84rem; }
+    .cal p { margin: 0; font-size: .78rem; color: var(--ink-soft); }
+    .cal .bars { display: flex; gap: 3px; align-items: flex-end; height: 46px; margin-top: 10px; }
+    .cal .bar { flex: 1; display: flex; flex-direction: column-reverse; gap: 1px; }
+    .cal .bar i { display: block; border-radius: 2px; }
+    .cal .bar .a { background: #4caf7d; }
+    .cal .bar .r { background: #e08585; }
+    .cal .axis { display: flex; gap: 3px; margin-top: 3px; }
+    .cal .axis span { flex: 1; text-align: center; font-size: .58rem; color: var(--ink-soft); }
+    .cal .key { margin-top: 8px; font-size: .7rem; color: var(--ink-soft); }
+    .cal .key i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; vertical-align: -1px; }
     .rbadge.approved { background: #DDF5E3; color: #1c7c3a; }
     .rbadge.verified { background: #E3EEFB; color: #2a5a8a; }
     .rbadge.expired { background: #ECECEC; color: #777; }
@@ -449,6 +471,29 @@
       <div id="list"><p class="muted">Loading…</p></div>
     </div>
 
+    <!-- MEMBER WITHDRAWALS -->
+    <div class="card pad" id="secPayouts" style="margin-top:22px">
+      <h2>Member withdrawals (<span id="poCount">0</span>)</h2>
+      <p class="muted" style="margin-top:-8px">Cashback members have sent to their bank. Withdrawals are paid out of your Stripe balance, which merchant top-ups fund — so keep an eye on the cover below.</p>
+      <div class="queue-grid" id="poTiles"></div>
+      <div id="poAlert" class="alert-line hidden"></div>
+      <div id="poList" style="margin-top:14px"><p class="muted">Enter the admin key to load withdrawals.</p></div>
+    </div>
+
+    <!-- REFERRAL BONUSES -->
+    <div class="card pad" id="secReferrals" style="margin-top:22px">
+      <h2>Referral bonuses (<span id="refCount">0</span>)</h2>
+      <p class="muted" style="margin-top:-8px">A member who posts about a deal earns <strong>£1</strong> when someone buys through their post, and that buyer earns <strong>50p</strong>. Both are paid by the brand, from its referral wallet, once the buyer's claim clears. Cancelling undoes both sides and returns the money to the brand — a bonus already withdrawn can't be taken back.</p>
+      <div class="rfilter">
+        <button class="btn mini" data-reff="available">Paid</button>
+        <button class="btn mini" data-reff="waiting">Waiting</button>
+        <button class="btn mini" data-reff="cancelled">Cancelled</button>
+        <button class="btn mini" data-reff="">All</button>
+      </div>
+      <div id="refList"><p class="muted">Enter the admin key to load referrals.</p></div>
+      <div id="refMsg" style="margin-top:10px; font-size:.85rem; font-weight:600; min-height:1.2em"></div>
+    </div>
+
     <!-- MEMBER SIGN-UPS -->
     <div class="card pad" id="secMembers" style="margin-top:22px">
       <h2>Member sign-ups (<span id="ucount">0</span>)</h2>
@@ -476,6 +521,7 @@
         <button class="btn btn-ink mini" type="button" id="bulkApprove" disabled>Approve selected</button>
         <span class="count" id="bulkCount">none selected</span>
       </div>
+      <div id="rcal" class="cal" hidden></div>
       <div id="rlist"><p class="muted">Enter the admin key to load receipts.</p></div>
     </div>
 
@@ -816,11 +862,26 @@
           const thumb = r.imageUrl
             ? `<a href="${r.imageUrl}" target="_blank" rel="noopener"><img src="${r.imageUrl}" alt="receipt"></a>`
             : '<i class="ico ico-receipt ico-soft"></i>';
+          let check = '';
+          if (r.checkStatus === 'ok') {
+            const tone = r.checkScore >= 80 ? 'good' : r.checkScore >= 50 ? 'warn' : 'bad';
+            const why = (r.checkReasons || []).map(x => `<li>${esc(x)}</li>`).join('');
+            check = `<div class="rcheck ${tone}">
+                <span class="score">${Number(r.checkScore)}/100</span> ${esc(r.checkSummary)}
+                ${why ? `<ul>${why}</ul>` : ''}
+              </div>`;
+          } else if (r.checkStatus === 'error') {
+            check = `<div class="rcheck"><span class="muted">${esc(r.checkSummary)}</span></div>`;
+          }
           let actions = '';
           if (r.status === 'pending')
             actions = `<button class="btn mini" data-verify="${r.id}">Verify</button><button class="btn mini btn-pink" data-reject="${r.id}">Reject</button>`;
           else if (r.status === 'verified')
             actions = `<button class="btn mini btn-pink" data-reject="${r.id}">Reject</button>`;
+          // A check fails for ordinary reasons (a transient AWS error, a format
+          // Textract won't read), so offer a retry rather than a dead end.
+          if (r.checkStatus === 'error')
+            actions += `<button class="btn mini" data-recheck="${r.id}">Re-check</button>`;
           // only claims still inside the 3-day window can be bulk-approved
           const pick = r.status === 'pending'
             ? `<input type="checkbox" class="rpick" data-pick="${r.id}" aria-label="Select claim #${r.id}" />`
@@ -829,18 +890,57 @@
             ${pick}
             <div class="clist-thumb">${thumb}</div>
             <div class="clist-main">
-              <div class="clist-title">${r.brand || '—'} · £${Number(r.amount).toFixed(2)} <span class="rbadge ${r.status}">${r.status}</span></div>
-              <div class="clist-sub">${r.userName} · ${r.userEmail}</div>
+              <div class="clist-title">${esc(r.brand) || '—'} · £${Number(r.amount).toFixed(2)} <span class="rbadge ${esc(r.status)}">${esc(r.status)}</span></div>
+              <div class="clist-sub">${esc(r.userName)} · ${esc(r.userEmail)}</div>
+              ${check}
             </div>
             <div class="clist-actions">${actions}</div>`;
           const v = row.querySelector('[data-verify]'); if (v) v.addEventListener('click', () => setReceipt(r.id, 'verify'));
           const j = row.querySelector('[data-reject]'); if (j) j.addEventListener('click', () => setReceipt(r.id, 'reject'));
+          const rc = row.querySelector('[data-recheck]');
+          if (rc) rc.addEventListener('click', async () => {
+            rc.disabled = true; rc.textContent = 'Re-checking…';
+            await fetch(`${API}/receipts/${r.id}/recheck`, {
+              method: 'POST', headers: { 'X-Admin-Key': keyInput.value } });
+            // The check runs in the background, so give it a moment to land.
+            setTimeout(loadReceipts, 2500);
+          });
           const pk = row.querySelector('[data-pick]'); if (pk) pk.addEventListener('change', syncBulkBar);
           list.appendChild(row);
         });
         syncBulkBar();
+        loadCalibration();
       } catch (e) {
         list.innerHTML = '<p class="muted">Could not load receipts.</p>';
+      }
+    }
+
+    // How the automated check's scores compare with the admin's own decisions.
+    // This is the evidence for turning auto-approval on; until there are enough
+    // decided-and-checked claims it says so rather than inventing a threshold.
+    async function loadCalibration() {
+      const box = $('rcal');
+      try {
+        const res = await fetch(`${API}/receipts/admin/calibration`,
+          { headers: { 'X-Admin-Key': keyInput.value } });
+        if (!res.ok) { box.hidden = true; return; }
+        const c = await res.json();
+        const peak = Math.max(1, ...c.buckets.map(b => b.approved + b.rejected));
+        const bars = c.buckets.map(b => `<div class="bar" title="${b.label}: ${b.approved} approved, ${b.rejected} rejected">
+            <i class="a" style="height:${Math.round(38 * b.approved / peak)}px"></i>
+            <i class="r" style="height:${Math.round(38 * b.rejected / peak)}px"></i>
+          </div>`).join('');
+        const axis = c.buckets.map(b => `<span>${b.label.split('-')[0]}</span>`).join('');
+        box.innerHTML = `
+          <h3>Auto-approval readiness</h3>
+          <p>${esc(c.verdict)}</p>
+          ${c.decided ? `<div class="bars">${bars}</div><div class="axis">${axis}</div>
+            <div class="key"><i class="a" style="background:#4caf7d"></i> approved
+              &nbsp;<i class="r" style="background:#e08585"></i> rejected
+              &nbsp;· ${c.decided} checked${c.unchecked ? `, ${c.unchecked} decided before checks ran` : ''}</div>` : ''}`;
+        box.hidden = false;
+      } catch (e) {
+        box.hidden = true;
       }
     }
     async function setReceipt(id, action) {
@@ -1005,10 +1105,11 @@
       else setPMsg(`Approve failed (${res.status}): ${body.detail || 'request failed'}`, false);
     }
 
-    // Turn an approved application into a merchant login (Phase 6). The one-time
-    // password is shown once here — copy it and pass it to the merchant.
+    // Turn an approved application into a merchant login (Phase 6). No password
+    // is generated: the brand gets an emailed invite and sets their own, which
+    // also confirms their email address. Nothing to copy or pass on by hand.
     async function createMerchantLogin(id, brand) {
-      if (!confirm(`Create a merchant login for ${brand}? A one-time password will be shown now — copy it, it won't be shown again.`)) return;
+      if (!confirm(`Create a merchant login for ${brand}? We'll email them an invite link to set their own password.`)) return;
       const res = await fetch(`${API}/merchant`, {
         method: 'POST',
         headers: { 'X-Admin-Key': keyInput.value, 'Content-Type': 'application/json' },
@@ -1017,8 +1118,13 @@
       const body = await res.json().catch(() => ({}));
       if (res.ok) {
         const { email } = body.merchant;
-        window.alert(`Merchant login created for ${brand}\n\nEmail:    ${email}\nPassword: ${body.password}\n\nCopy these now — the password is not stored and won't be shown again.\nThe merchant signs in at merchant.html.`);
-        setPMsg(`Login created for ${brand} (${email}). Password was shown once — resend by deleting and recreating if lost.`, true);
+        const warn = body.inviteSent
+          ? ''
+          : '\n\n⚠️ The invite email could NOT be sent. Check the server logs, then use "Resend invite".';
+        window.alert(`Merchant login created for ${brand}\n\nEmail: ${email}\n\n${body.message}${warn}`);
+        setPMsg(body.inviteSent
+          ? `Login created for ${brand} — invite emailed to ${email}.`
+          : `Login created for ${brand}, but the invite email failed to send.`, body.inviteSent);
         loadThreads();
       } else if (res.status === 409) {
         setPMsg(`A merchant login already exists for ${brand}.`, false);
@@ -1807,7 +1913,122 @@
     document.querySelectorAll('[data-uf]').forEach(b =>
       b.addEventListener('click', () => { currentUFilter = b.dataset.uf; loadMembers(); }));
 
+    // ── Member withdrawals ──
+    async function loadPayouts() {
+      const list = $('poList');
+      if (!keyInput.value) { list.innerHTML = '<p class="muted">Enter the admin key to load withdrawals.</p>'; return; }
+      try {
+        const res = await fetch(`${API}/admin/payouts`, { headers: { 'X-Admin-Key': keyInput.value } });
+        if (res.status === 401) { list.innerHTML = '<p class="muted">Invalid admin key.</p>'; return; }
+        const d = await res.json();
+        $('poCount').textContent = d.payouts.length;
+
+        const money = v => v === null || v === undefined ? '—' : fmtGBP0(v);
+        $('poTiles').innerHTML = [
+          ['Stripe balance', money(d.balanceAvailable), 'available now'],
+          ['Owed to members', fmtGBP0(d.walletOwed), 'cleared, withdrawable'],
+          ['Paid out', fmtGBP0(d.totalPaidOut), 'sent to banks'],
+          ['Failed', fmtInt(d.failedCount), 'need attention'],
+        ].map(([label, val, sub]) =>
+          `<div class="qtile${label === 'Failed' && d.failedCount ? ' hot' : ''}">
+             <div class="qtile-val">${val}</div><div class="qtile-label">${label}</div>
+             <div class="muted" style="font-size:.7rem;margin-top:2px">${sub}</div></div>`).join('');
+
+        // The operationally important bit: can the balance cover what's owed?
+        const alert = $('poAlert');
+        if (d.shortfall > 0) {
+          alert.textContent = `Your Stripe balance is ${fmtGBP0(d.shortfall)} short of what members can withdraw right now. Withdrawals will fail until merchants top up or funds settle.`;
+          alert.classList.remove('hidden');
+        } else { alert.classList.add('hidden'); }
+
+        if (!d.payouts.length) { list.innerHTML = '<p class="muted">No withdrawals yet.</p>'; return; }
+        list.innerHTML = d.payouts.map(p => `
+          <div class="clist-item">
+            <div class="clist-thumb"><i class="ico ico-cash"></i></div>
+            <div class="clist-main">
+              <div class="clist-title">${esc(p.userName)} — ${fmtGBP0(p.amount)}
+                <span class="rbadge ${p.status === 'failed' ? 'rejected' : 'approved'}">${esc(p.status)}</span></div>
+              <div class="clist-sub">${esc(p.userEmail)} · ${fmtAgo(p.createdAt)}${
+                p.failureReason ? ' · ' + esc(p.failureReason) : ''}</div>
+            </div>
+          </div>`).join('');
+      } catch (e) {
+        list.innerHTML = '<p class="muted">Could not load withdrawals.</p>';
+      }
+    }
+
+    // ── Referral bonuses ──
+    // One row per side, so a referral shows as two lines: the £1 and the 50p.
+    let refFilter = '';
+    async function loadReferrals() {
+      const list = $('refList');
+      if (!keyInput.value) { list.innerHTML = '<p class="muted">Enter the admin key to load referrals.</p>'; return; }
+      try {
+        const res = await fetch(`${API}/receipts/admin/referrals`,
+          { headers: { 'X-Admin-Key': keyInput.value } });
+        if (res.status === 401) { list.innerHTML = '<p class="muted">Invalid admin key.</p>'; return; }
+        const all = await res.json();
+        const rows = refFilter
+          ? all.filter(r => (refFilter === 'available'
+              ? (r.status === 'available' || r.status === 'paid')
+              : r.status === refFilter))
+          : all;
+        $('refCount').textContent = all.length;
+        if (!rows.length) { list.innerHTML = '<p class="muted">No referrals to show.</p>'; return; }
+
+        list.innerHTML = rows.map(r => {
+          const paid = r.status === 'available' || r.status === 'paid';
+          const badge = paid ? 'approved' : r.status === 'cancelled' ? 'rejected' : '';
+          const label = r.status === 'paid' ? 'withdrawn'
+                      : r.status === 'available' ? 'in their wallet'
+                      : r.status;
+          const side = r.kind === 'referrer'
+            ? `referred @${esc(r.otherHandle)}`
+            : `was referred by @${esc(r.otherHandle)}`;
+          return `
+          <div class="clist-item">
+            <div class="clist-thumb"><i class="ico ico-cash"></i></div>
+            <div class="clist-main">
+              <div class="clist-title">@${esc(r.memberHandle || r.memberEmail)} — ${paid ? fmtGBP(r.amount) : '—'}
+                <span class="rbadge ${badge}">${esc(label)}</span></div>
+              <div class="clist-sub">${side} · ${esc(r.dealTitle || r.brand)} · ${fmtAgo(r.date)}${
+                r.reason ? ' · ' + esc(r.reason) : ''}</div>
+            </div>
+            <div class="clist-actions">${paid
+              ? `<button class="btn mini" type="button" data-refcancel="${r.receiptId}">Cancel</button>`
+              : ''}</div>
+          </div>`;
+        }).join('');
+
+        list.querySelectorAll('[data-refcancel]').forEach(b =>
+          b.addEventListener('click', () => cancelReferral(b.dataset.refcancel, b)));
+      } catch (e) {
+        list.innerHTML = '<p class="muted">Could not load referrals.</p>';
+      }
+    }
+
+    async function cancelReferral(receiptId, btn) {
+      if (!confirm('Cancel this referral? Both sides lose their bonus and the money goes back to the brand.')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API}/receipts/admin/referrals/${receiptId}/cancel`,
+          { method: 'POST', headers: { 'X-Admin-Key': keyInput.value } });
+        $('refMsg').textContent = res.ok
+          ? 'Referral cancelled — the brand has been refunded.'
+          : 'Could not cancel that referral.';
+        loadReferrals();
+      } catch (e) {
+        $('refMsg').textContent = 'Could not reach the server.';
+        btn.disabled = false;
+      }
+    }
+
+    document.querySelectorAll('[data-reff]').forEach(b =>
+      b.addEventListener('click', () => { refFilter = b.dataset.reff; loadReferrals(); }));
+
     function loadAll() {
+      loadPayouts();
+      loadReferrals();
       loadMembers();
       loadList();
       loadReceipts();

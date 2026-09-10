@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     /* Logged-in nav (matches feed.html) */
     .nav-user { display: flex; align-items: center; gap: 10px; }
@@ -47,6 +47,7 @@
       color: var(--blue-deep); margin-bottom: 8px;
     }
     .result-note { font-size: .92rem; color: var(--ink-soft); margin-bottom: 22px; }
+    .referral-note { padding: 12px 14px; border-radius: 12px; background: var(--blue-tint); color: var(--blue-deep); }
 
     .deal-field { margin-bottom: 18px; }
     .deal-field label { display: block; font-size: .82rem; font-weight: 800; color: var(--ink-soft); margin-bottom: 8px; }
@@ -80,7 +81,11 @@
         <label for="dealSelect">Which deal is this receipt for?</label>
         <select id="dealSelect"><option value="">Loading deals…</option></select>
       </div>
-      <div class="deal-field">
+      <!-- Only on a first claim, where a post backs it. Saying who referred you
+           is about how you found the place, so a repeat visit can't name one —
+           the server refuses it, and the field is hidden rather than left to
+           fail. -->
+      <div class="deal-field" id="referredField">
         <label for="referredBy">Referred by (optional)</label>
         <input type="text" id="referredBy" placeholder="@theirhandle" autocomplete="off" />
       </div>
@@ -96,6 +101,7 @@
       <img id="preview" alt="Your receipt" />
       <div class="result-badge">Receipt received ✓</div>
       <p class="result-note">Your receipt was uploaded and saved to your account. Cashback lands once we verify it and the 3‑day hold clears.</p>
+      <p class="result-note referral-note" id="referralNote" hidden></p>
       <a href="feed.html" class="btn btn-ink">Back to dashboard</a>
     </div>
   </div>
@@ -112,7 +118,21 @@
     }
 
     // Which post this receipt belongs to (so the dashboard tile can flip to complete).
+    //
+    // No post id means this is a repeat visit — a trip the member didn't post
+    // about. It still counts as a claim and still earns, but at whatever the
+    // brand set for a return visit rather than the posted rate.
     const postId = new URLSearchParams(location.search).get('id') || '';
+    const isVisit = !postId;
+
+    if (isVisit) {
+      document.querySelector('.up-title').textContent = 'Log a repeat visit';
+      document.querySelector('.up-sub').textContent =
+        'Been back? Attach the receipt and it counts, no post needed. Repeat ' +
+        'visits earn less than a posted claim — the brand sets how much — and ' +
+        'your cashback is released after the 3-day hold.';
+      document.getElementById('referredField').hidden = true;
+    }
 
     // Cap uploads client-side too (the server enforces the same 10 MB limit).
     const MAX_RECEIPT_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -184,10 +204,13 @@
       document.getElementById('preview').src = URL.createObjectURL(file);
       dropZone.style.pointerEvents = 'none';
       cirqleToast('Uploading…');
-      const referredBy = document.getElementById('referredBy').value.trim();
+      const referredBy = isVisit
+        ? '' : document.getElementById('referredBy').value.trim();
       try {
         const fd = new FormData();
-        fd.append('post_id', postId);
+        // Left off entirely for a repeat visit — that absence is what tells the
+        // server this isn't backed by a post.
+        if (postId) fd.append('post_id', postId);
         fd.append('campaign_id', campaignId);
         if (referredBy) fd.append('referred_by_handle', referredBy);
         fd.append('image', file);
@@ -220,6 +243,18 @@
           document.querySelector('.result-badge').textContent = 'Receipt received ✓';
           document.querySelector('.result-note').textContent =
             'Your claim is under review. Once approved, your ' + amt + ' cashback lands in your wallet 3 days after your post — track it on your dashboard.';
+        }
+        // A referral only counts once the referrer's own claim on this deal is
+        // approved. Say so plainly rather than letting it fail silently later.
+        const refNote = document.getElementById('referralNote');
+        if (receipt.referralStatus === 'pending') {
+          refNote.textContent = '@' + receipt.referredByHandle.replace(/^@/, '') +
+            " hasn't had their own claim for this deal verified yet. They'll only be credited for referring you once it is.";
+          refNote.hidden = false;
+        } else if (receipt.referralStatus === 'verified') {
+          refNote.textContent = '@' + receipt.referredByHandle.replace(/^@/, '') +
+            ' has been credited with referring you.';
+          refNote.hidden = false;
         }
         document.getElementById('uploadCard').hidden = true;
         document.getElementById('resultCard').hidden = false;

@@ -9,23 +9,30 @@ Reads/writes of a user's own receipts are auth'd; verify/reject and the review
 list are admin-gated (reusing the campaigns admin key).
 """
 import json
+import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
+                     HTTPException, UploadFile)
 from sqlmodel import Session, func, select
 
+from .. import referrals
 from ..activity import log_activity
 from ..aqs import ALGORITHM_VERSION, compute_aqs, compute_payout
-from ..cashback import (admin_status, clears_at, earn_to_amount,
-                        effective_status, parse_post_ts)
+from ..cashback import (APPROVED_STATUSES, admin_status, clears_at,
+                        earn_to_amount, effective_status, parse_post_ts)
 from ..db import get_session
 from ..handles import normalize_handle
-from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminReceiptOut,
-                      Campaign, Mention, Receipt, ReceiptOut, User)
+from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminCheckBucket,
+                      AdminCheckCalibration, AdminReceiptOut, AdminReferralOut,
+                      Campaign, Mention, Receipt, ReceiptOut, ReferralReward,
+                      User)
+from ..ratelimit import rate_limit
 from ..security import get_current_user
 from ..storage import (StorageError, StorageTooLargeError, StorageUploadError,
-                       receipt_view_url, upload_receipt)
+                       delete_receipt, receipt_view_url, upload_receipt)
+from ..verify import check_receipt, summarise
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
@@ -39,6 +46,7 @@ def _receipt_out(r: Receipt, status: Optional[str] = None, with_image: bool = Fa
         id=r.id, postId=r.post_id, campaignId=r.campaign_id,
         brand=r.brand, amount=r.amount, status=status or r.status, uploadedAt=r.uploaded_at,
         imageUrl=receipt_view_url(r.image_key) if with_image else None,
+        referredByHandle=r.referred_by_handle, referralStatus=r.referral_status,
     )
 
 
@@ -47,6 +55,56 @@ def _post_ts_map(user_id: int, session: Session) -> dict:
     cashback clearing counter runs from the post date."""
     mentions = session.exec(select(Mention).where(Mention.user_id == user_id)).all()
     return {m.id: parse_post_ts(m.timestamp) for m in mentions}
+
+
+def _resolve_referral(raw_handle: str, campaign_id: Optional[int], user: User,
+                      session: Session) -> tuple[Optional[int], str, str]:
+    """Check 'referred by @handle' at upload -> (referrer id, handle, status).
+
+    Naming someone only means something if they actually promoted this deal, so
+    the referrer must have claimed it themselves. Their claim does NOT have to be
+    approved yet — it may still be sitting in the admin queue, and refusing the
+    referee over our own backlog would punish the wrong person. We record which
+    of the two it is so the member can be told.
+
+    Advisory: nothing is paid here. The status is re-checked when this claim
+    confirms, because a 'pending' claim can still be approved or rejected long
+    after this upload.
+    """
+    normalized = normalize_handle(raw_handle)
+    referrer = session.exec(
+        select(User).where(func.lower(User.instagram_handle) == normalized)
+    ).first()
+    if referrer is None:
+        raise HTTPException(status_code=422, detail="Referrer handle not found.")
+    if referrer.id == user.id:
+        raise HTTPException(status_code=422, detail="You can't refer yourself.")
+    if campaign_id is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Choose which deal this receipt is for before saying who referred you.")
+
+    # Their claims on THIS deal. A rejected one doesn't count: the admin has
+    # already thrown it out, so it's no evidence they promoted anything. Nor
+    # does a visit claim — it proves they shopped here, not that they posted
+    # anything anyone could have been referred BY.
+    claims = session.exec(
+        select(Receipt).where(
+            Receipt.user_id == referrer.id,
+            Receipt.campaign_id == campaign_id,
+            Receipt.claim_kind == "post",
+            Receipt.status != "rejected",
+        )
+    ).all()
+    if not claims:
+        raise HTTPException(
+            status_code=422,
+            detail=f"@{normalized} hasn't claimed this deal, so they can't have "
+                   f"referred you to it.")
+
+    status = ("verified" if any(c.status in APPROVED_STATUSES for c in claims)
+              else "pending")
+    return referrer.id, raw_handle.strip(), status
 
 
 @router.get("", response_model=list[ReceiptOut])
@@ -62,35 +120,62 @@ def list_receipts(
             for r in rows]
 
 
-@router.post("", response_model=ReceiptOut, status_code=201)
+@router.post("", response_model=ReceiptOut, status_code=201,
+             dependencies=[rate_limit("receipts", limit=30, window=3600)])
 def create_receipt(
-    post_id: str = Form(...),
+    background: BackgroundTasks,
+    post_id: str = Form(""),
     campaign_id: Optional[int] = Form(None),
     referred_by_handle: Optional[str] = Form(None),
     image: UploadFile = File(...),
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Upload a receipt for one of this user's posts, tied to a deal.
+    """Upload a receipt, either against one of this user's posts or on its own.
 
-    One receipt per (user, post): re-uploading replaces it and resets to pending.
+    With a `post_id` this is the original kind of claim: one receipt per
+    (user, post), and re-uploading for the same post replaces it and resets to
+    pending.
+
+    Without one it is a VISIT claim — a repeat trip the member didn't post
+    about. It earns whatever the merchant set for that campaign, and there is no
+    replacement rule, because two visit claims are two separate visits and
+    collapsing them would erase exactly the repeat-custom signal the whole
+    feature exists to capture.
+
     `referred_by_handle` is optional — the Instagram handle of the person whose
     post led this user to buy. Attribution only: no reward is granted here.
     """
-    if not post_id.strip():
-        raise HTTPException(status_code=422, detail="post_id is required.")
+    post_id = post_id.strip()
+    kind = "post" if post_id else "visit"
+
+    campaign = session.get(Campaign, campaign_id) if campaign_id else None
+    if kind == "visit":
+        # A visit claim has no post to anchor it, so the deal has to be named —
+        # otherwise there is nothing to say whose shop the receipt is from.
+        if campaign is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Choose which deal this receipt is for.")
+        if not campaign.visits_enabled:
+            raise HTTPException(
+                status_code=422,
+                detail=("This deal doesn't accept repeat visits yet — share a "
+                        "post to claim it."))
 
     referrer_id: Optional[int] = None
+    referral_handle, referral_status = "", ""
     if referred_by_handle and referred_by_handle.strip():
-        normalized = normalize_handle(referred_by_handle)
-        referrer = session.exec(
-            select(User).where(func.lower(User.instagram_handle) == normalized)
-        ).first()
-        if referrer is None:
-            raise HTTPException(status_code=422, detail="Referrer handle not found.")
-        if referrer.id == user.id:
-            raise HTTPException(status_code=422, detail="You can't refer yourself.")
-        referrer_id = referrer.id
+        if kind == "visit":
+            # Being referred is about how you found the place, which is the
+            # first visit. Letting a repeat trip name a referrer would pay a
+            # bonus for a customer the merchant already had.
+            raise HTTPException(
+                status_code=422,
+                detail="You can only name who referred you on your first claim "
+                       "for a deal, when you post about it.")
+        referrer_id, referral_handle, referral_status = _resolve_referral(
+            referred_by_handle, campaign_id, user, session)
 
     try:
         key, digest = upload_receipt(image)
@@ -101,21 +186,56 @@ def create_receipt(
     except StorageError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
+    # The same image file can only ever back one claim. Re-uploading for the
+    # SAME post is a replacement (below) and stays allowed; anything else — a
+    # second post, a second account — is one purchase claimed twice.
+    #
+    # Byte-identical only, so there are no false positives, but equally it is
+    # beaten by re-saving the photo. Catching that needs the receipt's own
+    # order number, which arrives with the extraction step.
+    # A visit claim has no post, so it has no replacement case either — every
+    # identical image is a duplicate, full stop.
+    clash = next(
+        (r for r in session.exec(
+            select(Receipt).where(Receipt.image_sha256 == digest)).all()
+         if not (kind == "post" and r.user_id == user.id
+                 and r.post_id == post_id)),
+        None,
+    )
+    if clash is not None:
+        delete_receipt(key)             # don't leave the rejected upload behind
+        raise HTTPException(
+            status_code=409,
+            detail="This receipt image has already been submitted with another "
+                   "claim. Please upload the receipt for this purchase.")
+
     # Snapshot the deal's brand + cashback amount so the claim is self-contained.
+    # A visit is worth what the merchant set for one, which is its own figure
+    # rather than a share of the posted rate.
     brand, amount = "", 0.0
-    if campaign_id is not None:
-        camp = session.get(Campaign, campaign_id)
-        if camp:
-            brand = camp.brand
-            amount = _earn_to_amount(camp.earn)
+    if campaign is not None:
+        brand = campaign.brand
+        amount = (campaign.visit_earn if kind == "visit"
+                  else _earn_to_amount(campaign.earn))
 
     # Cashback is NOT confirmed on upload. The claim stays 'pending' and clears
     # automatically 3 days after the post date (see app/cashback.py); admin can
     # reject it within that window.
+    #
+    # Only a post claim can replace an earlier one. Visit claims all carry
+    # post_id = "", so looking one up by (user, post_id) would match the
+    # member's LAST visit and overwrite it — turning a customer's repeat trips
+    # into a single row, which is the precise opposite of what they are for.
     existing = session.exec(
-        select(Receipt).where(Receipt.user_id == user.id, Receipt.post_id == post_id)
-    ).first()
+        select(Receipt).where(Receipt.user_id == user.id,
+                              Receipt.post_id == post_id)
+    ).first() if kind == "post" else None
     if existing:
+        # Drop the photo this one replaces. Without it the old object stays in
+        # the private bucket forever with nothing pointing at it — billed, and
+        # (worse) missed by the cleanup that deletes a member's receipts when
+        # they close their account.
+        delete_receipt(existing.image_key)
         existing.image_key = key
         existing.image_sha256 = digest
         existing.campaign_id = campaign_id
@@ -124,19 +244,31 @@ def create_receipt(
         existing.status = "pending"
         existing.uploaded_at = datetime.now(timezone.utc)
         existing.referred_by_user_id = referrer_id
+        existing.referred_by_handle = referral_handle
+        existing.referral_status = referral_status
         receipt = existing
     else:
         receipt = Receipt(
-            user_id=user.id, post_id=post_id, campaign_id=campaign_id,
+            user_id=user.id, post_id=post_id, claim_kind=kind,
+            campaign_id=campaign_id,
             brand=brand, amount=amount, image_key=key, image_sha256=digest,
             status="pending", referred_by_user_id=referrer_id,
+            referred_by_handle=referral_handle, referral_status=referral_status,
         )
 
     session.add(receipt)
     session.commit()
     session.refresh(receipt)
 
-    mention = session.get(Mention, post_id)
+    # Read the receipt in the background — the member shouldn't wait on a
+    # vision call to see their claim, and a failed check must not fail the
+    # upload. Advisory only: the admin still approves every claim.
+    if os.environ.get("CIRQLE_RECEIPT_CHECK", "on") != "off":
+        background.add_task(check_receipt, receipt.id)
+
+    # A visit claim has no post, so its 3-day clearing window runs from the
+    # upload instead — which is what clears_at() already falls back to.
+    mention = session.get(Mention, post_id) if post_id else None
     post_ts = parse_post_ts(mention.timestamp) if mention else None
     return _receipt_out(receipt, effective_status(receipt, post_ts))
 
@@ -158,11 +290,111 @@ def admin_list_receipts(
     for r, u in rows:
         m = session.get(Mention, r.post_id)
         st = admin_status(r, parse_post_ts(m.timestamp) if m else None)
+        summary, reasons = summarise(r)
         out.append(AdminReceiptOut(
             id=r.id, userEmail=u.email, userName=f"{u.first_name} {u.last_name}",
             postId=r.post_id, brand=r.brand, amount=r.amount, status=st,
             uploadedAt=r.uploaded_at, imageUrl=receipt_view_url(r.image_key),
+            checkStatus=r.check_status, checkScore=r.check_score,
+            checkSummary=summary, checkReasons=reasons,
         ))
+    return out
+
+_BUCKET_SIZE = 10
+
+
+@router.post("/{receipt_id}/recheck", response_model=AdminReceiptOut,
+             dependencies=[Depends(require_admin)])
+def recheck_receipt(receipt_id: int, background: BackgroundTasks,
+                    session: Session = Depends(get_session)):
+    """Admin: run the automated check on this claim again.
+
+    Checks fail for ordinary reasons — a transient AWS error, an image format
+    Textract won't read — and without this there is no way to retry one short
+    of re-uploading the receipt. Also useful after the scoring rules change.
+    Reads nothing and decides nothing; it only refreshes the advisory columns.
+    """
+    receipt = session.get(Receipt, receipt_id)
+    if receipt is None:
+        raise HTTPException(status_code=404, detail="Receipt not found.")
+    background.add_task(check_receipt, receipt_id)
+
+    user = session.get(User, receipt.user_id)
+    summary, reasons = summarise(receipt)
+    return AdminReceiptOut(
+        id=receipt.id, userEmail=user.email if user else "",
+        userName=f"{user.first_name} {user.last_name}" if user else "",
+        postId=receipt.post_id, brand=receipt.brand, amount=receipt.amount,
+        status=admin_status(receipt, _post_ts_of(receipt, session)),
+        uploadedAt=receipt.uploaded_at,
+        imageUrl=receipt_view_url(receipt.image_key),
+        checkStatus=receipt.check_status, checkScore=receipt.check_score,
+        checkSummary=summary, checkReasons=reasons,
+    )
+
+
+@router.get("/admin/calibration", response_model=AdminCheckCalibration,
+            dependencies=[Depends(require_admin)])
+def check_calibration(session: Session = Depends(get_session)):
+    """How the automated check's scores line up with the admin's own decisions.
+
+    This is the evidence for turning on auto-approval. The important output is
+    `highestRejectedScore`: the best score that a human still rejected. A safe
+    threshold has to sit above it — otherwise switching on auto-approval would
+    have waved through a claim the admin had turned down.
+    """
+    rows = session.exec(
+        select(Receipt).where(Receipt.status.in_(APPROVED_STATUSES + ("rejected",)))
+    ).all()
+    decided = [r for r in rows if r.check_status == "ok"]
+    approved = [r for r in decided if r.status in APPROVED_STATUSES]
+    rejected = [r for r in decided if r.status == "rejected"]
+
+    buckets = []
+    for low in range(0, 100, _BUCKET_SIZE):
+        high = low + _BUCKET_SIZE - 1
+        in_band = lambda rs: sum(1 for r in rs if low <= r.check_score <= high)
+        buckets.append(AdminCheckBucket(label=f"{low}-{high}",
+                                        approved=in_band(approved),
+                                        rejected=in_band(rejected)))
+
+    out = AdminCheckCalibration(
+        decided=len(decided), unchecked=len(rows) - len(decided),
+        approved=len(approved), rejected=len(rejected), buckets=buckets,
+    )
+
+    if not decided:
+        out.verdict = ("No decided claims have been checked yet. Leave the check "
+                       "running in the background and come back once you have "
+                       "approved and rejected a few dozen.")
+        return out
+
+    if not rejected:
+        out.verdict = (f"{len(approved)} approved claim(s) checked, none rejected "
+                       f"yet. A threshold needs rejections to calibrate against — "
+                       f"there is nothing yet to say what a bad claim scores like.")
+        return out
+
+    out.highestRejectedScore = max(r.check_score for r in rejected)
+    threshold = out.highestRejectedScore + 1
+    out.wouldAutoApprove = sum(1 for r in approved if r.check_score >= threshold)
+    out.coveragePct = round(100 * out.wouldAutoApprove / len(approved)) if approved else 0
+
+    if threshold > 100:
+        out.verdict = ("At least one rejected claim scored 100, so no threshold is "
+                       "safe. The scoring rules are missing whatever made you "
+                       "reject it — worth looking at that claim before going further.")
+    elif out.coveragePct < 20:
+        out.suggestedThreshold = threshold
+        out.verdict = (f"A safe threshold is {threshold}, but it would only cover "
+                       f"{out.coveragePct}% of your approvals — barely worth "
+                       f"automating. Approvals and rejections are scoring too "
+                       f"similarly for the rules to separate them yet.")
+    else:
+        out.suggestedThreshold = threshold
+        out.verdict = (f"Approving automatically at {threshold} or above would have "
+                       f"handled {out.wouldAutoApprove} of {len(approved)} approvals "
+                       f"({out.coveragePct}%) without touching anything you rejected.")
     return out
 
 
@@ -304,7 +536,79 @@ def reject_receipt(receipt_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Receipt not found.")
     r.status = "rejected"
     session.add(r)
+    # A rejected claim can't have earned anyone a referral bonus. Take back an
+    # unspent one; one already withdrawn is left alone, since the money has gone
+    # (see referrals.cancel_for_receipt).
+    referrals.cancel_for_receipt(r, session, "The claim it was earned on was rejected.")
     session.commit()
     session.refresh(r)
     log_activity(session, "Rejected receipt claim", f"{r.brand or 'Cashback'} £{r.amount:.2f}")
     return _receipt_out(r, "rejected")
+
+
+# ── Admin: referral oversight ────────────────────────────────────────────────
+@router.get("/admin/referrals", response_model=list[AdminReferralOut],
+            dependencies=[Depends(require_admin)])
+def admin_list_referrals(session: Session = Depends(get_session)):
+    """Every referral on the site, newest first — both sides of each one.
+
+    Shows the ones that paid and the ones that didn't, with the reason, so a
+    referral can be judged without reconstructing the checks by hand.
+    """
+    claims = session.exec(
+        select(Receipt).where(Receipt.referred_by_user_id.is_not(None))
+        .order_by(Receipt.uploaded_at.desc())
+    ).all()
+    rewards = {(w.receipt_id, w.kind): w for w in session.exec(
+        select(ReferralReward)).all()}
+
+    out: list[AdminReferralOut] = []
+    for claim in claims:
+        campaign = session.get(Campaign, claim.campaign_id) if claim.campaign_id else None
+        referrer = session.get(User, claim.referred_by_user_id)
+        referee = session.get(User, claim.user_id)
+        # Worked out once per claim: the reason is the same for both sides.
+        _ok, reason = referrals.check(claim, session)
+
+        for kind, member, other in (("referrer", referrer, referee),
+                                    ("referee", referee, referrer)):
+            if member is None:
+                continue
+            reward = rewards.get((claim.id, kind))
+            out.append(AdminReferralOut(
+                rewardId=reward.id if reward else None,
+                receiptId=claim.id,
+                kind=kind,
+                memberEmail=member.email,
+                memberHandle=member.instagram_handle or "",
+                otherHandle=(other.instagram_handle if other else "") or "",
+                brand=claim.brand,
+                dealTitle=(campaign.card_title or campaign.title or campaign.brand)
+                          if campaign else "",
+                amount=reward.amount if reward else 0.0,
+                status=reward.status if reward else "waiting",
+                reason="" if reward else reason,
+                date=claim.uploaded_at,
+            ))
+    return out
+
+
+@router.post("/admin/referrals/{receipt_id}/cancel",
+             response_model=list[AdminReferralOut],
+             dependencies=[Depends(require_admin)])
+def admin_cancel_referral(receipt_id: int, session: Session = Depends(get_session)):
+    """Admin: cancel a referral's bonuses, returning the money to the merchant.
+
+    Cancels BOTH sides — a referral that shouldn't have paid shouldn't have paid
+    anyone. A bonus already withdrawn is left alone (see referrals.cancel_for_receipt):
+    that money has reached a bank, and pretending otherwise would only make the
+    books disagree with reality.
+    """
+    claim = session.get(Receipt, receipt_id)
+    if claim is None:
+        raise HTTPException(status_code=404, detail="Receipt not found.")
+    referrals.cancel_for_receipt(claim, session, "Cancelled by an admin.")
+    session.commit()
+    log_activity(session, "Cancelled a referral bonus",
+                 f"{claim.brand or 'Deal'} — claim #{claim.id}")
+    return admin_list_referrals(session)

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     /* categorical series colors — validated colorblind-safe (dataviz skill) */
     :root { --s-views:#2a78d6; --s-clicks:#1baf7a; --s-claims:#eda100; }
@@ -62,9 +62,85 @@
     .greeting-sub { font-size: .92rem; color: var(--ink-soft); margin-top: 4px; }
 
     .stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin: 28px 0; }
+    .stats-row.headline { grid-template-columns: repeat(4, 1fr); margin-bottom: 14px; }
+    .stats-row.secondary { grid-template-columns: repeat(5, 1fr); margin-top: 0; }
     .stat-card { padding: 18px 18px; }
     .stat-label { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin-bottom: 7px; }
     .stat-val { font-family: var(--font-display); font-weight: 800; font-size: 1.55rem; letter-spacing: -0.03em; line-height: 1; }
+    .headline .stat-val { font-size: 1.9rem; }
+    .secondary .stat-val { font-size: 1.25rem; }
+    /* Coverage / basket / cost breakdowns — the caveat next to each figure. */
+    .stat-note { font-size: .7rem; color: var(--ink-soft); margin-top: 7px; line-height: 1.35; min-height: 1em; }
+
+    /* ── Customers: referred vs direct ── */
+    .path-group { margin-top: 16px; }
+    .path-group:first-child { margin-top: 4px; }
+    .path-label { font-size: .78rem; font-weight: 700; margin-bottom: 7px; }
+    .path-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+    .path-who { font-size: .7rem; color: var(--ink-soft); width: 128px; flex: none; }
+    .path-track { flex: 1; height: 13px; background: var(--paper-deep); border-radius: 4px; overflow: hidden; }
+    .path-fill { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+    /* Two hues, not two shades — these are different groups, not more/less of
+       one thing. Checked for colour-blind separation. */
+    .path-referred { background: #0072D6; }
+    .path-direct   { background: #B4654A; }
+    .path-val { font-size: .75rem; font-weight: 700; width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
+    .path-note { font-size: .68rem; color: var(--ink-soft); margin-top: 14px; }
+
+    /* ── Cohort grid ── */
+    .cohort-wrap { overflow-x: auto; margin-top: 12px; }
+    table.cohort { border-collapse: separate; border-spacing: 3px; width: 100%; font-variant-numeric: tabular-nums; }
+    table.cohort th { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--ink-soft); padding: 4px 6px; text-align: left; }
+    table.cohort th.num, table.cohort td.num { text-align: right; }
+    table.cohort th.ch-row { text-align: left; white-space: nowrap; text-transform: none; font-size: .72rem; color: var(--ink); }
+    table.cohort td { font-size: .72rem; font-weight: 700; }
+    .ch { text-align: center; padding: 8px 4px; border-radius: 5px; min-width: 46px; }
+    /* One hue, five steps: darker is always a higher return rate. */
+    .ch-1 { background: #F3F7FA; color: var(--ink-soft); }
+    .ch-2 { background: #EDF6FC; color: var(--ink); }
+    .ch-3 { background: #CDE9F8; color: var(--ink); }
+    .ch-4 { background: #2C7FB8; color: #fff; }
+    .ch-5 { background: #0B4F7D; color: #fff; }
+    .ch-na { background: transparent; border: 1px dashed var(--line); color: var(--ink-soft); }
+
+    /* ── Pills ── */
+    .pill { display: inline-block; font-size: .64rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: var(--paper-deep); color: var(--ink-soft); white-space: nowrap; }
+    .pill-ref { background: #ECF6FB; color: #0072D6; }
+    .pill-sticky { background: #E6F4F1; color: #0F766E; }
+    tr.cust-row { cursor: pointer; }
+    tr.cust-row:hover { background: var(--paper-deep); }
+
+    /* ── Benchmarks ── */
+    .panel-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .bench { margin-top: 16px; }
+    .bench:first-child { margin-top: 10px; }
+    .bench-head { display: flex; justify-content: space-between; align-items: baseline; font-size: .82rem; font-weight: 600; margin-bottom: 6px; }
+    .bench-val { font-variant-numeric: tabular-nums; }
+    .bench-val.ahead { color: #0F766E; }
+    .bench-val.behind { color: var(--ink-soft); }
+    .bench-track { position: relative; height: 13px; background: var(--paper-deep); border-radius: 4px; }
+    .bench-fill { display: block; height: 100%; background: #0072D6; border-radius: 4px; }
+    /* The reference sits as a line ON the bar, so "are we past it?" is one look. */
+    .bench-mark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); border-radius: 1px; }
+    .bench-note { font-size: .68rem; color: var(--ink-soft); margin-top: 5px; }
+
+    /* ── Referral tree ── */
+    /* An indented list, not a canvas: reads top to bottom like an org chart,
+       survives a phone screen, and every row is text you can copy. */
+    .tree { max-height: 60vh; overflow-y: auto; padding-right: 4px; }
+    .tn { position: relative; padding: 9px 12px; border-radius: 10px; margin-bottom: 5px; background: var(--paper-deep); }
+    .tn-root { background: var(--blue-tint, #ECF6FB); }
+    /* The elbow joining a child back to its parent's indent. */
+    .tn:not(.tn-root)::before {
+      content: ''; position: absolute; left: -11px; top: 0; bottom: 50%;
+      width: 10px; border-left: 1px solid var(--line);
+      border-bottom: 1px solid var(--line); border-bottom-left-radius: 6px;
+    }
+    .tn-main { display: flex; align-items: center; gap: 8px; }
+    .tn-who { font-weight: 700; font-size: .88rem; }
+    .tn-meta { font-size: .72rem; color: var(--ink-soft); margin-top: 2px; }
+    .tn-below { font-weight: 700; color: var(--ink); }
+    .tn-more { font-size: .7rem; color: var(--ink-soft); padding: 5px 0 8px; }
 
     .panel-title { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; }
     .panel-sub { font-size: .8rem; color: var(--ink-soft); margin-bottom: 18px; }
@@ -112,11 +188,19 @@
 
     /* Deals table */
     .deals-card { padding: 24px 22px; margin-bottom: 24px; overflow-x: auto; }
-    table.deals { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 520px; }
+    /* Eight columns now (revenue and the repeat-visits control joined the
+       original six), so the table needs the room or it crushes instead of
+       scrolling — which is what a min-width sized for six did. */
+    table.deals { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 760px; }
+    table.deals td:first-child { min-width: 130px; }
     table.deals th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); font-weight: 800; padding: 0 12px 10px; border-bottom: var(--bw) solid var(--line); }
     table.deals td { padding: 12px; border-bottom: 2px dashed rgba(31,27,19,.14); font-weight: 600; }
     table.deals td.num, table.deals th.num { text-align: right; font-variant-numeric: tabular-nums; }
     table.deals tr:last-child td { border-bottom: none; }
+    .ref-toggle { font: inherit; font-size: .74rem; font-weight: 800; padding: 4px 12px; border-radius: 7px; border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+    .ref-toggle.on { background: var(--lime); border-color: var(--ink); color: var(--ink); }
+    .ref-toggle:disabled { opacity: .5; cursor: default; }
+    .ref-paid { font-size: .7rem; color: var(--ink-soft); margin-top: 4px; }
     .deal-brand { font-weight: 800; }
 
     /* Messages */
@@ -167,7 +251,7 @@
     .sub-title { font-weight: 700; font-size: .9rem; }
     .sub-meta { font-size: .76rem; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
     .sub-reason { font-size: .78rem; color: #a62222; font-weight: 600; margin-top: 4px; }
-    .sbadge { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; padding: 4px 10px; border-radius: 999px; flex-shrink: 0; }
+    .sbadge { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; padding: 4px 10px; border-radius: 7px; flex-shrink: 0; }
     .sbadge.pending { background: var(--tang); }
     .sbadge.approved { background: #DDF5E3; color: #1c7c3a; }
     .sbadge.rejected { background: #FBE0E0; color: #a62222; }
@@ -178,7 +262,7 @@
     .mtab:hover { color: var(--ink); }
     .mtab.active { color: var(--ink); }
     .mtab.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--blue-deep); }
-    .mtab .tab-badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 6px; font-size: .68rem; line-height: 18px; text-align: center; border-radius: 999px; background: var(--blue-tint); color: var(--blue-deep); vertical-align: middle; }
+    .mtab .tab-badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 6px; font-size: .68rem; line-height: 18px; text-align: center; border-radius: 7px; background: var(--blue-tint); color: var(--blue-deep); vertical-align: middle; }
     .pane-head { margin-bottom: 20px; }
 
     /* ── Posts tiles ── */
@@ -211,7 +295,7 @@
     .logo-thumb { width: 74px; height: 74px; border-radius: 50%; flex-shrink: 0; background: var(--paper-deep); border: var(--bw) solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--ink-soft); font-size: 1.4rem; }
     .logo-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .cat-checks { display: flex; flex-wrap: wrap; gap: 8px; }
-    .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: var(--bw) solid var(--line); border-radius: 999px; font-size: .82rem; font-weight: 600; cursor: pointer; user-select: none; }
+    .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: var(--bw) solid var(--line); border-radius: 7px; font-size: .82rem; font-weight: 600; cursor: pointer; user-select: none; }
     .cat-chip input { position: absolute; opacity: 0; pointer-events: none; }
     .cat-chip.on { background: var(--blue-tint); border-color: var(--blue-deep); color: var(--blue-deep); }
     .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -227,7 +311,7 @@
     .pv-logo img { width: 100%; height: 100%; object-fit: cover; }
     .pv-name { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; margin-top: 12px; }
     .pv-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .pv-cat { font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--paper-deep); }
+    .pv-cat { font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: 7px; background: var(--paper-deep); }
     .pv-bio { font-size: .82rem; color: var(--ink-soft); line-height: 1.55; margin-top: 12px; }
     .pv-section { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin: 16px 0 8px; }
     .pv-socials { display: flex; flex-direction: column; gap: 7px; }
@@ -275,6 +359,7 @@
     .allow-bar span { display: block; height: 100%; width: 0; background: var(--lime); transition: width .4s; }
     .allow-bar span.over { background: var(--tang); }
     .alert-bar { display: flex; align-items: center; gap: 10px; padding: 13px 16px; margin-bottom: 16px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: var(--tang); font-size: .86rem; font-weight: 700; }
+    .alert-bar.wallet-low { margin: 12px 0 0; padding: 10px 13px; font-size: .78rem; }
     .quote-box { margin: 14px 0 4px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper-deep); font-size: .84rem; line-height: 1.7; display: none; }
     .quote-box.on { display: block; }
     .quote-row { display: flex; justify-content: space-between; }
@@ -285,14 +370,16 @@
 
     .hidden { display: none !important; }
 
-    @media (max-width: 960px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 960px) {
+      .stats-row, .stats-row.headline, .stats-row.secondary { grid-template-columns: repeat(3, 1fr); }
+    }
     @media (max-width: 900px) {
       .profile-grid { grid-template-columns: 1fr; }
       .phone-wrap { position: static; max-width: 360px; }
       .billing-top { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .stats-row, .stats-row.headline, .stats-row.secondary { grid-template-columns: repeat(2, 1fr); }
       .social-grid { grid-template-columns: 1fr; }
       .bill-tiles { grid-template-columns: 1fr; }
     }
@@ -354,6 +441,10 @@
         </div>
         <div class="login-err" id="loginErr"></div>
         <button type="submit" class="btn btn-lg btn-lime" id="loginBtn" style="width:100%">Sign in →</button>
+        <div style="text-align:center;margin-top:14px;font-size:.82rem;font-weight:600">
+          <a href="#" id="mForgot" style="color:var(--pink-deep);font-weight:800;text-decoration:none">Forgot your password?</a>
+        </div>
+        <div id="mForgotNote" style="display:none;text-align:center;margin-top:10px;font-size:.8rem;color:var(--ink-soft);line-height:1.5"></div>
       </form>
       <div class="login-note">Don't have a login yet? Your account is created once your partnership application is approved — we'll send you the details. Want to partner with us? <a href="contact.html">Apply here →</a></div>
     </div>
@@ -368,6 +459,7 @@
 
     <nav class="mtabs" id="mtabs">
       <button class="mtab active" data-tab="overview" onclick="showTab('overview')">Overview</button>
+      <button class="mtab" data-tab="customers" onclick="showTab('customers')">Customers<span class="tab-badge hidden" id="customersBadge">0</span></button>
       <button class="mtab" data-tab="posts" onclick="showTab('posts')">Posts<span class="tab-badge hidden" id="postsBadge">0</span></button>
       <button class="mtab" data-tab="referrals" onclick="showTab('referrals')">Referrals<span class="tab-badge hidden" id="referralsBadge">0</span></button>
       <button class="mtab" data-tab="profile" onclick="showTab('profile')">Merchant Profile</button>
@@ -383,42 +475,68 @@
       </div>
       <button type="button" class="btn btn-ink mini" onclick="showTab('billing')">View plans →</button>
     </div>
-    <div class="stats-row">
+    <!-- Money first: what the deals earned, then what they cost. The counts
+         that used to lead the page moved to the row below — they're context,
+         not the answer a merchant came for. -->
+    <div class="stats-row headline">
+      <div class="card card-lime stat-card fade-up">
+        <div class="stat-label">Revenue</div>
+        <div class="stat-val">£<span id="sRevenue">0</span></div>
+        <div class="stat-note" id="sCoverage"></div>
+      </div>
+      <div class="card card-sky stat-card fade-up">
+        <div class="stat-label">Return</div>
+        <div class="stat-val"><span id="sReturn">—</span></div>
+        <div class="stat-note" id="sReturnNote"></div>
+      </div>
+      <div class="card card-tang stat-card fade-up">
+        <div class="stat-label">Claims</div>
+        <div class="stat-val" id="sClaims">0</div>
+        <div class="stat-note" id="sBasket"></div>
+      </div>
+      <div class="card stat-card fade-up">
+        <div class="stat-label">Cost</div>
+        <div class="stat-val">£<span id="sCost">0</span></div>
+        <div class="stat-note" id="sCostNote"></div>
+      </div>
+    </div>
+    <div class="stats-row secondary">
       <div class="card stat-card fade-up"><div class="stat-label">Deals</div><div class="stat-val" id="sDeals">0</div></div>
-      <div class="card card-sky stat-card fade-up"><div class="stat-label">Views</div><div class="stat-val" id="sViews">0</div></div>
-      <div class="card card-pink stat-card fade-up"><div class="stat-label">Clicks</div><div class="stat-val" id="sClicks">0</div></div>
-      <div class="card card-tang stat-card fade-up"><div class="stat-label">Claims</div><div class="stat-val" id="sClaims">0</div></div>
-      <div class="card card-lime stat-card fade-up"><div class="stat-label">Cashback given</div><div class="stat-val">£<span id="sCashback">0</span></div></div>
+      <div class="card stat-card fade-up"><div class="stat-label">Views</div><div class="stat-val" id="sViews">0</div></div>
+      <div class="card stat-card fade-up"><div class="stat-label">Clicks</div><div class="stat-val" id="sClicks">0</div></div>
+      <div class="card stat-card fade-up"><div class="stat-label">Cashback given</div><div class="stat-val">£<span id="sCashback">0</span></div></div>
       <div class="card stat-card fade-up"><div class="stat-label">Pending</div><div class="stat-val">£<span id="sPending">0</span></div></div>
     </div>
 
-    <div class="dash-grid">
-      <!-- Left: this merchant's own campaigns + how each performs -->
-      <div class="card deals-card fade-up">
+    <!-- Full width, not a grid column: with revenue and the repeat-visits
+         control the table runs to eight columns, and it was being crushed
+         into 1.5fr rather than given room. The chart and funnel sit below. -->
+    <div class="card deals-card fade-up">
         <div class="panel-title">Your campaigns</div>
         <div class="panel-sub">How each of your deals is performing — the numbers behind the chart.</div>
         <table class="deals">
           <thead><tr>
             <th>Deal</th><th class="num">Views</th><th class="num">Clicks</th>
-            <th class="num">Claims</th><th class="num">Cashback</th>
+            <th class="num">Claims</th><th class="num">Revenue</th>
+            <th class="num">Cashback</th>
+            <th class="num">Referrals</th><th class="num">Repeat visits</th>
           </tr></thead>
           <tbody id="dealsBody"></tbody>
         </table>
-      </div>
+    </div>
 
-      <!-- Right: 30-day trend chart tile + conversion funnel -->
-      <div class="dash-right">
-        <div class="card chart-card fade-up">
-          <div class="panel-title">Last 30 days</div>
-          <div class="panel-sub">Views, clicks &amp; claims per day. <span id="convNote"></span></div>
-          <div class="legend" id="legend"></div>
-          <div class="chart-box" id="chartBox"></div>
-        </div>
-        <div class="card funnel-card fade-up">
-          <div class="panel-title">Conversion funnel</div>
-          <div class="panel-sub">How views turn into clicks and claims.</div>
-          <div id="funnel"></div>
-        </div>
+    <!-- Trend and funnel side by side, as direct grid children. -->
+    <div class="dash-grid">
+      <div class="card chart-card fade-up">
+        <div class="panel-title">Last 30 days</div>
+        <div class="panel-sub">Views, clicks &amp; claims per day. <span id="convNote"></span></div>
+        <div class="legend" id="legend"></div>
+        <div class="chart-box" id="chartBox"></div>
+      </div>
+      <div class="card funnel-card fade-up">
+        <div class="panel-title">Conversion funnel</div>
+        <div class="panel-sub">How views turn into clicks and claims.</div>
+        <div id="funnel"></div>
       </div>
     </div>
 
@@ -455,12 +573,121 @@
       </div>
     </div>
 
+    <!-- ═══ Customers ═══ -->
+    <div class="pane hidden" id="paneCustomers">
+      <div class="pane-head">
+        <div class="panel-title">Your customers</div>
+        <div class="panel-sub" id="custCaveat"></div>
+      </div>
+
+      <div class="stats-row headline">
+        <div class="card card-lime stat-card">
+          <div class="stat-label">Customers</div>
+          <div class="stat-val" id="cCustomers">0</div>
+          <div class="stat-note" id="cCustomersNote"></div>
+        </div>
+        <div class="card card-sky stat-card">
+          <div class="stat-label">Came back</div>
+          <div class="stat-val"><span id="cRepeat">—</span></div>
+          <div class="stat-note" id="cRepeatNote"></div>
+        </div>
+        <div class="card card-tang stat-card">
+          <div class="stat-label">Reached a 3rd visit</div>
+          <div class="stat-val"><span id="cThird">—</span></div>
+          <div class="stat-note">Of those who came back once</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Gone quiet</div>
+          <div class="stat-val" id="cLapsed">0</div>
+          <div class="stat-note">Overdue against their own habit</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <!-- The comparison the whole platform turns on -->
+        <div class="card fade-up">
+          <div class="panel-title">Referred vs found you themselves</div>
+          <div class="panel-sub">Whether a customer who arrived through someone else's post sticks around longer than one who found the deal on their own.</div>
+          <div id="pathBars"></div>
+        </div>
+
+        <div class="card fade-up">
+          <div class="panel-title">Return rate by month they joined</div>
+          <div class="panel-sub">Each row is the customers who first bought that month. A blank cell means we can't answer it honestly yet — either not enough time has passed, or too few people joined that month to report on.</div>
+          <div class="cohort-wrap"><table class="cohort" id="cohortTable"></table></div>
+        </div>
+      </div>
+
+      <div class="card fade-up" style="margin-top:18px">
+        <div class="panel-title">How you compare</div>
+        <div class="panel-sub" id="benchSub"></div>
+        <div id="benchRows"></div>
+      </div>
+
+      <div class="card deals-card fade-up" style="margin-top:18px">
+        <div class="panel-title-row">
+          <div>
+            <div class="panel-title">Everyone who bought</div>
+            <div class="panel-sub">Most valuable first. Click a customer to see who they referred.</div>
+          </div>
+          <button type="button" class="btn btn-sm btn-ink" id="csvBtn">Export CSV</button>
+        </div>
+        <table class="deals">
+          <thead><tr>
+            <th>Customer</th><th class="num">Visits</th><th class="num">Spend</th>
+            <th class="num">Cashback</th><th>Found you</th>
+            <th class="num">Referred</th><th class="num">Last seen</th>
+          </tr></thead>
+          <tbody id="customersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ═══ Referral attribution ═══ -->
     <div class="pane hidden" id="paneReferrals">
       <div class="pane-head">
-        <div class="panel-title">Top referring posts</div>
-        <div class="panel-sub">Members whose posts led other members to buy and claim cashback, by deal.</div>
+        <div class="panel-title">Referrals</div>
+        <div class="panel-sub">Members whose posts led other members to buy and claim cashback. Where a deal has referral bonuses switched on, each of these pays £1 to the poster and 50p to the buyer from your referral wallet — see the Referrals column on your campaigns table.</div>
       </div>
+
+      <div class="stats-row headline">
+        <div class="card card-lime stat-card">
+          <div class="stat-label">Customers referred</div>
+          <div class="stat-val" id="nReferred">0</div>
+          <div class="stat-note" id="nReferredNote"></div>
+        </div>
+        <div class="card card-sky stat-card">
+          <div class="stat-label">Per referring member</div>
+          <div class="stat-val" id="nMultiplier">—</div>
+          <div class="stat-note">Above 1× and it's compounding</div>
+        </div>
+        <div class="card card-tang stat-card">
+          <div class="stat-label">Chain depth</div>
+          <div class="stat-val" id="nDepth">—</div>
+          <div class="stat-note" id="nDepthNote"></div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Return on bonus</div>
+          <div class="stat-val" id="nReturn">—</div>
+          <div class="stat-note" id="nReturnNote"></div>
+        </div>
+      </div>
+
+      <div class="card deals-card fade-up" style="margin-bottom:18px">
+        <div class="panel-title">Who's bringing you people</div>
+        <div class="panel-sub">Ranked by what their whole chain has spent — not by how many they brought. "Stick" is the share of their referrals who came back for a second visit. Click a row to see their chain.</div>
+        <table class="deals">
+          <thead><tr>
+            <th>Member</th><th class="num">Referred</th><th class="num">Stick</th>
+            <th class="num">Chain size</th><th class="num">Chain spend</th>
+            <th class="num">Bonuses</th>
+          </tr></thead>
+          <tbody id="referrersBody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel-title" style="margin-bottom:4px">Top referring posts</div>
+      <div class="panel-sub" style="margin-bottom:14px">The posts that started those chains.</div>
       <div class="posts-grid" id="referralsGrid">
         <div class="posts-empty">Loading referrals…</div>
       </div>
@@ -577,10 +804,10 @@
 
       <div class="billing-top">
         <div class="card balance-hero">
-          <div class="stat-label">Balance</div>
+          <div class="stat-label">Cashback wallet</div>
           <div class="balance-num">£<span id="bBalance">0.00</span></div>
-          <button type="button" class="btn btn-lime" id="addCreditBtn" onclick="openTopup()">Add credit</button>
-          <div class="balance-note">Top up by card to fund the cashback shoppers earn on your deals. You're charged only the amount you add.</div>
+          <button type="button" class="btn btn-lime" id="addCreditBtn" onclick="openTopup('cashback')">Add credit</button>
+          <div class="balance-note">Funds the cashback shoppers earn on your deals. You're charged only the amount you add.</div>
         </div>
         <div class="bill-tiles">
           <div class="card stat-card"><div class="stat-label">Topped up</div><div class="stat-val">£<span id="bTopped">0.00</span></div></div>
@@ -588,11 +815,39 @@
           <div class="card card-tang stat-card"><div class="stat-label">Pending</div><div class="stat-val">£<span id="bPending">0.00</span></div></div>
         </div>
       </div>
+
+      <!-- Second, genuinely separate pot: an empty referral wallet pays no
+           bonuses even when the cashback wallet is full. -->
+      <div class="billing-top">
+        <div class="card balance-hero">
+          <div class="stat-label">Referral wallet</div>
+          <div class="balance-num">£<span id="bRefBalance">0.00</span></div>
+          <button type="button" class="btn btn-lime" id="addReferralBtn" onclick="openTopup('referral')">Add referral credit</button>
+          <div class="balance-note">Funds the referral bonus paid when a member refers someone to one of your deals — £1 to them, 50p to the person they referred. Kept separate from your cashback balance: if this runs out, no bonuses are paid.</div>
+          <div class="alert-bar wallet-low" id="refWalletLow" hidden></div>
+        </div>
+        <div class="bill-tiles">
+          <div class="card stat-card"><div class="stat-label">Topped up</div><div class="stat-val">£<span id="bRefTopped">0.00</span></div></div>
+          <div class="card card-lime stat-card"><div class="stat-label">Bonuses paid</div><div class="stat-val">£<span id="bRefPaid">0.00</span></div></div>
+          <div class="card stat-card"><div class="stat-label">Referrals left</div><div class="stat-val"><span id="bRefLeft">0</span></div></div>
+        </div>
+      </div>
+
       <div class="card txn-card">
         <div class="panel-title">Transactions</div>
-        <div class="panel-sub">Top-ups you've added and cashback paid out to shoppers.</div>
+        <div class="panel-sub">Top-ups you've added, cashback paid to shoppers, and referral bonuses.</div>
         <div id="txnList"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Referral tree modal -->
+  <div class="modal-overlay" id="treeModal">
+    <div class="card modal" style="max-width:660px">
+      <button class="modal-close" type="button" onclick="closeTree()" aria-label="Close">✕</button>
+      <h2 id="treeTitle">Referral chain</h2>
+      <div class="modal-sub" id="treeSub">Everyone this customer brought to you, and everyone they brought in turn.</div>
+      <div id="treeBody"><div class="chart-empty">Loading…</div></div>
     </div>
   </div>
 
@@ -600,8 +855,8 @@
   <div class="modal-overlay" id="topupModal">
     <div class="card modal" style="max-width:400px">
       <button class="modal-close" type="button" onclick="closeTopup()" aria-label="Close">✕</button>
-      <h2>Add credit</h2>
-      <div class="modal-sub">Top up your prepaid balance. You'll be taken to our secure Stripe checkout to pay by card.</div>
+      <h2 id="topupTitle">Add credit</h2>
+      <div class="modal-sub" id="topupSub">Top up your prepaid balance. You'll be taken to our secure Stripe checkout to pay by card.</div>
       <div class="field">
         <label for="topupAmount">Amount (£)</label>
         <input id="topupAmount" type="number" min="1" step="1" placeholder="100" />
@@ -757,7 +1012,16 @@
           body: JSON.stringify({ email, password }),
         });
         if (!res.ok) {
-          err.textContent = res.status === 401 ? 'Incorrect email or password.' : 'Something went wrong. Try again.';
+          if (res.status === 401) {
+            err.textContent = 'Incorrect email or password.';
+          } else if (res.status === 403) {
+            // Either the invite hasn't been used yet or the email isn't
+            // confirmed — both are things the merchant can act on.
+            const body = await res.json().catch(() => ({}));
+            err.textContent = body.detail || 'Check your email to finish setting up your account.';
+          } else {
+            err.textContent = 'Something went wrong. Try again.';
+          }
           return;
         }
         const data = await res.json();
@@ -770,6 +1034,32 @@
         btn.disabled = false;
         btn.textContent = 'Sign in →';
       }
+    });
+
+    // ── Forgot password ──
+    // Always reports the same thing, whether or not the address has an account
+    // (matching the server), so this can't be used to discover which brands are
+    // on Cirqle. A merchant who never used their invite gets the invite resent.
+    document.getElementById('mForgot').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('mEmail').value.trim();
+      const note = document.getElementById('mForgotNote');
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        note.style.display = 'block';
+        note.textContent = 'Enter your email address above first, then click again.';
+        return;
+      }
+      const link = document.getElementById('mForgot');
+      link.textContent = 'Sending…';
+      try {
+        await fetch(`${API}/merchant/forgot-password`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+      } catch (_) {}
+      link.textContent = 'Link sent ✓';
+      note.style.display = 'block';
+      note.textContent = "If that address has a merchant account, we've emailed a link to it. It expires in 1 hour.";
     });
 
     // ── Number helpers ──
@@ -815,10 +1105,41 @@
       document.getElementById('convNote').textContent =
         s.views ? `View→claim conversion: ${s.conversion}%.` : '';
 
+      renderMoney(s);
+
       renderLegend(s);
       renderChart(s.timeseries);
       renderFunnel(s);
       renderDeals(s.deals);
+    }
+
+    // ── The money row ──
+    // Revenue is read off the receipts themselves, and never off every one of
+    // them, so each figure carries the caveat that qualifies it. A merchant who
+    // isn't told the coverage will read a partial number as the whole takings.
+    function renderMoney(s) {
+      document.getElementById('sRevenue').textContent = fmtMoney(s.revenue);
+      document.getElementById('sCost').textContent = fmtMoney(s.programmeCost);
+
+      document.getElementById('sCoverage').textContent = s.revenue
+        ? `Read from ${s.revenueCoverage}% of approved claims`
+        : 'No receipt totals read yet';
+
+      // Return is meaningless until they've actually spent something.
+      const ret = document.getElementById('sReturn');
+      const retNote = document.getElementById('sReturnNote');
+      if (s.programmeCost && s.revenue) {
+        ret.textContent = `${s.returnOnCashback.toFixed(2)}×`;
+        retNote.textContent = `£${s.returnOnCashback.toFixed(2)} of sales per £1 spent`;
+      } else {
+        ret.textContent = '—';
+        retNote.textContent = s.programmeCost ? 'No revenue read yet' : 'Nothing spent yet';
+      }
+
+      document.getElementById('sBasket').textContent =
+        s.averageBasket ? `£${fmtMoney(s.averageBasket)} average basket` : '';
+      document.getElementById('sCostNote').textContent =
+        s.discountRate ? `${s.discountRate}% of revenue` : 'Cashback, bonuses & fees';
     }
 
     // ── Conversion funnel (views -> clicks -> claims), from the same real stats ──
@@ -952,7 +1273,7 @@
     function renderDeals(deals) {
       const body = document.getElementById('dealsBody');
       if (!deals || !deals.length) {
-        body.innerHTML = '<tr><td colspan="5" style="color:var(--ink-soft)">No deals linked to your account yet.</td></tr>';
+        body.innerHTML = '<tr><td colspan="8" style="color:var(--ink-soft)">No deals linked to your account yet.</td></tr>';
         return;
       }
       body.innerHTML = deals.map(d =>
@@ -961,8 +1282,91 @@
            <td class="num">${fmtInt(d.views)}</td>
            <td class="num">${fmtInt(d.clicks)}</td>
            <td class="num">${fmtInt(d.claims)}</td>
+           <td class="num">£${fmtMoney(d.revenue)}</td>
            <td class="num">£${fmtMoney(d.cashback)}</td>
+           <td class="num">
+             <button type="button" class="ref-toggle${d.referralsEnabled ? ' on' : ''}"
+                     data-deal="${d.campaignId}" data-on="${d.referralsEnabled ? '1' : '0'}"
+                     title="${d.referralsEnabled ? 'Referral bonuses are on for this deal' : 'Referral bonuses are off for this deal'}">
+               ${d.referralsEnabled ? 'On' : 'Off'}
+             </button>
+             ${d.referralsPaid > 0 ? `<div class="ref-paid">£${fmtMoney(d.referralsPaid)} paid</div>` : ''}
+           </td>
+           <td class="num">
+             <button type="button" class="ref-toggle${d.visitsEnabled ? ' on' : ''}"
+                     data-deal="${d.campaignId}" data-on="${d.visitsEnabled ? '1' : '0'}"
+                     data-earn="${d.visitEarn}"
+                     title="${d.visitsEnabled ? `Shoppers can log a repeat visit without posting — £${fmtMoney(d.visitEarn)} each` : 'Shoppers must post to claim this deal'}">
+               ${d.visitsEnabled ? 'On' : 'Off'}
+             </button>
+             ${d.visitsEnabled ? `<div class="ref-paid">£${fmtMoney(d.visitEarn)} · ${fmtInt(d.visitClaims)} logged</div>` : ''}
+           </td>
          </tr>`).join('');
+      body.querySelectorAll('.ref-toggle').forEach(b =>
+        b.addEventListener('click', () =>
+          (b.dataset.earn === undefined ? toggleReferrals(b) : toggleVisits(b))));
+    }
+
+    // Repeat visits: a shopper logging a return trip they didn't post about.
+    // Off per deal by default, same as referral bonuses — funding a wallet must
+    // never enrol a deal the brand didn't choose.
+    async function toggleVisits(btn) {
+      const turningOn = btn.dataset.on !== '1';
+      let earn = Number(btn.dataset.earn) || 0;
+      if (turningOn) {
+        const answer = prompt(
+          'What is one repeat visit worth? (£ per logged visit)\n\n' +
+          'Shoppers can upload a receipt without posting again. It counts ' +
+          'towards your customer and retention figures either way.',
+          earn || '1.00');
+        if (answer === null) return;
+        earn = Number(answer);
+        if (!(earn >= 0)) { alert('Enter an amount in pounds, like 1.50.'); return; }
+      }
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API}/merchant/deals/${btn.dataset.deal}/visits`, {
+          method: 'PATCH',
+          headers: { ...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: turningOn, earn }),
+        });
+        if (res.status === 401) { signOut(); return; }
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          alert(body.detail || 'Couldn’t change that. Try again.');
+          return;
+        }
+        loadStats();
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Referral bonuses are off per deal until the brand switches them on, so
+    // funding the referral wallet never silently enrols a deal.
+    async function toggleReferrals(btn) {
+      const turningOn = btn.dataset.on !== '1';
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API}/merchant/deals/${btn.dataset.deal}/referrals`, {
+          method: 'PATCH',
+          headers: { ...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: turningOn }),
+        });
+        if (res.status === 401) { signOut(); return; }
+        if (!res.ok) { cirqleToast('Could not change that — try again'); btn.disabled = false; return; }
+        const deal = await res.json();
+        btn.dataset.on = deal.referralsEnabled ? '1' : '0';
+        btn.classList.toggle('on', deal.referralsEnabled);
+        btn.textContent = deal.referralsEnabled ? 'On' : 'Off';
+        btn.disabled = false;
+        cirqleToast(deal.referralsEnabled
+          ? 'Referral bonuses on for this deal'
+          : 'Referral bonuses off for this deal');
+      } catch (_) {
+        cirqleToast('Could not reach the server');
+        btn.disabled = false;
+      }
     }
 
     // ── Messages ──
@@ -1110,8 +1514,8 @@
     }
 
     // ── Tabs (Overview / Posts / Profile / Billing) ──
-    const PANES = { overview: 'paneOverview', posts: 'panePosts', referrals: 'paneReferrals', profile: 'paneProfile', billing: 'paneBilling' };
-    const loaded = { posts: false, referrals: false, profile: false, billing: false };
+    const PANES = { overview: 'paneOverview', customers: 'paneCustomers', posts: 'panePosts', referrals: 'paneReferrals', profile: 'paneProfile', billing: 'paneBilling' };
+    const loaded = { customers: false, posts: false, referrals: false, profile: false, billing: false };
     function showTab(tab) {
       if (!(tab in PANES)) tab = 'overview';
       Object.values(PANES).forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -1119,10 +1523,305 @@
       document.querySelectorAll('.mtab').forEach(b =>
         b.classList.toggle('active', b.dataset.tab === tab));
       if (history.replaceState) history.replaceState(null, '', '#' + tab);
+      if (tab === 'customers' && !loaded.customers) { loaded.customers = true; loadCustomers(); }
       if (tab === 'posts' && !loaded.posts) { loaded.posts = true; loadPosts(); }
-      if (tab === 'referrals' && !loaded.referrals) { loaded.referrals = true; loadReferrals(); }
+      if (tab === 'referrals' && !loaded.referrals) { loaded.referrals = true; loadNetwork(); loadReferrals(); }
       if (tab === 'profile' && !loaded.profile) { loaded.profile = true; loadProfile(); }
       if (tab === 'billing' && !loaded.billing) { loaded.billing = true; loadBilling(); }
+    }
+
+    // ── Customers ──
+    let customerRows = [];
+
+    async function loadCustomers() {
+      const res = await fetch(`${API}/merchant/customers`, { headers: authHeader() });
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) {
+        document.getElementById('customersBody').innerHTML =
+          '<tr><td colspan="7" style="color:var(--ink-soft)">Couldn’t load customers. Try again.</td></tr>';
+        return;
+      }
+      renderCustomers(await res.json());
+    }
+
+    function renderCustomers(d) {
+      const s = d.summary;
+      customerRows = d.customers || [];
+      document.getElementById('custCaveat').textContent = d.caveat || '';
+
+      document.getElementById('cCustomers').textContent = fmtInt(s.customers);
+      document.getElementById('cCustomersNote').textContent =
+        s.customers ? `£${fmtMoney(s.revenuePerCustomer)} each on average` : '';
+
+      // A rate needs someone to have had the chance to come back. Until then
+      // there is nothing honest to show, so we show nothing.
+      const rep = document.getElementById('cRepeat');
+      rep.textContent = s.customers ? `${s.repeatRate}%` : '—';
+      document.getElementById('cRepeatNote').textContent = s.medianDaysToSecond === null
+        ? 'Nobody has returned yet'
+        : `Typically after ${s.medianDaysToSecond} days`;
+
+      document.getElementById('cThird').textContent =
+        s.thirdClaimRate ? `${s.thirdClaimRate}%` : '—';
+      document.getElementById('cLapsed').textContent = fmtInt(s.lapsed);
+
+      const badge = document.getElementById('customersBadge');
+      badge.textContent = fmtInt(s.customers);
+      badge.classList.toggle('hidden', !s.customers);
+
+      renderPathBars(d.byPath || []);
+      renderCohorts(d.cohorts || []);
+      renderCustomerTable(customerRows);
+      loadBenchmarks();
+    }
+
+    // ── How this merchant compares ──
+    const BENCH_LABEL = {
+      repeatRate: 'Customers who came back',
+      returnRate30: 'Returned within 30 days',
+      claimsPerCustomer: 'Visits per customer',
+    };
+
+    async function loadBenchmarks() {
+      const res = await fetch(`${API}/merchant/benchmarks`, { headers: authHeader() });
+      if (!res.ok) return;
+      const b = await res.json();
+      const sub = document.getElementById('benchSub');
+      const rows = document.getElementById('benchRows');
+
+      if (!b.measures.length) {
+        sub.textContent = 'Once you have customers, this shows how your retention compares.';
+        rows.innerHTML = '';
+        return;
+      }
+      // Which comparison a merchant is looking at changes how much weight it
+      // deserves, so it's stated rather than implied.
+      sub.textContent = b.peerCount
+        ? `Against the median of ${b.peerCount} other ${b.peerCategory} ${b.peerCount === 1 ? 'brand' : 'brands'} on Cirqle.`
+        : 'Against published industry figures — US restaurant data, so treat them as a rough guide until there are enough brands in your category on Cirqle.';
+
+      rows.innerHTML = b.measures.map(m => {
+        const isRate = m.measure !== 'claimsPerCustomer';
+        const fmt = v => isRate ? v + '%' : v.toFixed(2) + '×';
+        const max = Math.max(m.value, m.comparedTo, m.strong) || 1;
+        return `
+          <div class="bench">
+            <div class="bench-head">
+              <span>${BENCH_LABEL[m.measure] || m.measure}</span>
+              <span class="bench-val ${m.ahead ? 'ahead' : 'behind'}">${fmt(m.value)}</span>
+            </div>
+            <div class="bench-track">
+              <span class="bench-fill" style="width:${m.value / max * 100}%"></span>
+              <span class="bench-mark" style="left:${m.comparedTo / max * 100}%" title="Typical: ${fmt(m.comparedTo)}"></span>
+            </div>
+            <div class="bench-note">Typical ${fmt(m.comparedTo)} · strong ${fmt(m.strong)}</div>
+          </div>`;
+      }).join('');
+    }
+
+    // The CSV needs the auth header, so it's fetched and handed over as a blob
+    // rather than linked — a plain <a href> would arrive unauthenticated.
+    document.getElementById('csvBtn').addEventListener('click', async () => {
+      const res = await fetch(`${API}/merchant/customers.csv`, { headers: authHeader() });
+      if (!res.ok) { cirqleToast('Couldn’t export just now.'); return; }
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cirqle-customers-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    const PATH_LABEL = { referred: 'Referred by someone', direct: 'Found you themselves' };
+
+    function renderPathBars(paths) {
+      const el = document.getElementById('pathBars');
+      const usable = paths.filter(p => p.customers > 0);
+      if (!usable.length) {
+        el.innerHTML = '<div class="chart-empty">No customers yet.</div>';
+        return;
+      }
+      const metrics = [
+        { key: 'repeatRate', label: 'Came back' },
+        { key: 'thirdClaimRate', label: 'Reached a 3rd visit' },
+        { key: 'longRunRate', label: 'Still going after 90 days' },
+      ];
+      el.innerHTML = metrics.map(m => `
+        <div class="path-group">
+          <div class="path-label">${m.label}</div>
+          ${usable.map(p => `
+            <div class="path-row">
+              <span class="path-who">${PATH_LABEL[p.path]}</span>
+              <span class="path-track">${p.enough
+                ? `<span class="path-fill path-${p.path}" style="width:${Math.min(100, p[m.key])}%"></span>`
+                : ''}</span>
+              <span class="path-val">${p.enough ? p[m.key] + '%' : '—'}</span>
+            </div>`).join('')}
+        </div>`).join('') +
+        (usable.some(p => !p.enough)
+          ? `<div class="path-note">A dash means too few customers in that group to report on yet.</div>`
+          : '');
+    }
+
+    function renderCohorts(rows) {
+      const table = document.getElementById('cohortTable');
+      if (!rows.length) {
+        table.innerHTML = '<tr><td class="chart-empty">No customers yet.</td></tr>';
+        return;
+      }
+      const months = rows[0].cells.map(c => c.monthsAfter);
+      const head = `<tr><th>Joined</th><th class="num">People</th>` +
+        months.map(n => `<th class="num">+${n}m</th>`).join('') + '</tr>';
+      const body = rows.map(r => {
+        const label = new Date(r.cohort + '-01T00:00:00')
+          .toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+        const cells = r.cells.map(c => {
+          // An unfinished window has no answer yet, and a cohort too small to
+          // report on has one we shouldn't give. Both render blank, but the
+          // tooltip says which — they call for different things from a
+          // merchant (wait vs get more customers).
+          if (!r.enough) return '<td class="ch ch-na" title="Too few customers joined this month to report on">·</td>';
+          if (!c.matured) return '<td class="ch ch-na" title="Not enough time has passed yet">·</td>';
+          return `<td class="ch ch-${cohortStep(c.rate)}">${c.rate}%</td>`;
+        }).join('');
+        return `<tr><th class="ch-row">${label}</th><td class="num">${fmtInt(r.size)}</td>${cells}</tr>`;
+      }).join('');
+      table.innerHTML = head + body;
+    }
+
+    // Five steps of one hue — a sequential scale, so darker always means more.
+    function cohortStep(rate) {
+      if (rate >= 35) return 5;
+      if (rate >= 25) return 4;
+      if (rate >= 15) return 3;
+      if (rate > 0) return 2;
+      return 1;
+    }
+
+    function renderCustomerTable(rows) {
+      const body = document.getElementById('customersBody');
+      if (!rows.length) {
+        body.innerHTML = '<tr><td colspan="7" style="color:var(--ink-soft)">No customers yet. They appear here once a claim is approved.</td></tr>';
+        return;
+      }
+      body.innerHTML = rows.map(c => {
+        const who = c.handle ? '@' + escapeHtml(c.handle) : 'Member #' + c.userId;
+        const found = c.acquisition === 'referred'
+          ? `<span class="pill pill-ref">via @${escapeHtml(c.referredByHandle || '?')}</span>`
+          : '<span class="pill">On their own</span>';
+        return `<tr class="cust-row" data-user="${c.userId}">
+             <td class="deal-brand">${who}${c.sticky ? ' <span class="pill pill-sticky">Regular</span>' : ''}</td>
+             <td class="num">${fmtInt(c.claims)}</td>
+             <td class="num">£${fmtMoney(c.spend)}</td>
+             <td class="num">£${fmtMoney(c.cashbackPaid)}</td>
+             <td>${found}</td>
+             <td class="num">${c.referredCount ? fmtInt(c.referredCount) : '—'}</td>
+             <td class="num">${new Date(c.lastClaim + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}</td>
+           </tr>`;
+      }).join('');
+      body.querySelectorAll('.cust-row').forEach(tr =>
+        tr.addEventListener('click', () => openTree(Number(tr.dataset.user))));
+    }
+
+    // ── Referral tree ──
+    // Drawn as an indented list rather than a canvas: it's read top to bottom
+    // like an org chart, stays legible on a phone, and every row is selectable
+    // text a merchant can copy.
+    async function openTree(userId) {
+      const modal = document.getElementById('treeModal');
+      const body = document.getElementById('treeBody');
+      body.innerHTML = '<div class="chart-empty">Loading…</div>';
+      modal.classList.add('open');
+
+      const res = await fetch(`${API}/merchant/customers/${userId}/tree`,
+                              { headers: authHeader() });
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) {
+        body.innerHTML = '<div class="chart-empty">Couldn’t load this chain.</div>';
+        return;
+      }
+      renderTree(await res.json());
+    }
+
+    function closeTree() { document.getElementById('treeModal').classList.remove('open'); }
+
+    // Clicking the backdrop or pressing Escape closes it, like the other modals.
+    document.getElementById('treeModal').addEventListener('click', e => {
+      if (e.target.id === 'treeModal') closeTree();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeTree();
+    });
+
+    function renderTree(root) {
+      const who = root.handle ? '@' + escapeHtml(root.handle) : 'Member #' + root.userId;
+      document.getElementById('treeTitle').textContent = who;
+      document.getElementById('treeSub').textContent = root.peopleBelow
+        ? `Brought ${root.peopleBelow} ${root.peopleBelow === 1 ? 'customer' : 'customers'} to you, worth £${fmtMoney(root.spendBelow)} between them.`
+        : 'Hasn’t referred anyone to you yet.';
+
+      document.getElementById('treeBody').innerHTML =
+        `<div class="tree">${treeNode(root, 0, true)}</div>`;
+    }
+
+    function treeNode(n, depth, isRoot) {
+      const who = n.handle ? '@' + escapeHtml(n.handle) : 'Member #' + n.userId;
+      const below = n.peopleBelow
+        ? `<span class="tn-below">+${fmtInt(n.peopleBelow)} below · £${fmtMoney(n.spendBelow)}</span>`
+        : '';
+      const kids = (n.referred || []).map(k => treeNode(k, depth + 1, false)).join('');
+      const more = n.truncated
+        ? `<div class="tn-more" style="margin-left:${(depth + 1) * 20}px">More below — not shown</div>`
+        : '';
+      return `
+        <div class="tn${isRoot ? ' tn-root' : ''}" style="margin-left:${depth * 20}px">
+          <div class="tn-main">
+            <span class="tn-who">${who}</span>
+            ${n.sticky ? '<span class="pill pill-sticky">Regular</span>' : ''}
+          </div>
+          <div class="tn-meta">${fmtInt(n.claims)} ${n.claims === 1 ? 'visit' : 'visits'} · £${fmtMoney(n.spend)} spent ${below}</div>
+        </div>${kids}${more}`;
+    }
+
+    // ── Referral network summary (above the referring posts) ──
+    async function loadNetwork() {
+      const res = await fetch(`${API}/merchant/network`, { headers: authHeader() });
+      if (!res.ok) return;
+      renderNetwork(await res.json());
+    }
+
+    function renderNetwork(n) {
+      document.getElementById('nMultiplier').textContent =
+        n.referrers ? n.multiplier.toFixed(2) + '×' : '—';
+      document.getElementById('nDepth').textContent = n.depth ? fmtInt(n.depth) : '—';
+      document.getElementById('nDepthNote').textContent = n.depth > 1
+        ? 'Referred customers are referring others'
+        : 'No chains beyond the first step yet';
+      document.getElementById('nReferred').textContent = fmtInt(n.referredCustomers);
+      document.getElementById('nReferredNote').textContent =
+        n.referredSpend ? `£${fmtMoney(n.referredSpend)} spent` : '';
+      document.getElementById('nReturn').textContent =
+        n.bonusesPaid ? `£${fmtMoney(n.returnOnBonus)}` : '—';
+      document.getElementById('nReturnNote').textContent = n.bonusesPaid
+        ? `of spend per £1 of bonus · £${fmtMoney(n.bonusesPaid)} paid`
+        : 'No bonuses paid yet';
+
+      const body = document.getElementById('referrersBody');
+      if (!n.topReferrers.length) {
+        body.innerHTML = '<tr><td colspan="6" style="color:var(--ink-soft)">Nobody has referred anyone yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = n.topReferrers.map(r => `
+        <tr class="cust-row" data-user="${r.userId}">
+          <td class="deal-brand">@${escapeHtml(r.handle || '?')}</td>
+          <td class="num">${fmtInt(r.referred)}</td>
+          <td class="num">${r.referred >= 5 ? r.qualityScore + '%' : '—'}</td>
+          <td class="num">${fmtInt(r.networkPeople)}</td>
+          <td class="num">£${fmtMoney(r.networkSpend)}</td>
+          <td class="num">${r.bonusesPaid ? '£' + fmtMoney(r.bonusesPaid) : '—'}</td>
+        </tr>`).join('');
+      body.querySelectorAll('.cust-row').forEach(tr =>
+        tr.addEventListener('click', () => openTree(Number(tr.dataset.user))));
     }
 
     // ── Posts tagging the brand ──
@@ -1200,7 +1899,7 @@
              <div class="pt-img">${img}</div>
              <div class="pt-stats">
                ${stat(fmtInt(r.claims), 'Referred claims', 'ico-eye')}
-               ${stat('£' + fmtMoney(r.referredCashback), 'Referred cashback', 'ico-star')}
+               ${stat('£' + fmtMoney(r.referredCashback), 'Cashback paid', 'ico-star')}
              </div>
              <div class="pt-body">
                <div class="pt-owner">${owner}</div>
@@ -1475,10 +2174,33 @@
       renderPlan(b.subscription || { status: 'none' });
       const addBtn = document.getElementById('addCreditBtn');
       if (addBtn) addBtn.disabled = !(b.subscription && b.subscription.canTopUp);
+      const refBtn = document.getElementById('addReferralBtn');
+      if (refBtn) refBtn.disabled = !(b.subscription && b.subscription.canTopUp);
       document.getElementById('bBalance').textContent = fmtMoney(b.balance);
       document.getElementById('bTopped').textContent = fmtMoney(b.totalToppedUp);
       document.getElementById('bGiven').textContent = fmtMoney(b.cashbackGiven);
       document.getElementById('bPending').textContent = fmtMoney(b.pendingCashback);
+
+      const ref = (b.wallets || []).find(w => w.wallet === 'referral')
+        || { balance: 0, toppedUp: 0, spent: 0 };
+      document.getElementById('bRefBalance').textContent = fmtMoney(ref.balance);
+      document.getElementById('bRefTopped').textContent = fmtMoney(ref.toppedUp);
+      document.getElementById('bRefPaid').textContent = fmtMoney(ref.spent);
+      // A referral costs £1.50 — £1 to the referrer, 50p to the person referred.
+      const referralsLeft = Math.floor(ref.balance / 1.5);
+      document.getElementById('bRefLeft').textContent = referralsLeft;
+      // Say so before it runs out. An empty wallet stops paying bonuses
+      // silently, and the merchant would otherwise only find out by looking.
+      const low = document.getElementById('refWalletLow');
+      if (ref.toppedUp > 0 && referralsLeft === 0) {
+        low.textContent = 'Your referral wallet is empty — no bonuses are being paid. Top up to start them again.';
+        low.hidden = false;
+      } else if (ref.toppedUp > 0 && referralsLeft <= 5) {
+        low.textContent = `Running low — enough for ${referralsLeft} more referral${referralsLeft === 1 ? '' : 's'}.`;
+        low.hidden = false;
+      } else {
+        low.hidden = true;
+      }
       const list = document.getElementById('txnList');
       if (!b.transactions.length) {
         list.innerHTML = '<div class="txn-empty">No transactions yet. Add credit to fund your cashback.</div>';
@@ -1488,17 +2210,28 @@
         const when = new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         const isTop = t.kind === 'topup';
         const icon = isTop ? 'ico-cash' : 'ico-receipt';
+        const tag = t.wallet === 'referral' ? ' · Referral wallet' : '';
         const amt = (t.amount >= 0 ? '+£' : '−£') + fmtMoney(Math.abs(t.amount));
         return `<div class="txn-row">
              <div class="txn-main">
                <div class="txn-dot ${isTop ? 'topup' : 'cashback'}"><i class="ico ${icon}"></i></div>
-               <div><div class="txn-desc">${escapeHtml(t.description)}</div><div class="txn-when">${when}</div></div>
+               <div><div class="txn-desc">${escapeHtml(t.description)}</div><div class="txn-when">${when}${tag}</div></div>
              </div>
              <div class="txn-amt ${isTop ? 'pos' : ''}">${amt}</div>
            </div>`;
       }).join('');
     }
-    function openTopup() {
+    // Which wallet the open modal is filling. The server validates it too —
+    // crediting the wrong pot would be a real accounting error, not a cosmetic one.
+    let topupWallet = 'cashback';
+    function openTopup(wallet) {
+      topupWallet = wallet === 'referral' ? 'referral' : 'cashback';
+      const referral = topupWallet === 'referral';
+      document.getElementById('topupTitle').textContent =
+        referral ? 'Add referral credit' : 'Add credit';
+      document.getElementById('topupSub').textContent = referral
+        ? "Top up your referral wallet — it funds the £1 bonus paid each time a member refers someone to your deals. You'll pay by card on our secure Stripe checkout."
+        : "Top up your prepaid balance. You'll be taken to our secure Stripe checkout to pay by card.";
       document.getElementById('topupErr').textContent = '';
       document.getElementById('topupAmount').value = '';
       document.getElementById('quoteBox').classList.remove('on');
@@ -1514,11 +2247,11 @@
       const amount = parseFloat(document.getElementById('topupAmount').value);
       if (!amount || amount <= 0) { box.classList.remove('on'); return; }
       try {
-        const res = await fetch(`${API}/merchant/billing/quote?amount=${amount}`, { headers: authHeader() });
+        const res = await fetch(`${API}/merchant/billing/quote?amount=${amount}&wallet=${topupWallet}`, { headers: authHeader() });
         if (!res.ok) { box.classList.remove('on'); return; }
         const q = await res.json();
         box.innerHTML = `
-          <div class="quote-row"><span>Credit added to your balance</span><span>${gbp(q.credit.toFixed(2))}</span></div>
+          <div class="quote-row"><span>Credit added to your ${topupWallet === 'referral' ? 'referral wallet' : 'balance'}</span><span>${gbp(q.credit.toFixed(2))}</span></div>
           ${q.fee > 0
             ? `<div class="quote-row"><span>Platform fee (${Math.round(q.feeRate * 100)}% past your allowance)</span><span>${gbp(q.fee.toFixed(2))}</span></div>`
             : `<div class="quote-row"><span>Within your fee-free allowance</span><span>No fee</span></div>`}
@@ -1547,7 +2280,7 @@
       try {
         const res = await fetch(`${API}/merchant/billing/checkout`, {
           method: 'POST', headers: { ...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount }),
+          body: JSON.stringify({ amount, wallet: topupWallet }),
         });
         if (res.status === 401) { signOut(); return; }
         if (!res.ok) {

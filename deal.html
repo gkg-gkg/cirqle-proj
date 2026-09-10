@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     .deal-page { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: clamp(28px,4vw,44px) clamp(20px,4vw,44px) 90px; }
 
@@ -148,7 +148,7 @@
           </div>
           <div class="how-step">
             <span class="coin">4</span>
-            <p class="how-text"><strong>Post on social</strong> about your purchase and tag both <strong>@cirqle</strong> and <strong id="tagBrand">the brand</strong> in your caption — that's how we match your post to this deal and unlock your cashback.</p>
+            <p class="how-text"><strong>Share it</strong> — post about your purchase tagging both <strong>@cirqle</strong> and <strong id="tagBrand">the brand</strong> in your caption. That's how we match the purchase to this deal and unlock your cashback. Bought after a friend's post? Enter their Instagram handle when you upload your receipt and you both earn.</p>
           </div>
         </div>
       </div>
@@ -163,7 +163,7 @@
             <div class="cashback-total" id="totalPaid">£112,705 paid to members</div>
             <button class="btn btn-lg btn-ink shop-big-btn" id="shopBtn" onclick="handleShop()">Shop &amp; Earn</button>
             <button class="btn save-btn" onclick="handleSave()">Save deal</button>
-            <div class="action-note">Opens the brand's website in a new tab. Shop as normal, then post to unlock your cashback.</div>
+            <div class="action-note">Opens the brand's website in a new tab. Shop as normal, then share to unlock your cashback.</div>
           </div>
 
           <div class="stat-mini-row">
@@ -297,7 +297,7 @@
         cirqleToast(`Opening ${d.brand} in a new tab — shop as normal`);
         window.open(d.brandUrl, '_blank', 'noopener');
       } else {
-        cirqleToast(`Shop ${d.brand} as normal, then post to unlock cashback`);
+        cirqleToast(`Shop ${d.brand} as normal, then share to unlock cashback`);
       }
     }
     function handleSave() {

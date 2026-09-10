@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     /* Receipt lifecycle accents (chips carry a coloured status dot) */
     :root { --st-review: #E6892B; --st-done: #2E9E5A; }
@@ -45,7 +45,7 @@
     @media (max-width: 640px) { .refresh-area { align-items: flex-start; } .refresh-note { text-align: left; } }
     .feed-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.9rem,4vw,2.9rem); letter-spacing: -0.03em; line-height: 1.05; }
     .feed-sub { font-size: .95rem; color: var(--ink-soft); font-weight: 500; margin: 6px 0 0; }
-    .feed-meta { margin: 16px 0 28px; min-height: 18px; }
+    .feed-meta { margin: 16px 0 28px; min-height: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
     .feed-updated { font-size: .78rem; font-weight: 600; color: var(--ink-soft); }
 
     .feed-input {
@@ -165,7 +165,12 @@
         <div class="refresh-note">Just posted? It can take up to <strong>15 minutes</strong> for a post to appear here.</div>
       </div>
     </div>
-    <div class="feed-meta"><span class="feed-updated" id="feedUpdated"></span></div>
+    <div class="feed-meta">
+      <span class="feed-updated" id="feedUpdated"></span>
+      <!-- Been back somewhere without posting about it? That trip earns too,
+           and it's the only way we ever learn a customer is a regular. -->
+      <a class="btn btn-sm btn-ink" href="receipt.html">Log a repeat visit</a>
+    </div>
     <div class="feed-list" id="feedList"></div>
   </div>
 

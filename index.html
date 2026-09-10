@@ -3,214 +3,436 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#FFFFFF" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
-  <title>Cirqle — Shop. Post. Earn Cashback.</title>
+  <meta name="theme-color" content="#38B6FF" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%2338B6FF' stroke-width='12'/%3E%3C/svg%3E" />
+  <title>Cirqle — Shop. Share. Get Paid.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=8" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
-    /* ── Page-specific: HERO ── */
+    /* ── HERO ── */
     .hero {
       position: relative; z-index: 1;
-      max-width: 1140px; margin: 0 auto;
-      padding: clamp(48px, 7vw, 96px) clamp(20px, 4vw, 44px) clamp(32px, 4vw, 52px);
-      display: grid; grid-template-columns: 1.15fr .85fr;
-      gap: clamp(32px, 5vw, 72px);
-      align-items: center;
+      /* Wide enough that "Shop. Share." still holds one line at the
+         larger size — the markup's <br> is what sets the two-line shape. */
+      max-width: 980px; margin: 0 auto;
+      /* The band bottom-aligns its contents, so this bottom padding is the only
+         thing holding the copy up off the foot of the wall. */
+      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(150px, 14vw, 214px);
+      text-align: center;
     }
-    .hero > div:not(.dots) { position: relative; z-index: 1; }
-    .hero .dots { position: absolute; inset: 0; z-index: 0; }
-    /* soft drifting glow fields behind the hero — movement without colour */
-    .hero-blob {
-      position: absolute; border-radius: 50%;
-      background: radial-gradient(circle, var(--blue-glow), transparent 70%);
-      pointer-events: none; z-index: 0;
+    .hero > div { position: relative; z-index: 3; }
+    /* ── Hero photo wall ──
+       The band is the full-width element, so the wall needs no 100vw trick —
+       which would otherwise overflow by the scrollbar's width. Sits under a
+       scrim strong enough to keep near-black type readable over any frame. */
+    .hero-band {
+      position: relative; overflow: hidden;
+      /* The band has to be taller than the copy for the copy to sit low in it —
+         otherwise "bottom" and "middle" are the same place. The wall fills the
+         band, so this is also what decides how much wall there is. */
+      min-height: 96vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      /* Secondary copy sits over photography here, not flat white. The default
+         --ink-soft (#64748B) measures 3.98:1 against the scrimmed wall, which
+         fails AA, so the token is darkened for this band only. Since the copy
+         moved down onto the livelier part of the wall, #455668 was itself
+         bottoming out at 4.27:1 on the darkest frames — hence one step further. */
+      --ink-soft: #3B4A58;
     }
-    .blob-a { width: 460px; height: 460px; top: -100px; right: 4%; animation: blobDrift 22s ease-in-out infinite alternate; }
-    .blob-b { width: 380px; height: 380px; bottom: -140px; left: -80px; animation: blobDrift 27s ease-in-out -9s infinite alternate-reverse; }
-    @keyframes blobDrift {
-      from { transform: translate(0, 0) scale(1); }
-      to   { transform: translate(44px, 30px) scale(1.14); }
+    .hero-wall, .hero-scrim { position: absolute; inset: 0; pointer-events: none; }
+    .hero-wall { z-index: 0; }
+    .hw-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; height: 100%; padding: 0 8px; }
+    .hw-col { display: flex; flex-direction: column; gap: 12px; }
+    .hw-col:nth-child(2n) { transform: translateY(-7%); }
+    .hw-col:nth-child(3n) { transform: translateY(4%); }
+    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: saturate(1.2) contrast(.97); }
+    .hero-scrim {
+      z-index: 1;
+      /* A real vignette: a bright pool behind the copy falling off to a dark
+         edge. The photos keep their colour — the vignette and the scrim are
+         what hold them back, rather than draining them. */
+      background:
+        /* Topmost layer, and the reason it is first: the vignette below ends on
+           rgba(18,28,42,.16), so it darkens the foot of the band and the linear
+           fade underneath can never reach the page colour. Without this the join
+           to the section below steps by ~29 levels — a visible seam. */
+        linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
+        radial-gradient(105% 64% at 50% 56%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%);
     }
-    /* the "paid" highlight draws itself in like a marker stroke */
+    @media (max-width: 900px) {
+      .hw-grid { grid-template-columns: repeat(4, 1fr); }
+      /* The bright pool over the copy is unchanged — it is what keeps the
+         near-black headline readable over photography. Only the bottom fade
+         moves: in a taller band the old 88% stop whited out a big block of
+         wall, so it starts later and lighter and the photos hold on further. */
+      .hero-scrim { background:
+        linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
+        radial-gradient(130% 66% at 50% 56%, rgba(255,255,255,.93) 0%, rgba(255,255,255,.84) 56%, rgba(18,28,42,.16) 100%),
+        linear-gradient(180deg, rgba(18,28,42,.08) 0%, rgba(255,255,255,.26) 45%, rgba(255,255,255,.30) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%); }
+    }
+    /* the marker sweep: ink type on a solid neon bar */
     .hero-h .hl {
-      background: linear-gradient(var(--blue-tint), var(--blue-tint)) no-repeat 0 0 / 0% 100%;
+      background: linear-gradient(var(--neon), var(--neon)) no-repeat 0 54% / 0% 46%;
+      color: var(--ink); padding: 0 4px;
       animation: hlSweep .8s var(--snap) .5s forwards;
     }
-    @keyframes hlSweep { to { background-size: 100% 100%; } }
-    /* primary CTA breathes a soft glow */
+    @keyframes hlSweep { to { background-size: 100% 46%; } }
     .hero-actions .btn-lime { animation: ctaPulse 3.4s ease-in-out 1.4s infinite; }
     @keyframes ctaPulse {
-      0%, 100% { box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.18); }
-      50% { box-shadow: 0 8px 26px rgba(53,99,127,.34), 0 0 0 7px rgba(67,125,158,.09), inset 0 1px 0 rgba(255,255,255,.18); }
-    }
-    /* wallet: pointer tilt (JS feeds the transform) + periodic cashback ping */
-    .wallet-phone { transition: transform .35s var(--snap); will-change: transform; }
-    .wp-item.ping { animation: itemPing 1.5s var(--snap); }
-    @keyframes itemPing {
-      0% { box-shadow: 0 0 0 0 rgba(67,125,158,.32); }
-      65% { box-shadow: 0 0 0 9px rgba(67,125,158,0); }
-      100% { box-shadow: 0 0 0 0 rgba(67,125,158,0); }
+      0%, 100% { box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.35); }
+      50% { box-shadow: 0 8px 30px rgba(56,182,255,.55), 0 0 0 8px rgba(56,182,255,.10), inset 0 1px 0 rgba(255,255,255,.35); }
     }
     .hero-h {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: clamp(2.6rem, 6vw, 4.6rem);
-      line-height: 1.04;
-      letter-spacing: -0.035em;
-      margin: 22px 0 20px;
+      font-family: var(--font-display); font-weight: 700;
+      font-size: clamp(3.2rem, 7.6vw, 6rem); line-height: 1.02;
+      letter-spacing: -0.035em; margin: 22px 0 20px;
     }
-    .hero-sub { font-size: clamp(1rem, 1.7vw, 1.15rem); color: var(--ink-soft); max-width: 480px; line-height: 1.7; margin-bottom: 34px; }
-    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-    .hero-proof { display: flex; align-items: center; gap: 12px; margin-top: 30px; }
-    .proof-faces { display: flex; }
-    .proof-face {
-      width: 38px; height: 38px; border-radius: 50%;
-      border: var(--bw) solid var(--line);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; margin-right: -10px;
-    }
-    .proof-text { font-size: .82rem; font-weight: 600; color: var(--ink-soft); }
-    .proof-text b { color: var(--ink); }
+    .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 700px; margin: 0 auto 22px; line-height: 1.7; }
+    /* --blue is the only blue that passes as text (4.80:1); --neon would not. */
+    .hero-jump { color: var(--blue); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid rgba(0,114,214,.38); transition: border-color .18s var(--snap); }
+    .hero-jump:hover { border-bottom-color: var(--blue); }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center; }
+    .hero-actions .btn-lg { font-size: .94rem; padding: 12px 24px; }
 
-    /* wallet phone */
-    .hero-visual { position: relative; display: flex; justify-content: center; }
-    .wallet-phone {
-      width: min(310px, 80vw);
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 26px;
-      box-shadow: var(--shadow-lg);
-      padding: 18px;
-      position: relative; z-index: 2;
-    }
-    .wp-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .wp-hello { font-size: .76rem; font-weight: 600; color: var(--ink-soft); }
-    .wp-balance-card {
-      background: var(--blue);
-      color: #fff;
-      border-radius: 16px;
-      padding: 16px 18px;
-      margin-bottom: 12px;
-    }
-    .wp-balance-label { font-size: .62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; opacity: .8; }
-    .wp-balance { font-family: var(--font-display); font-weight: 700; font-size: 2.2rem; letter-spacing: -0.03em; line-height: 1.15; }
-    .wp-balance-up { font-size: .72rem; font-weight: 600; color: rgba(255,255,255,.85); }
-    .wp-item {
-      display: flex; align-items: center; gap: 10px;
-      border: 1px solid var(--line); border-radius: 12px;
-      padding: 10px 12px; margin-bottom: 9px;
+    /* ── Cashback calculator ── */
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
+    .calc-card { padding: 28px; }
+    .calc-row { margin-bottom: 20px; }
+    .calc-label { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: .82rem; font-weight: 600; margin-bottom: 9px; }
+    .calc-label em { font-style: normal; color: var(--ink-soft); font-weight: 500; }
+    .calc-label b { font-family: var(--font-display); font-size: 1.05rem; }
+    .calc-range { width: 100%; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--blue-tint); outline: none; }
+    .calc-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(56,182,255,.55); cursor: pointer; }
+    .calc-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--neon); border: 3px solid #fff; box-shadow: 0 2px 10px rgba(56,182,255,.55); cursor: pointer; border-width: 3px; }
+    .calc-cats { display: flex; flex-wrap: wrap; gap: 7px; }
+    .calc-cat { font-size: .78rem; font-weight: 600; padding: 7px 13px; border-radius: 7px; border: 1px solid var(--line); background: var(--paper); cursor: pointer; transition: all .18s var(--snap); color: var(--ink); }
+    .calc-cat:hover { border-color: var(--neon-line); }
+    .calc-cat[aria-pressed="true"] { background: var(--neon); border-color: transparent; color: #0B1220; box-shadow: 0 3px 12px rgba(56,182,255,.4); }
+    .calc-out { background: linear-gradient(140deg, var(--neon-soft), var(--neon)); border-radius: 16px; padding: 22px 24px; color: #0B1220; box-shadow: 0 12px 30px rgba(56,182,255,.36); }
+    .calc-out-label { font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.3px; opacity: .8; }
+    .calc-out-val { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.2rem,5vw,3rem); letter-spacing: -.035em; line-height: 1.1; }
+    .calc-out-sub { font-size: .8rem; font-weight: 500; color: rgba(11,18,32,.75); margin-top: 4px; }
+    .calc-note { font-size: .74rem; color: var(--ink-soft); margin-top: 14px; line-height: 1.55; }
+
+    /* ── Tinted bands ──
+       The carousel sits on a blue band so the tiles read as cards on a surface;
+       the review wall gets a paler one so the two don't compete. */
+    .band {
+      /* Tint off for now — the carousel sits straight on the page. The hairline
+         borders went with it: on a white band against a white page they read as
+         stray blue lines rather than an edge. */
       background: var(--paper);
+      padding-top: clamp(60px, 6.5vw, 96px);
+      padding-bottom: clamp(44px, 5.4vw, 84px);
     }
-    .wp-item-icon {
-      width: 34px; height: 34px; border-radius: 50%;
-      background: var(--paper-deep);
-      display: flex; align-items: center; justify-content: center; font-size: .95rem; flex-shrink: 0;
+    .band-soft {
+      background: linear-gradient(180deg, #F9FCFE 0%, #F0F7FC 50%, #F9FCFE 100%);
+      border-top: 1px solid rgba(56,182,255,.16);
+      border-bottom: 1px solid rgba(56,182,255,.16);
     }
-    .wp-item-name { font-size: .76rem; font-weight: 600; line-height: 1.25; }
-    .wp-item-sub { font-size: .64rem; color: var(--ink-soft); font-weight: 500; }
-    .wp-item-cash { margin-left: auto; font-family: var(--font-display); font-weight: 700; font-size: .88rem; color: var(--blue-deep); }
+    .band > .hcar { margin-left: calc(-1 * clamp(18px, 4vw, 44px)); margin-right: calc(-1 * clamp(18px, 4vw, 44px)); }
+    /* the steps follow the band closely — they're the same idea continued */
+    #steps { padding-top: clamp(50px, 6.2vw, 96px); padding-bottom: clamp(26px, 3.2vw, 44px); }
 
-    /* ── Stats row ── */
-    .stats-strip { max-width: 1140px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) clamp(56px,7vw,90px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; position: relative; z-index: 1; }
-    .stat-card { text-align: center; padding: 26px 14px; }
-    .stat-num { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.9rem, 3.4vw, 2.6rem); letter-spacing: -0.03em; line-height: 1; display: block; }
-    .stat-label { font-size: .82rem; font-weight: 500; color: var(--ink-soft); margin-top: 8px; display: block; }
+    /* ── Share → paid carousel (horizontal) ──
+       Two modes, and the JS picks one so markup and behaviour can't disagree:
+       `.run` is the desktop auto-marquee, `.swipe` is a strip you scroll
+       yourself. Neither is on until the tiles exist — a marquee started on an
+       empty row is already part-way through its cycle when the catalogue
+       lands, which is why it used to appear mid-jump. */
+    .hcar { display: flex; flex-direction: column; gap: 18px; overflow: hidden; min-height: 412px;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
+    .hcar-row { display: flex; gap: 14px; width: max-content; }
+    .hcar.run .hcar-row { will-change: transform; }
+    .hcar.run .r1 { animation: slideL 46s linear infinite; }
+    .hcar.run .r2 { animation: slideR 58s linear infinite; }
+    /* translate3d, not translateX: it keeps the row on its own compositor
+       layer so the scroll and the marquee don't fight over the main thread. */
+    @keyframes slideL { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
+    @keyframes slideR { from { transform: translate3d(-50%,0,0); } to { transform: translate3d(0,0,0); } }
 
-    /* ── How it works ── */
-    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-    .step-card { padding: 34px 26px 30px; }
-    .step-title { font-size: 1.35rem; font-weight: 700; margin: 16px 0 10px; }
-    .step-desc { font-size: .9rem; color: var(--ink-soft); line-height: 1.7; }
+    /* Reduced motion only: a still strip the reader scrolls by hand. */
+    .hcar.swipe {
+      overflow-x: auto; overflow-y: hidden; min-height: 0; gap: 0;
+      padding: 2px clamp(18px, 4vw, 44px) 6px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      scroll-snap-type: x proximity;
+      -webkit-mask-image: none; mask-image: none;
+    }
+    .hcar.swipe::-webkit-scrollbar { display: none; }
+    .hcar.swipe .r2 { display: none; }
+    .hcar.swipe .htile { scroll-snap-align: center; }
+    .htile { width: 218px; flex-shrink: 0; border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid #fff; box-shadow: var(--shadow-sm); }
+    .htile-shot { height: 104px; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; border-bottom: 1px solid var(--line-soft); overflow: hidden; }
+    /* The panel is painted the logo's own background colour (sampled from the
+       file's border pixels), so a contained logo reads as filling the whole
+       panel rather than floating in a box. */
+    /* The mark sits in the panel rather than being scaled to fill it. At the
+       old size a 128px file had to cover ~220 device pixels on a phone; inset
+       like this it covers ~150, so the PNGs that have no vector stay crisp. */
+    .htile-img { width: 100%; height: 100%; object-fit: contain; display: block; padding: 17px 26px; }
+    .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 7px; background: rgba(255,255,255,.92); color: var(--ink); }
+    .htile-body { padding: 12px 13px 13px; }
+    .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
+    .htile-cap { font-size: .68rem; color: var(--ink-soft); margin-top: 3px; }
+    .htile-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+    .htile-rate { font-size: .64rem; font-weight: 700; padding: 4px 9px; border-radius: 7px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+    .htile-amt { font-family: var(--font-display); font-weight: 700; font-size: .88rem; }
+    /* Six tile treatments, matching the review wall. The logo panel always
+       stays light — most brand marks are dark and would vanish on a blue fill. */
+    .htile.t1 { background: #F4FAFD; }
+    .htile.t2 { background: #E2F0F9; }
+    .htile.t3 { background: linear-gradient(150deg, #A5E4FF, #66D4FF); box-shadow: 0 8px 22px rgba(56,182,255,.30); }
+    .htile.t4 { background: linear-gradient(150deg, #66D4FF, #38B6FF); box-shadow: 0 10px 26px rgba(56,182,255,.40); }
+    .htile.t5 { background: linear-gradient(150deg, #2F97E8, #0F6FCC); box-shadow: 0 10px 26px rgba(15,111,204,.34); }
+    .htile.t3 .htile-cap, .htile.t4 .htile-cap { color: rgba(11,18,32,.72); }
+    .htile.t3 .htile-foot, .htile.t4 .htile-foot { border-top-color: rgba(11,18,32,.18); }
+    .htile.t3 .htile-rate, .htile.t4 .htile-rate { background: rgba(11,18,32,.16); color: #0B1220; border-color: rgba(11,18,32,.24); }
+    .htile.t5 .htile-brand, .htile.t5 .htile-amt { color: #fff; }
+    .htile.t5 .htile-cap { color: rgba(255,255,255,.88); }
+    .htile.t5 .htile-foot { border-top-color: rgba(255,255,255,.28); }
+    .htile.t5 .htile-rate { background: rgba(255,255,255,.20); color: #fff; border-color: rgba(255,255,255,.38); }
+    .htile.paid .htile-state { background: rgba(11,18,32,.85); color: var(--neon-soft); }
 
-    /* ── Features / wallet demo ── */
-    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
-    .feature-row { display: flex; gap: 16px; align-items: flex-start; padding: 16px 18px; border-radius: 14px; border: 1px solid transparent; transition: all .2s var(--snap); }
-    .feature-row:hover { border-color: var(--line); background: var(--card); box-shadow: var(--shadow-sm); }
-    .feature-title { font-size: 1rem; font-weight: 600; margin-bottom: 3px; }
-    .feature-desc { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; }
-
-    .demo-card { padding: 26px; }
-    .demo-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .demo-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
-    .demo-chart { display: flex; align-items: flex-end; gap: 9px; height: 120px; margin-bottom: 20px; padding-top: 20px; }
-    .demo-bar { flex: 1; border-radius: 6px 6px 0 0; position: relative; min-height: 12px; transform-origin: bottom; animation: growBar .8s var(--snap) both; }
-    .demo-bar::after { content: attr(data-val); position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: .62rem; font-weight: 600; color: var(--ink-soft); }
-    @keyframes growBar { from { transform: scaleY(0); } }
-    .demo-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .demo-metric { border: 1px solid var(--line); border-radius: 12px; padding: 12px 8px; text-align: center; background: var(--paper); }
-    .demo-metric-val { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
-    .demo-metric-label { font-size: .6rem; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); margin-top: 2px; }
-    .goal-float { position: absolute; bottom: -18px; right: -12px; }
-
-    /* ── Testimonials ── */
-    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-    .testi-card { padding: 28px 24px 24px; }
-    .testi-stars { font-size: .9rem; letter-spacing: 2px; margin-bottom: 14px; }
-    .testi-text { font-size: .92rem; line-height: 1.7; margin-bottom: 20px; font-weight: 400; color: var(--ink); }
-    .testi-author { display: flex; align-items: center; gap: 12px; }
-    .testi-avatar {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: var(--blue-tint); color: var(--blue-deep);
+    /* ── The cycle: three white tiles, each a phone doing the step ──
+       The phones are drawn in CSS rather than screenshotted, so they stay sharp
+       and restyle with the palette. */
+    .cycle { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 2.6vw, 28px); }
+    .cyc { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 18px 24px; box-shadow: var(--shadow); }
+    .cyc-stage {
+      position: relative; height: 250px; border-radius: 14px; overflow: hidden;
+      background: linear-gradient(160deg, #EEF5FB 0%, #DDEDF8 100%);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .cyc:nth-child(2) .cyc-stage { background: linear-gradient(160deg, #E9F3FA 0%, #CAE4F4 100%); }
+    .cyc:nth-child(3) .cyc-stage { background: linear-gradient(160deg, #E2F0F9 0%, #B1D8EF 100%); }
+    .cyc-n {
+      position: absolute; top: 12px; left: 12px; z-index: 2; width: 30px; height: 30px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; flex-shrink: 0;
+      font-family: var(--font-display); font-weight: 700; font-size: .84rem; color: #0B1220;
+      background: #fff; box-shadow: 0 3px 10px rgba(11,18,32,.18);
     }
-    .testi-name { font-size: .88rem; font-weight: 600; }
-    .testi-role { font-size: .76rem; color: var(--ink-soft); font-weight: 400; }
+    .cyc-t { font-family: var(--font-display); font-size: 1.24rem; font-weight: 700; letter-spacing: -.025em; margin: 18px 0 6px; }
+    .cyc-d { font-size: .89rem; color: var(--ink-soft); line-height: 1.6; margin: 0; }
+
+    /* The way through to the full explanation, under the three tiles. */
+    .steps-more { text-align: center; margin-top: clamp(26px, 3.4vw, 38px); }
+
+    /* phone */
+    .ph {
+      width: 142px; border-radius: 20px 20px 0 0; background: #0B1220;
+      padding: 7px 7px 0; margin-bottom: -14px;
+      box-shadow: 0 -2px 30px rgba(11,18,32,.22);
+    }
+    .ph-screen {
+      background: #fff; border-radius: 14px 14px 0 0; padding: 9px 8px 14px;
+      display: flex; flex-direction: column; gap: 6px; min-height: 210px;
+    }
+    .ph-notch { width: 40px; height: 4px; border-radius: 99px; background: #33405A; margin: 0 auto 6px; }
+    .ps-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .ps-brand { font-family: var(--font-display); font-weight: 700; font-size: .6rem; color: var(--ink); }
+    .ps-chip { font-size: .5rem; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: var(--neon); color: #0B1220; }
+    .ps-img { width: 100%; border-radius: 8px; object-fit: cover; display: block; height: 78px; }
+    .ps-img.tall { height: 92px; }
+    .ps-line { height: 5px; border-radius: 99px; background: #E4EBF2; display: block; }
+    .ps-line.w70 { width: 70%; } .ps-line.w45 { width: 45%; } .ps-line.w50 { width: 50%; } .ps-line.w40 { width: 40%; }
+    .ps-cap { font-size: .52rem; color: var(--ink-soft); line-height: 1.4; }
+    .ps-cap b { color: var(--blue); }
+    .ps-btn {
+      margin-top: auto; text-align: center; font-family: var(--font-display); font-weight: 700;
+      font-size: .58rem; color: #0B1220; padding: 6px; border-radius: 7px;
+      background: linear-gradient(180deg, var(--neon-soft), var(--neon));
+    }
+    .ps-bal { background: linear-gradient(140deg, var(--neon-soft), var(--neon)); border-radius: 9px; padding: 8px 9px; color: #0B1220; }
+    .ps-bal span { display: block; font-size: .45rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+    .ps-bal b { font-family: var(--font-display); font-size: .95rem; letter-spacing: -.02em; }
+    .ps-row { display: flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 8px; padding: 5px 6px; min-width: 0; }
+    .ps-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--blue-tint); flex-shrink: 0; }
+    .ps-amt { margin-left: auto; font-family: var(--font-display); font-size: .55rem; color: var(--ink); white-space: nowrap; }
+    @media (max-width: 780px) {
+      /* Stacked, these were three full screens of scrolling to read three
+         short paragraphs. As a snapped strip they're one flick apart, and the
+         next tile's edge showing is what says it can be flicked. Full-bleed to
+         both screen edges, with the section's own padding put back as scroll
+         padding so the first tile still lines up with the heading above it. */
+      .cycle {
+        display: flex; gap: 14px;
+        overflow-x: auto; overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        margin: 0 calc(-1 * clamp(20px, 4vw, 44px));
+        padding: 4px clamp(20px, 4vw, 44px) 10px;
+      }
+      .cycle::-webkit-scrollbar { display: none; }
+      /* Not 100%: the sliver of the next card is the affordance. */
+      .cyc { flex: 0 0 84%; min-width: 0; scroll-snap-align: center; }
+    }
+
+    /* ── Review wall — small avatar, quote, rating ── */
+    .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 500px; overflow: hidden; position: relative;
+      -webkit-mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
+      mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent); }
+    .pw-col { display: flex; flex-direction: column; gap: 14px; will-change: transform; }
+    .pw-col.k1 { animation: wallUp 50s linear infinite; }
+    .pw-col.k2 { animation: wallDn 62s linear infinite; }
+    .pw-col.k3 { animation: wallUp 44s linear infinite; }
+    @keyframes wallUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+    @keyframes wallDn { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+    .rv { border-radius: 14px; padding: 15px 16px 14px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
+    .rv:nth-child(3n+1) { transform: rotate(-.8deg); }
+    .rv:nth-child(3n+2) { transform: rotate(.6deg); }
+    .rv-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+    .rv-stars { color: #0090E8; font-size: .74rem; letter-spacing: 2px; }
+    /* Brand mark: logos vary wildly in aspect, so contain them and let the white
+       disc take up the slack — scaled to the badge, never cropped or stretched. */
+    .rv-brand {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      background: #fff; border: 1px solid var(--line); padding: 4px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .rv-brand img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; }
+    .rv-txt { font-size: .84rem; line-height: 1.6; color: var(--ink); margin: 0 0 13px; }
+    .rv-foot { display: flex; align-items: center; gap: 9px; }
+    .rv-av { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; object-fit: cover; display: block; border: 1.5px solid rgba(56,182,255,.5); }
+    .rv-who { font-family: var(--font-display); font-size: .77rem; font-weight: 700; line-height: 1.2; }
+    .rv-where { font-size: .68rem; color: var(--ink-soft); }
+    .rv-amt { margin-left: auto; font-family: var(--font-display); font-weight: 700; font-size: .82rem; white-space: nowrap; }
+    /* Six tile treatments so the wall isn't just white and one blue. Every
+       combination below was contrast-checked against its text colour. */
+    .rv.v1 { background: #F4FAFD; border-color: rgba(56,182,255,.26); }
+    .rv.v2 { background: #E2F0F9; border-color: rgba(56,182,255,.38); }
+    .rv.v3 { background: linear-gradient(150deg, #A5E4FF, #66D4FF); border-color: transparent; box-shadow: 0 8px 24px rgba(56,182,255,.30); }
+    .rv.v4 { background: linear-gradient(150deg, #66D4FF, #38B6FF); border-color: transparent; box-shadow: 0 8px 26px rgba(56,182,255,.40); }
+    .rv.v5 { background: linear-gradient(150deg, #2F97E8, #0F6FCC); border-color: transparent; box-shadow: 0 8px 26px rgba(15,111,204,.34); }
+    .rv.v5 .rv-txt, .rv.v5 .rv-who, .rv.v5 .rv-amt { color: #fff; }
+    .rv.v5 .rv-where { color: rgba(255,255,255,.88); }
+    .rv.v5 .rv-stars { color: #A5E4FF; }
+    .rv.v5 .rv-av { border-color: rgba(255,255,255,.5); }
+    .disclaim { font-size: .76rem; color: var(--ink-soft); text-align: center; margin-top: 20px; line-height: 1.6; }
 
     /* ── Big CTA ── */
     .cta-slab { padding: clamp(48px, 6vw, 80px) clamp(24px, 5vw, 64px); text-align: center; overflow: hidden; position: relative; }
-    .cta-slab > :not(.cta-orbit):not(.cta-ring) { position: relative; z-index: 1; }
-    /* slow counter-rotating dashed rings behind the dark CTA */
-    .cta-ring {
-      position: absolute; width: 560px; height: 560px;
-      top: 50%; left: 50%; margin: -280px 0 0 -280px;
-      border-radius: 50%;
-      border: 1.5px dashed rgba(255,255,255,.13);
-      animation: spin 70s linear infinite;
-      pointer-events: none;
-    }
-    .cta-ring::before {
-      content: ''; position: absolute; inset: 70px;
-      border-radius: 50%;
-      border: 1.5px dashed rgba(255,255,255,.09);
-      animation: spin 50s linear infinite reverse;
-    }
+    .cta-slab > * { position: relative; z-index: 1; }
     .cta-slab .h-display { color: #fff; }
-    .cta-slab .hl-lime { color: #fff; background: rgba(255,255,255,.14); }
-    .cta-sub { color: rgba(255,255,255,.66); font-size: 1.02rem; margin: 18px auto 34px; max-width: 460px; }
-    /* concentric cirqle rings glowing softly behind the CTA copy */
-    .cta-orbit {
-      position: absolute; top: 50%; left: 50%;
-      width: 640px; height: 640px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background: repeating-radial-gradient(circle at center, rgba(255,255,255,.07) 0 1px, transparent 1px 52px);
-      -webkit-mask-image: radial-gradient(circle at center, #000 25%, transparent 70%);
-      mask-image: radial-gradient(circle at center, #000 25%, transparent 70%);
-      pointer-events: none;
-    }
-
+    .cta-slab .hl { background: var(--neon); color: #0B1220; padding: 0 6px; }
+    .cta-sub { color: rgba(255,255,255,.7); font-size: 1.02rem; margin: 18px auto 34px; max-width: 460px; }
     @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; text-align: center; padding-top: 40px; }
-      .hero-sub, .hero-proof, .hero-actions { margin-left: auto; margin-right: auto; justify-content: center; }
-      .hero-visual { margin-top: 22px; }
-      .hero-visual .floaty { display: none; }
-      .deco-coin2 { left: 0; } .deco-ring { right: 0; }
-      .stats-strip { grid-template-columns: repeat(2, 1fr); }
-      .steps-grid, .testi-grid { grid-template-columns: 1fr; }
+      /* The carousel goes back to a CSS transform — the same mechanism as the
+         review wall, which has always been the smooth one on a phone — and both
+         rows are cut down to fit: 6 tiles doubled at 150px each is a 1,920×169
+         layer per row. Two of those is less total animated area than the two
+         wall columns beside them. The old row was a single 4,600×215 slab, and
+         the scroll-driven version was a 9,300px scroller moved from JS every
+         frame; both were far past what a phone composites comfortably. */
+      .hcar { min-height: 0; gap: 10px; -webkit-mask-image: none; mask-image: none; }
+      .hcar-row { gap: 10px; }
+      .hcar.run .r1 { animation-duration: 26s; }
+      .hcar.run .r2 { animation-duration: 32s; }
+      .htile { width: 150px; }
+      .htile-shot { height: 76px; }
+      .htile-img { padding: 12px 18px; }
+      .htile-body { padding: 9px 10px 10px; }
+      .htile-brand { font-size: .78rem; }
+      .htile-cap { font-size: .62rem; }
+      .htile-foot { margin-top: 7px; padding-top: 7px; }
+      .htile-rate { font-size: .58rem; padding: 3px 7px; }
+      .htile-amt { font-size: .8rem; }
+      /* The wall shows two columns at this width. The third still existed on a
+         clipped second row, animating a 172×2500 layer nobody could see. */
+      .pw-col.k3 { display: none; }
+      .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(92px, 12vw, 140px); }
+      .steps { grid-template-columns: 1fr; gap: 30px; }
       .features-grid { grid-template-columns: 1fr; }
-      .goal-float { right: 6px; }
+      /* One column, and the note moves below the sliders and the category
+         chips — above them it was qualifying a figure the reader hadn't set
+         yet. `display: contents` is what lets a nested child be reordered
+         against its parent's sibling. */
+      /* The column's children are flex items now, so the desktop 28-56px gap
+         applied between all five of them and the block fell apart. */
+      .calc-grid { display: flex; flex-direction: column; gap: 16px; }
+      .calc-grid > div:first-child { display: contents; }
+      .calc-card { order: 2; }
+      .calc-note { order: 3; margin-top: 18px; }
+      .pwall { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 460px; }
     }
-    /* Phones: bigger headline, drop the side visual + proof line, keep tiles 2-up */
     @media (max-width: 600px) {
-      .hero-h { font-size: clamp(3.1rem, 14vw, 4.2rem); margin-top: 6px; }
-      .hero-proof { display: none; }
-      .hero-visual { display: none; }
-      .hero { padding-top: 28px; }
-      .stats-strip { grid-template-columns: 1fr 1fr; gap: 12px; }
+      /* The cards have to fit half a narrow screen, so the furniture shrinks
+         with them — otherwise the name and amount fight over one line. */
+      .pwall { gap: 10px; height: 420px; }
+      .rv { padding: 12px 12px 11px; border-radius: 12px; }
+      .rv:nth-child(3n+1), .rv:nth-child(3n+2) { transform: none; }
+      .rv-txt { font-size: .78rem; line-height: 1.5; margin-bottom: 10px; }
+      .rv-brand { width: 34px; height: 34px; }
+      .rv-foot { flex-wrap: wrap; gap: 6px; }
+      .rv-av { width: 26px; height: 26px; }
+      .rv-who { font-size: .72rem; }
+      .rv-where { font-size: .64rem; }
+      .rv-amt { font-size: .76rem; }
+      .hero-h { font-size: clamp(3rem, 15vw, 4.6rem); margin-top: 6px; }
+      .hero-sub { font-size: 1rem; margin-bottom: 26px; }
+      /* Copy rides at the top of the band on a phone, not the foot of it, so
+         the wall reads as something the page opens onto rather than a slab the
+         text is buried in. The band bottom-aligns by default — that is what
+         flex-start here is undoing, and it is why the bottom padding no longer
+         sets the position. */
+      .hero { padding-top: 22px; padding-bottom: 88px; }
+      .hero-actions { max-width: 400px; margin: 0 auto; }
+      .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
+      /* The wall is the whole point of this band on a phone; at the old height
+         it read as a stripe behind the headline rather than a wall. */
+      .hero-band {
+        /* Measured at 390px: the copy ends 321px down, and 96vh made the band
+           672px — twice what the design needs, so the wall ran on for half a
+           screen after the buttons. No viewport minimum any more: the band is
+           the copy plus the strip of wall under it, set by .hero's bottom
+           padding above. */
+        min-height: 0;
+        justify-content: flex-start;
+        /* Less white wash than before means less contrast under the secondary
+           copy, so the token this band already darkens goes one step further
+           again: #33414F measures 8.0:1 on the palest frames the sub now sits
+           over and holds AA on the darkest. */
+        --ink-soft: #33414F;
+      }
+      /* Lighter than the desktop scrim, and shaped differently: a tight pool
+         behind the copy at the top instead of a wash over everything, so the
+         photography keeps its own colour through the middle of the band. The
+         run to white is short and late — one decisive fade rather than a long
+         haze — so the foot of the wall meets the white page as a join rather
+         than a gradient anyone can see. */
+      /* Shaped around what the type actually needs, measured rather than
+         guessed: the wall has near-black frames in it (darkest pixel rgb 5,5,5
+         behind the headline), so the headline needs .40 white over it to clear
+         3:1 and the sub-headline .70 to clear 4.5:1. That is the whole budget.
+         Spend it where the words are — a light overall wash plus a soft pool
+         behind the sub only — and the top of the wall keeps its photography
+         instead of being bleached by a pool wide enough to cover everything.
+         All stops are px from an edge, so they hold wherever the copy reflows.
+
+         Everything below the copy runs to white over the last ~96px, landing
+         just under the buttons: no vivid slab of wall after the call to action,
+         and no long haze either. */
+      .hero-scrim { background:
+        linear-gradient(to top, #FFFFFF 0, rgba(255,255,255,.97) 20px, rgba(255,255,255,.60) 60px, rgba(255,255,255,0) 96px),
+        radial-gradient(120% 125px at 50% 205px, rgba(255,255,255,.66) 0%, rgba(255,255,255,.46) 60%, rgba(255,255,255,0) 100%),
+        linear-gradient(180deg, rgba(255,255,255,.40) 0px, rgba(255,255,255,.46) 160px, rgba(255,255,255,.50) 300px, rgba(255,255,255,.56) 100%); }
+      /* box-shadow cannot be composited, so this repainted the button on the
+         main thread every frame for as long as the page was open — competing
+         with the carousel for the same budget. */
+      .hero-actions .btn-lime { animation: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      /* Reduced motion gets the swipe strip too — handled by the script, which
+         reads the same preference. Wrapping the rows into a grid, as this used
+         to, just clipped them inside the fixed-height box. */
+      .hcar-row, .pw-col { animation: none !important; }
+      .pwall { height: auto; -webkit-mask-image: none; mask-image: none; }
     }
   </style>
 </head>
@@ -230,205 +452,138 @@
   </nav>
 
   <!-- ══ HERO ══ -->
+  <div class="hero-band">
+    <div class="hero-wall" aria-hidden="true">
+      <div class="hw-grid">
+        <div class="hw-col"><img src="assets/wall/w1.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w8.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w15.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w2.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w9.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w16.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w3.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w10.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w17.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w4.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w11.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w18.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w5.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w12.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w19.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w6.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w13.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w20.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w7.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w14.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w21.jpg" alt="" decoding="async" fetchpriority="low"></div>
+      </div>
+    </div>
+    <div class="hero-scrim" aria-hidden="true"></div>
   <header class="hero">
-    <div class="dots" aria-hidden="true"></div>
-    <span class="hero-blob blob-a" aria-hidden="true"></span>
-    <span class="hero-blob blob-b" aria-hidden="true"></span>
     <div>
-      <h1 class="hero-h fade-up d1">Get <span class="hl hl-lime">paid</span> to shop.<br>For real.</h1>
-      <p class="hero-sub fade-up d2">Buy from brands you already love, post it on your socials, and watch <span class="squiggle">actual money</span> land in your wallet. No points. No vouchers. Cash.</p>
-      <div class="hero-actions fade-up d3">
+      <h1 class="hero-h fade-up d1">Shop. Share.<br>Get <span class="hl">Paid</span>.</h1>
+      <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, and earn <span class="squiggle">real cash</span>, straight to your wallet. <a href="#calculator" class="hero-jump">Find out how much you could earn</a></p>
+      <div class="hero-actions btn-row fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
         <a href="signup.html" class="btn btn-lg">Sign up</a>
       </div>
-      <div class="hero-proof fade-up d4">
-        <div class="proof-faces">
-          <span class="proof-face" style="background:var(--blue)"><i class="ico ico-user ico-white"></i></span>
-          <span class="proof-face" style="background:var(--blue-deep)"><i class="ico ico-user ico-white"></i></span>
-          <span class="proof-face" style="background:var(--blue)"><i class="ico ico-user ico-white"></i></span>
-          <span class="proof-face" style="background:var(--blue-deep)"><i class="ico ico-user ico-white"></i></span>
-        </div>
-        <span class="proof-text"><b>£2M+ paid out</b> · rated 4.9★ by members</span>
-      </div>
     </div>
 
-    <div class="hero-visual fade-up d3">
-      <div class="orbit" aria-hidden="true" style="top:50%; left:50%; transform:translate(-50%,-50%)"></div>
-      <!-- Wallet phone -->
-      <div class="wallet-phone">
-        <div class="wp-top">
-          <span class="wp-hello">Morning, Alex</span>
-          <span class="chip">7-day streak</span>
-        </div>
-        <div class="wp-balance-card">
-          <div class="wp-balance-label">Your wallet</div>
-          <div class="wp-balance">£<span id="balanceCount">0</span>.80</div>
-          <div class="wp-balance-up">↑ £12.40 this month</div>
-        </div>
-        <div class="wp-item">
-          <span class="wp-item-icon" style="background:var(--sky)"><i class="ico ico-bag ico-deep"></i></span>
-          <span><span class="wp-item-name">Nike — just ordered</span><br><span class="wp-item-sub">Pending cashback</span></span>
-          <span class="wp-item-cash">+£3.50</span>
-        </div>
-        <div class="wp-item">
-          <span class="wp-item-icon" style="background:var(--pink)"><i class="ico ico-sparkles ico-deep"></i></span>
-          <span><span class="wp-item-name">ASOS — post shared</span><br><span class="wp-item-sub">Confirmed</span></span>
-          <span class="wp-item-cash">+£2.10</span>
-        </div>
-        <div class="wp-item">
-          <span class="wp-item-icon" style="background:var(--tang)"><i class="ico ico-cup ico-deep"></i></span>
-          <span><span class="wp-item-name">Costa — loyalty bonus</span><br><span class="wp-item-sub">Paid out</span></span>
-          <span class="wp-item-cash">+£0.80</span>
-        </div>
-      </div>
-      <div class="floaty" style="position:absolute; top:20px; right:clamp(-6px,1vw,10px); z-index:3">
-        <span class="sticker sticker-lime">✓ Post verified in 8s</span>
-      </div>
-
-    </div>
   </header>
-
-  <!-- ══ STATS ══ -->
-  <section class="section" style="padding-top:clamp(14px,2.4vw,30px);padding-bottom:0">
-    <div class="stats-strip">
-      <div class="card stat-card reveal"><span class="stat-num"><span class="count" data-target="50" data-suffix="K+">0</span></span><span class="stat-label">Active members</span></div>
-      <div class="card card-lime stat-card reveal reveal-delay-1"><span class="stat-num">£<span class="count" data-target="2" data-suffix="M+">0</span></span><span class="stat-label">Cashback paid out</span></div>
-      <div class="card card-sky stat-card reveal reveal-delay-2"><span class="stat-num"><span class="count" data-target="500" data-suffix="+">0</span></span><span class="stat-label">Partner brands</span></div>
-      <div class="card card-pink stat-card reveal reveal-delay-3"><span class="stat-num"><span class="count" data-target="4.9" data-suffix="★">0</span></span><span class="stat-label">App store rating</span></div>
-    </div>
-  </section>
-
-  <!-- ══ TICKER (below the stats tiles) ══ -->
-  <div class="ticker" aria-hidden="true">
-    <div class="ticker-track" id="tickerTop"></div>
   </div>
 
-  <!-- ══ HOW IT WORKS ══ -->
-  <section class="section" id="how">
+  <!-- ══ SHARE → PAID CAROUSEL ══ -->
+  <section class="section band" id="flow">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Three steps to<br><span class="hl hl-pink">free money.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">No gimmicks. No complicated points systems. Just real cashback in your pocket.</p>
+        <h2 class="h-display reveal reveal-delay-1">From share to <span class="hl">paid.</span></h2>
+        <p class="h-sub reveal reveal-delay-2" id="flowSub">Takeaways, trainers, gym memberships, tech and city breaks &mdash; every live deal at its published rate.</p>
       </div>
-      <div class="steps-grid">
-        <div class="card card-hover step-card reveal">
-          <span class="coin coin-sky">1</span>
-          <h3 class="step-title">Shop</h3>
-          <p class="step-desc">Browse 500+ partner brands through Cirqle. Click through and shop as you normally would — no voucher codes needed.</p>
+    </div>
+    <div class="hcar reveal" id="flowCar">
+      <div class="hcar-row r1" id="carRow1"></div>
+      <div class="hcar-row r2" id="carRow2"></div>
+    </div>
+  </section>
+
+  <!-- ══ THE CYCLE — shop, share, earn ══ -->
+  <section class="section" id="steps">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">Shop. Share. <span class="hl">Earn.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Three steps, and the cashback from one buys the next thing.</p>
+      </div>
+      <div class="cycle">
+        <div class="cyc reveal reveal-delay-1">
+          <div class="cyc-stage">
+            <span class="cyc-n">1</span>
+            <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">Nike</span><span class="ps-chip">13% back</span></div><img class="ps-img" src="assets/steps/shop.jpg" alt="" loading="lazy" decoding="async"><span class="ps-line w70"></span><span class="ps-line w45"></span><div class="ps-btn">Shop now</div></div></div>
+          </div>
+          <h3 class="cyc-t">Shop</h3>
+          <p class="cyc-d">Buy from partner brands the way you always do. No codes, no extension.</p>
         </div>
-        <div class="card card-hover step-card card-lime reveal reveal-delay-1">
-          <span class="coin coin-pink">2</span>
-          <h3 class="step-title">Post</h3>
-          <p class="step-desc">Share your haul on social. Tag <strong>@cirqle</strong> and the brand you bought from, then we verify your post automatically in seconds.</p>
+        <div class="cyc reveal reveal-delay-2">
+          <div class="cyc-stage">
+            <span class="cyc-n">2</span>
+            <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
+          </div>
+          <h3 class="cyc-t">Share</h3>
+          <p class="cyc-d">Post on Instagram tagging @cirqle and the brand, then upload your receipt. Friends who buy after seeing it name your handle on theirs &mdash; and you both earn.</p>
         </div>
-        <div class="card card-hover step-card reveal reveal-delay-2">
-          <span class="coin coin-lime">3</span>
-          <h3 class="step-title">Earn cashback</h3>
-          <p class="step-desc">Real money lands in your Cirqle wallet within 24 hours. Withdraw to your bank, PayPal, or keep stacking it up.</p>
+        <div class="cyc reveal reveal-delay-3">
+          <div class="cyc-stage">
+            <span class="cyc-n">3</span>
+            <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-bal"><span>Wallet</span><b>£47.80</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w50"></span><b class="ps-amt">+£3.50</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w40"></span><b class="ps-amt">+£2.10</b></div><div class="ps-btn">Withdraw</div></div></div>
+          </div>
+          <h3 class="cyc-t">Earn</h3>
+          <p class="cyc-d">Once approved your cashback clears in about three days, then goes to your bank.</p>
         </div>
+      </div>
+      <div class="steps-more reveal reveal-delay-3">
+        <a href="how-it-works.html" class="btn btn-lg">Find out more &rarr;</a>
       </div>
     </div>
   </section>
 
-  <!-- ══ FEATURES ══ -->
-  <section class="section" id="features" style="padding-top:0">
-    <div class="section-inner features-grid">
+
+  <!-- ══ REVIEW WALL ══
+       Illustrative review cards. The photography is licensed stock and the
+       people shown are models, not members — stated in the disclaimer below. -->
+  <section class="section band-soft" id="reviews">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">What earning here <span class="hl">looks like.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Illustrative feedback from people using Cirqle to shop, share and get paid.</p>
+      </div>
+      <div class="pwall reveal">
+        <div class="pw-col k1" id="pwCol1"></div>
+        <div class="pw-col k2" id="pwCol2"></div>
+        <div class="pw-col k3" id="pwCol3"></div>
+      </div>
+      <p class="disclaim">Illustrative examples, not verified customer reviews. Photography is licensed stock — the people shown are models, not Cirqle members, and are not endorsing Cirqle.</p>
+    </div>
+  </section>
+
+  <!-- ══ CASHBACK CALCULATOR — driven by real published rates ══ -->
+  <section class="section" id="calculator" style="padding-top:clamp(48px,6vw,86px)">
+    <div class="section-inner calc-grid">
       <div>
-        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">Built for people<br>who <span class="squiggle squiggle-lime">actually shop.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Every feature designed to make earning effortless. You shouldn't have to work hard to get money back.</p>
-        <div style="margin-top:34px; display:flex; flex-direction:column; gap:8px">
-          <div class="feature-row reveal">
-            <span class="coin coin-lime" style="font-size:1rem"><i class="ico ico-bolt"></i></span>
-            <div><div class="feature-title">Instant verification</div><div class="feature-desc">Tag the brand in your post and your claim is confirmed automatically the moment you upload your receipt.</div></div>
-          </div>
-          <div class="feature-row reveal reveal-delay-1">
-            <span class="coin coin-pink" style="font-size:1rem"><i class="ico ico-target"></i></span>
-            <div><div class="feature-title">Deals picked for you</div><div class="feature-desc">Cashback offers tailored to the brands you actually shop at, not random suggestions.</div></div>
-          </div>
-          <div class="feature-row reveal reveal-delay-2">
-            <span class="coin coin-sky" style="font-size:1rem"><i class="ico ico-lock"></i></span>
-            <div><div class="feature-title">Secure withdrawals</div><div class="feature-desc">Your earnings are protected. Withdraw anytime to your bank account, PayPal, or Apple Pay.</div></div>
-          </div>
-          <div class="feature-row reveal reveal-delay-3">
-            <span class="coin" style="font-size:1rem"><i class="ico ico-chart"></i></span>
-            <div><div class="feature-title">Full earnings dashboard</div><div class="feature-desc">Track every penny — pending payouts, streaks, and your top performing brands.</div></div>
-          </div>
+        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Both halves of sharing pay: the cashback you earn by posting a purchase, and the &pound;1 you earn per friend referred. Rates come straight from our live deals.</p>
+        <div class="calc-out reveal reveal-delay-3" style="margin-top:28px">
+          <div class="calc-out-label">Realistic earnings a year</div>
+          <div class="calc-out-val" id="calcOut">&mdash;</div>
+          <div class="calc-out-sub" id="calcSub">Choose a category to start</div>
         </div>
+        <p class="calc-note">A range, not a promise. The low end uses the lowest published rate in that category and the high end the average, applied only to the share of purchases you actually post and get approved. Referrals are counted at &pound;1 each &mdash; what you earn when a friend buys through your post and their first claim is approved. Real earnings depend on which deals are live when you shop.</p>
       </div>
-
-      <div style="position:relative" class="reveal reveal-delay-2">
-        <div class="card demo-card">
-          <div class="demo-head">
-            <span class="demo-title">Your earnings</span>
-            <span class="chip">This week</span>
-          </div>
-          <div class="demo-chart" aria-hidden="true">
-            <div class="demo-bar" style="height:45%;background:#CFE0EE;animation-delay:.05s" data-val="£8"></div>
-            <div class="demo-bar" style="height:60%;background:#AFCEE4;animation-delay:.12s" data-val="£12"></div>
-            <div class="demo-bar" style="height:35%;background:#CFE0EE;animation-delay:.19s" data-val="£6"></div>
-            <div class="demo-bar" style="height:80%;background:#7FB0D2;animation-delay:.26s" data-val="£16"></div>
-            <div class="demo-bar" style="height:55%;background:#AFCEE4;animation-delay:.33s" data-val="£11"></div>
-            <div class="demo-bar" style="height:70%;background:#7FB0D2;animation-delay:.40s" data-val="£14"></div>
-            <div class="demo-bar" style="height:92%;background:var(--blue);animation-delay:.47s" data-val="£18"></div>
-          </div>
-          <div class="demo-metrics">
-            <div class="demo-metric"><div class="demo-metric-val">£85</div><div class="demo-metric-label">This month</div></div>
-            <div class="demo-metric"><div class="demo-metric-val">£420</div><div class="demo-metric-label">All time</div></div>
-            <div class="demo-metric"><div class="demo-metric-val">32</div><div class="demo-metric-label">Brands</div></div>
+      <div class="card calc-card reveal reveal-delay-2">
+        <div class="calc-row">
+          <div class="calc-label"><span>Monthly spend <em>at partner brands</em></span><b id="calcSpendLabel">£80</b></div>
+          <input type="range" class="calc-range" id="calcSpend" min="10" max="400" step="10" value="80" aria-label="Monthly spend at partner brands, in pounds">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label"><span>How often you post about a purchase</span></div>
+          <div class="calc-cats" id="calcPost">
+            <button type="button" class="calc-cat" data-post="0.25" aria-pressed="false">Now and then</button>
+            <button type="button" class="calc-cat" data-post="0.5" aria-pressed="true">About half</button>
+            <button type="button" class="calc-cat" data-post="0.8" aria-pressed="false">Most times</button>
           </div>
         </div>
-        <div class="goal-float floaty"><span class="sticker sticker-tang">£15 from your monthly goal!</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ TICKER 2 (reverse, pink) ══ -->
-  <div class="ticker ticker-pink" aria-hidden="true">
-    <div class="ticker-track rev" id="tickerBottom"></div>
-  </div>
-
-  <!-- ══ TESTIMONIALS ══ -->
-  <section class="section" id="reviews">
-    <div class="section-inner">
-      <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Shoppers <span class="hl hl-sky">love</span> Cirqle.</h2>
-      </div>
-      <div class="testi-grid">
-        <div class="card card-hover testi-card reveal">
-          <div class="testi-stars" aria-label="5 stars"><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i></div>
-          <p class="testi-text">"I literally made back £80 in one month just from my normal shopping. I buy this stuff anyway — Cirqle just pays me for it now. Insane."</p>
-          <div class="testi-author">
-            <span class="testi-avatar" style="background:var(--pink)">S</span>
-            <div>
-              <div class="testi-name">Sophie T.</div>
-              <div class="testi-role">Fashion lover, London</div>
-            </div>
-          </div>
-          <div style="margin-top:14px"><span class="chip" style="background:var(--blue-tint); color:var(--blue-deep)">Earned £320 total</span></div>
+        <div class="calc-row">
+          <div class="calc-label"><span>Friends referred <em>in a month</em></span><b id="calcRefsLabel">3</b></div>
+          <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends referred in a month">
+          <p class="calc-note" style="margin-top:8px">&pound;1 of cashback per referral, paid once their first claim is approved.</p>
         </div>
-        <div class="card card-hover testi-card card-lime reveal reveal-delay-1">
-          <div class="testi-stars" aria-label="5 stars"><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i></div>
-          <p class="testi-text">"I was sceptical at first but the cashback actually arrives. Within 24 hours. No fuss. My friends all downloaded it after I showed them my wallet balance."</p>
-          <div class="testi-author">
-            <span class="testi-avatar" style="background:var(--sky)">J</span>
-            <div>
-              <div class="testi-name">Jamie O.</div>
-              <div class="testi-role">Gym enthusiast, Manchester</div>
-            </div>
-          </div>
-          <div style="margin-top:14px"><span class="chip" style="background:var(--blue-tint); color:var(--blue-deep)">Earned £215 total</span></div>
-        </div>
-        <div class="card card-hover testi-card reveal reveal-delay-2">
-          <div class="testi-stars" aria-label="5 stars"><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i><i class="ico ico-star"></i></div>
-          <p class="testi-text">"The post verification is SO fast. I upload my Instagram story and the cashback is in my account before I even close the app. Wild."</p>
-          <div class="testi-author">
-            <span class="testi-avatar" style="background:var(--tang)">P</span>
-            <div>
-              <div class="testi-name">Priya K.</div>
-              <div class="testi-role">Content creator, Birmingham</div>
-            </div>
-          </div>
-          <div style="margin-top:14px"><span class="chip" style="background:var(--blue-tint); color:var(--blue-deep)">Earned £540 total</span></div>
+        <div class="calc-row" style="margin-bottom:0">
+          <div class="calc-label"><span>Category</span></div>
+          <div class="calc-cats" id="calcCats"></div>
         </div>
       </div>
     </div>
@@ -438,11 +593,9 @@
   <section class="section" id="cta" style="padding-top:0">
     <div class="section-inner">
       <div class="card card-ink cta-slab reveal">
-        <span class="cta-ring" aria-hidden="true"></span>
-        <div class="cta-orbit" aria-hidden="true"></div>
-        <h2 class="h-display">Ready to get <span class="hl hl-lime">paid</span><br>to shop?</h2>
-        <p class="cta-sub">Join 50,000+ members already earning cashback. Signing up takes 60 seconds.</p>
-        <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap">
+        <h2 class="h-display">Ready to shop, share<br>and get <span class="hl">paid</span>?</h2>
+        <p class="cta-sub">Signing up takes about a minute, and it's free.</p>
+        <div class="btn-row" style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap">
           <a href="signup.html" class="btn btn-lg btn-lime">Sign up →</a>
           <a href="browse.html" class="btn btn-lg">Browse Deals</a>
         </div>
@@ -456,21 +609,14 @@
       <div class="footer-top">
         <div>
           <a href="index.html" class="footer-logo">cirqle</a>
-          <p class="footer-desc">The smarter way to shop. Earn real cashback every time you buy from your favourite brands.</p>
-          <div class="footer-social">
-            <a href="#" class="social-link" aria-label="X / Twitter">𝕏</a>
-            <a href="#" class="social-link" aria-label="Instagram"><i class="ico ico-instagram"></i></a>
-            <a href="#" class="social-link" aria-label="Facebook"><i class="ico ico-facebook"></i></a>
-            <a href="#" class="social-link" aria-label="YouTube">▶</a>
-          </div>
+          <p class="footer-desc">The smarter way to shop. Earn real cashback when you buy from brands you already love, then share them with your friends.</p>
         </div>
         <div class="footer-col">
           <h4>Product</h4>
           <ul class="footer-links">
-            <li><a href="#how">How it works</a></li>
             <li><a href="browse.html">Browse Deals</a></li>
             <li><a href="pricing.html">Pricing</a></li>
-            <li><a href="blog.html">Changelog</a></li>
+            <li><a href="help.html">FAQ</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -502,91 +648,329 @@
     </div>
   </footer>
 
+  <script src="assets/api.js"></script>
   <script>
-    // ── Build ticker strips (duplicated for seamless loop) ──
-    const brandsTop = [['bag','Nike','13%'],['shirt','ASOS','10%'],['cup','Costa','6%'],['cup','Deliveroo','8%'],['sparkles','Boots','15%'],['device','Apple','5%'],['dumbbell','Gymshark','20%'],['plane','Ryanair','7%'],['play','GAME','9%'],['home','IKEA','7%'],['cup','Dominos','11%']];
-    const brandsBottom = [['book','Waterstones','8%'],['play','Spotify','12%'],['bag','Tesco','4%'],['dumbbell','PureGym','14%'],['tag','Enterprise','9%'],['bag','Primark','6%'],['plane','TUI','9%'],['laptop','Currys','11%'],['sparkles','M&S','7%'],['play','Cineworld','13%'],['cup','Wagamama','10%']];
-    function fillTicker(id, list) {
-      const track = document.getElementById(id);
-      if (!track) return;
-      const items = list.map(([e, name, pc]) =>
-        `<span class="tick-item">${name} <b>· ${pc} back</b></span><span class="tick-dot"></span>`).join('');
-      track.innerHTML = items + items; // duplicate for the -50% loop
-    }
-    fillTicker('tickerTop', brandsTop);
-    fillTicker('tickerBottom', brandsBottom);
-
-    // ── Counter animation ──
-    const counters = document.querySelectorAll('.count');
-    const counterObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        const el = e.target;
-        const target = +el.dataset.target;
-        const suffix = el.dataset.suffix || '';
-        const step = target / (1600 / 16);
-        const fmt = v => Number.isInteger(target) ? Math.floor(v).toLocaleString() : v.toFixed(1);
-        let cur = 0;
-        const timer = setInterval(() => {
-          cur = Math.min(cur + step, target);
-          el.textContent = fmt(cur) + suffix;
-          if (cur >= target) clearInterval(timer);
-        }, 16);
-        counterObs.unobserve(el);
+  (function () {
+    'use strict';
+    var API = window.CIRQLE_API_BASE;
+    // Brand name -> logo filename, matching how assets/logos was generated.
+    var slug = function (s) {
+      return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    };
+    // Brands we hold as SVG. Vector never blurs, at any zoom or pixel ratio —
+    // the PNGs were 32-128px being drawn into a panel that asks for ~220 device
+    // pixels on a phone, which is what made them soft. The rest stay PNG; there
+    // is no source that reliably serves current, full-colour marks for them.
+    var SVG_LOGOS = {
+      'nike': 1, 'adidas': 1, 'h-m': 1, 'spotify': 1, 'boots': 1,
+      'ikea': 1, 'uber-eats': 1, 'tui': 1, 'deliveroo': 1, 'airbnb': 1
+    };
+    var logoSrc = function (name) {
+      return 'assets/logos/' + name + (SVG_LOGOS[name] ? '.svg' : '.png');
+    };
+    var esc = function (s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
       });
-    }, { threshold: 0.5 });
-    counters.forEach(c => counterObs.observe(c));
+    };
 
-    // ── Wallet balance count-up ──
-    const balEl = document.getElementById('balanceCount');
-    if (balEl) {
-      let val = 0;
-      const t = setInterval(() => {
-        val += 1.4;
-        if (val >= 47) { balEl.textContent = '47'; clearInterval(t); }
-        else balEl.textContent = Math.floor(val);
-      }, 30);
-    }
-
-    // ── Hero life: wallet tilt on pointer + periodic "cashback arriving" ping ──
-    (function () {
-      const rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const phone = document.querySelector('.wallet-phone');
-      if (!phone || rm) return;
-
-      // 3D tilt follows the cursor over the visual (desktop pointers only)
-      const vis = document.querySelector('.hero-visual');
-      if (vis && window.matchMedia('(pointer: fine)').matches) {
-        vis.style.perspective = '900px';
-        vis.addEventListener('pointermove', e => {
-          const r = vis.getBoundingClientRect();
-          const dx = (e.clientX - r.left) / r.width - .5;
-          const dy = (e.clientY - r.top) / r.height - .5;
-          phone.style.transform = `rotateY(${(dx * 7).toFixed(2)}deg) rotateX(${(-dy * 7).toFixed(2)}deg)`;
-        });
-        vis.addEventListener('pointerleave', () => { phone.style.transform = ''; });
-      }
-
-      // every few seconds one wallet row pulses, like cashback just landed
-      const items = phone.querySelectorAll('.wp-item');
-      if (items.length) {
-        let i = 0;
-        setInterval(() => {
-          const el = items[i++ % items.length];
-          el.classList.remove('ping');
-          void el.offsetWidth;           // restart the animation
-          el.classList.add('ping');
-        }, 5200);
-      }
+    // ── Review wall: small avatar + quote + rating. Content is illustrative,
+    //    and the disclaimer under the wall says so. ──
+    var REVIEWS = [
+      ['Sophie T.', 'Fashion lover, London', '£80.00', "I buy from Gymshark and ASOS anyway \u2014 Cirqle just pays me for posting my unboxings. Made \u00a380 last month.", 4, 'gymshark'],
+      ['Jamie O.', 'Gym enthusiast, Manchester', '£45.00', "I post my gym hauls anyway, and my handle is in the group chat \u2014 mates put it on their receipts and I get a cut. \u00a345 so far.", 9, 'puregym'],
+      ['Maya R.', 'Leeds', '£18.40', "Ordered leggings, posted the fit check, money was in my wallet before the parcel turned up.", 1, 'gymshark'],
+      ['Tom B.', 'Bristol', '£4.20', "Friday night takeaway that pays me back. Small amounts, but it's every single order.", 2, 'deliveroo'],
+      ['Aisha N.', 'Birmingham', '£11.75', "I do my whole skincare shop through here now. It adds up faster than you'd think.", 3, 'boots'],
+      ['Callum D.', 'Glasgow', '£22.00', "Assumed it'd be vouchers. It's actual cash to my actual bank account.", 5, 'nike'],
+      ['Priya S.', 'Manchester', '£9.60', "Posted a haul I was posting anyway. Money back for zero extra effort.", 4, 'asos'],
+      ['Jordan L.', 'Cardiff', '£14.00', "My gym membership partly pays for itself now. Took two minutes to set up.", 7, 'puregym'],
+      ['Ellie W.', 'Brighton', '£16.30', "The receipt scan is the good bit — take a photo, done. No faffing with codes.", 6, 'sephora'],
+      ['Sam K.', 'Newcastle', '£3.60', "Tiny one, but it stacked with three other deals that month.", 9, 'spotify'],
+      ['Nadia H.', 'London', '£7.85', "Finally a cashback thing that doesn't make me install a browser extension.", 8, 'h-m'],
+      ['Ryan P.', 'Sheffield', '£19.50', "Bought trainers, tagged them, got paid. That's the whole process.", 10, 'jd-sports'],
+      ['Freya M.', 'Edinburgh', '£2.40', "Coffee money back on coffee. Small, but it's basically free.", 11, 'costa'],
+      ['Dev A.', 'Luton', '£31.20', "Biggest one yet — a new laptop. Cleared without me chasing it.", 12, 'currys'],
+      ['Chloe V.', 'Nottingham', '£12.90', "Furnished half a flat and got a takeaway out of the cashback.", 3, 'ikea'],
+      ['Marcus O.', 'Liverpool', '£17.60', "Told three mates and they all signed up. The referral bonus was a nice touch.", 5, 'adidas'],
+      ['Zara F.', 'Reading', '£5.15', "I use it constantly. It just quietly adds up in the background.", 4, 'uber-eats'],
+      ['Owen T.', 'Swansea', '£46.00', "Booked a holiday and the cashback covered the airport parking.", 2, 'tui'],
+      ['Leila J.', 'Coventry', '£6.30', "Pizza night discount that arrives after the pizza. Perfect.", 6, 'domino-s'],
+      ['Harry S.', 'York', '£8.75', "My commute costs a fortune. This takes the edge off it.", 7, 'trainline']
+    ];
+    (function buildReviews() {
+      var cols = [document.getElementById('pwCol1'), document.getElementById('pwCol2'), document.getElementById('pwCol3')];
+      if (!cols[0]) return;
+      var out = [[], [], []];
+      REVIEWS.forEach(function (r, i) {
+        var name = r[0], city = r[1], amt = r[2], text = r[3], face = r[4], brand = r[5];
+        var variant = ' v' + (i % 6);                     // white, two tints, two neons, one deep
+        out[i % 3].push(
+          '<div class="rv' + (i % 6 ? variant : '') + '">' +
+            '<div class="rv-top">' +
+              '<div class="rv-stars" aria-label="5 out of 5">\u2605\u2605\u2605\u2605\u2605</div>' +
+              '<span class="rv-brand"><img src="' + logoSrc(brand) + '" alt="" decoding="async"></span>' +
+            '</div>' +
+            '<p class="rv-txt">' + esc(text) + '</p>' +
+            '<div class="rv-foot">' +
+              '<img class="rv-av" src="assets/photos/p' + face + '.jpg" alt="" decoding="async">' +
+              '<span><span class="rv-who">' + esc(name) + '</span><br><span class="rv-where">' + esc(city) + '</span></span>' +
+              '<span class="rv-amt">' + esc(amt) + '</span>' +
+            '</div>' +
+          '</div>'
+        );
+      });
+      cols.forEach(function (col, n) {
+        if (col) col.innerHTML = out[n].join('') + out[n].join('');   // duplicated for the -50% loop
+      });
     })();
 
+    // ── Everything below needs the real catalogue ──
+    var CATEGORY_FALLBACK = 'Fashion & Beauty';
+    // What one verified referral pays the referrer — REWARD_REFERRER in
+    // backend/app/referrals.py. The referee's 50p is theirs, not the referrer's,
+    // so it is deliberately not counted here.
+    var REFERRAL_REWARD = 1;
+
+    // The catalogue drives the carousel and the calculator. It used to be a bare
+    // fetch with a silent catch, so a slow or failed request left both sections
+    // as empty strips under their headings. Now: time out, retry, and if it
+    // still fails, remove those sections instead of showing a gap.
+    function getCampaigns(attempt) {
+      var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+      var timer = setTimeout(function () { ctrl && ctrl.abort(); }, 8000);
+      return fetch(API + '/campaigns', ctrl ? { signal: ctrl.signal } : undefined)
+        .then(function (r) {
+          clearTimeout(timer);
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .catch(function (err) {
+          clearTimeout(timer);
+          if (attempt < 2) return new Promise(function (res) {
+            setTimeout(function () { res(getCampaigns(attempt + 1)); }, 900 * (attempt + 1));
+          });
+          throw err;
+        });
+    }
+
+    function dropSection(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    }
+
+    getCampaigns(0)
+      .then(function (deals) {
+        deals = (deals || []).filter(function (d) {
+          // Drop test rows and anything without a real rate, so a half-filled
+          // catalogue row can never render as "0% back" on the homepage.
+          return d && d.brand && d.rate > 0 && !/test merchant/i.test(d.brand);
+        });
+        if (!deals.length) throw new Error('catalogue empty');
+        buildCarousel(deals);
+        buildCalculator(deals);
+      })
+      .catch(function (err) {
+        // The carousel and calculator both need the catalogue; the three step
+        // tiles are static and stay put. Never leave a heading over blank space.
+        dropSection('flow');
+        dropSection('calculator');
+        if (window.console) console.warn('Cirqle: deals unavailable —', err.message);
+      });
+
+    // Each logo's own background colour, sampled from its border pixels, so the
+    // tile's image panel matches the mark and the two read as one block.
+    var LOGO_BG = {
+      'adidas': '#ffffff',
+      'airbnb': '#ff5a5f',
+      'amazon': '#ff6200',
+      'asos': '#ffffff',
+      'boots': '#ffffff',
+      'costa': '#6d1f37',
+      'currys': '#ffffff',
+      'deliveroo': '#00ccbc',
+      'domino-s': '#006490',
+      'gymshark': '#ffffff',
+      'h-m': '#ffffff',
+      'ikea': '#ffffff',
+      'jd-sports': '#ffffff',
+      'nike': '#ffffff',
+      'puregym': '#202020',
+      'sephora': '#ffffff',
+      'spotify': '#ffffff',
+      'trainline': '#ffffff',
+      'tui': '#70cbf4',
+      'uber-eats': '#ffffff'
+    };
+    // Share → paid tiles. Brand and rate are real; the caption and the worked
+    // example are illustrative, and the section header says so.
+    var CAPTIONS = ['Story tagged @cirqle', 'Haul post · 2 tags', 'Link sent to a friend', 'Grid post', 'Unboxing story', 'Friend referred'];
+    function buildCarousel(deals) {
+      // How many deals, across how many categories — counted from the catalogue
+      // rather than typed into the markup, so the claim can't go stale as
+      // merchants join or leave. The markup keeps a number-free fallback for the
+      // case where the catalogue never arrives (this section is hidden then).
+      var sub = document.getElementById('flowSub');
+      if (sub) {
+        var catCount = {};
+        deals.forEach(function (d) {
+          var c = (d.category || '').trim();
+          if (c) catCount[c] = 1;
+        });
+        var nCats = Object.keys(catCount).length;
+        sub.textContent = deals.length + (deals.length === 1 ? ' live deal' : ' live deals') +
+          (nCats > 1 ? ' across ' + nCats + ' categories' : '') +
+          ' \u2014 takeaways, trainers, gym memberships, tech and city breaks, ' +
+          'each at its published rate.';
+      }
+
+      var car = document.getElementById('flowCar');
+      var r1 = document.getElementById('carRow1'), r2 = document.getElementById('carRow2');
+      if (!car || !r1 || !r2) return;
+      var tiles = deals.map(function (d, i) {
+        var paid = (i % 4 === 3);
+        // Partner logos live in assets/logos, keyed by a slug of the brand name.
+        var logo = logoSrc(slug(d.brand));
+        var spend = 40 + (i % 6) * 15;
+        var earn = (spend * (d.rate || 0) / 100).toFixed(2);
+        return '<div class="htile' + (paid ? ' paid' : '') + ' t' + (i % 6) + '">' +
+            '<div class="htile-shot" style="background:' + (LOGO_BG[slug(d.brand)] || '#fff') + '">' +
+              '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
+              ' onerror="this.style.display=\'none\'">' +
+              '<span class="htile-state">' + (paid ? 'Paid' : 'Shared') + '</span>' +
+            '</div>' +
+            '<div class="htile-body">' +
+              '<div class="htile-brand">' + esc(d.brand) + '</div>' +
+              '<div class="htile-cap">' + CAPTIONS[i % CAPTIONS.length] + '</div>' +
+              '<div class="htile-foot">' +
+                '<span class="htile-rate">' + Math.round(d.rate) + '% back</span>' +
+                '<span class="htile-amt">£' + earn + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+      });
+      var half = Math.ceil(tiles.length / 2);
+      var a = tiles.slice(0, half).join(''), b = tiles.slice(half).join('');
+
+      // Every row is doubled so translating it -50% lands exactly on the copy
+      // and the loop is seamless. Reduced motion gets a still strip instead.
+      var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var small = window.matchMedia('(max-width: 900px)');
+      function layout() {
+        if (still.matches) {
+          car.classList.remove('run');
+          car.classList.add('swipe');
+          r1.innerHTML = tiles.join('');
+          r2.innerHTML = '';
+          return;
+        }
+        car.classList.remove('swipe');
+        if (small.matches) {
+          // Six brands a row, doubled, so each animated row stays small — see
+          // the stylesheet note.
+          var m1 = tiles.slice(0, 6).join(''), m2 = tiles.slice(6, 12).join('');
+          r1.innerHTML = m1 + m1;
+          r2.innerHTML = m2 + m2;
+        } else {
+          r1.innerHTML = a + a;
+          r2.innerHTML = b + b;
+        }
+        car.classList.add('run');
+      }
+      layout();
+      // Rotating a phone or dragging a window across 900px switches mode.
+      [still, small].forEach(function (m) {
+        if (m.addEventListener) m.addEventListener('change', layout);
+      });
+    }
+
+    // Earnings the way they actually land: only spending at partner brands counts,
+    // only the purchases you post about count, and rates vary across the deals in
+    // a category — so this reports a range, from the category's lowest published
+    // rate to its average, rather than one confident-looking number. Referrals sit
+    // on top as a flat £1 each (REWARD_REFERRER in the backend), so they shift both
+    // ends of the range by the same amount rather than widening it.
+    function buildCalculator(deals) {
+      var cats = {};
+      deals.forEach(function (d) {
+        var c = (d.category || '').trim();
+        if (!c || !d.rate) return;
+        (cats[c] = cats[c] || []).push(d.rate);
+      });
+      var names = Object.keys(cats).sort();
+      if (!names.length) throw new Error('no categories');
+
+      var wrap = document.getElementById('calcCats');
+      var postWrap = document.getElementById('calcPost');
+      var spend = document.getElementById('calcSpend');
+      var spendLabel = document.getElementById('calcSpendLabel');
+      var refs = document.getElementById('calcRefs');
+      var refsLabel = document.getElementById('calcRefsLabel');
+      var out = document.getElementById('calcOut');
+      var sub = document.getElementById('calcSub');
+      if (!wrap || !spend || !postWrap || !refs) return;
+
+      var active = names.indexOf('Fashion & Beauty') > -1 ? 'Fashion & Beauty' : names[0];
+      var postRate = 0.5;
+
+      wrap.innerHTML = names.map(function (n) {
+        return '<button type="button" class="calc-cat" data-cat="' + esc(n) + '" aria-pressed="' +
+               (n === active ? 'true' : 'false') + '">' + esc(n) + '</button>';
+      }).join('');
+
+      function stats(c) {
+        var a = cats[c] || [0];
+        var lo = Math.min.apply(null, a);
+        var avg = a.reduce(function (s, v) { return s + v; }, 0) / a.length;
+        return { lo: lo, hi: avg };
+      }
+      function render() {
+        var v = +spend.value;
+        var n = +refs.value;
+        var s = stats(active);
+        var eligible = v * 12 * postRate;          // £ a year actually claimed on
+        var bonus = n * 12 * REFERRAL_REWARD;      // £ a year, from n referrals a month
+        var lo = Math.round(eligible * s.lo / 100 + bonus);
+        var hi = Math.round(eligible * s.hi / 100 + bonus);
+        spendLabel.textContent = '£' + v;
+        refsLabel.textContent = String(n);
+        out.textContent = (lo === hi) ? ('£' + lo) : ('£' + lo + '\u2013£' + hi);
+        // A category holding one deal has no range to report — "7–7.0%" was the
+        // same rate printed twice.
+        var rates = (s.lo.toFixed(1) === s.hi.toFixed(1))
+          ? s.hi.toFixed(1).replace(/\.0$/, '')
+          : s.lo.toFixed(0) + '\u2013' + s.hi.toFixed(1);
+        sub.textContent = 'On £' + v + ' a month at ' + active.toLowerCase() +
+          ' partners, posting about ' + Math.round(postRate * 100) + '% of them, at ' +
+          rates + '% across our live deals' +
+          (n ? ', plus £' + bonus + ' from ' + n + (n === 1 ? ' friend' : ' friends') + ' referred a month.' : '.');
+      }
+      function wire(container, onPick) {
+        container.addEventListener('click', function (e) {
+          var btn = e.target.closest('.calc-cat');
+          if (!btn) return;
+          container.querySelectorAll('.calc-cat').forEach(function (b) {
+            b.setAttribute('aria-pressed', String(b === btn));
+          });
+          onPick(btn);
+          render();
+        });
+      }
+      spend.addEventListener('input', render);
+      refs.addEventListener('input', render);
+      wire(wrap, function (b) { active = b.dataset.cat; });
+      wire(postWrap, function (b) { postRate = parseFloat(b.dataset.post); });
+      render();
+    }
+
     // ── Smooth anchor scroll ──
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-      a.addEventListener('click', e => {
-        const target = document.querySelector(a.getAttribute('href'));
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var target = document.querySelector(a.getAttribute('href'));
         if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       });
     });
+  })();
   </script>
   <script src="assets/enhance.js"></script>
 </body>

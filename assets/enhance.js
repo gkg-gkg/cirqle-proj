@@ -44,6 +44,8 @@
 
   // ── Consistent top banner across the main site ──
   // Centre = Browse Deals + For brands; right = My Account / Dashboard chips.
+  // How it works is deliberately NOT here: it hangs off the "Find out more"
+  // button under the homepage's three tiles, and nowhere else.
   // The chip for the page you're on is hidden, and there's no sign-out chip
   // (sign-out lives on the account page). Skipped on the auth pages + merchant
   // portal, which keep their own navs.

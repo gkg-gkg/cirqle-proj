@@ -16,20 +16,26 @@
   --line:       #E6EAF0;   /* hairline borders */
   --line-soft:  #EFF2F6;   /* faintest dividers */
 
-  /* brand — steel-blue from the Cirqle logo, refined */
-  --blue:        #437D9E;  /* primary — buttons, brand marks, links */
-  --blue-deep:   #35637F;  /* hover / active / focus */
-  --blue-tint:   #E3EDF5;  /* palest blue — soft surfaces & highlights */
-  --blue-pale:   #EEF4FA;  /* barely-there blue panel */
-  --blue-glow:   rgba(67,125,158,.14);   /* spotlight wash */
-  --blue-ring:   rgba(67,125,158,.55);   /* spotlight border */
+  /* brand — electric blue.
+     THE RULE: neon carries FILLS and GLOWS, never text. --neon on white is
+     2.26:1, which is fine behind dark type but unreadable as type. Anything
+     that has to be *read* uses --ink or --blue (4.80:1). */
+  --neon:        #38B6FF;  /* fills, buttons, highlight sweeps */
+  --neon-soft:   #66D4FF;  /* gradient partner + glows */
+  --neon-line:   #0090E8;  /* 3.41:1 — icons and borders, never text */
+  --blue:        #0072D6;  /* 4.80:1 — the only blue allowed to be text */
+  --blue-deep:   #005CB0;  /* hover / active / focus */
+  --blue-tint:   #ECF6FB;  /* palest blue — soft surfaces & highlights */
+  --blue-pale:   #F5FBFD;  /* barely-there blue panel */
+  --blue-glow:   rgba(56,182,255,.26);   /* spotlight wash */
+  --blue-ring:   rgba(56,182,255,.60);   /* spotlight border */
 
   /* soft accent — used sparingly */
   --teal:       #4B9CC9;
   --teal-tint:  #EAF4FA;
 
   /* legacy aliases — existing markup keeps working, now calm & on-brand */
-  --lime:       var(--blue);        /* was the loud accent — now brand blue */
+  --lime:       var(--neon);        /* legacy accent — now the neon fill */
   --lime-soft:  var(--blue-tint);
   --green:      var(--blue-deep);   /* positive figures */
   --pink:       var(--paper-deep);
@@ -45,13 +51,13 @@
   --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* shape */
-  --r-card: 18px;
-  --r-chip: 999px;
+  --r-card: 14px;
+  --r-chip: 10px;   /* was a full pill — squarer reads less playful */
   --bw: 1px;                                          /* hairline border */
   --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.07);
   --shadow:    0 4px 16px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.05);
   --shadow-lg: 0 18px 40px rgba(15,23,42,.10), 0 4px 10px rgba(15,23,42,.05);
-  --shadow-blue: 0 6px 18px rgba(53,99,127,.22), 0 1px 3px rgba(53,99,127,.18);
+  --shadow-blue: 0 6px 20px rgba(56,182,255,.40), 0 1px 3px rgba(56,182,255,.22);
 
   /* motion — smooth, no bounce */
   --bounce: cubic-bezier(.2, .7, .3, 1);
@@ -160,7 +166,7 @@ body::after {
   font-size: 1.4rem;
   letter-spacing: -0.03em;
   text-decoration: none;
-  color: var(--blue);
+  color: var(--neon);
   flex-shrink: 0;
 }
 .nav-links {
@@ -260,14 +266,14 @@ body::after {
 .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: #D8DEE7; }
 .btn:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
 .btn-lime {
-  background: linear-gradient(180deg, #4B87A9, #3F7495);
-  color: #fff; border-color: transparent;
-  box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.18);
+  background: linear-gradient(180deg, var(--neon-soft), var(--neon));
+  color: #0B1220; border-color: transparent;
+  box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.35);
 }
 .btn-lime:hover {
-  background: linear-gradient(180deg, #427A9B, #35637F);
+  background: linear-gradient(180deg, #7BDAFF, #45BCFF);
   border-color: transparent;
-  box-shadow: 0 10px 24px rgba(53,99,127,.28), inset 0 1px 0 rgba(255,255,255,.15);
+  box-shadow: 0 10px 28px rgba(56,182,255,.46), inset 0 1px 0 rgba(255,255,255,.35);
 }
 .btn-ink   { background: var(--ink); color: #fff; border-color: transparent; }
 .btn-ink:hover { background: #1E293B; border-color: transparent; }
@@ -303,7 +309,7 @@ body::after {
   box-shadow: var(--shadow-sm);
   color: var(--ink);
 }
-.sticker-lime { background: var(--blue-tint); border-color: transparent; color: var(--blue-deep); }
+.sticker-lime { background: var(--neon); border-color: transparent; color: #0B1220; }
 .sticker-pink { background: var(--paper-deep); border-color: transparent; }
 .sticker-sky  { background: var(--blue-tint); border-color: transparent; color: var(--blue-deep); }
 .sticker-tang { background: var(--paper-deep); border-color: transparent; }
@@ -331,9 +337,10 @@ body::after {
   font-weight: 700; font-size: 1.05rem;
   flex-shrink: 0;
 }
-.coin-lime { background: var(--blue); color: #fff; border-color: transparent; }
-.coin-pink { background: var(--paper-deep); color: var(--ink); }
-.coin-sky  { background: var(--blue-tint); color: var(--blue-deep); }
+/* Coins are fills, so they take the neon with dark type on top (8.29:1). */
+.coin-lime { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; border-color: transparent; }
+.coin-pink { background: var(--blue-tint); color: var(--ink); border-color: transparent; }
+.coin-sky  { background: linear-gradient(150deg, #A5E4FF, #66D4FF); color: #0B1220; border-color: transparent; }
 
 /* "SHOP • POST • EARN" ring — kept, no longer spins */
 .spin-ring { width: 130px; height: 130px; }
@@ -411,7 +418,7 @@ body::after {
 /* Tile colour variants normalised to white — the mixed pale-blue/grey tiles
    read as random. Colour now comes only from deliberate accents (.card-ink,
    solid feature panels), not from alternating card faces. */
-.card-lime { background: var(--card); border-color: var(--line); }
+.card-lime { background: var(--blue-pale); border-color: rgba(56,182,255,.42); }
 .card-pink { background: var(--card); }
 .card-sky  { background: var(--card); }
 .card-tang { background: var(--card); }
@@ -660,7 +667,12 @@ body::after {
 /* ══════════════════════════════════════
    CONTENT-PAGE HELPERS (about, legal, etc.)
    ══════════════════════════════════════ */
-.page { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; padding: clamp(44px, 7vw, 80px) clamp(20px, 4vw, 44px) 90px; }
+/* overflow-x: clip contains the decorative layers — dot fields, glow blobs,
+   orbit rings — that are deliberately positioned past the page edges. On a
+   phone those spilled far enough to give the whole document a sideways
+   scroll. `clip` rather than `hidden` so the page never becomes a scroll
+   container and sticky children keep working. */
+.page { position: relative; z-index: 1; overflow-x: clip; max-width: 880px; margin: 0 auto; padding: clamp(44px, 7vw, 80px) clamp(20px, 4vw, 44px) 90px; }
 .page-wide { max-width: 1140px; }
 .page-hero { text-align: center; margin-bottom: clamp(44px, 6vw, 72px); }
 .prose h2 { font-size: 1.5rem; margin: 40px 0 14px; }
@@ -747,8 +759,21 @@ body::after {
 @media (max-width: 560px) {
   .footer-top { grid-template-columns: 1fr; }
   .footer-bottom { flex-direction: column; text-align: center; }
-  .btn-lg { width: 100%; }
   .back-top { right: 16px; bottom: 16px; }
+}
+/* Phones: shrink the big buttons rather than stretching them full-width.
+   A stretched .btn-lg forced every pair of actions to stack into two huge
+   slabs; sized down they stay side by side and read as one row. Forms that
+   genuinely want a full-width control set width:100% inline, which still wins. */
+@media (max-width: 600px) {
+  .btn-lg { font-size: .92rem; padding: 12px 18px; }
+  /* A row of actions stays a row. Buttons share the width evenly and their
+     labels shrink to fit instead of pushing the second button onto a new line. */
+  .btn-row { display: flex; flex-wrap: nowrap; gap: 10px; align-items: stretch; }
+  .btn-row > .btn { flex: 1 1 0; min-width: 0; padding-left: 10px; padding-right: 10px; }
+}
+@media (max-width: 380px) {
+  .btn-lg { font-size: .86rem; padding: 11px 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
