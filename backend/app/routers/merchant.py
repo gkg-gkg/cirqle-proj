@@ -33,6 +33,7 @@ from ..models import (AdminMessageIn, BillingOut, BillingTxnOut, Campaign,
                       MerchantCreatedOut, MerchantCreateIn, MerchantMessage,
                       MerchantMessageIn, MerchantMessageOut, MerchantOut,
                       MerchantProfileIn, MerchantProfileOut, MerchantSigninIn,
+                      ReferenceReceiptOut,
                       CheckoutSessionOut, MerchantStats, MerchantThreadOut,
                       PlanOut, RefundIn, SubscribeIn, SubscriptionOut,
                       TopUpQuote,
@@ -46,9 +47,11 @@ from ..customers import (build_customers, cohorts, incrementality,
                          network_summary, referral_tree, split_by_path,
                          summary as customer_summary)
 from ..ratelimit import rate_limit
+from ..receipt_verification import VerificationCallError, extract_reference_fields
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
-from ..storage import StorageError, delete_image, upload_image
+from ..storage import (StorageError, delete_image, delete_receipt, read_receipt,
+                       receipt_view_url, upload_image, upload_receipt)
 from ..payments import (OVERAGE_RATE, TIERS, PaymentError,
                         create_portal_session, create_subscription_session,
                         create_topup_session, ensure_customer, month_start,
@@ -188,6 +191,59 @@ def upload_logo(image: UploadFile = File(...),
     if old_logo:
         delete_image(old_logo)
     return _profile_out(merchant)
+
+
+# ── Reference receipt (Claude-vision verification) ──
+# What every future claim on this merchant's campaigns is compared against
+# for authenticity of origin. See app/receipt_verification.py. Not required
+# at signup — gated instead at campaign submission, see submit_campaign below.
+def _reference_out(merchant: Merchant) -> ReferenceReceiptOut:
+    fields = json.loads(merchant.reference_fields) if merchant.reference_fields else None
+    return ReferenceReceiptOut(
+        referenceStatus=merchant.reference_status,
+        referenceFields=fields,
+        imageUrl=(receipt_view_url(merchant.reference_receipt_s3_key)
+                  if merchant.reference_receipt_s3_key else None),
+    )
+
+
+@router.get("/reference-receipt", response_model=ReferenceReceiptOut)
+def get_reference_receipt(merchant: Merchant = Depends(get_current_merchant)):
+    return _reference_out(merchant)
+
+
+@router.post("/reference-receipt", response_model=ReferenceReceiptOut)
+def upload_reference_receipt(image: UploadFile = File(...),
+                             merchant: Merchant = Depends(get_current_merchant),
+                             session: Session = Depends(get_session)):
+    """Upload/replace the ONE reference receipt every future claim on this
+    merchant's campaigns is compared against. Runs the Claude extraction
+    synchronously (a rare, deliberate action) so the merchant sees
+    ready/needs_manual_fix immediately rather than having to poll."""
+    try:
+        key, _digest = upload_receipt(image)
+    except StorageError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    old_key = merchant.reference_receipt_s3_key
+    image_bytes = read_receipt(key)
+    try:
+        extracted = extract_reference_fields(image_bytes)
+    except VerificationCallError:
+        merchant.reference_receipt_s3_key = key
+        merchant.reference_fields = None
+        merchant.reference_status = "needs_manual_fix"
+    else:
+        merchant.reference_receipt_s3_key = key
+        merchant.reference_fields = json.dumps(extracted.model_dump(exclude={"confidence"}))
+        merchant.reference_status = "ready" if extracted.confidence >= 60 else "needs_manual_fix"
+
+    session.add(merchant)
+    session.commit()
+    session.refresh(merchant)
+    if old_key:
+        delete_receipt(old_key)
+    return _reference_out(merchant)
 
 
 # ── Posts that tagged this merchant (from shoppers' claims) ──
@@ -892,11 +948,20 @@ def submit_campaign(data: CampaignSubmissionIn,
 
     Gated on an active membership — a lapsed or unpaid account keeps read
     access to its stats but can't add new deals until billing is sorted.
+    Also gated on a ready reference receipt — every claim on this deal will
+    be checked against it, so a deal can't go live with nothing to compare
+    against. Not required at signup; uploaded once and reused across every
+    campaign this merchant runs (see POST /merchant/reference-receipt).
     """
     if merchant.subscription_status != "active":
         raise HTTPException(
             status_code=409,
             detail="An active membership plan is needed to submit new deals.")
+    if merchant.reference_status != "ready":
+        raise HTTPException(
+            status_code=409,
+            detail=("Upload a reference receipt before submitting a deal — "
+                    "go to Account → Reference Receipt."))
     title = data.cardTitle.strip()
     if not title:
         raise HTTPException(status_code=422, detail="Give your deal a title.")

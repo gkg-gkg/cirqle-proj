@@ -26,9 +26,13 @@ from ..db import get_session
 from ..handles import normalize_handle
 from ..models import (AdminBulkVerifyIn, AdminBulkVerifyOut, AdminCheckBucket,
                       AdminCheckCalibration, AdminReceiptOut, AdminReferralOut,
-                      Campaign, Mention, Receipt, ReceiptOut, ReferralReward,
-                      User)
+                      AdminVerificationReceiptOut, Campaign, Mention, Receipt,
+                      ReceiptOut, ReferralReward, User)
 from ..ratelimit import rate_limit
+from ..receipt_verification import (AUTO_APPROVAL_ENABLED,
+                                    VERIFICATION_AUTO_APPROVE_THRESHOLD,
+                                    run_claude_verification,
+                                    trigger_cashback_calculation)
 from ..security import get_current_user
 from ..storage import (StorageError, StorageTooLargeError, StorageUploadError,
                        delete_receipt, receipt_view_url, upload_receipt)
@@ -262,9 +266,10 @@ def create_receipt(
 
     # Read the receipt in the background — the member shouldn't wait on a
     # vision call to see their claim, and a failed check must not fail the
-    # upload. Advisory only: the admin still approves every claim.
+    # upload. This can now decide the claim's fate itself (auto-approve) if
+    # the score clears the threshold — see app/receipt_verification.py.
     if os.environ.get("CIRQLE_RECEIPT_CHECK", "on") != "off":
-        background.add_task(check_receipt, receipt.id)
+        background.add_task(run_claude_verification, receipt.id)
 
     # A visit claim has no post, so its 3-day clearing window runs from the
     # upload instead — which is what clears_at() already falls back to.
@@ -331,6 +336,99 @@ def recheck_receipt(receipt_id: int, background: BackgroundTasks,
         checkStatus=receipt.check_status, checkScore=receipt.check_score,
         checkSummary=summary, checkReasons=reasons,
     )
+
+
+@router.post("/{receipt_id}/reverify", response_model=AdminReceiptOut,
+             dependencies=[Depends(require_admin)])
+def reverify_receipt(receipt_id: int, background: BackgroundTasks,
+                     session: Session = Depends(get_session)):
+    """Admin: run the Claude-vision verification again.
+
+    The usual reason is that a claim was stuck in pending_admin_review because
+    the merchant's reference receipt wasn't ready yet at upload time — once
+    they've since uploaded one, this is how the claim gets a fresh chance to
+    auto-decide instead of an admin having to review it by hand. Also useful
+    after a transient Claude/network failure.
+    """
+    receipt = session.get(Receipt, receipt_id)
+    if receipt is None:
+        raise HTTPException(status_code=404, detail="Receipt not found.")
+    background.add_task(run_claude_verification, receipt_id)
+
+    user = session.get(User, receipt.user_id)
+    summary, reasons = summarise(receipt)
+    return AdminReceiptOut(
+        id=receipt.id, userEmail=user.email if user else "",
+        userName=f"{user.first_name} {user.last_name}" if user else "",
+        postId=receipt.post_id, brand=receipt.brand, amount=receipt.amount,
+        status=admin_status(receipt, _post_ts_of(receipt, session)),
+        uploadedAt=receipt.uploaded_at,
+        imageUrl=receipt_view_url(receipt.image_key),
+        checkStatus=receipt.check_status, checkScore=receipt.check_score,
+        checkSummary=summary, checkReasons=reasons,
+    )
+
+
+def _verification_reason(r: Receipt) -> str:
+    """Why a receipt landed in the manual-review queue, derived from what's
+    already stored rather than a separate reason-code column."""
+    if r.verification_error:
+        return f"verification failed: {r.verification_error}"
+    detail = json.loads(r.authenticity_detail) if r.authenticity_detail else {}
+    if detail.get("duplicate_hash_match_receipt_id"):
+        return f"duplicate image (matches receipt #{detail['duplicate_hash_match_receipt_id']})"
+    if not AUTO_APPROVAL_ENABLED:
+        return "auto-approval is currently disabled"
+    if r.overall_score is not None and r.overall_score < VERIFICATION_AUTO_APPROVE_THRESHOLD:
+        return f"score {r.overall_score:.2f} below the {VERIFICATION_AUTO_APPROVE_THRESHOLD} threshold"
+    return "merchant reference receipt not ready"
+
+
+def _verification_out(r: Receipt, u: Optional[User], reason: str = "") -> AdminVerificationReceiptOut:
+    auth_detail = json.loads(r.authenticity_detail) if r.authenticity_detail else {}
+    return AdminVerificationReceiptOut(
+        id=r.id, userEmail=u.email if u else "",
+        userName=f"{u.first_name} {u.last_name}" if u else "",
+        postId=r.post_id, brand=r.brand, amount=r.amount,
+        verificationStatus=r.verification_status, uploadedAt=r.uploaded_at,
+        imageUrl=receipt_view_url(r.image_key),
+        authenticityScore=r.authenticity_score,
+        authenticityDetail=auth_detail or None,
+        purchaseMatchScore=r.purchase_match_score,
+        purchaseMatchDetail=json.loads(r.purchase_match_detail) if r.purchase_match_detail else None,
+        overallScore=r.overall_score,
+        redFlags=auth_detail.get("red_flags", []),
+        reason=reason,
+    )
+
+
+@router.get("/admin/manual-review", response_model=list[AdminVerificationReceiptOut],
+            dependencies=[Depends(require_admin)])
+def manual_review_queue(session: Session = Depends(get_session)):
+    """Admin: claims the Claude-vision pipeline did NOT auto-approve — the
+    real review queue. Below-threshold score, a duplicate-image hit, a failed
+    verification call, or a merchant reference that isn't ready yet."""
+    rows = session.exec(
+        select(Receipt, User)
+        .where(Receipt.user_id == User.id, Receipt.verification_status == "pending_admin_review")
+        .order_by(Receipt.uploaded_at.desc())
+    ).all()
+    return [_verification_out(r, u, _verification_reason(r)) for r, u in rows]
+
+
+@router.get("/admin/auto-approved", response_model=list[AdminVerificationReceiptOut],
+            dependencies=[Depends(require_admin)])
+def auto_approved_queue(session: Session = Depends(get_session)):
+    """Admin: read-only audit view of claims the pipeline auto-approved,
+    sorted by score ascending so the borderline ones surface first. Nothing
+    here needs action — it's a spot-check trail, useful while payout rails
+    and KYC/AML review are still open items."""
+    rows = session.exec(
+        select(Receipt, User)
+        .where(Receipt.user_id == User.id, Receipt.verification_status == "auto_approved")
+        .order_by(Receipt.overall_score.asc())
+    ).all()
+    return [_verification_out(r, u) for r, u in rows]
 
 
 @router.get("/admin/calibration", response_model=AdminCheckCalibration,
@@ -490,10 +588,14 @@ def verify_receipt(receipt_id: int, session: Session = Depends(get_session)):
     # is being redesigned; see its docstring below. Left in place, not deleted,
     # so it's a one-line change to re-enable once the new plan lands.
     r.status = "verified"
+    r.verification_status = "admin_approved"
+    r.decision_source = "admin"
+    r.decision_at = datetime.utcnow()
     session.add(r)
     session.commit()
     session.refresh(r)
     log_activity(session, "Approved receipt claim", f"{r.brand or 'Cashback'} £{r.amount:.2f}")
+    trigger_cashback_calculation(r.id)   # after commit — opens its own session
     return _receipt_out(r, effective_status(r, post_ts))
 
 
@@ -526,6 +628,9 @@ def bulk_verify_receipts(data: AdminBulkVerifyIn,
             continue
         # _apply_shadow_scoring(r, session) — disabled, see verify_receipt above.
         r.status = "verified"
+        r.verification_status = "admin_approved"
+        r.decision_source = "admin"
+        r.decision_at = datetime.utcnow()
         session.add(r)
         approved.append(r)
 
@@ -534,6 +639,8 @@ def bulk_verify_receipts(data: AdminBulkVerifyIn,
         total = sum(r.amount for r in approved)
         log_activity(session, f"Approved {len(approved)} receipt claims",
                      f"£{total:.2f} released across {len(approved)} claim(s)")
+        for r in approved:   # after commit — each opens its own session
+            trigger_cashback_calculation(r.id)
 
     return AdminBulkVerifyOut(approved=len(approved), failed=len(errors), errors=errors[:20])
 
@@ -546,6 +653,9 @@ def reject_receipt(receipt_id: int, session: Session = Depends(get_session)):
     if r is None:
         raise HTTPException(status_code=404, detail="Receipt not found.")
     r.status = "rejected"
+    r.verification_status = "admin_rejected"
+    r.decision_source = "admin"
+    r.decision_at = datetime.utcnow()
     session.add(r)
     # A rejected claim can't have earned anyone a referral bonus. Take back an
     # unspent one; one already withdrawn is left alone, since the money has gone

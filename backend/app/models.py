@@ -297,6 +297,25 @@ class Receipt(SQLModel, table=True):
     algorithm_version: Optional[str] = None
     shadow_payout: Optional[float] = None
 
+    # ── Claude-vision verification (HITL) — see app/receipt_verification.py ──
+    # Replaces the automated CHECK above as the primary background pipeline.
+    # `verification_status` is descriptive metadata about the Claude decision
+    # — it does NOT gate cashback on its own. `status` above is what actually
+    # controls clearing (see cashback.py); the auto-approve path sets BOTH.
+    ocr_fields: Optional[str] = None                 # JSON: {store_name, date, total, currency, line_items}
+    image_hash: Optional[str] = None                 # perceptual hash (pHash), hex — fuzzy duplicate detection
+    authenticity_score: Optional[float] = None        # 0.0-1.0: does this look like the same merchant?
+    authenticity_detail: Optional[str] = None         # JSON: {matched_fields, mismatches, reasoning}
+    purchase_match_score: Optional[float] = None       # 0.0-1.0: plausible purchase of the campaign's product?
+    purchase_match_detail: Optional[str] = None        # JSON: {product_match, amount_plausible, date_plausible, reasoning}
+    overall_score: Optional[float] = None              # 0.5*authenticity + 0.5*purchase_match
+    # pending -> auto_approved | pending_admin_review -> admin_approved | admin_rejected
+    verification_status: str = Field(default="pending", index=True)
+    verification_error: Optional[str] = None           # set if the Claude call failed after its retry
+    decision_source: Optional[str] = None               # "auto" | "admin"
+    decision_at: Optional[datetime] = None
+    cashback_triggered_at: Optional[datetime] = None    # idempotency guard for trigger_cashback_calculation
+
 
 class Merchant(SQLModel, table=True):
     """A brand's login to the merchant portal (Phase 6).
@@ -339,6 +358,14 @@ class Merchant(SQLModel, table=True):
     # password" — the invite link is the only way in until they do.
     must_set_password: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    # ── Reference receipt (Claude-vision verification) ──
+    # What every future claim on this merchant's campaigns is compared against
+    # for authenticity of origin. Not required at signup — gated instead at
+    # campaign submission (see submit_campaign), and reused across every
+    # campaign they run, not re-uploaded per deal.
+    reference_receipt_s3_key: Optional[str] = None
+    reference_fields: Optional[str] = None        # JSON: {store_name, address, phone, vat_number, format_notes}
+    reference_status: str = "pending_extraction"  # pending_extraction | ready | needs_manual_fix
 
 
 class MerchantTransaction(SQLModel, table=True):
@@ -723,6 +750,27 @@ class AdminReceiptOut(BaseModel):
     checkScore: int = 0
     checkSummary: str = ""           # one line: what the check made of it
     checkReasons: list[str] = []     # the individual findings, worst first
+
+
+class AdminVerificationReceiptOut(BaseModel):
+    """Admin view of one receipt's Claude-vision verification (see
+    app/receipt_verification.py) — the manual-review and auto-approved queues."""
+    id: int
+    userEmail: str
+    userName: str
+    postId: str
+    brand: str
+    amount: float
+    verificationStatus: str
+    uploadedAt: datetime
+    imageUrl: Optional[str] = None
+    authenticityScore: Optional[float] = None
+    authenticityDetail: Optional[dict] = None
+    purchaseMatchScore: Optional[float] = None
+    purchaseMatchDetail: Optional[dict] = None
+    overallScore: Optional[float] = None
+    redFlags: list[str] = []
+    reason: str = ""                 # computed: why this landed in manual review
 
 
 class ActivityItem(BaseModel):
@@ -1243,6 +1291,14 @@ class MerchantProfileOut(BaseModel):
     tips: str
     logoUrl: str
     createdAt: datetime
+
+
+class ReferenceReceiptOut(BaseModel):
+    """The merchant's on-file reference receipt (see app/receipt_verification.py)
+    — what every future claim on their campaigns is compared against."""
+    referenceStatus: str             # pending_extraction | ready | needs_manual_fix
+    referenceFields: Optional[dict] = None
+    imageUrl: Optional[str] = None   # presigned GET, expires shortly; None in local mode
 
 
 # ── Posts tagging the merchant (Phase 6b) ──
