@@ -294,6 +294,8 @@
     .logo-row { display: flex; align-items: center; gap: 16px; }
     .logo-thumb { width: 74px; height: 74px; border-radius: 50%; flex-shrink: 0; background: var(--paper-deep); border: var(--bw) solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--ink-soft); font-size: 1.4rem; }
     .logo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .ref-thumb { width: 62px; height: 74px; border-radius: 8px; flex-shrink: 0; background: var(--paper-deep); border: var(--bw) solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--ink-soft); font-size: 1.2rem; }
+    .ref-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .cat-checks { display: flex; flex-wrap: wrap; gap: 8px; }
     .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: var(--bw) solid var(--line); border-radius: 7px; font-size: .82rem; font-weight: 600; cursor: pointer; user-select: none; }
     .cat-chip input { position: absolute; opacity: 0; pointer-events: none; }
@@ -710,6 +712,17 @@
                 <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="uploadLogo()" />
                 <button type="button" class="btn btn-sm" onclick="document.getElementById('logoInput').click()">Upload logo</button>
                 <div class="field-hint" id="logoHint">PNG, JPG or GIF. A square image works best.</div>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Reference receipt <span class="sbadge pending" id="refReceiptBadge">not uploaded</span></label>
+            <div class="logo-row">
+              <div class="ref-thumb" id="refReceiptThumb"><i class="ico ico-receipt ico-soft"></i></div>
+              <div>
+                <input type="file" id="refReceiptInput" accept="image/*" style="display:none" onchange="uploadReferenceReceipt()" />
+                <button type="button" class="btn btn-sm" onclick="document.getElementById('refReceiptInput').click()">Upload reference receipt</button>
+                <div class="field-hint" id="refReceiptHint">A real receipt from your store. Every shopper's claim gets checked against it — you can't submit a new deal until you've uploaded one.</div>
               </div>
             </div>
           </div>
@@ -1950,12 +1963,62 @@
       setCats(p.categories);
       setLogo(p.logoUrl);
       renderPreview();
+      loadReferenceReceipt();
     }
 
     function setLogo(url) {
       const thumb = document.getElementById('logoThumb'), pv = document.getElementById('pvLogo');
       const html = url ? `<img src="${escapeHtml(url)}" alt="Logo" />` : '<i class="ico ico-home ico-soft"></i>';
       thumb.innerHTML = html; pv.innerHTML = html;
+    }
+
+    async function loadReferenceReceipt() {
+      const res = await fetch(`${API}/merchant/reference-receipt`, { headers: authHeader() });
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) return;
+      setReferenceReceipt(await res.json());
+    }
+
+    function setReferenceReceipt(r) {
+      const thumb = document.getElementById('refReceiptThumb');
+      const badge = document.getElementById('refReceiptBadge');
+      const hint = document.getElementById('refReceiptHint');
+      thumb.innerHTML = r.imageUrl
+        ? `<img src="${escapeHtml(r.imageUrl)}" alt="Reference receipt" />`
+        : '<i class="ico ico-receipt ico-soft"></i>';
+      const STATUS = {
+        ready: { cls: 'approved', label: 'ready' },
+        needs_manual_fix: { cls: 'rejected', label: 'needs a clearer photo' },
+        pending_extraction: { cls: 'pending', label: 'not uploaded' },
+      };
+      const s = STATUS[r.referenceStatus] || STATUS.pending_extraction;
+      badge.className = 'sbadge ' + s.cls;
+      badge.textContent = s.label;
+      const storeName = r.referenceFields && r.referenceFields.store_name;
+      hint.textContent = r.referenceStatus === 'ready' && storeName
+        ? `Recognised as: ${storeName}`
+        : r.referenceStatus === 'needs_manual_fix'
+        ? "Couldn't read this clearly — try a sharper, well-lit photo of the full receipt."
+        : "A real receipt from your store. Every shopper's claim gets checked against it — you can't submit a new deal until you've uploaded one.";
+    }
+
+    async function uploadReferenceReceipt() {
+      const input = document.getElementById('refReceiptInput');
+      if (!input.files || !input.files[0]) return;
+      const hint = document.getElementById('refReceiptHint');
+      hint.textContent = 'Uploading…';
+      const fd = new FormData();
+      fd.append('image', input.files[0]);
+      try {
+        const res = await fetch(`${API}/merchant/reference-receipt`, { method: 'POST', headers: authHeader(), body: fd });
+        if (res.status === 401) { signOut(); return; }
+        if (!res.ok) { hint.textContent = 'Upload failed — use a PNG, JPG or GIF.'; return; }
+        setReferenceReceipt(await res.json());
+      } catch (_) {
+        hint.textContent = 'Couldn’t reach the server. Try again.';
+      } finally {
+        input.value = '';
+      }
     }
 
     async function uploadLogo() {
