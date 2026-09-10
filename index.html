@@ -43,7 +43,11 @@
     }
     .hero-wall, .hero-scrim { position: absolute; inset: 0; pointer-events: none; }
     .hero-wall { z-index: 0; }
-    .hw-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; height: 100%; padding: 0 8px; }
+    /* The number of tracks and the number of .hw-col children have to agree at
+       every width. A surplus column wraps onto a second implicit grid row, which
+       halves every image's height and leaves the last cell of the row empty —
+       so each breakpoint below hides the columns its track count can't hold. */
+    .hw-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; height: 100%; padding: 0 8px; }
     .hw-col { display: flex; flex-direction: column; gap: 12px; }
     .hw-col:nth-child(2n) { transform: translateY(-7%); }
     .hw-col:nth-child(3n) { transform: translateY(4%); }
@@ -64,6 +68,7 @@
     }
     @media (max-width: 900px) {
       .hw-grid { grid-template-columns: repeat(4, 1fr); }
+      .hw-col:nth-child(n+5) { display: none; }
       /* The bright pool over the copy is unchanged — it is what keeps the
          near-black headline readable over photography. Only the bottom fade
          moves: in a taller band the old 88% stop whited out a big block of
@@ -275,16 +280,29 @@
     }
 
     /* ── Review wall — small avatar, quote, rating ── */
-    .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 500px; overflow: hidden; position: relative;
+    /* Each column holds its reviews twice and loops by translating -50%, so the
+       box has to be exactly two copies tall or the restart doesn't land on the
+       seam — the column jumps by the difference, once a cycle. Two things broke
+       that, and the 20 reviews divide 7/7/6 so the short column got both:
+         - stretch: the columns are grid items, so the 6-review one was stretched
+           to the tallest column's height — 2,902px of box around 2,462px of
+           content, and -50% then overshot one copy by 220px.
+         - the gap: 2n cards joined by gaps is 2n-1 gaps, so half of that is half
+           a gap short of a copy. Spacing is the card's own margin now, which
+           makes every copy the same height including its trailing space.
+       Measured after: every column is within 1px of exact. The row of tiles in
+       the carousel above never had this — it is width: max-content, so it always
+       shrink-wrapped its own content. */
+    .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; height: 500px; overflow: hidden; position: relative;
       -webkit-mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
       mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent); }
-    .pw-col { display: flex; flex-direction: column; gap: 14px; will-change: transform; }
+    .pw-col { display: flex; flex-direction: column; will-change: transform; }
     .pw-col.k1 { animation: wallUp 50s linear infinite; }
     .pw-col.k2 { animation: wallDn 62s linear infinite; }
     .pw-col.k3 { animation: wallUp 44s linear infinite; }
     @keyframes wallUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
     @keyframes wallDn { from { transform: translateY(-50%); } to { transform: translateY(0); } }
-    .rv { border-radius: 14px; padding: 15px 16px 14px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
+    .rv { border-radius: 14px; padding: 15px 16px 14px; margin-bottom: 14px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
     .rv:nth-child(3n+1) { transform: rotate(-.8deg); }
     .rv:nth-child(3n+2) { transform: rotate(.6deg); }
     .rv-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
@@ -400,6 +418,13 @@
            over and holds AA on the darkest. */
         --ink-soft: #33414F;
       }
+      /* Three columns is what a 390px screen fits at a portrait crop close to
+         the source files' own 3:4 — four made each frame wider than it is tall,
+         so every photo was cropped to a letterbox strip. The tighter gap and
+         padding buy that third column its width back. */
+      .hw-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 6px; }
+      .hw-col { gap: 8px; }
+      .hw-col:nth-child(n+4) { display: none; }
       /* Lighter than the desktop scrim, and shaped differently: a tight pool
          behind the copy at the top instead of a wash over everything, so the
          photography keeps its own colour through the middle of the band. The
@@ -455,13 +480,12 @@
   <div class="hero-band">
     <div class="hero-wall" aria-hidden="true">
       <div class="hw-grid">
-        <div class="hw-col"><img src="assets/wall/w1.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w8.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w15.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w2.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w9.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w16.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w3.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w10.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w17.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w4.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w11.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w18.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w5.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w12.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w19.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w6.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w13.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w20.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w7.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w14.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w21.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w1.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w7.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w13.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w2.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w8.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w14.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w3.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w9.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w15.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w4.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w10.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w16.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w5.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w11.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w17.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall/w6.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w12.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w18.jpg" alt="" decoding="async" fetchpriority="low"></div>
       </div>
     </div>
     <div class="hero-scrim" aria-hidden="true"></div>
