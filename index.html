@@ -381,7 +381,7 @@
          text is buried in. The band bottom-aligns by default — that is what
          flex-start here is undoing, and it is why the bottom padding no longer
          sets the position. */
-      .hero { padding-top: 22px; padding-bottom: 160px; }
+      .hero { padding-top: 22px; padding-bottom: 88px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* The wall is the whole point of this band on a phone; at the old height
@@ -406,16 +406,22 @@
          run to white is short and late — one decisive fade rather than a long
          haze — so the foot of the wall meets the white page as a join rather
          than a gradient anyone can see. */
-      /* Both the pool and the fade are anchored in pixels, not percentages of
-         the band. Percentages stretched or squashed with the band height, so
-         shortening it would have dragged the pool up off the sub-headline and
-         the fade up behind the buttons. In px they stay put whatever the copy
-         reflows to: a 128px run to white off the bottom edge, and a pool that
-         covers the copy from the top edge down. */
+      /* Shaped around what the type actually needs, measured rather than
+         guessed: the wall has near-black frames in it (darkest pixel rgb 5,5,5
+         behind the headline), so the headline needs .40 white over it to clear
+         3:1 and the sub-headline .70 to clear 4.5:1. That is the whole budget.
+         Spend it where the words are — a light overall wash plus a soft pool
+         behind the sub only — and the top of the wall keeps its photography
+         instead of being bleached by a pool wide enough to cover everything.
+         All stops are px from an edge, so they hold wherever the copy reflows.
+
+         Everything below the copy runs to white over the last ~96px, landing
+         just under the buttons: no vivid slab of wall after the call to action,
+         and no long haze either. */
       .hero-scrim { background:
-        linear-gradient(to top, #FFFFFF 0, rgba(255,255,255,.97) 22px, rgba(255,255,255,.58) 72px, rgba(255,255,255,0) 128px),
-        radial-gradient(150% 300px at 50% 120px, rgba(255,255,255,.93) 0%, rgba(255,255,255,.78) 55%, rgba(255,255,255,.14) 100%),
-        linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.18) 38%, rgba(255,255,255,.10) 62%, rgba(255,255,255,0) 78%); }
+        linear-gradient(to top, #FFFFFF 0, rgba(255,255,255,.97) 20px, rgba(255,255,255,.60) 60px, rgba(255,255,255,0) 96px),
+        radial-gradient(120% 125px at 50% 205px, rgba(255,255,255,.66) 0%, rgba(255,255,255,.46) 60%, rgba(255,255,255,0) 100%),
+        linear-gradient(180deg, rgba(255,255,255,.40) 0px, rgba(255,255,255,.46) 160px, rgba(255,255,255,.50) 300px, rgba(255,255,255,.56) 100%); }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
          with the carousel for the same budget. */
