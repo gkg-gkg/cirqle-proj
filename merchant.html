@@ -294,8 +294,6 @@
     .logo-row { display: flex; align-items: center; gap: 16px; }
     .logo-thumb { width: 74px; height: 74px; border-radius: 50%; flex-shrink: 0; background: var(--paper-deep); border: var(--bw) solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--ink-soft); font-size: 1.4rem; }
     .logo-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .ref-thumb { width: 62px; height: 74px; border-radius: 8px; flex-shrink: 0; background: var(--paper-deep); border: var(--bw) solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--ink-soft); font-size: 1.2rem; }
-    .ref-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .cat-checks { display: flex; flex-wrap: wrap; gap: 8px; }
     .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: var(--bw) solid var(--line); border-radius: 7px; font-size: .82rem; font-weight: 600; cursor: pointer; user-select: none; }
     .cat-chip input { position: absolute; opacity: 0; pointer-events: none; }
@@ -476,6 +474,14 @@
         <div class="plan-prompt-sub" id="planPromptSub">You'll need an active plan before you can add credit or submit new deals.</div>
       </div>
       <button type="button" class="btn btn-ink mini" onclick="showTab('billing')">View plans →</button>
+    </div>
+    <div class="plan-prompt hidden" id="refPrompt">
+      <div>
+        <div class="plan-prompt-title" id="refPromptTitle">Upload a reference receipt</div>
+        <div class="plan-prompt-sub" id="refPromptSub">Every shopper's claim gets checked against it — you can't submit a new deal until you've uploaded one.</div>
+      </div>
+      <input type="file" id="refReceiptInput" accept="image/*" style="display:none" onchange="uploadReferenceReceipt()" />
+      <button type="button" class="btn btn-ink mini" onclick="document.getElementById('refReceiptInput').click()">Upload receipt →</button>
     </div>
     <!-- Money first: what the deals earned, then what they cost. The counts
          that used to lead the page moved to the row below — they're context,
@@ -712,17 +718,6 @@
                 <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="uploadLogo()" />
                 <button type="button" class="btn btn-sm" onclick="document.getElementById('logoInput').click()">Upload logo</button>
                 <div class="field-hint" id="logoHint">PNG, JPG or GIF. A square image works best.</div>
-              </div>
-            </div>
-          </div>
-          <div class="field">
-            <label>Reference receipt <span class="sbadge pending" id="refReceiptBadge">not uploaded</span></label>
-            <div class="logo-row">
-              <div class="ref-thumb" id="refReceiptThumb"><i class="ico ico-receipt ico-soft"></i></div>
-              <div>
-                <input type="file" id="refReceiptInput" accept="image/*" style="display:none" onchange="uploadReferenceReceipt()" />
-                <button type="button" class="btn btn-sm" onclick="document.getElementById('refReceiptInput').click()">Upload reference receipt</button>
-                <div class="field-hint" id="refReceiptHint">A real receipt from your store. Every shopper's claim gets checked against it — you can't submit a new deal until you've uploaded one.</div>
               </div>
             </div>
           </div>
@@ -1085,6 +1080,9 @@
       handleTopupReturn();
       // Load billing up front so the Overview plan prompt is accurate on arrival.
       if (!loaded.billing) { loaded.billing = true; loadBilling(); }
+      // Same idea for the reference-receipt prompt — needs to be accurate
+      // before they can try "+ Create campaign".
+      loadReferenceReceipt();
       // Refresh the profile from the server so a renamed business (or changed
       // email) shows straight away, without having to sign out and back in.
       try {
@@ -1424,6 +1422,12 @@
 
     // ── Create campaign (merchant proposes a deal -> admin reviews) ──
     function openCampaignModal() {
+      if (refReceiptStatus !== 'ready') {
+        cirqleToast('Upload a reference receipt before creating a deal ↓');
+        showTab('overview');
+        document.getElementById('refPrompt').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       document.getElementById('cErr').textContent = '';
       document.getElementById('campaignModal').classList.add('open');
     }
@@ -1963,7 +1967,6 @@
       setCats(p.categories);
       setLogo(p.logoUrl);
       renderPreview();
-      loadReferenceReceipt();
     }
 
     function setLogo(url) {
@@ -1972,50 +1975,47 @@
       thumb.innerHTML = html; pv.innerHTML = html;
     }
 
+    // ── Reference receipt (Overview banner — gates campaign creation) ──
+    let refReceiptStatus = 'pending_extraction';
+
     async function loadReferenceReceipt() {
       const res = await fetch(`${API}/merchant/reference-receipt`, { headers: authHeader() });
       if (res.status === 401) { signOut(); return; }
       if (!res.ok) return;
-      setReferenceReceipt(await res.json());
+      const r = await res.json();
+      renderRefPrompt(r.referenceStatus);
     }
 
-    function setReferenceReceipt(r) {
-      const thumb = document.getElementById('refReceiptThumb');
-      const badge = document.getElementById('refReceiptBadge');
-      const hint = document.getElementById('refReceiptHint');
-      thumb.innerHTML = r.imageUrl
-        ? `<img src="${escapeHtml(r.imageUrl)}" alt="Reference receipt" />`
-        : '<i class="ico ico-receipt ico-soft"></i>';
-      const STATUS = {
-        ready: { cls: 'approved', label: 'ready' },
-        needs_manual_fix: { cls: 'rejected', label: 'needs a clearer photo' },
-        pending_extraction: { cls: 'pending', label: 'not uploaded' },
-      };
-      const s = STATUS[r.referenceStatus] || STATUS.pending_extraction;
-      badge.className = 'sbadge ' + s.cls;
-      badge.textContent = s.label;
-      const storeName = r.referenceFields && r.referenceFields.store_name;
-      hint.textContent = r.referenceStatus === 'ready' && storeName
-        ? `Recognised as: ${storeName}`
-        : r.referenceStatus === 'needs_manual_fix'
-        ? "Couldn't read this clearly — try a sharper, well-lit photo of the full receipt."
-        : "A real receipt from your store. Every shopper's claim gets checked against it — you can't submit a new deal until you've uploaded one.";
+    function renderRefPrompt(status) {
+      refReceiptStatus = status;
+      const el = document.getElementById('refPrompt');
+      const ready = status === 'ready';
+      el.classList.toggle('hidden', ready);
+      if (ready) return;
+      const bad = status === 'needs_manual_fix';
+      document.getElementById('refPromptTitle').textContent = bad
+        ? "That receipt wasn't clear enough" : 'Upload a reference receipt';
+      document.getElementById('refPromptSub').textContent = bad
+        ? 'Try a sharper, well-lit photo of the full receipt.'
+        : "Every shopper's claim gets checked against it — you can't submit a new deal until you've uploaded one.";
     }
 
     async function uploadReferenceReceipt() {
       const input = document.getElementById('refReceiptInput');
       if (!input.files || !input.files[0]) return;
-      const hint = document.getElementById('refReceiptHint');
-      hint.textContent = 'Uploading…';
       const fd = new FormData();
       fd.append('image', input.files[0]);
       try {
         const res = await fetch(`${API}/merchant/reference-receipt`, { method: 'POST', headers: authHeader(), body: fd });
         if (res.status === 401) { signOut(); return; }
-        if (!res.ok) { hint.textContent = 'Upload failed — use a PNG, JPG or GIF.'; return; }
-        setReferenceReceipt(await res.json());
+        if (!res.ok) { cirqleToast('Upload failed — use a PNG, JPG or GIF.'); return; }
+        const r = await res.json();
+        renderRefPrompt(r.referenceStatus);
+        cirqleToast(r.referenceStatus === 'ready'
+          ? 'Reference receipt saved ✓'
+          : "Uploaded, but it wasn't very clear — try a sharper photo.");
       } catch (_) {
-        hint.textContent = 'Couldn’t reach the server. Try again.';
+        cirqleToast('Couldn’t reach the server. Try again.');
       } finally {
         input.value = '';
       }

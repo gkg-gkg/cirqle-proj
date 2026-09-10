@@ -960,8 +960,7 @@ def submit_campaign(data: CampaignSubmissionIn,
     if merchant.reference_status != "ready":
         raise HTTPException(
             status_code=409,
-            detail=("Upload a reference receipt before submitting a deal — "
-                    "go to Merchant Profile → Reference receipt."))
+            detail="Upload a reference receipt before submitting a deal.")
     title = data.cardTitle.strip()
     if not title:
         raise HTTPException(status_code=422, detail="Give your deal a title.")
