@@ -1,0 +1,29 @@
+name: Deploy backend to production
+
+# Runs the same update command from backend/deploy/setup.sh's own header —
+# it's explicitly designed to be safe to re-run: pulls latest code,
+# reinstalls dependencies, applies migrations, restarts the service, and
+# never touches .env or the database. Only triggers on backend changes, so a
+# frontend-only commit (served separately by GitHub Pages) doesn't bounce
+# the API for no reason. Can also be run manually from the Actions tab.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into the server and update
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 60s
+          command_timeout: 10m
+          script: |
+            curl -fsSL https://raw.githubusercontent.com/gkg-gkg/cirqle-proj/main/backend/deploy/setup.sh | bash
