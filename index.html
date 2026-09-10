@@ -31,8 +31,11 @@
       position: relative; overflow: hidden;
       /* The band has to be taller than the copy for the copy to sit low in it —
          otherwise "bottom" and "middle" are the same place. The wall fills the
-         band, so this is also what decides how much wall there is. */
-      min-height: 96vh;
+         band, so this is also what decides how much wall there is. The extra
+         over a full screen is what lengthens the wall: the copy is anchored to
+         the foot, so the band grows upward into more photography and the whole
+         block sits lower in the viewport for it. */
+      min-height: 104vh;
       display: flex; flex-direction: column; justify-content: flex-end;
       /* Secondary copy sits over photography here, not flat white. The default
          --ink-soft (#64748B) measures 3.98:1 against the scrimmed wall, which
@@ -92,10 +95,13 @@
     }
     .hero-h {
       font-family: var(--font-display); font-weight: 700;
-      font-size: clamp(3.2rem, 7.6vw, 6rem); line-height: 1.02;
-      letter-spacing: -0.035em; margin: 22px 0 20px;
+      font-size: clamp(3.5rem, 8.2vw, 6.6rem); line-height: 1.02;
+      letter-spacing: -0.035em; margin: 22px 0 26px;
     }
-    .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 700px; margin: 0 auto 22px; line-height: 1.7; }
+    /* 26px under the headline and 26px under the sub: the three blocks in front
+       of the wall are set to one interval so the run down to the buttons reads
+       as evenly spaced rather than tightening at the end. */
+    .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 700px; margin: 0 auto 26px; line-height: 1.7; }
     /* --blue is the only blue that passes as text (4.80:1); --neon would not. */
     .hero-jump { color: var(--blue); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid rgba(0,114,214,.38); transition: border-color .18s var(--snap); }
     .hero-jump:hover { border-bottom-color: var(--blue); }
@@ -296,12 +302,20 @@
     .pwall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; height: 500px; overflow: hidden; position: relative;
       -webkit-mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
       mask-image: linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent); }
-    .pw-col { display: flex; flex-direction: column; will-change: transform; }
-    .pw-col.k1 { animation: wallUp 50s linear infinite; }
-    .pw-col.k2 { animation: wallDn 62s linear infinite; }
-    .pw-col.k3 { animation: wallUp 44s linear infinite; }
-    @keyframes wallUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-    @keyframes wallDn { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+    /* Same shape as the carousel above, for the same reason: the animation and
+       the layer promotion only come on once the JS has filled the columns, so a
+       marquee is never running against an empty or half-built box, and nothing
+       is promoted on a page that will never animate it. */
+    .pw-col { display: flex; flex-direction: column; }
+    .pwall.run .pw-col { will-change: transform; }
+    .pwall.run .pw-col.k1 { animation: wallUp 50s linear infinite; }
+    .pwall.run .pw-col.k2 { animation: wallDn 62s linear infinite; }
+    .pwall.run .pw-col.k3 { animation: wallUp 44s linear infinite; }
+    /* translate3d, not translateY — the carousel's note applies here too: it
+       keeps each column on its own compositor layer instead of relayouting it
+       against the scroll on the main thread. */
+    @keyframes wallUp { from { transform: translate3d(0,0,0); } to { transform: translate3d(0,-50%,0); } }
+    @keyframes wallDn { from { transform: translate3d(0,-50%,0); } to { transform: translate3d(0,0,0); } }
     .rv { border-radius: 14px; padding: 15px 16px 14px; margin-bottom: 14px; background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); flex-shrink: 0; }
     .rv:nth-child(3n+1) { transform: rotate(-.8deg); }
     .rv:nth-child(3n+2) { transform: rotate(.6deg); }
@@ -364,6 +378,14 @@
       /* The wall shows two columns at this width. The third still existed on a
          clipped second row, animating a 172×2500 layer nobody could see. */
       .pw-col.k3 { display: none; }
+      /* And the two that remain get cut down the same way the carousel's rows
+         were: the script builds four reviews a column here instead of seven, so
+         each animated column measures ~1,685px rather than ~2,750px. These were
+         the largest layers on the page by some way — the note above already
+         sized the carousel's rows against them. Halving the durations keeps the
+         scroll at the speed it reads at now that each loop is shorter. */
+      .pwall.run .pw-col.k1 { animation-duration: 28s; }
+      .pwall.run .pw-col.k2 { animation-duration: 34s; }
       .hero { padding-top: clamp(48px, 8vw, 80px); padding-bottom: clamp(92px, 12vw, 140px); }
       .steps { grid-template-columns: 1fr; gap: 30px; }
       .features-grid { grid-template-columns: 1fr; }
@@ -392,31 +414,46 @@
       .rv-who { font-size: .72rem; }
       .rv-where { font-size: .64rem; }
       .rv-amt { font-size: .76rem; }
-      .hero-h { font-size: clamp(3rem, 15vw, 4.6rem); margin-top: 6px; }
-      .hero-sub { font-size: 1rem; margin-bottom: 26px; }
-      /* Copy rides at the top of the band on a phone, not the foot of it, so
+      /* "Shop. Share." has to hold one line for the markup's <br> to give the
+         two-line shape, and at 390px the old 15vw was already within 10px of
+         wrapping — there was no room to grow the type without also giving it
+         room to sit in. Hence the narrower side padding: 12px a side buys 16px
+         of line, which is what pays for the step up. Measured across the range,
+         line one against the room it has: 290/296 at 320px, 353/366 at 390,
+         390/406 at 430. The margin is thinnest on a 320px screen, which is what
+         keeps this at 15.6vw rather than the 16.2 it would otherwise take. */
+      .hero-h { font-size: clamp(3rem, 15.6vw, 5rem); margin-top: 10px; margin-bottom: 30px; }
+      /* Same single interval as the desktop rule, one step wider: 30px under the
+         headline and 30px under the sub. */
+      .hero-sub { font-size: 1rem; margin-bottom: 30px; }
+      /* Copy rides near the top of the band on a phone, not the foot of it, so
          the wall reads as something the page opens onto rather than a slab the
-         text is buried in. The band bottom-aligns by default — that is what
-         flex-start here is undoing, and it is why the bottom padding no longer
-         sets the position. */
-      .hero { padding-top: 22px; padding-bottom: 88px; }
+         text is buried in. The band bottom-aligns by default — that is what the
+         flex-start below is undoing, and it is why the top padding is what sets
+         the copy's position: it is the "shift it down" control, and the bottom
+         padding is the strip of wall left under the buttons. */
+      .hero { padding-top: 52px; padding-bottom: 112px; padding-left: 12px; padding-right: 12px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* The wall is the whole point of this band on a phone; at the old height
          it read as a stripe behind the headline rather than a wall. */
       .hero-band {
-        /* Measured at 390px: the copy ends 321px down, and 96vh made the band
-           672px — twice what the design needs, so the wall ran on for half a
-           screen after the buttons. No viewport minimum any more: the band is
-           the copy plus the strip of wall under it, set by .hero's bottom
-           padding above. */
+        /* A viewport minimum ran the wall on for half a screen after the
+           buttons, so there is none: the band is the copy plus the strip of wall
+           under it, set by .hero's bottom padding above. Measured at 390px, the
+           buttons now end 375px down and the band is 487px, so 112px of that is
+           wall past the call to action. */
         min-height: 0;
         justify-content: flex-start;
-        /* Less white wash than before means less contrast under the secondary
-           copy, so the token this band already darkens goes one step further
-           again: #33414F measures 8.0:1 on the palest frames the sub now sits
-           over and holds AA on the darkest. */
-        --ink-soft: #33414F;
+        /* The sub sits over photography, so this token carries the band's
+           contrast on its own and has been darkened once per move down the wall.
+           This move put it over the busiest frames yet: at #33414F the darkest
+           spot behind it measured 3.42:1, under the 4.5 AA needs. Sampling the
+           composited scrim rather than trusting the gradient stops, #283440
+           clears it at 4.60:1 without spending the whole budget on more wash.
+           The link in that paragraph is a separate problem: --blue over these
+           frames measures ~1.7:1 and needs a colour, not a scrim. */
+        --ink-soft: #283440;
       }
       /* Three columns is what a 390px screen fits at a portrait crop close to
          the source files' own 3:4 — four made each frame wider than it is tall,
@@ -445,7 +482,7 @@
          and no long haze either. */
       .hero-scrim { background:
         linear-gradient(to top, #FFFFFF 0, rgba(255,255,255,.97) 20px, rgba(255,255,255,.60) 60px, rgba(255,255,255,0) 96px),
-        radial-gradient(120% 125px at 50% 205px, rgba(255,255,255,.66) 0%, rgba(255,255,255,.46) 60%, rgba(255,255,255,0) 100%),
+        radial-gradient(120% 132px at 50% 258px, rgba(255,255,255,.74) 0%, rgba(255,255,255,.52) 60%, rgba(255,255,255,0) 100%),
         linear-gradient(180deg, rgba(255,255,255,.40) 0px, rgba(255,255,255,.46) 160px, rgba(255,255,255,.50) 300px, rgba(255,255,255,.56) 100%); }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
@@ -744,8 +781,27 @@
           '</div>'
         );
       });
-      cols.forEach(function (col, n) {
-        if (col) col.innerHTML = out[n].join('') + out[n].join('');   // duplicated for the -50% loop
+      // Same two modes as the carousel, picked the same way. A phone builds four
+      // reviews a column rather than seven: one copy still measures ~800px
+      // against a 420px box, so the loop never runs out of cards to show, and
+      // the column being composited drops from ~2,750px to ~1,685px. Reduced
+      // motion gets a single copy — the second exists only to be scrolled into.
+      var wall = document.querySelector('.pwall');
+      var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var small = window.matchMedia('(max-width: 900px)');
+      function layout() {
+        var per = small.matches ? 4 : out[0].length;
+        cols.forEach(function (col, n) {
+          if (!col) return;
+          var copy = out[n].slice(0, per).join('');
+          col.innerHTML = still.matches ? copy : copy + copy;   // doubled for the -50% loop
+        });
+        if (wall) wall.classList.toggle('run', !still.matches);
+      }
+      layout();
+      // Rotating a phone or dragging a window across 900px switches mode.
+      [still, small].forEach(function (m) {
+        if (m.addEventListener) m.addEventListener('change', layout);
       });
     })();
 
