@@ -1,7 +1,12 @@
-"""Integration test: mention -> receipt -> admin approval, asserting the
-shadow-mode audit fields persist while real payout behavior for a flat
-campaign is unchanged (spec cashback-algorithm v1.0 §10)."""
-import json
+"""Integration test: mention -> receipt -> admin approval.
+
+Shadow-mode scoring (_apply_shadow_scoring, spec cashback-algorithm v1.0 §10)
+is currently disabled in verify_receipt/bulk_verify_receipts while the
+cashback algorithm is being redesigned -- see routers/receipts.py -- so this
+just asserts the plain verify flow works and doesn't stamp anything. Its own
+correctness is covered directly by test_payout.py and
+test_shadow_scoring_edge_cases.py, which call it without going through the
+(currently disabled) endpoint."""
 from datetime import datetime, timedelta
 
 from sqlmodel import select
@@ -41,25 +46,22 @@ def _seed(session, handle="creator"):
     return user, campaign, receipt
 
 
-def test_verify_receipt_preserves_flat_payout_and_stamps_audit_fields(client, session):
+def test_verify_receipt_preserves_flat_payout(client, session):
     user, campaign, receipt = _seed(session)
 
     resp = client.post(f"/receipts/{receipt.id}/verify", headers={"X-Admin-Key": "dev-admin-key"})
     assert resp.status_code == 200
     body = resp.json()
     assert body["status"] in ("pending", "confirmed")  # effective_status view, not raw
-    assert body["amount"] == 13.0   # real payout unchanged — shadow mode is inert
+    assert body["amount"] == 13.0
 
     session.refresh(receipt)
     assert receipt.status == "verified"
     assert receipt.amount == 13.0
-    assert receipt.aqs_score_at_approval is not None
-    assert 0.5 <= receipt.aqs_score_at_approval <= 1.0
-    assert receipt.engagement_multiplier_at_approval is not None
-    assert receipt.algorithm_version == "v1.0"
-    assert receipt.shadow_payout is not None
-    snapshot = json.loads(receipt.engagement_snapshot)
-    assert "likes" in snapshot and "comments" in snapshot
+    # Shadow scoring is disabled right now (see routers/receipts.py) — nothing
+    # should be stamped via the live endpoint until it's re-enabled.
+    assert receipt.aqs_score_at_approval is None
+    assert receipt.shadow_payout is None
 
 
 def test_verify_rejects_after_window_closes(client, session):

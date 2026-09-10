@@ -406,6 +406,13 @@ def _post_ts_of(r: Receipt, session: Session) -> Optional[datetime]:
 def _apply_shadow_scoring(r: Receipt, session: Session) -> None:
     """Stamp AQS/payout audit fields and decide the outcome status.
 
+    DISABLED as of 2026-09-10: not called from verify_receipt/bulk_verify_receipts
+    right now while the cashback algorithm is being redesigned. Left in place
+    (not deleted) along with app/aqs.py and the Campaign/Receipt/Mention schema
+    it depends on, so re-enabling is a one-line change once the new plan lands.
+    Covered by tests/test_payout.py and tests/test_shadow_scoring_edge_cases.py,
+    which call it directly rather than through the disabled endpoints.
+
     For every campaign (flat or performance) this computes what compute_payout
     WOULD return and stamps it as `shadow_payout` plus the `_at_approval` audit
     fields — real historical data for later comparison, per the spec's Phase 3.
@@ -479,7 +486,10 @@ def verify_receipt(receipt_id: int, session: Session = Depends(get_session)):
     if datetime.utcnow() >= clears_at(r, post_ts):
         raise HTTPException(status_code=400,
                             detail="This claim's 3-day window has passed and can no longer be approved.")
-    _apply_shadow_scoring(r, session)
+    # _apply_shadow_scoring(r, session) — disabled while the cashback algorithm
+    # is being redesigned; see its docstring below. Left in place, not deleted,
+    # so it's a one-line change to re-enable once the new plan lands.
+    r.status = "verified"
     session.add(r)
     session.commit()
     session.refresh(r)
@@ -514,7 +524,8 @@ def bulk_verify_receipts(data: AdminBulkVerifyIn,
         if datetime.utcnow() >= clears_at(r, _post_ts_of(r, session)):
             errors.append(f"#{receipt_id}: 3-day window has passed")
             continue
-        _apply_shadow_scoring(r, session)
+        # _apply_shadow_scoring(r, session) — disabled, see verify_receipt above.
+        r.status = "verified"
         session.add(r)
         approved.append(r)
 
