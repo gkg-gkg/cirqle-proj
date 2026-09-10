@@ -41,8 +41,8 @@ from typing import Optional
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
+from . import db
 from .cashback import parse_post_ts
-from .db import engine
 from .models import Campaign, Mention, Receipt
 from .storage import read_receipt
 
@@ -390,9 +390,13 @@ def check_receipt(receipt_id: int) -> None:
     """Read receipt `receipt_id` and record what we made of it. Never raises.
 
     Opens its own session: this runs as a background task, after the request
-    that uploaded the receipt has already closed its own.
+    that uploaded the receipt has already closed its own. Reads `db.engine`
+    at call time (not `from .db import engine` at module import time) so a
+    test that patches `app.db.engine` after this module has already been
+    imported — which pytest's collection phase does before any fixture runs —
+    still lands on the isolated test database, not the real one.
     """
-    with Session(engine) as session:
+    with Session(db.engine) as session:
         receipt = session.get(Receipt, receipt_id)
         if receipt is None:
             return

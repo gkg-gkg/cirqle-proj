@@ -145,8 +145,7 @@ def store(tmp_path, monkeypatch):
 
 
 @pytest.fixture
-def stored_claim(session, deal, store, monkeypatch):
-    monkeypatch.setattr(verify, "engine", session.get_bind())
+def stored_claim(session, deal, store):
     (store / "stored.png").write_bytes(b"pretend image")
     claim = Receipt(id=5, user_id=1, post_id="post1", campaign_id=1,
                     image_key="stored.png")
@@ -189,6 +188,5 @@ class TestBackgroundCheck:
         session.expire_all()
         assert session.get(Receipt, 5).check_status == "error"
 
-    def test_unknown_receipt_is_a_no_op(self, session, monkeypatch):
-        monkeypatch.setattr(verify, "engine", session.get_bind())
+    def test_unknown_receipt_is_a_no_op(self, session):
         check_receipt(123456)                  # must not raise
