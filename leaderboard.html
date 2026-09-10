@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
+  <title>Leaderboard — Cirqle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=12" />
+  <style>
+    .nav-user { display: flex; align-items: center; gap: 10px; }
+    .nav-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: var(--bw) solid var(--line);
+      background: var(--pink);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 800; font-size: .95rem;
+      color: var(--ink);
+    }
+    .nav-name { font-size: .86rem; font-weight: 700; color: var(--ink); }
+
+    .board { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: clamp(32px,5vw,56px) clamp(20px,4vw,44px) 90px; }
+
+    .board-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+    .board-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.7rem, 4vw, 2.3rem); letter-spacing: -.02em; }
+    .season-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: .78rem; font-weight: 700; padding: 6px 12px;
+      border-radius: var(--r-chip); border: var(--bw) solid var(--line);
+      background: var(--paper-deep); color: var(--ink-soft);
+    }
+    .board-sub { color: var(--ink-soft); font-size: .93rem; margin-bottom: 26px; max-width: 62ch; }
+
+    /* A running season and a finished one are genuinely different things —
+       one is a snapshot, the other is what prizes were decided on. */
+    .state {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 13px 16px; border-radius: var(--r-card);
+      font-size: .86rem; margin-bottom: 24px; border: var(--bw) solid var(--line);
+      background: var(--blue-tint); color: var(--ink);
+    }
+    .state.final { background: var(--paper-deep); }
+
+    .row {
+      display: grid; grid-template-columns: 54px 1fr auto;
+      gap: 14px; align-items: center;
+      padding: 14px 16px; border-bottom: var(--bw) solid var(--line-soft);
+    }
+    .row:last-child { border-bottom: 0; }
+    .row-rank { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+    .row-name { font-weight: 700; font-size: .95rem; overflow-wrap: anywhere; }
+    .row-score { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+    .row-score small { font-weight: 600; font-size: .72rem; color: var(--ink-soft); margin-left: 5px; }
+
+    .row.paid .row-rank { color: var(--blue); }
+    .row.you { background: var(--blue-tint); border-radius: var(--r-chip); }
+    .row.you .row-name::after {
+      content: 'you'; margin-left: 8px; font-size: .68rem; font-weight: 800;
+      letter-spacing: .06em; text-transform: uppercase; color: var(--blue);
+    }
+    .your-row { margin-top: 14px; }
+    .your-row .panel-title { margin-bottom: 6px; }
+
+    .empty { text-align: center; padding: 44px 20px; color: var(--ink-soft); font-size: .93rem; }
+
+    /* Opting in is a decision, so it gets a real explanation rather than a toggle
+       tucked into a settings page. */
+    .join { display: flex; flex-direction: column; gap: 14px; }
+    .join-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .join input {
+      flex: 1 1 220px; padding: 11px 14px; font: inherit; font-size: .9rem;
+      border: var(--bw) solid var(--line); border-radius: var(--r-chip);
+      background: var(--paper); color: var(--ink);
+    }
+    .join input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+    .join-note { font-size: .82rem; color: var(--ink-soft); }
+    .msg { font-size: .85rem; font-weight: 700; }
+    .msg.ok { color: var(--green); }
+    .msg.bad { color: var(--red); }
+
+    @media (max-width: 620px) {
+      .nav-name { display: none; }
+      .row { grid-template-columns: 40px 1fr auto; gap: 10px; padding: 13px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="index.html" class="logo">cirqle</a>
+    <div class="nav-cta">
+      <a href="account.html" class="nav-user nav-user-link" title="Account details">
+        <span class="nav-avatar" id="navAvatar">?</span>
+        <span class="nav-name" id="navName">Loading…</span>
+      </a>
+      <a href="dashboard.html" class="btn btn-sm btn-ink">My account</a>
+      <a href="browse.html" class="btn btn-sm">Browse deals</a>
+    </div>
+  </nav>
+
+  <div class="board">
+
+    <div class="board-head">
+      <div class="board-title">Referral leaderboard</div>
+      <span class="season-pill"><i class="ico ico-trophy"></i> <span id="seasonPill">—</span></span>
+    </div>
+    <p class="board-sub" id="boardSub">
+      Ranked by how many people you've referred whose purchase went through.
+    </p>
+
+    <div class="state" id="stateNote" hidden></div>
+
+    <div class="card" style="padding:8px 6px">
+      <div id="rows"><div class="empty">Loading…</div></div>
+    </div>
+
+    <div class="your-row card" id="yourRow" hidden>
+      <div class="panel-title">Your place</div>
+      <div id="yourRowBody"></div>
+    </div>
+
+    <div class="card join" id="joinCard" style="margin-top:22px" hidden>
+      <div class="panel-title" id="joinTitle">Join the leaderboard</div>
+      <p class="join-note" id="joinBlurb">
+        You're not on the table yet. Joining shows your name and how many people
+        you've referred — never what you bought or what you earned.
+      </p>
+      <div class="join-row">
+        <input id="displayName" maxlength="40" placeholder="Name to show (optional)" />
+        <button class="btn btn-ink" id="joinBtn">Join</button>
+      </div>
+      <div class="msg" id="joinMsg"></div>
+    </div>
+
+  </div>
+
+  <script src="assets/api.js"></script>
+  <script>
+    // ── Auth check ──
+    const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
+    if (!session) { window.location.href = 'signin.html'; }
+    else {
+      document.getElementById('navName').textContent = session.firstName + ' ' + session.lastName;
+      document.getElementById('navAvatar').textContent = session.firstName[0].toUpperCase();
+    }
+
+    // Display names are member-supplied, so they're escaped before they reach
+    // innerHTML — same rule as the handles on the dashboard.
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g,
+        c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function fmtDate(iso) {
+      const d = new Date(iso);
+      return isNaN(d) ? '' : d.toLocaleDateString('en-GB',
+        { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function rowHtml(entry) {
+      const cls = ['row'];
+      if (entry.winsPrize) cls.push('paid');
+      if (entry.isYou) cls.push('you');
+      return `
+        <div class="${cls.join(' ')}">
+          <div class="row-rank">${entry.rank}</div>
+          <div class="row-name">${escapeHtml(entry.name)}</div>
+          <div class="row-score">${entry.score}<small>referred</small></div>
+        </div>`;
+    }
+
+    let state = null;
+
+    async function load() {
+      try {
+        const res = await fetch(`${window.CIRQLE_API_BASE}/leaderboard`, {
+          headers: { 'Authorization': 'Bearer ' + session.token }
+        });
+        if (res.status === 401 || res.status === 403) {
+          localStorage.removeItem('cirqle_session');
+          sessionStorage.removeItem('cirqle_session');
+          window.location.href = 'signin.html';
+          return;
+        }
+        if (!res.ok) throw new Error('bad status');
+        state = await res.json();
+        render();
+      } catch (e) {
+        document.getElementById('rows').innerHTML =
+          '<div class="empty">Couldn\'t load the leaderboard. Please refresh.</div>';
+      }
+    }
+
+    function render() {
+      const s = state;
+      document.getElementById('seasonPill').textContent = s.season.replace('-Q', ' · Q');
+      document.getElementById('boardSub').textContent =
+        `Ranked by how many people you've referred whose purchase went through. ` +
+        `The top ${s.prizePlaces} each win £${Number(s.prizeAmount).toFixed(0)} at the end of the season.`;
+
+      // Say plainly whether these standings can still move. A member deciding
+      // whether it's worth referring one more person needs to know that.
+      const note = document.getElementById('stateNote');
+      note.hidden = false;
+      if (s.isFinal) {
+        note.classList.add('final');
+        note.innerHTML = `${cirqleIcon('check')} <span><strong>Final.</strong> ` +
+          `This season closed on ${fmtDate(s.endsOn)} and its places are settled.</span>`;
+      } else {
+        note.classList.remove('final');
+        note.innerHTML = `${cirqleIcon('clock')} <span><strong>Still running.</strong> ` +
+          `Places can change until ${fmtDate(s.freezesOn)}, once every referral ` +
+          `made by ${fmtDate(s.endsOn)} has cleared.</span>`;
+      }
+
+      const rows = document.getElementById('rows');
+      rows.innerHTML = s.top.length
+        ? s.top.map(rowHtml).join('')
+        : '<div class="empty">Nobody has referred anyone yet this season. First one on the board wins it.</div>';
+
+      // Your own row, shown separately so being outside the top 100 still tells
+      // you where you stand.
+      const yourRow = document.getElementById('yourRow');
+      const inTop = s.you && s.top.some(r => r.isYou);
+      if (s.you && !inTop) {
+        document.getElementById('yourRowBody').innerHTML = rowHtml(s.you);
+        yourRow.hidden = false;
+      } else {
+        yourRow.hidden = true;
+      }
+
+      renderJoin(s);
+    }
+
+    function renderJoin(s) {
+      const card = document.getElementById('joinCard');
+      card.hidden = false;
+      const title = document.getElementById('joinTitle');
+      const blurb = document.getElementById('joinBlurb');
+      const btn = document.getElementById('joinBtn');
+
+      if (s.optedIn) {
+        title.textContent = 'You\'re on the leaderboard';
+        blurb.textContent = 'Change the name you show, or leave the table. Leaving ' +
+          'takes you off the current season — it can\'t change a season that has already closed.';
+        btn.textContent = 'Leave';
+        btn.classList.remove('btn-ink');
+      } else {
+        title.textContent = 'Join the leaderboard';
+        blurb.textContent = 'You\'re not on the table yet. Joining shows your name and ' +
+          'how many people you\'ve referred — never what you bought or what you earned.';
+        btn.textContent = 'Join';
+        btn.classList.add('btn-ink');
+      }
+    }
+
+    document.getElementById('joinBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('joinBtn');
+      const msg = document.getElementById('joinMsg');
+      const name = document.getElementById('displayName').value.trim();
+      btn.disabled = true;
+      msg.textContent = '';
+      msg.className = 'msg';
+      try {
+        const res = await fetch(`${window.CIRQLE_API_BASE}/account/leaderboard-opt-in`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + session.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ optIn: !state.optedIn, displayName: name || null })
+        });
+        if (!res.ok) throw new Error('bad status');
+        msg.textContent = state.optedIn ? 'You\'ve left the leaderboard.' : 'You\'re on the board.';
+        msg.className = 'msg ok';
+        document.getElementById('displayName').value = '';
+        await load();
+      } catch (e) {
+        msg.textContent = 'That didn\'t save. Please try again.';
+        msg.className = 'msg bad';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    if (session) load();
+  </script>
+</body>
+</html>

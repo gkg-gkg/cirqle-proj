@@ -3,13 +3,16 @@
 Real per-user numbers for the "My Account" page, all derived from the user's
 receipts (the cashback ledger) + their stored posts. No placeholders.
 """
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
-from .. import referrals
+from .. import leaderboard, referrals
 from ..cashback import effective_status, parse_post_ts
 from ..db import get_session
-from ..models import (AccountStats, ActivityItem, Mention, OnboardLinkOut,
+from ..models import (AccountStats, ActivityItem, LeaderboardOptIn,
+                      Mention, OnboardLinkOut,
                       Payout, PayoutOut, PayoutStatusOut, Receipt,
                       ReferralItemOut, User)
 from ..payments import (MIN_PAYOUT, PaymentError, connect_status,
@@ -50,6 +53,13 @@ def _compute_stats(user: User, session: Session) -> AccountStats:
     brands = {r.brand for r in receipts if r.brand}
     recent = sorted(receipts, key=lambda r: r.uploaded_at, reverse=True)[:6]
 
+    # The referral competition counts the same settled bonuses, but dates each
+    # one by when the referral CLEARED rather than when its row happened to be
+    # written — see app/leaderboard.py for why that distinction matters.
+    times = leaderboard.clearing_times(session, user.id).get(user.id, [])
+    today = datetime.utcnow().date()
+    season = leaderboard.current_season(today)
+
     return AccountStats(
         totalEarned=earned,
         pending=pending,
@@ -60,6 +70,10 @@ def _compute_stats(user: User, session: Session) -> AccountStats:
         receiptsCount=len(receipts),
         referralEarnings=round(reward_available + reward_paid, 2),
         referralCount=reward_count,
+        season=season,
+        seasonScore=leaderboard.score_for(times, season),
+        referralStreak=leaderboard.streak_weeks(times, today),
+        leaderboardOptIn=user.leaderboard_opt_in,
         activity=[
             ActivityItem(brand=r.brand or "Cashback", amount=r.amount,
                          status=eff(r), date=r.uploaded_at,
@@ -113,6 +127,27 @@ def _sync_connect(user: User, session: Session) -> None:
     session.add(user)
     session.commit()
     session.refresh(user)
+
+
+@router.post("/leaderboard-opt-in", response_model=AccountStats)
+def set_leaderboard_opt_in(
+    body: LeaderboardOptIn,
+    user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """Join or leave the national referral leaderboard.
+
+    Leaving takes effect on the next read of a running season. It cannot pull a
+    member out of a season that has already frozen: those standings are what a
+    prize was decided on, and rewriting them later would change who won.
+    """
+    user.leaderboard_opt_in = body.optIn
+    if body.displayName is not None:
+        user.display_name = body.displayName.strip()[:40]
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return _compute_stats(user, session)
 
 
 @router.get("/payouts/status", response_model=PayoutStatusOut)

@@ -118,6 +118,7 @@
         <span class="nav-name" id="navName">Loading…</span>
       </a>
       <a href="feed.html" class="btn btn-sm btn-ink">Dashboard</a>
+      <a href="leaderboard.html" class="btn btn-sm">Leaderboard</a>
       <a href="browse.html" class="btn btn-sm">Browse deals</a>
     </div>
   </nav>
@@ -181,23 +182,26 @@
       </div>
 
       <div class="right-col">
-        <!-- Monthly goal -->
+        <!-- Referral season -->
         <div class="card fade-up d4">
-          <div class="panel-title">Monthly goal</div>
+          <div class="panel-title">Referral season</div>
           <div class="goal-header">
-            <span id="goalFraction">£0.00 / £100 target</span>
-            <span class="goal-val" id="goalPct">0%</span>
+            <span id="seasonLabel">This season</span>
+            <span class="goal-val"><span id="seasonScore">0</span> referred</span>
           </div>
           <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
-          <div class="progress-note" id="goalNote">Earn cashback to reach your £100 goal.</div>
+          <div class="progress-note" id="seasonNote">Refer someone to get on the board.</div>
+          <div style="text-align:center; margin-top:16px">
+            <a href="leaderboard.html" style="font-size:.82rem; font-weight:800; color:var(--pink-deep); text-decoration:none">View leaderboard &rarr;</a>
+          </div>
         </div>
 
-        <!-- Posts tagged -->
+        <!-- Referral streak -->
         <div class="card streak-card fade-up d5">
-          <span style="font-size:2.2rem"><i class="ico ico-camera"></i></span>
+          <span style="font-size:2.2rem"><i class="ico ico-bolt"></i></span>
           <div>
-            <div class="streak-num" id="postsVal">0</div>
-            <div class="streak-label">posts tagged</div>
+            <div class="streak-num" id="streakVal">0</div>
+            <div class="streak-label" id="streakLabel">week streak</div>
           </div>
         </div>
 
@@ -352,7 +356,6 @@
         animateCount(document.getElementById('pendingVal'), s.pending, 2);
         animateCount(document.getElementById('brandsVal'), s.brandsUsed, 0);
         animateCount(document.getElementById('receiptsVal'), s.receiptsCount, 0);
-        document.getElementById('postsVal').textContent = s.postsCount;
         document.getElementById('walletBal').textContent = Number(s.wallet).toFixed(2);
         // One wallet, but say how much of it came from referring people.
         const refLine = document.getElementById('walletReferrals');
@@ -362,17 +365,53 @@
         } else {
           refLine.hidden = true;
         }
-        const pct = Math.min(100, Math.round((s.totalEarned / 100) * 100));
-        document.getElementById('goalFraction').textContent = '£' + Number(s.totalEarned).toFixed(2) + ' / £100 target';
-        document.getElementById('goalPct').textContent = pct + '%';
-        const fill = document.getElementById('progFill');
-        fill.style.width = pct + '%';
-        fill.classList.add('anim');
-        document.getElementById('goalNote').textContent = s.totalEarned >= 100
-          ? 'Goal smashed! ' + cirqleIcon('sparkles') : '£' + (100 - s.totalEarned).toFixed(2) + ' to go';
+        renderSeason(s);
         renderActivity(s.activity);
       } catch (e) { /* leave zeros */ }
     }
+    // ── The referral season ────────────────────────────────────────────────
+    // A season is a calendar quarter, so its dates come straight from the label
+    // the API sends ("2026-Q3") — no need for the server to spell them out.
+    function seasonDates(label) {
+      const [year, q] = label.split('-Q').map(Number);
+      const start = new Date(Date.UTC(year, (q - 1) * 3, 1));
+      const end = new Date(Date.UTC(year, q * 3, 0));   // day 0 = last of prev month
+      return { start, end };
+    }
+
+    function renderSeason(s) {
+      if (!s.season) return;
+      const { start, end } = seasonDates(s.season);
+      const today = new Date();
+      const span = end - start;
+      const gone = Math.min(Math.max(today - start, 0), span);
+      const pct = Math.round((gone / span) * 100);
+
+      document.getElementById('seasonLabel').textContent =
+        s.season.replace('-Q', ' · Q');
+      document.getElementById('seasonScore').textContent = s.seasonScore;
+
+      const fill = document.getElementById('progFill');
+      fill.style.width = pct + '%';
+      fill.classList.add('anim');
+
+      // Count whole days left, so the last day of a season reads "ends today"
+      // rather than a rounded-down zero that looks like it already finished.
+      const daysLeft = Math.max(0, Math.ceil((end - today) / 86400000));
+      const note = document.getElementById('seasonNote');
+      if (s.seasonScore === 0) {
+        note.textContent = daysLeft > 0
+          ? `Refer someone to get on the board — ${daysLeft} day${daysLeft === 1 ? '' : 's'} left.`
+          : 'This season has closed.';
+      } else {
+        note.textContent = daysLeft > 0
+          ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} left to climb.`
+          : 'This season has closed.';
+      }
+
+      document.getElementById('streakVal').textContent = s.referralStreak || 0;
+    }
+
     // ── Cashing out ────────────────────────────────────────────────────────
     // Paying real money means Stripe has to verify the member first, so the
     // button does one of two things depending on where they are in that

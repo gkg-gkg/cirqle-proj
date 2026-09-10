@@ -48,6 +48,14 @@ class User(SQLModel, table=True):
     #   identity_fingerprint -> their verified name + date of birth
     payout_fingerprint: str = Field(default="", index=True)
     identity_fingerprint: str = Field(default="", index=True)
+    # ── The referral competition (app/leaderboard.py) ──
+    # Off by default: the handle was collected to credit referrals and match
+    # posts, not to be ranked in public, so appearing is a decision the member
+    # makes rather than one made for them.
+    leaderboard_opt_in: bool = False
+    # What to call them on the table. Lets someone compete without publishing
+    # the Instagram handle they signed up with; "" falls back to the handle.
+    display_name: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -181,7 +189,8 @@ class Receipt(SQLModel, table=True):
     `brand`/`amount` are snapshotted from the deal at upload so the claim stays
     correct even if the campaign is later edited. `image_key` is a private storage
     key (never a public URL; owner/admin view via short-lived presigned links).
-    A claim whose tagged post mentions the brand is auto-confirmed at upload.
+    Every claim starts 'pending': nothing is auto-approved at upload, and the
+    automated check below is advisory only — an admin still decides.
     """
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True, foreign_key="user.id")
@@ -372,6 +381,29 @@ class ReferralReward(SQLModel, table=True):
     status: str = Field(default="available", index=True)
     cancel_reason: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class SeasonStanding(SQLModel, table=True):
+    """One member's final place in one finished season of the referral competition.
+
+    Written once, by whichever request first loads the season after its freeze
+    date, and never recomputed. A running season is worked out fresh on every
+    read and has no rows here at all.
+
+    This table exists because a prize hangs off the table. Scores are counted
+    from claims that clear on a delay, so a season's standings are still moving
+    for days after the season ends — and a rank that keeps moving after someone
+    has been told they won is the one thing this must never do.
+    """
+    __table_args__ = (UniqueConstraint("season", "user_id",
+                                       name="uq_seasonstanding_season_user"),)
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    season: str = Field(index=True)                  # e.g. "2026-Q3"
+    user_id: int = Field(index=True, foreign_key="user.id")
+    rank: int = 0
+    score: int = 0                                   # referrals that season
+    frozen_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class MerchantMessage(SQLModel, table=True):
@@ -692,6 +724,11 @@ class AccountStats(BaseModel):
     paidOut: float       # already withdrawn
     referralEarnings: float = 0   # of the above, £ earned by referring people
     referralCount: int = 0        # how many referrals have been credited
+    # ── The referral competition (app/leaderboard.py) ──
+    season: str = ""              # the season these two figures belong to
+    seasonScore: int = 0          # referrals landed this season
+    referralStreak: int = 0       # consecutive weeks with a referral clearing
+    leaderboardOptIn: bool = False
     brandsUsed: int
     postsCount: int
     receiptsCount: int
@@ -699,6 +736,42 @@ class AccountStats(BaseModel):
 
 
 # ── Merchant partnership applications ──
+# ── The referral competition (Phase 10) ──
+class LeaderboardEntry(BaseModel):
+    """One row of the national table."""
+    rank: int
+    userId: int
+    name: str            # display name, or @handle, or first name
+    score: int           # referrals landed this season
+    isYou: bool = False
+    winsPrize: bool = False
+
+
+class LeaderboardOut(BaseModel):
+    """A season's table. `isFinal` is the difference between what the standings
+    look like right now and what they will be paid on — a running season is
+    recomputed on every read, a finished one is frozen."""
+    season: str
+    startsOn: date
+    endsOn: date
+    freezesOn: date
+    isFinal: bool
+    prizeAmount: float
+    prizePlaces: int
+    entrants: int
+    top: list[LeaderboardEntry]
+    # The member's own row, sent separately so someone outside the top 100 can
+    # still see where they stand. Null when they have no referrals this season.
+    you: Optional[LeaderboardEntry] = None
+    optedIn: bool = False
+
+
+class LeaderboardOptIn(BaseModel):
+    optIn: bool
+    # None leaves the current name alone, "" clears it back to the handle.
+    displayName: Optional[str] = None
+
+
 class MerchantApplicationIn(BaseModel):
     """What contact.html's partnership form sends. The key fields needed to
     publish a deal on approval are required; the rest is optional context."""
