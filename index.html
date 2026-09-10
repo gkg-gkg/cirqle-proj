@@ -435,55 +435,38 @@
       .hero { padding-top: 52px; padding-bottom: 112px; padding-left: 12px; padding-right: 12px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
-      /* The wall is the whole point of this band on a phone; at the old height
-         it read as a stripe behind the headline rather than a wall. */
+      /* ── Phones get a gradient band, not the photo wall ──
+         The wall and the scrim go together: the scrim existed only to hold
+         photography back, and there is none here. Neon carries fills and glows
+         in this system and never text, which is exactly what this is — a bloom
+         off the top edge washing down through --blue-tint to the white the page
+         carries on in, so the band ends on a join rather than an edge.
+         The copy now sits on a known background instead of whatever frame
+         happened to land behind it, which is what lets the band drop the extra
+         ink darkening it needed over photography and go back to its own
+         --ink-soft. Sampled off the composited band: headline 10.66:1, sub
+         7.47:1, buttons 17.50:1, against 3.45 / 4.60 / 11.41 over the frames. */
+      .hero-wall, .hero-scrim { display: none; }
+      /* --blue is 4.80:1 on white, which is the whole of its margin — any tint
+         behind it drops it under AA, and on this gradient it measures 3.93:1.
+         --blue-deep is the palette's next step and clears 5.45:1 in the same
+         place. Scoped to the band so the rest of the site keeps the one blue
+         that is allowed to be text on white. Over the photo wall this link was
+         1.7:1 and no scrim could reach it — the gradient is what makes it
+         fixable with a colour. */
+      .hero-band .hero-jump, .hero-band .squiggle { color: var(--blue-deep); }
+      .hero-band .hero-jump { border-bottom-color: rgba(0,92,176,.45); }
+      .hero-band .squiggle::after { background: var(--blue-deep); }
       .hero-band {
-        /* A viewport minimum ran the wall on for half a screen after the
-           buttons, so there is none: the band is the copy plus the strip of wall
-           under it, set by .hero's bottom padding above. Measured at 390px, the
-           buttons now end 375px down and the band is 487px, so 112px of that is
-           wall past the call to action. */
+        /* A viewport minimum ran the band on for half a screen after the
+           buttons, so there is none: it is the copy plus the strip of gradient
+           under it, set by .hero's bottom padding above. */
         min-height: 0;
         justify-content: flex-start;
-        /* The sub sits over photography, so this token carries the band's
-           contrast on its own and has been darkened once per move down the wall.
-           This move put it over the busiest frames yet: at #33414F the darkest
-           spot behind it measured 3.42:1, under the 4.5 AA needs. Sampling the
-           composited scrim rather than trusting the gradient stops, #283440
-           clears it at 4.60:1 without spending the whole budget on more wash.
-           The link in that paragraph is a separate problem: --blue over these
-           frames measures ~1.7:1 and needs a colour, not a scrim. */
-        --ink-soft: #283440;
+        background:
+          radial-gradient(132% 56% at 50% 0%, rgba(56,182,255,.52) 0%, rgba(56,182,255,.20) 46%, rgba(56,182,255,0) 76%),
+          linear-gradient(180deg, #D9EFFC 0%, #E9F6FD 30%, var(--blue-pale) 58%, var(--paper) 88%);
       }
-      /* Three columns is what a 390px screen fits at a portrait crop close to
-         the source files' own 3:4 — four made each frame wider than it is tall,
-         so every photo was cropped to a letterbox strip. The tighter gap and
-         padding buy that third column its width back. */
-      .hw-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 6px; }
-      .hw-col { gap: 8px; }
-      .hw-col:nth-child(n+4) { display: none; }
-      /* Lighter than the desktop scrim, and shaped differently: a tight pool
-         behind the copy at the top instead of a wash over everything, so the
-         photography keeps its own colour through the middle of the band. The
-         run to white is short and late — one decisive fade rather than a long
-         haze — so the foot of the wall meets the white page as a join rather
-         than a gradient anyone can see. */
-      /* Shaped around what the type actually needs, measured rather than
-         guessed: the wall has near-black frames in it (darkest pixel rgb 5,5,5
-         behind the headline), so the headline needs .40 white over it to clear
-         3:1 and the sub-headline .70 to clear 4.5:1. That is the whole budget.
-         Spend it where the words are — a light overall wash plus a soft pool
-         behind the sub only — and the top of the wall keeps its photography
-         instead of being bleached by a pool wide enough to cover everything.
-         All stops are px from an edge, so they hold wherever the copy reflows.
-
-         Everything below the copy runs to white over the last ~96px, landing
-         just under the buttons: no vivid slab of wall after the call to action,
-         and no long haze either. */
-      .hero-scrim { background:
-        linear-gradient(to top, #FFFFFF 0, rgba(255,255,255,.97) 20px, rgba(255,255,255,.60) 60px, rgba(255,255,255,0) 96px),
-        radial-gradient(120% 132px at 50% 258px, rgba(255,255,255,.74) 0%, rgba(255,255,255,.52) 60%, rgba(255,255,255,0) 100%),
-        linear-gradient(180deg, rgba(255,255,255,.40) 0px, rgba(255,255,255,.46) 160px, rgba(255,255,255,.50) 300px, rgba(255,255,255,.56) 100%); }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
          with the carousel for the same budget. */
