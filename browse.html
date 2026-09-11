@@ -95,7 +95,6 @@
     .card-body { padding: 14px 16px 12px; }
     .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
     .card-title { flex: 1; min-width: 0; font-family: var(--font-display); font-weight: 800; font-size: 1rem; letter-spacing: -0.01em; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-desc { font-size: .8rem; color: var(--ink-soft); line-height: 1.5; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .card-meta { display: flex; gap: 6px; flex-wrap: wrap; }
     .card-meta .chip { font-size: .68rem; padding: 3px 10px; }
     /* Cashback in the footer is per-brand and varies; a referral bonus is a
@@ -115,13 +114,16 @@
 
     /* ── Rating · ending-soon ── */
     .card-rating { display: inline-flex; align-items: center; gap: 4px; font-size: .82rem; font-weight: 800; color: var(--ink); flex-shrink: 0; white-space: nowrap; }
+    /* Top-right of the image, not a chip in the meta row — an end date reads
+       as time pressure, not just another fact alongside claims/place, and it
+       frees up a slot in that row for real content instead. */
     .ending-badge {
-      position: absolute; top: 12px; left: 12px;
+      position: absolute; top: 12px; right: 12px;
       display: inline-flex; align-items: center; gap: 5px;
       font-size: .66rem; font-weight: 800;
       padding: 5px 11px;
-      border: var(--bw) solid var(--line); border-radius: var(--r-chip);
-      background: var(--teal-tint); box-shadow: var(--shadow-sm);
+      border: 1px solid #F3D6D6; border-radius: var(--r-chip);
+      background: #FEF2F2; color: #B91C1C; box-shadow: var(--shadow-sm);
     }
 
     /* ── Postcode (in the sidebar) ── */
@@ -167,12 +169,11 @@
       /* tiles: two-up, compact, no description */
       .deals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
       .card-image { height: 104px; font-size: 2.3rem; }
-      .ending-badge { top: 8px; left: 8px; font-size: .6rem; padding: 3px 8px; }
+      .ending-badge { top: 8px; right: 8px; font-size: .6rem; padding: 3px 8px; }
       .card-body { padding: 10px 11px 8px; }
       .card-head { margin-bottom: 5px; }
       .card-title { font-size: .84rem; }
       .card-rating { font-size: .72rem; }
-      .card-desc { display: none; }
       .card-meta { gap: 4px; }
       .card-meta .chip { font-size: .6rem; padding: 2px 7px; }
       .card-footer { padding: 6px 11px; flex-wrap: wrap; }
@@ -311,21 +312,22 @@
       // instead of competing with the rate for footer space.
       const place = /online/i.test(c.location || '') ? 'Online' : 'In-store';
       const expiryTxt = shortExpiry(c.expiry);
-      const expiryChip = expiryTxt === 'Ongoing' ? '' : `<span class="chip">${esc(expiryTxt)}</span>`;
+      // Badge over the image now, not a chip in the meta row — see the CSS
+      // note on .ending-badge for why.
+      const expiryBadge = expiryTxt === 'Ongoing' ? '' : `<span class="ending-badge">${esc(expiryTxt)}</span>`;
       const referralChip = c.referralsEnabled
         ? `<span class="chip chip-referral">+£${REFERRAL_REWARD} referral</span>` : '';
       el.innerHTML = `
         <div class="card-image">
           ${thumb}
+          ${expiryBadge}
         </div>
         <div class="card-body">
           <div class="card-head">
             <div class="card-title">${esc(c.cardTitle || c.title)}</div>
           </div>
-          <div class="card-desc">${esc(c.cardDesc)}</div>
           <div class="card-meta">
             <span class="chip chip-place">${place}</span>
-            ${expiryChip}
             <span class="chip">${Number(c.claims || 0).toLocaleString()} claims</span>
             ${referralChip}
           </div>
