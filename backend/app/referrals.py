@@ -34,10 +34,13 @@ from .cashback import (APPROVED_STATUSES, _naive_utc, effective_status,
 from .models import (Campaign, Mention, MerchantTransaction, Receipt,
                      ReferralReward, User)
 
-# What one verified referral pays, funded by the merchant rather than by us.
+# Fallback only — Campaign.referral_reward_referrer / _referee (set per deal by
+# the merchant, floor of £1 each) are what actually gets paid; see check() and
+# settle_receipt() below. These mirror the values every campaign used to pay
+# before referral amounts became per-campaign, and are what Campaign's own
+# fields default to for a newly created row.
 REWARD_REFERRER = 1.0      # to the member whose post drove the purchase
 REWARD_REFEREE = 0.5       # to the member who bought through it
-REFERRAL_COST = REWARD_REFERRER + REWARD_REFEREE
 
 # Rewards that have cost the merchant money. A cancelled one has not.
 _SPENT_STATUSES = ("available", "paid")
@@ -191,9 +194,11 @@ def check(receipt: Receipt, session: Session) -> tuple[bool, str]:
         return False, "This deal has no brand to fund the bonus."
 
     # Both bonuses come from the same wallet and are created together, so the
-    # wallet has to cover the pair. A wallet holding £1 funds no referral at all
-    # rather than half of one.
-    if referral_balance(campaign.merchant_id, session) < REFERRAL_COST:
+    # wallet has to cover the pair — at THIS campaign's own rates, not the
+    # site-wide default, since a merchant may have raised or (down to the £1
+    # floor) lowered them from what they started at.
+    cost = campaign.referral_reward_referrer + campaign.referral_reward_referee
+    if referral_balance(campaign.merchant_id, session) < cost:
         return False, "The brand's referral wallet is empty."
 
     return True, ""
@@ -216,8 +221,8 @@ def settle_receipt(receipt: Receipt, session: Session) -> bool:
 
     campaign = session.get(Campaign, receipt.campaign_id)
     for user_id, kind, amount in (
-        (receipt.referred_by_user_id, "referrer", REWARD_REFERRER),
-        (receipt.user_id, "referee", REWARD_REFEREE),
+        (receipt.referred_by_user_id, "referrer", campaign.referral_reward_referrer),
+        (receipt.user_id, "referee", campaign.referral_reward_referee),
     ):
         session.add(ReferralReward(
             user_id=user_id, kind=kind, receipt_id=receipt.id,

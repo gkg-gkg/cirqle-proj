@@ -351,19 +351,38 @@ def referrals(merchant: Merchant = Depends(get_current_merchant),
     return out
 
 
+MIN_REFERRAL_REWARD = 1.0   # floor on what a merchant can set either side to
+
+
 @router.patch("/deals/{campaign_id}/referrals", response_model=DealStat)
 def set_deal_referrals(campaign_id: int, data: DealReferralsIn,
                        merchant: Merchant = Depends(get_current_merchant),
                        session: Session = Depends(get_session)):
-    """Turn referral bonuses on or off for one of this merchant's deals.
+    """Turn referral bonuses on or off for one of this merchant's deals, and —
+    when turning them on — set what each side is worth.
 
     Off by default, so funding the referral wallet never silently enrols a deal
-    the brand didn't choose. Switching it off stops future bonuses; ones already
-    earned are money the member has, and are left alone.
+    the brand didn't choose. Switching it off stops future bonuses and leaves
+    the stored amounts untouched, so turning them back on later remembers what
+    was last configured rather than resetting to the defaults; ones already
+    earned are money the member has, and are left alone either way.
+
+    The £1 floor is checked here, not just suggested as presets on the
+    frontend — a request that skips the UI (or a stale client) can't set
+    either side below it.
     """
     campaign = session.get(Campaign, campaign_id)
     if campaign is None or campaign.merchant_id != merchant.id:
         raise HTTPException(status_code=404, detail="No such deal.")
+
+    if data.enabled:
+        if data.referrerReward < MIN_REFERRAL_REWARD or data.refereeReward < MIN_REFERRAL_REWARD:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Referral rewards can't be less than £{MIN_REFERRAL_REWARD:.2f} each.")
+        campaign.referral_reward_referrer = round(data.referrerReward, 2)
+        campaign.referral_reward_referee = round(data.refereeReward, 2)
+
     campaign.referrals_enabled = bool(data.enabled)
     session.add(campaign)
     session.commit()
@@ -726,6 +745,8 @@ def _compute_stats(merchant: Merchant, session: Session) -> MerchantStats:
             cashback=round(sum(r.amount for r in c_receipts
                                if r.status in _CASHBACK_GIVEN), 2),
             referralsEnabled=c.referrals_enabled,
+            referralRewardReferrer=c.referral_reward_referrer,
+            referralRewardReferee=c.referral_reward_referee,
             referralsPaid=round(sum(w.amount for w in rewards
                                     if w.campaign_id == c.id), 2),
             revenue=round(sum(s for s in (_spend(r) for r in c_receipts)

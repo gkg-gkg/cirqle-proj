@@ -197,6 +197,26 @@
     table.deals td { padding: 12px; border-bottom: 2px dashed rgba(31,27,19,.14); font-weight: 600; }
     table.deals td.num, table.deals th.num { text-align: right; font-variant-numeric: tabular-nums; }
     table.deals tr:last-child td { border-bottom: none; }
+    /* Column-header info icons: no tooltip/popover component existed anywhere
+       in the codebase, so this is built from scratch — a small circled "i"
+       that toggles a short explanation next to it. */
+    .th-info { display: inline-flex; align-items: center; gap: 5px; position: relative; }
+    .info-btn {
+      width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--ink-soft);
+      background: none; color: var(--ink-soft); font-size: .62rem; font-weight: 800;
+      font-style: italic; line-height: 1; display: inline-flex; align-items: center;
+      justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    .info-btn:hover, .info-btn.on { border-color: var(--blue-deep); color: var(--blue-deep); }
+    .info-pop {
+      display: none; position: absolute; top: 100%; margin-top: 8px; left: 0; width: 200px;
+      padding: 10px 12px; background: var(--card); color: var(--ink); border: var(--bw) solid var(--ink);
+      border-radius: 10px; box-shadow: var(--shadow-sm); font-size: .74rem; font-weight: 600;
+      line-height: 1.5; text-transform: none; letter-spacing: 0; text-align: left; z-index: 10;
+    }
+    .info-pop.open { display: block; }
+    th.num .info-pop { left: auto; right: 0; }
     .ref-toggle { font: inherit; font-size: .74rem; font-weight: 800; padding: 4px 12px; border-radius: 7px; border: var(--bw) solid var(--line); background: var(--paper); color: var(--ink-soft); cursor: pointer; }
     .ref-toggle.on { background: var(--lime); border-color: var(--ink); color: var(--ink); }
     .ref-toggle:disabled { opacity: .5; cursor: default; }
@@ -524,10 +544,14 @@
         <div class="panel-sub">How each of your deals is performing — the numbers behind the chart.</div>
         <table class="deals">
           <thead><tr>
-            <th>Deal</th><th class="num">Views</th><th class="num">Clicks</th>
-            <th class="num">Claims</th><th class="num">Revenue</th>
-            <th class="num">Cashback</th>
-            <th class="num">Referrals</th><th class="num">Repeat visits</th>
+            <th><span class="th-info">Deal <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">The deal shoppers see on Browse Deals — its title or brand name.</span></span></th>
+            <th class="num"><span class="th-info">Views <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many times shoppers have opened this deal's page.</span></span></th>
+            <th class="num"><span class="th-info">Clicks <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many times shoppers have clicked through to the brand's site.</span></span></th>
+            <th class="num"><span class="th-info">Claims <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many shoppers have submitted a receipt claiming cashback on this deal.</span></span></th>
+            <th class="num"><span class="th-info">Revenue <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Total amount spent on receipts claimed against this deal.</span></span></th>
+            <th class="num"><span class="th-info">Cashback <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Total cashback you've paid shoppers on this deal.</span></span></th>
+            <th class="num"><span class="th-info">Referrals <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Pays a bonus to a shopper who refers a friend, and to the friend, once the friend's claim is approved. Off by default — you choose the amounts when you turn it on.</span></span></th>
+            <th class="num"><span class="th-info">Repeat visits <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Lets a shopper log a return visit without posting again, paid at an amount you choose. Off by default.</span></span></th>
           </tr></thead>
           <tbody id="dealsBody"></tbody>
         </table>
@@ -879,6 +903,31 @@
       <div class="modal-actions">
         <button type="button" class="btn btn-lime" id="topupBtn" onclick="doTopup()">Continue to payment →</button>
         <button type="button" class="btn" onclick="closeTopup()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referral / repeat-visit reward modal — shared by both toggles, shown
+       only when turning one ON (turning off needs no new amounts). -->
+  <div class="modal-overlay" id="rewardModal">
+    <div class="card modal" style="max-width:400px">
+      <button class="modal-close" type="button" onclick="closeRewardModal()" aria-label="Close">✕</button>
+      <h2 id="rewardTitle">Turn on referral bonuses</h2>
+      <div class="modal-sub" id="rewardSub">Set what each side gets paid when a referral leads to an approved claim.</div>
+      <div class="field">
+        <label for="rewardReferrer" id="rewardReferrerLabel">Referrer reward (£)</label>
+        <input id="rewardReferrer" type="number" min="1" step="0.5" placeholder="1.00" />
+        <div class="topup-chips" id="rewardReferrerChips"></div>
+      </div>
+      <div class="field" id="rewardRefereeField">
+        <label for="rewardReferee">Referee reward (£)</label>
+        <input id="rewardReferee" type="number" min="1" step="0.5" placeholder="1.00" />
+        <div class="topup-chips" id="rewardRefereeChips"></div>
+      </div>
+      <div class="modal-err" id="rewardErr"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-lime" id="rewardBtn" onclick="confirmRewardModal()">Confirm</button>
+        <button type="button" class="btn" onclick="closeRewardModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -1298,9 +1347,11 @@
            <td class="num">
              <button type="button" class="ref-toggle${d.referralsEnabled ? ' on' : ''}"
                      data-deal="${d.campaignId}" data-on="${d.referralsEnabled ? '1' : '0'}"
-                     title="${d.referralsEnabled ? 'Referral bonuses are on for this deal' : 'Referral bonuses are off for this deal'}">
+                     data-referrer="${d.referralRewardReferrer}" data-referee="${d.referralRewardReferee}"
+                     title="${d.referralsEnabled ? `Referral bonuses are on — £${fmtMoney(d.referralRewardReferrer)} to the referrer, £${fmtMoney(d.referralRewardReferee)} to the referee` : 'Referral bonuses are off for this deal'}">
                ${d.referralsEnabled ? 'On' : 'Off'}
              </button>
+             ${d.referralsEnabled ? `<div class="ref-paid">£${fmtMoney(d.referralRewardReferrer)} / £${fmtMoney(d.referralRewardReferee)} each</div>` : ''}
              ${d.referralsPaid > 0 ? `<div class="ref-paid">£${fmtMoney(d.referralsPaid)} paid</div>` : ''}
            </td>
            <td class="num">
@@ -1318,28 +1369,116 @@
           (b.dataset.earn === undefined ? toggleReferrals(b) : toggleVisits(b))));
     }
 
-    // Repeat visits: a shopper logging a return trip they didn't post about.
-    // Off per deal by default, same as referral bonuses — funding a wallet must
-    // never enrol a deal the brand didn't choose.
-    async function toggleVisits(btn) {
-      const turningOn = btn.dataset.on !== '1';
-      let earn = Number(btn.dataset.earn) || 0;
-      if (turningOn) {
-        const answer = prompt(
-          'What is one repeat visit worth? (£ per logged visit)\n\n' +
-          'Shoppers can upload a receipt without posting again. It counts ' +
-          'towards your customer and retention figures either way.',
-          earn || '1.00');
-        if (answer === null) return;
-        earn = Number(answer);
-        if (!(earn >= 0)) { alert('Enter an amount in pounds, like 1.50.'); return; }
+    // Referral bonuses and repeat visits are off per deal until the brand
+    // switches them on — funding a wallet must never silently enrol a deal.
+    // Turning either ON opens a shared modal so the merchant sees exactly
+    // what they're committing to before confirming; turning OFF needs no
+    // modal, since the backend keeps whatever amounts were last set.
+    const REWARD_PRESETS = [1, 2, 3, 5, 10, 15, 20, 25];
+    function chipsHtml(inputId) {
+      return REWARD_PRESETS.map(v =>
+        `<div class="topup-chip" onclick="document.getElementById('${inputId}').value=${v}">£${v}</div>`).join('');
+    }
+    document.getElementById('rewardReferrerChips').innerHTML = chipsHtml('rewardReferrer');
+    document.getElementById('rewardRefereeChips').innerHTML = chipsHtml('rewardReferee');
+
+    // Which deal/toggle the open reward modal applies to.
+    let rewardCtx = null;   // { btn, mode: 'referrals' | 'visits' }
+
+    function openReferralsModal(btn) {
+      rewardCtx = { btn, mode: 'referrals' };
+      document.getElementById('rewardTitle').textContent = 'Turn on referral bonuses';
+      document.getElementById('rewardSub').textContent =
+        'Set what each side gets paid when a referral leads to an approved claim. Minimum £1 each.';
+      document.getElementById('rewardReferrerLabel').textContent = 'Referrer reward (£)';
+      document.getElementById('rewardReferrer').min = '1';
+      document.getElementById('rewardReferrer').value = (Number(btn.dataset.referrer) || 1).toFixed(2);
+      document.getElementById('rewardReferee').value = (Number(btn.dataset.referee) || 1).toFixed(2);
+      document.getElementById('rewardRefereeField').classList.remove('hidden');
+      document.getElementById('rewardErr').textContent = '';
+      document.getElementById('rewardModal').classList.add('open');
+    }
+
+    function openVisitsModal(btn) {
+      rewardCtx = { btn, mode: 'visits' };
+      document.getElementById('rewardTitle').textContent = 'Turn on repeat visits';
+      document.getElementById('rewardSub').textContent =
+        'Shoppers can log a repeat visit without posting again. Set what one logged visit is worth.';
+      document.getElementById('rewardReferrerLabel').textContent = 'Visit reward (£)';
+      document.getElementById('rewardReferrer').min = '0';
+      document.getElementById('rewardReferrer').value = (Number(btn.dataset.earn) || 0).toFixed(2);
+      document.getElementById('rewardRefereeField').classList.add('hidden');
+      document.getElementById('rewardErr').textContent = '';
+      document.getElementById('rewardModal').classList.add('open');
+    }
+
+    function closeRewardModal() {
+      document.getElementById('rewardModal').classList.remove('open');
+      rewardCtx = null;
+    }
+    document.getElementById('rewardModal').addEventListener('click', (e) => {
+      if (e.target.id === 'rewardModal') closeRewardModal();
+    });
+
+    async function confirmRewardModal() {
+      if (!rewardCtx) return;
+      const { btn, mode } = rewardCtx;
+      const err = document.getElementById('rewardErr');
+      err.textContent = '';
+      const referrer = Number(document.getElementById('rewardReferrer').value);
+      const minReferrer = mode === 'referrals' ? 1 : 0;
+      if (!(referrer >= minReferrer)) {
+        err.textContent = mode === 'referrals' ? 'Enter an amount of at least £1.' : 'Enter an amount of £0 or more.';
+        return;
       }
+      let referee = null;
+      if (mode === 'referrals') {
+        referee = Number(document.getElementById('rewardReferee').value);
+        if (!(referee >= 1)) { err.textContent = 'Enter an amount of at least £1.'; return; }
+      }
+
+      const rewardBtn = document.getElementById('rewardBtn');
+      rewardBtn.disabled = true;
+      try {
+        const url = mode === 'referrals'
+          ? `${API}/merchant/deals/${btn.dataset.deal}/referrals`
+          : `${API}/merchant/deals/${btn.dataset.deal}/visits`;
+        const body = mode === 'referrals'
+          ? { enabled: true, referrerReward: referrer, refereeReward: referee }
+          : { enabled: true, earn: referrer };
+        const res = await fetch(url, {
+          method: 'PATCH',
+          headers: { ...authHeader(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (res.status === 401) { signOut(); return; }
+        if (!res.ok) {
+          const b = await res.json().catch(() => ({}));
+          err.textContent = b.detail || 'Couldn’t change that. Try again.';
+          return;
+        }
+        const deal = await res.json();
+        cirqleToast(mode === 'referrals'
+          ? `Referral bonuses on — £${deal.referralRewardReferrer.toFixed(2)} / £${deal.referralRewardReferee.toFixed(2)}`
+          : `Repeat visits on — £${deal.visitEarn.toFixed(2)} each`);
+        closeRewardModal();
+        loadStats();   // re-render so the tooltip and £/£ line pick up the new amounts
+      } catch (_) {
+        err.textContent = 'Could not reach the server.';
+      } finally {
+        rewardBtn.disabled = false;
+      }
+    }
+
+    async function toggleVisits(btn) {
+      if (btn.dataset.on !== '1') { openVisitsModal(btn); return; }
+      const earn = Number(btn.dataset.earn) || 0;
       btn.disabled = true;
       try {
         const res = await fetch(`${API}/merchant/deals/${btn.dataset.deal}/visits`, {
           method: 'PATCH',
           headers: { ...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enabled: turningOn, earn }),
+          body: JSON.stringify({ enabled: false, earn }),
         });
         if (res.status === 401) { signOut(); return; }
         if (!res.ok) {
@@ -1353,32 +1492,48 @@
       }
     }
 
-    // Referral bonuses are off per deal until the brand switches them on, so
-    // funding the referral wallet never silently enrols a deal.
     async function toggleReferrals(btn) {
-      const turningOn = btn.dataset.on !== '1';
+      if (btn.dataset.on !== '1') { openReferralsModal(btn); return; }
+      const referrerReward = Number(btn.dataset.referrer) || 1;
+      const refereeReward = Number(btn.dataset.referee) || 1;
       btn.disabled = true;
       try {
         const res = await fetch(`${API}/merchant/deals/${btn.dataset.deal}/referrals`, {
           method: 'PATCH',
           headers: { ...authHeader(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enabled: turningOn }),
+          body: JSON.stringify({ enabled: false, referrerReward, refereeReward }),
         });
         if (res.status === 401) { signOut(); return; }
-        if (!res.ok) { cirqleToast('Could not change that — try again'); btn.disabled = false; return; }
-        const deal = await res.json();
-        btn.dataset.on = deal.referralsEnabled ? '1' : '0';
-        btn.classList.toggle('on', deal.referralsEnabled);
-        btn.textContent = deal.referralsEnabled ? 'On' : 'Off';
-        btn.disabled = false;
-        cirqleToast(deal.referralsEnabled
-          ? 'Referral bonuses on for this deal'
-          : 'Referral bonuses off for this deal');
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          cirqleToast(body.detail || 'Could not change that — try again');
+          return;
+        }
+        cirqleToast('Referral bonuses off for this deal');
+        loadStats();
       } catch (_) {
         cirqleToast('Could not reach the server');
-        btn.disabled = false;
       }
     }
+
+    // Column-header "what is this" popovers — click the (i), click again or
+    // elsewhere (or Escape) to close. Only one open at a time.
+    function closeAllInfoPops() {
+      document.querySelectorAll('.info-pop.open').forEach(p => p.classList.remove('open'));
+      document.querySelectorAll('.info-btn.on').forEach(b => b.classList.remove('on'));
+    }
+    function toggleInfo(btn) {
+      const pop = btn.nextElementSibling;
+      const wasOpen = pop.classList.contains('open');
+      closeAllInfoPops();
+      if (!wasOpen) { pop.classList.add('open'); btn.classList.add('on'); }
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.th-info')) closeAllInfoPops();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllInfoPops();
+    });
 
     // ── Messages ──
     async function loadMessages() {

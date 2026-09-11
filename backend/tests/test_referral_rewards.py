@@ -245,6 +245,63 @@ def test_a_merchant_can_switch_referrals_on_for_their_deal(
     assert deal.referrals_enabled is True
 
 
+def test_a_merchant_can_set_custom_referral_rewards_when_turning_on(
+        client, session, merchant):
+    deal = make_campaign(session, merchant, referrals_on=False)
+
+    res = client.patch(
+        f"/merchant/deals/{deal.id}/referrals",
+        json={"enabled": True, "referrerReward": 10.0, "refereeReward": 3.0},
+        headers={"Authorization": f"Bearer {create_merchant_token(merchant)}"})
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["referralRewardReferrer"] == 10.0
+    assert body["referralRewardReferee"] == 3.0
+    session.refresh(deal)
+    assert deal.referral_reward_referrer == 10.0
+    assert deal.referral_reward_referee == 3.0
+
+
+def test_a_merchant_cannot_set_a_referral_reward_below_one_pound(
+        client, session, merchant):
+    deal = make_campaign(session, merchant, referrals_on=False)
+
+    res = client.patch(
+        f"/merchant/deals/{deal.id}/referrals",
+        json={"enabled": True, "referrerReward": 0.99, "refereeReward": 1.0},
+        headers={"Authorization": f"Bearer {create_merchant_token(merchant)}"})
+
+    assert res.status_code == 422
+    session.refresh(deal)
+    # Refused entirely — not silently clamped to £1, and referrals_enabled
+    # never flips on the back of a rejected amount.
+    assert deal.referrals_enabled is False
+    assert deal.referral_reward_referrer == 1.0
+
+
+def test_turning_referrals_off_keeps_the_configured_amounts(
+        client, session, merchant):
+    """Switching off shouldn't reset what was configured — re-enabling later
+    should remember it rather than fall back to the £1/50p starting point."""
+    deal = make_campaign(session, merchant, referrals_on=True)
+    deal.referral_reward_referrer = 8.0
+    deal.referral_reward_referee = 4.0
+    session.add(deal)
+    session.commit()
+
+    res = client.patch(
+        f"/merchant/deals/{deal.id}/referrals",
+        json={"enabled": False},
+        headers={"Authorization": f"Bearer {create_merchant_token(merchant)}"})
+
+    assert res.status_code == 200
+    assert res.json()["referralsEnabled"] is False
+    session.refresh(deal)
+    assert deal.referral_reward_referrer == 8.0
+    assert deal.referral_reward_referee == 4.0
+
+
 def test_a_merchant_cannot_switch_referrals_on_someone_elses_deal(
         client, session, merchant):
     other = Merchant(business_name="Adidas", email="adidas@example.com",
@@ -451,6 +508,63 @@ def test_cancelling_returns_the_full_cost_to_the_merchants_wallet(
     session.commit()
 
     assert referrals.referral_balance(merchant.id, session) == 15.0
+
+
+# ── Per-campaign reward amounts ──────────────────────────────────────────────
+
+def test_a_campaign_with_custom_rewards_pays_those_amounts_not_the_defaults(
+        session, merchant):
+    """A merchant sets £5 / £2 instead of the site-wide £1 / 50p default —
+    settle_receipt has to read the campaign's own figures, not the constants."""
+    expensive = Campaign(
+        brand="Nike", card_title="Nike deal", earn="£10.00", merchant_id=merchant.id,
+        referrals_enabled=True,
+        referral_reward_referrer=5.0, referral_reward_referee=2.0,
+    )
+    session.add(expensive)
+    session.commit()
+    session.refresh(expensive)
+
+    referrer = make_user(session, "alice2")
+    referee = make_user(session, "bob2")
+    make_claim(session, referrer, expensive, days_ago=40)
+    claim = make_claim(session, referee, expensive, days_ago=20, referred_by=referrer)
+    fund_referral_wallet(session, merchant, amount=20.0)
+
+    referrals.settle_for_user(referrer, session)
+
+    rows = {r.kind: r for r in all_rewards(session)}
+    assert rows["referrer"].amount == 5.0
+    assert rows["referee"].amount == 2.0
+    # Not the old flat amounts this same merchant's other deals still pay.
+    assert rows["referrer"].amount != 1.0
+    assert rows["referee"].amount != 0.5
+
+
+def test_a_wallet_that_covers_the_default_cost_can_be_short_for_a_pricier_campaign(
+        session, merchant):
+    """£1.50 is exactly enough for the £1/50p default pair, and used to be the
+    threshold everywhere — it must NOT be enough once a campaign has raised its
+    own rewards past it."""
+    expensive = Campaign(
+        brand="Nike", card_title="Nike deal", earn="£10.00", merchant_id=merchant.id,
+        referrals_enabled=True,
+        referral_reward_referrer=5.0, referral_reward_referee=2.0,
+    )
+    session.add(expensive)
+    session.commit()
+    session.refresh(expensive)
+
+    referrer = make_user(session, "alice3")
+    referee = make_user(session, "bob3")
+    make_claim(session, referrer, expensive, days_ago=40)
+    claim = make_claim(session, referee, expensive, days_ago=20, referred_by=referrer)
+    fund_referral_wallet(session, merchant, amount=1.5)
+
+    ok, reason = referrals.check(claim, session)
+
+    assert ok is False
+    assert reason == "The brand's referral wallet is empty."
 
 
 # ── Admin oversight ──────────────────────────────────────────────────────────

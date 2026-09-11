@@ -265,9 +265,6 @@
     // hardcoded. We fetch GET /campaigns, build the same card markup + data-*
     // attributes the filter/sort/postcode logic below relies on, then run it.
     const API = window.CIRQLE_API_BASE;
-    // What one verified referral pays the referrer — REWARD_REFERRER in the
-    // backend (backend/app/referrals.py) — matches index.html's calculator.
-    const REFERRAL_REWARD = 1;
     const grid = document.getElementById('dealsGrid');
     const emptyState = document.getElementById('emptyState');
     const countNum = document.getElementById('countNum');
@@ -306,17 +303,17 @@
       el.dataset.brand = (c.brand || '').toLowerCase();
       // Chips: online/in-store · end date (omitted for ongoing deals) · claims
       // · referral bonus (only on deals the brand has actually opted into —
-      // referralsEnabled, not shown at all otherwise). Cashback varies by
-      // brand and lives in the footer; the referral bonus is the same flat
-      // amount on every deal that pays one, so it reads as a chip up here
-      // instead of competing with the rate for footer space.
+      // referralsEnabled, not shown at all otherwise). The amount is per
+      // campaign now (referralRewardReferrer — a merchant sets their own,
+      // floor of £1), not the site-wide £1 it used to be everywhere, so it's
+      // read straight off this deal rather than a shared constant.
       const place = /online/i.test(c.location || '') ? 'Online' : 'In-store';
       const expiryTxt = shortExpiry(c.expiry);
       // Badge over the image now, not a chip in the meta row — see the CSS
       // note on .ending-badge for why.
       const expiryBadge = expiryTxt === 'Ongoing' ? '' : `<span class="ending-badge">${esc(expiryTxt)}</span>`;
       const referralChip = c.referralsEnabled
-        ? `<span class="chip chip-referral">+£${REFERRAL_REWARD} referral</span>` : '';
+        ? `<span class="chip chip-referral">+£${Number(c.referralRewardReferrer || 1).toFixed(2).replace(/\.00$/, '')} referral</span>` : '';
       el.innerHTML = `
         <div class="card-image">
           ${thumb}

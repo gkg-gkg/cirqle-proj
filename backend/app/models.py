@@ -153,6 +153,14 @@ class Campaign(SQLModel, table=True):
     # something different to them than a first one with a post attached.
     visits_enabled: bool = False
     visit_earn: float = 0
+    # What THIS deal's referral bonus pays each side, in £ — the merchant's own
+    # choice per campaign (set via PATCH /merchant/deals/{id}/referrals, floor
+    # of £1 each enforced there), replacing the site-wide REWARD_REFERRER /
+    # REWARD_REFEREE constants that used to apply to every deal alike. Defaults
+    # match those old constants so an existing campaign's economics don't shift
+    # just from this column appearing.
+    referral_reward_referrer: float = 1.0
+    referral_reward_referee: float = 0.5
     bg: str = "var(--paper-deep)"
     tags: str = "[]"           # JSON-encoded list[str]
     images: str = "[]"         # JSON-encoded list[str] of image URLs
@@ -717,6 +725,8 @@ class CampaignOut(BaseModel):
     budgetTotal: Optional[float] = None
     budgetRemaining: Optional[float] = None
     referralsEnabled: bool = False   # does this deal pay a referral bonus on top of cashback?
+    referralRewardReferrer: float = 1.0   # £ this deal pays the referrer, if enabled
+    referralRewardReferee: float = 0.5    # £ this deal pays the referee, if enabled
 
 
 # ── Receipts / cashback (Phase 4 + 5) ──
@@ -971,6 +981,8 @@ class DealStat(BaseModel):
     claims: int
     cashback: float
     referralsEnabled: bool = False   # does this deal pay referral bonuses?
+    referralRewardReferrer: float = 1.0   # £ paid to the referrer, if enabled
+    referralRewardReferee: float = 0.5    # £ paid to the referee, if enabled
     referralsPaid: float = 0         # £ of bonuses it has paid out
     revenue: float = 0               # £ shoppers spent on this deal (read off receipts)
     visitsEnabled: bool = False      # can shoppers log a repeat visit without posting?
@@ -979,8 +991,19 @@ class DealStat(BaseModel):
 
 
 class DealReferralsIn(BaseModel):
-    """Merchant switching referral bonuses on or off for one of their deals."""
+    """Merchant switching referral bonuses on or off for one of their deals,
+    and — when turning them on — what each side is worth.
+
+    referrerReward / refereeReward are ignored when enabled is False (turning a
+    deal off doesn't need new amounts), and enforced to at least £1 each by the
+    endpoint when it's True — the merchant picks from a preset list on the
+    frontend, but the floor is checked server-side rather than trusted from the
+    client. Defaults match the amounts every deal used to pay flatly, before
+    referral rewards became a per-campaign choice.
+    """
     enabled: bool
+    referrerReward: float = 1.0
+    refereeReward: float = 1.0
 
 
 class DealVisitsIn(BaseModel):
