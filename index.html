@@ -67,7 +67,14 @@
            to the section below steps by ~29 levels — a visible seam. */
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
         radial-gradient(105% 64% at 50% 51%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
-        linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%);
+        linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%),
+        /* The phone band's neon bloom brought over the photography. Last in the
+           stack, so it sits directly on the wall and the white vignette above it
+           still clears the copy — tint the photos, not the words. Desktop only:
+           the ≤900px rule replaces this whole background, and phones have no
+           scrim at all. */
+        radial-gradient(132% 58% at 50% 0%, rgba(56,182,255,.34) 0%, rgba(56,182,255,.14) 46%, rgba(56,182,255,0) 78%),
+        linear-gradient(180deg, rgba(56,182,255,.20) 0%, rgba(56,182,255,.12) 42%, rgba(56,182,255,.05) 72%, rgba(56,182,255,0) 92%);
     }
     @media (max-width: 900px) {
       .hw-grid { grid-template-columns: repeat(4, 1fr); }
@@ -447,6 +454,12 @@
          --ink-soft. Sampled off the composited band: headline 10.66:1, sub
          7.47:1, buttons 17.50:1, against 3.45 / 4.60 / 11.41 over the frames. */
       .hero-wall, .hero-scrim { display: none; }
+      /* The band's own 60px top padding was landing on top of the hero's 112px
+         tail, and that tail is near-white gradient by the time it passes the
+         buttons — so the two read as one 196px block of white before the next
+         heading. The tail stays (it is the length of the band); the padding is
+         the half that was doing nothing. */
+      .band { padding-top: 16px; }
       /* --blue is 4.80:1 on white, which is the whole of its margin — any tint
          behind it drops it under AA, and on this gradient it measures 3.93:1.
          --blue-deep is the palette's next step and clears 5.45:1 in the same
