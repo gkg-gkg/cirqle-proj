@@ -12,7 +12,10 @@ import os
 import time
 from typing import Optional
 
+import httpx
 from apify_client import ApifyClient
+
+from .storage import upload_image_bytes
 
 # apify/instagram-scraper — same actor the old client-side code used.
 ACTOR_ID = "apify/instagram-scraper"
@@ -124,3 +127,31 @@ def scrape_profile_stats(handle: str) -> Optional[dict]:
 
     _profile_cache[handle] = {"at": time.time(), "stats": stats}
     return stats
+
+
+def mirror_display_image(url: Optional[str]) -> Optional[str]:
+    """Download a post's Instagram CDN image and re-store it as our own.
+
+    displayUrl comes straight from Apify as Instagram's own signed CDN link,
+    which expires (observed: stale within a day or two) — so a post scraped
+    once and then only ever read back via GET /feed (no re-scrape) eventually
+    shows "No image" even though the post itself is still there. Mirroring it
+    into our own storage at scrape time, the same way a campaign photo upload
+    is stored, makes the URL permanent.
+
+    Best-effort and never raises: on any failure (network, non-image response,
+    storage down) the original Instagram URL is returned unchanged, so a scrape
+    still succeeds — that post just carries the old expiring link rather than
+    the refresh failing outright.
+    """
+    if not url:
+        return url
+    try:
+        resp = httpx.get(url, timeout=8.0, follow_redirects=True)
+        resp.raise_for_status()
+        content_type = resp.headers.get("content-type", "").split(";")[0].strip().lower()
+        if not content_type.startswith("image/"):
+            return url
+        return upload_image_bytes(resp.content, content_type)
+    except Exception:  # noqa: BLE001 — mirroring is best-effort
+        return url

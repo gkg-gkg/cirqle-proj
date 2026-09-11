@@ -115,6 +115,41 @@ def upload_image(file: UploadFile) -> str:
     return f"{LOCAL_BASE_URL}/media/{key}"
 
 
+def upload_image_bytes(data: bytes, content_type: str) -> str:
+    """Store raw image bytes under a fresh key and return the public URL.
+
+    Same S3-or-local storage as upload_image, for content that didn't arrive as
+    a browser upload — the caller already has the bytes (see
+    instagram.mirror_display_image, which downloads a post's photo server-side
+    so it survives after Instagram's own signed link expires).
+    """
+    ext = _EXT_BY_TYPE.get((content_type or "").lower(), ".jpg")
+    key = f"{uuid.uuid4().hex}{ext}"
+    bucket = os.environ.get("S3_BUCKET")
+
+    if bucket:
+        region = os.environ.get("AWS_REGION", "eu-west-2")
+        try:
+            import boto3
+
+            boto3.client("s3", region_name=region).put_object(
+                Bucket=bucket,
+                Key=key,
+                Body=data,
+                ContentType=content_type,
+            )
+        except Exception as exc:  # noqa: BLE001 — surface any AWS failure as one type
+            raise StorageUploadError(f"S3 upload failed: {exc}") from exc
+        return f"https://{bucket}.s3.{region}.amazonaws.com/{key}"
+
+    try:
+        MEDIA_DIR.mkdir(exist_ok=True)
+        (MEDIA_DIR / key).write_bytes(data)
+    except OSError as exc:
+        raise StorageUploadError(f"Could not write image to disk: {exc}") from exc
+    return f"{LOCAL_BASE_URL}/media/{key}"
+
+
 def _key_from_public_url(url: str) -> str:
     """Pull the object key back out of a public image URL.
 

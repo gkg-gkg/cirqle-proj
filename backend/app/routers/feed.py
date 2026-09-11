@@ -15,7 +15,12 @@ from sqlmodel import Session, select
 
 from ..db import get_session
 from ..handles import normalize_handle
-from ..instagram import ScrapeError, scrape_brand_mentions, scrape_profile_stats
+from ..instagram import (
+    ScrapeError,
+    mirror_display_image,
+    scrape_brand_mentions,
+    scrape_profile_stats,
+)
 from ..models import FeedPost, FeedRefreshOut, Mention, User
 from ..security import get_current_user
 
@@ -88,10 +93,15 @@ def refresh(
     posts: list[FeedPost] = []
     for p in mine:
         post_id = p.get("id")
+        # Instagram's own displayUrl is a signed link that expires, so a post
+        # shown later purely from storage (GET /feed, no re-scrape) can end up
+        # pointing at a dead image — mirror it into our own storage now, while
+        # it's still valid, so the copy we keep never goes stale.
+        display_url = mirror_display_image(p.get("displayUrl"))
         fp = FeedPost(
             id=post_id,
             url=p.get("url"),
-            displayUrl=p.get("displayUrl"),
+            displayUrl=display_url,
             caption=p.get("caption"),
             timestamp=p.get("timestamp"),
             ownerUsername=p.get("ownerUsername"),

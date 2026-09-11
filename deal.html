@@ -136,19 +136,19 @@
           <div class="panel-title">How to earn cashback</div>
           <div class="how-step">
             <span class="coin coin-sky">1</span>
-            <p class="how-text"><strong>Sign up or sign in</strong> to your Cirqle account — it's free and takes 30 seconds.</p>
+            <p class="how-text" id="step1Text"><strong>Sign up or sign in</strong> to your Cirqle account — it's free and takes 30 seconds.</p>
           </div>
           <div class="how-step">
             <span class="coin coin-pink">2</span>
-            <p class="how-text"><strong>Click "Shop &amp; Earn"</strong> — the brand's website opens in a new tab so you can shop.</p>
+            <p class="how-text"><strong>Click "Shop &amp; Earn"</strong> to open the brand's website in a new tab for online purchases. Prefer to shop in person? Just visit the store as you normally would.</p>
           </div>
           <div class="how-step">
             <span class="coin coin-lime">3</span>
-            <p class="how-text"><strong>Make your purchase</strong> as normal. Don't clear your cookies or use another discount code.</p>
+            <p class="how-text"><strong>Shop online or in store.</strong> If you're buying online, don't clear your cookies or apply another discount code — either can stop us matching your purchase.</p>
           </div>
           <div class="how-step">
             <span class="coin">4</span>
-            <p class="how-text"><strong>Share it</strong> — post about your purchase tagging both <strong>@cirqle</strong> and <strong id="tagBrand">the brand</strong> in your caption. That's how we match the purchase to this deal and unlock your cashback. Bought after a friend's post? Enter their Instagram handle when you upload your receipt and you both earn.</p>
+            <p class="how-text"><strong>Share it</strong> — post about your purchase on Instagram, tagging both <strong>@cirqle</strong> and <strong id="tagBrand">the brand</strong>, or share it with your friends directly. Referred by a friend? Enter their Instagram handle when you upload your receipt, so you both earn a reward.</p>
           </div>
         </div>
       </div>
@@ -195,6 +195,12 @@
     const params = new URLSearchParams(window.location.search);
     const id = parseInt(params.get('id')) || 1;
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
+
+    // Step 1 of "How to earn cashback" only makes sense to someone not yet
+    // signed in — swap it for a confirmation instead of asking again.
+    document.getElementById('step1Text').innerHTML = session
+      ? "<strong>You're already signed in!</strong> Head straight to step 2 and start shopping."
+      : "<strong>Sign up or sign in</strong> to your Cirqle account — it's free and takes 30 seconds.";
 
     let d = null;      // the loaded campaign
     let slides = [];   // carousel slides: image URLs, or [emoji] as a fallback
