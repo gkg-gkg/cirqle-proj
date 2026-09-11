@@ -18,8 +18,17 @@
          larger size — the markup's <br> is what sets the two-line shape. */
       max-width: 980px; margin: 0 auto;
       /* The band bottom-aligns its contents, so this bottom padding is the only
-         thing holding the copy up off the foot of the wall. */
-      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) clamp(186px, 16.5vw, 252px);
+         thing holding the copy up off the foot of the wall — and it's a
+         fixed distance from the band's bottom edge, not from the page. Growing
+         .hero-band's min-height by 8vh (96 -> 104, to run the wall on further)
+         moved the band's bottom edge down by that same 8vh, which pushed the
+         copy down the page with it: 65px lower at 1440x900, measured against
+         an unchanged min-height. The +8vh here cancels exactly that, restoring
+         the copy to the page position it held before the band grew, while
+         leaving the band itself — and so the longer wall — untouched. Verified
+         at 900/1000/1200px viewport heights: identical headline position with
+         this padding added back on 104vh as with no padding added on 96vh. */
+      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
