@@ -8,7 +8,7 @@
   <title>Cirqle — Shop. Share. Get Paid.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Playfair+Display:wght@800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     /* ── HERO ── */
@@ -18,30 +18,22 @@
          larger size — the markup's <br> is what sets the two-line shape. */
       max-width: 980px; margin: 0 auto;
       /* The band bottom-aligns its contents, so this bottom padding is the only
-         thing holding the copy up off the foot of the wall — and it's a
-         fixed distance from the band's bottom edge, not from the page. Growing
-         .hero-band's min-height by 8vh (96 -> 104, to run the wall on further)
-         moved the band's bottom edge down by that same 8vh, which pushed the
-         copy down the page with it: 65px lower at 1440x900, measured against
-         an unchanged min-height. The +8vh here cancels exactly that, restoring
-         the copy to the page position it held before the band grew, while
-         leaving the band itself — and so the longer wall — untouched. Verified
-         at 900/1000/1200px viewport heights: identical headline position with
-         this padding added back on 104vh as with no padding added on 96vh.
-         The further +36px on the bottom moves the copy up again from that
-         restored position — but .hero-band's min-height was already exactly
-         the binding constraint (846px band at 1440x900, .hero's own total
-         height under that with ~9px to spare), so 36px of added bottom
-         padding grew .hero past the floor and the band grew right along with
-         it: band height went to 873px,27 of the 36 spent growing the wall
-         rather than moving the copy, headline only 9px higher instead of 36.
-         Top padding isn't a term in where the copy sits (flex-end anchors
-         .hero's box to the band's foot; padding-top only pads space above the
-         copy, inside that box) — so trading 36px off the top pays for the
-         36px added to the bottom without growing .hero's total height, and
-         the band never leaves its floor. Verified: band height back to 846px,
-         headline the full 36px higher. */
-      padding: clamp(36px, calc(10vw - 36px), 94px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh + 36px);
+         thing holding the copy off the band's own foot — a fixed distance
+         from the band's bottom edge, not from the page. Padding-top plays no
+         part in that (flex-end anchors .hero's box to the band's foot, so top
+         padding only pads space inside the box, above the copy), which is why
+         weight moves between the two instead of just changing one: adding to
+         the bottom alone grows .hero's total height, and whenever that height
+         is what .hero-band's min-height is actually binding against (see
+         below), a taller .hero grows the band — and the wall — right along
+         with it, not just the gap under the copy. Trading it off the top
+         keeps .hero's total height fixed, so only the copy moves. Current
+         split (verified at 901/1024/1440/1920px): headline sits a few px
+         lower than the last pass, the "shift it down a touch" this is doing,
+         and — the actual reason for the size of the move — .hero measures
+         802px at the widest padding case against .hero-band's 813px floor
+         below, 11px to spare. */
+      padding: clamp(36px, calc(10vw - 36px), 94px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh - 14px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -51,13 +43,12 @@
        scrim strong enough to keep near-black type readable over any frame. */
     .hero-band {
       position: relative; overflow: hidden;
-      /* The band has to be taller than the copy for the copy to sit low in it —
-         otherwise "bottom" and "middle" are the same place. The wall fills the
-         band, so this is also what decides how much wall there is. The extra
-         over a full screen is what lengthens the wall: the copy is anchored to
-         the foot, so the band grows upward into more photography and the whole
-         block sits lower in the viewport for it. */
-      min-height: 104vh;
+      /* Exactly one screen, so the wall is what's there at load and the very
+         first scroll clears it straight into the next section — no leftover
+         sliver of photography still hanging around after. That only holds if
+         .hero's own height fits under it; see the padding split above, tuned
+         to leave room at the widest case rather than sit exactly on the line. */
+      min-height: 100vh;
       display: flex; flex-direction: column; justify-content: flex-end;
       /* Secondary copy sits over photography here, not flat white. The default
          --ink-soft (#64748B) measures 3.98:1 against the scrimmed wall, which
@@ -136,13 +127,13 @@
     .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 700px; margin: 0 auto 26px; line-height: 1.7; }
     /* "real cash" used to be underlined (.squiggle) two words before an actual
        underlined link — same blue, same underline, so the eye couldn't tell
-       which one was clickable. A script face read as emphasis without
-       borrowing the link's own signature, but full cursive script is harder
-       to read at running-text size than the rest of the sentence around it —
-       an editorial serif italic keeps that same "this word is set apart"
-       signal while staying as legible as the sans-serif body copy either
-       side of it. */
-    .cash-script { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 600; color: var(--blue); }
+       which one was clickable. Script and italic both still read as
+       handwriting to some degree, which is the opposite of what's needed
+       here — upright serif, bold, and a touch larger reads as deliberate
+       emphasis without any of that: a heavier, bigger word set apart by
+       weight and size alone, nothing connecting its letterforms the way
+       cursive or italic both do. */
+    .cash-script { font-family: 'Playfair Display', Georgia, serif; font-weight: 800; font-size: 1.15em; color: var(--blue); }
     /* --blue is the only blue that passes as text (4.80:1); --neon would not. */
     .hero-jump { color: var(--blue); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid rgba(0,114,214,.38); transition: border-color .18s var(--snap); }
     .hero-jump:hover { border-bottom-color: var(--blue); }
