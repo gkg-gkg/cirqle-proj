@@ -263,18 +263,18 @@ def test_a_merchant_can_set_custom_referral_rewards_when_turning_on(
     assert deal.referral_reward_referee == 3.0
 
 
-def test_a_merchant_cannot_set_a_referral_reward_below_one_pound(
+def test_a_merchant_cannot_set_a_referral_reward_below_fifty_pence(
         client, session, merchant):
     deal = make_campaign(session, merchant, referrals_on=False)
 
     res = client.patch(
         f"/merchant/deals/{deal.id}/referrals",
-        json={"enabled": True, "referrerReward": 0.99, "refereeReward": 1.0},
+        json={"enabled": True, "referrerReward": 0.49, "refereeReward": 1.0},
         headers={"Authorization": f"Bearer {create_merchant_token(merchant)}"})
 
     assert res.status_code == 422
     session.refresh(deal)
-    # Refused entirely — not silently clamped to £1, and referrals_enabled
+    # Refused entirely — not silently clamped to 50p, and referrals_enabled
     # never flips on the back of a rejected amount.
     assert deal.referrals_enabled is False
     assert deal.referral_reward_referrer == 1.0

@@ -351,7 +351,7 @@ def referrals(merchant: Merchant = Depends(get_current_merchant),
     return out
 
 
-MIN_REFERRAL_REWARD = 1.0   # floor on what a merchant can set either side to
+MIN_REFERRAL_REWARD = 0.5   # floor on what a merchant can set either side to
 
 
 @router.patch("/deals/{campaign_id}/referrals", response_model=DealStat)
@@ -367,7 +367,7 @@ def set_deal_referrals(campaign_id: int, data: DealReferralsIn,
     was last configured rather than resetting to the defaults; ones already
     earned are money the member has, and are left alone either way.
 
-    The £1 floor is checked here, not just suggested as presets on the
+    The 50p floor is checked here, not just suggested as presets on the
     frontend — a request that skips the UI (or a stale client) can't set
     either side below it.
     """

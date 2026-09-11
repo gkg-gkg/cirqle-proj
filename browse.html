@@ -301,13 +301,12 @@
       el.dataset.discount = c.rate;
       el.dataset.id = c.id;
       el.dataset.brand = (c.brand || '').toLowerCase();
-      // Chips: online/in-store · end date (omitted for ongoing deals) · claims
-      // · referral bonus (only on deals the brand has actually opted into —
-      // referralsEnabled, not shown at all otherwise). The amount is per
-      // campaign now (referralRewardReferrer — a merchant sets their own,
-      // floor of £1), not the site-wide £1 it used to be everywhere, so it's
-      // read straight off this deal rather than a shared constant.
-      const place = /online/i.test(c.location || '') ? 'Online' : 'In-store';
+      // Chips: claims · referral bonus (only on deals the brand has actually
+      // opted into — referralsEnabled, not shown at all otherwise). The
+      // amount is per campaign now (referralRewardReferrer — a merchant sets
+      // their own, floor of 50p), not the site-wide £1 it used to be
+      // everywhere, so it's read straight off this deal rather than a shared
+      // constant. End date lives in a badge over the image instead of a chip.
       const expiryTxt = shortExpiry(c.expiry);
       // Badge over the image now, not a chip in the meta row — see the CSS
       // note on .ending-badge for why.
@@ -324,7 +323,6 @@
             <div class="card-title">${esc(c.cardTitle || c.title)}</div>
           </div>
           <div class="card-meta">
-            <span class="chip chip-place">${place}</span>
             <span class="chip">${Number(c.claims || 0).toLocaleString()} claims</span>
             ${referralChip}
           </div>
@@ -353,21 +351,7 @@
       });
       countNum.textContent = visible;
       emptyState.classList.toggle('visible', visible === 0);
-      fitChips();
     }
-
-    // Chips must sit on ONE line: if a tile's chips wrap, drop its
-    // online/in-store chip so the end date + claims fit side by side.
-    function fitChips() {
-      document.querySelectorAll('.deal-card:not(.hidden) .card-meta').forEach(meta => {
-        const place = meta.querySelector('.chip-place');
-        if (!place) return;
-        const chips = meta.querySelectorAll('.chip');
-        if (chips[chips.length - 1].offsetTop > chips[0].offsetTop) place.remove();
-      });
-    }
-    window.addEventListener('load', fitChips);
-    window.addEventListener('resize', fitChips);
 
     function sortCards(value) {
       [...cards].sort((a, b) => {
