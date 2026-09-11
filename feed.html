@@ -121,7 +121,66 @@
     .feed-empty .et { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; margin-bottom: 6px; }
     .feed-empty .es { font-size: .9rem; color: var(--ink-soft); }
 
+    /* ── Share tabs — Online (Instagram) / In person (referrals) ──
+       Same underline pattern as merchant.html's .mtab, under a new name since
+       this page has its own <style>. Everything above the tabs (title, sub,
+       Refresh, Log a repeat visit) is common to both; below is where they
+       diverge. */
+    .share-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 26px; border-bottom: var(--bw) solid var(--line); }
+    .share-tab {
+      appearance: none; background: none; border: none; cursor: pointer; font: inherit;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: .92rem; color: var(--ink-soft);
+      padding: 10px 16px; border-radius: var(--r-chip) var(--r-chip) 0 0; position: relative;
+    }
+    .share-tab:hover { color: var(--ink); }
+    .share-tab.active { color: var(--ink); }
+    .share-tab.active::after {
+      content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px;
+      height: 3px; border-radius: 3px 3px 0 0; background: var(--blue-deep);
+    }
+    .share-panel[hidden] { display: none; }
+    .share-panel-intro { font-size: .9rem; color: var(--ink-soft); line-height: 1.6; margin: 0 0 22px; max-width: 640px; }
+    .share-panel-intro a { color: var(--blue-deep); font-weight: 700; text-decoration: none; }
+    .share-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+    .share-side > .card { margin-bottom: 20px; }
+    .share-side > .card:last-child { margin-bottom: 0; }
+
+    /* Referral cards — same shapes as dashboard.html's, so a member sees one
+       consistent design whichever page shows them. */
+    .panel-title { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin-bottom: 16px; }
+    .panel-note { font-size: .8rem; color: var(--ink-soft); margin: -6px 0 14px; line-height: 1.5; }
+    .ref-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 2px dashed rgba(31,27,19,.14); }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-who { font-weight: 700; font-size: .9rem; }
+    .ref-why { font-size: .76rem; color: var(--ink-soft); margin-top: 3px; line-height: 1.45; }
+    .ref-amt { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ref-amt.waiting { color: var(--ink-soft); font-weight: 700; }
+    .ref-empty { font-size: .86rem; color: var(--ink-soft); }
+    .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: .84rem; font-weight: 700; }
+    .goal-val { color: var(--green); font-weight: 800; }
+    .progress-bar { height: 16px; border: var(--bw) solid var(--line); border-radius: 999px; background: var(--paper); overflow: hidden; margin: 8px 0; }
+    .progress-fill {
+      height: 100%; border-radius: 999px;
+      background: repeating-linear-gradient(-45deg, var(--lime) 0 10px, var(--lime-soft) 10px 20px);
+      border-right: var(--bw) solid var(--line);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 1.4s var(--snap);
+    }
+    .progress-fill.anim { transform: scaleX(1); }
+    .progress-note { font-size: .74rem; font-weight: 600; color: var(--ink-soft); }
+    .streak-card { display: flex; align-items: center; gap: 16px; padding: 22px; background: var(--paper-deep); }
+    .streak-num { font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 1; color: var(--tang-deep); }
+    .streak-label { font-size: .78rem; font-weight: 700; color: var(--ink-soft); }
+    .handle-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .handle-chip {
+      font-family: var(--font-display); font-weight: 800; font-size: 1.05rem;
+      padding: 10px 16px; border-radius: var(--r-chip);
+      background: var(--blue-tint); border: var(--bw) solid var(--line);
+    }
+
     @media (max-width: 900px) { .nav-name { display: none; } }
+    @media (max-width: 720px) { .share-grid { grid-template-columns: 1fr; } }
     @media (max-width: 700px) {
       .post-tile { flex-direction: column; }
       .post-img { width: 100%; height: 200px; border-right: none; border-bottom: var(--bw) solid var(--line); }
@@ -151,8 +210,8 @@
   <div class="feed-wrap">
     <div class="feed-head">
       <div>
-        <div class="feed-title fade-up d1">Your Cirqle posts</div>
-        <p class="feed-sub fade-up d2">Instagram posts where you tagged <strong>@cirqle.co.uk</strong> and the brand.</p>
+        <div class="feed-title fade-up d1">Share with your friends</div>
+        <p class="feed-sub fade-up d2">Online, with an Instagram post — or in person, by referring a friend directly. However you share, you both earn.</p>
       </div>
       <div class="refresh-area fade-up d2">
         <div class="refresh-row">
@@ -168,10 +227,61 @@
     <div class="feed-meta">
       <span class="feed-updated" id="feedUpdated"></span>
       <!-- Been back somewhere without posting about it? That trip earns too,
-           and it's the only way we ever learn a customer is a regular. -->
+           any time — it's got its own 3-day clock and never waits on an
+           earlier claim to clear. It's also the only way we ever learn a
+           customer is a regular. -->
       <a class="btn btn-sm btn-ink" href="receipt.html">Log a repeat visit</a>
     </div>
-    <div class="feed-list" id="feedList"></div>
+
+    <!-- Everything above is common to both; the tabs are where they diverge. -->
+    <nav class="share-tabs" role="tablist">
+      <button class="share-tab active" id="tabOnline" data-tab="online" role="tab" aria-selected="true" aria-controls="panelOnline"><i class="ico ico-instagram"></i> Online</button>
+      <button class="share-tab" id="tabPerson" data-tab="person" role="tab" aria-selected="false" aria-controls="panelPerson"><i class="ico ico-users"></i> In person</button>
+    </nav>
+
+    <div class="share-panel" id="panelOnline" role="tabpanel" aria-labelledby="tabOnline">
+      <div class="feed-list" id="feedList"></div>
+    </div>
+
+    <div class="share-panel" id="panelPerson" role="tabpanel" aria-labelledby="tabPerson" hidden>
+      <p class="share-panel-intro">Both of these skip the Instagram post. Referring someone is about how they first found a brand, so it only counts on your <em>first</em> claim there. A <a href="receipt.html">repeat visit</a> is the opposite case — going back to a brand you've already claimed — and you can log one any time, even while an earlier claim is still in its 3-day clearing window; each visit gets its own.</p>
+      <div class="share-grid">
+        <div class="card">
+          <div class="panel-title">Referrals</div>
+          <div class="panel-note">£1 when someone buys through your post, 50p when you buy through someone else's. Paid once their claim clears.</div>
+          <div id="referralsList"><div class="ref-empty">Loading…</div></div>
+        </div>
+        <div class="share-side">
+          <div class="card">
+            <div class="panel-title">Your handle</div>
+            <p class="panel-note">Give this to a friend. When they buy and enter it with their receipt, you both earn.</p>
+            <div class="handle-row">
+              <span class="handle-chip" id="myHandle">—</span>
+              <button class="btn btn-sm btn-ink" onclick="copyHandle()">Copy</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="panel-title">Referral season</div>
+            <div class="goal-header">
+              <span id="seasonLabel">This season</span>
+              <span class="goal-val"><span id="seasonScore">0</span> referred</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+            <div class="progress-note" id="seasonNote">Refer someone to get on the board.</div>
+            <div style="text-align:center; margin-top:16px">
+              <a href="leaderboard.html" style="font-size:.82rem; font-weight:800; color:var(--pink-deep); text-decoration:none">View leaderboard &rarr;</a>
+            </div>
+          </div>
+          <div class="card streak-card">
+            <span style="font-size:2.2rem"><i class="ico ico-bolt"></i></span>
+            <div>
+              <div class="streak-num" id="streakVal">0</div>
+              <div class="streak-label" id="streakLabel">week streak</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="assets/api.js"></script>
@@ -474,6 +584,128 @@
       }
     }
 
+    // ── Share tabs: Online (Instagram) / In person (referrals) ──
+    // The URL hash is what lets a link point straight at either tab, and what
+    // lets the tab survive a refresh. Referral data loads once, the first
+    // time the In person tab is opened — no point fetching it for someone who
+    // never looks past their Instagram posts.
+    let referralsLoaded = false;
+    function showShareTab(tab) {
+      if (tab !== 'online' && tab !== 'person') tab = 'online';
+      document.getElementById('panelOnline').hidden = tab !== 'online';
+      document.getElementById('panelPerson').hidden = tab !== 'person';
+      document.getElementById('tabOnline').classList.toggle('active', tab === 'online');
+      document.getElementById('tabOnline').setAttribute('aria-selected', tab === 'online');
+      document.getElementById('tabPerson').classList.toggle('active', tab === 'person');
+      document.getElementById('tabPerson').setAttribute('aria-selected', tab === 'person');
+      if (history.replaceState) history.replaceState(null, '', '#' + tab);
+      if (tab === 'person' && !referralsLoaded) { referralsLoaded = true; loadReferralData(); }
+    }
+    document.getElementById('tabOnline').addEventListener('click', () => showShareTab('online'));
+    document.getElementById('tabPerson').addEventListener('click', () => showShareTab('person'));
+
+    // ── "In person" tab: your handle, referrals, referral season, streak ──
+    // Referrals run on handles, not share links: a friend types your @handle
+    // when they upload their own receipt, so showing (and copying) it is the
+    // useful action here — matches dashboard.html's copyHandle().
+    async function copyHandle() {
+      const handle = session.instagramHandle;
+      if (!handle) {
+        cirqleToast('Add your Instagram handle in your account first');
+        setTimeout(() => window.location.href = 'account.html', 1400);
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText('@' + handle);
+        cirqleToast('@' + handle + ' copied — friends enter it with their receipt');
+      } catch (_) {
+        cirqleToast('Your handle is @' + handle + ' — friends enter it with their receipt');
+      }
+    }
+
+    // A season is a calendar quarter, so its dates come straight from the
+    // label the API sends ("2026-Q3") — matches dashboard.html.
+    function seasonDates(label) {
+      const [year, q] = label.split('-Q').map(Number);
+      const start = new Date(Date.UTC(year, (q - 1) * 3, 1));
+      const end = new Date(Date.UTC(year, q * 3, 0));   // day 0 = last of prev month
+      return { start, end };
+    }
+    function renderSeason(s) {
+      if (!s.season) return;
+      const { start, end } = seasonDates(s.season);
+      const today = new Date();
+      const span = end - start;
+      const gone = Math.min(Math.max(today - start, 0), span);
+      const pct = Math.round((gone / span) * 100);
+
+      document.getElementById('seasonLabel').textContent = s.season.replace('-Q', ' · Q');
+      document.getElementById('seasonScore').textContent = s.seasonScore;
+
+      const fill = document.getElementById('progFill');
+      fill.style.width = pct + '%';
+      fill.classList.add('anim');
+
+      const daysLeft = Math.max(0, Math.ceil((end - today) / 86400000));
+      const note = document.getElementById('seasonNote');
+      if (s.seasonScore === 0) {
+        note.textContent = daysLeft > 0
+          ? `Refer someone to get on the board — ${daysLeft} day${daysLeft === 1 ? '' : 's'} left.`
+          : 'This season has closed.';
+      } else {
+        note.textContent = daysLeft > 0
+          ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} left to climb.`
+          : 'This season has closed.';
+      }
+      document.getElementById('streakVal').textContent = s.referralStreak || 0;
+    }
+
+    // A bonus that hasn't arrived says what it's waiting for — silently
+    // missing money is worse than money that explains itself.
+    async function loadReferralData() {
+      document.getElementById('myHandle').textContent =
+        session.instagramHandle ? '@' + session.instagramHandle : 'Not set';
+
+      try {
+        const res = await fetch(`${window.CIRQLE_API_BASE}/account/stats`, {
+          headers: { 'Authorization': 'Bearer ' + session.token }
+        });
+        if (res.status === 401 || res.status === 403) { signOut(); return; }
+        if (res.ok) renderSeason(await res.json());
+      } catch (e) { /* leave the season card at its zero state */ }
+
+      try {
+        const res = await fetch(`${window.CIRQLE_API_BASE}/account/referrals`, {
+          headers: { 'Authorization': 'Bearer ' + session.token }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const items = await res.json();
+        const list = document.getElementById('referralsList');
+        if (!items.length) {
+          list.innerHTML = '<div class="ref-empty">No referrals yet. Share your handle above, or tag a friend in your next post.</div>';
+          return;
+        }
+        list.innerHTML = items.map(r => {
+          const who = r.role === 'referrer'
+            ? `@${esc(r.handle)} bought through your post`
+            : `You bought through @${esc(r.handle)}'s post`;
+          const earned = r.status === 'earned';
+          const amount = earned ? '+£' + Number(r.amount).toFixed(2)
+                       : r.status === 'cancelled' ? 'Cancelled' : 'Pending';
+          return `<div class="ref-row">
+              <div>
+                <div class="ref-who">${who}</div>
+                <div class="ref-why">${esc(r.brand || 'Deal')}${r.reason ? ' — ' + esc(r.reason) : ''}</div>
+              </div>
+              <div class="ref-amt ${earned ? '' : 'waiting'}">${amount}</div>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        document.getElementById('referralsList').innerHTML =
+          '<div class="ref-empty">Could not load your referrals — try refreshing the page.</div>';
+      }
+    }
+
     // ── Sign out (matches dashboard.html) ──
     function signOut() {
       localStorage.removeItem('cirqle_session');
@@ -483,6 +715,7 @@
 
     document.getElementById('refreshBtn').addEventListener('click', refresh);
     if (session) loadReceipts().then(loadMentions);
+    showShareTab(location.hash === '#person' ? 'person' : 'online');
   </script>
   <script src="assets/enhance.js"></script>
 </body>
