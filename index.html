@@ -8,7 +8,7 @@
   <title>Cirqle — Shop. Share. Get Paid.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Parisienne&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     /* ── HERO ── */
@@ -27,8 +27,21 @@
          the copy to the page position it held before the band grew, while
          leaving the band itself — and so the longer wall — untouched. Verified
          at 900/1000/1200px viewport heights: identical headline position with
-         this padding added back on 104vh as with no padding added on 96vh. */
-      padding: clamp(72px, 10vw, 130px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh);
+         this padding added back on 104vh as with no padding added on 96vh.
+         The further +36px on the bottom moves the copy up again from that
+         restored position — but .hero-band's min-height was already exactly
+         the binding constraint (846px band at 1440x900, .hero's own total
+         height under that with ~9px to spare), so 36px of added bottom
+         padding grew .hero past the floor and the band grew right along with
+         it: band height went to 873px,27 of the 36 spent growing the wall
+         rather than moving the copy, headline only 9px higher instead of 36.
+         Top padding isn't a term in where the copy sits (flex-end anchors
+         .hero's box to the band's foot; padding-top only pads space above the
+         copy, inside that box) — so trading 36px off the top pays for the
+         36px added to the bottom without growing .hero's total height, and
+         the band never leaves its floor. Verified: band height back to 846px,
+         headline the full 36px higher. */
+      padding: clamp(36px, calc(10vw - 36px), 94px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh + 36px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -63,7 +76,10 @@
     .hw-col { display: flex; flex-direction: column; gap: 12px; }
     .hw-col:nth-child(2n) { transform: translateY(-7%); }
     .hw-col:nth-child(3n) { transform: translateY(4%); }
-    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-radius: 12px; display: block; filter: saturate(1.2) contrast(.97); }
+    /* object-position nudged above center: shifts which part of each source
+       photo shows through the fixed-height crop, pushing the wall's imagery
+       up slightly without changing the band's height or the wall's length. */
+    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; object-position: 50% 35%; border-radius: 12px; display: block; filter: saturate(1.2) contrast(.97); }
     .hero-scrim {
       z-index: 1;
       /* A real vignette: a bright pool behind the copy falling off to a dark
@@ -120,11 +136,13 @@
     .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 700px; margin: 0 auto 26px; line-height: 1.7; }
     /* "real cash" used to be underlined (.squiggle) two words before an actual
        underlined link — same blue, same underline, so the eye couldn't tell
-       which one was clickable. A script face reads as emphasis without
-       borrowing the link's own signature; no underline to confuse with
-       .hero-jump right after it. Sized up because script faces sit smaller
-       than a sans-serif at the same declared size. */
-    .cash-script { font-family: 'Parisienne', cursive; font-size: 1.5em; color: var(--blue); line-height: 1; }
+       which one was clickable. A script face read as emphasis without
+       borrowing the link's own signature, but full cursive script is harder
+       to read at running-text size than the rest of the sentence around it —
+       an editorial serif italic keeps that same "this word is set apart"
+       signal while staying as legible as the sans-serif body copy either
+       side of it. */
+    .cash-script { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 600; color: var(--blue); }
     /* --blue is the only blue that passes as text (4.80:1); --neon would not. */
     .hero-jump { color: var(--blue); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid rgba(0,114,214,.38); transition: border-color .18s var(--snap); }
     .hero-jump:hover { border-bottom-color: var(--blue); }
@@ -133,7 +151,11 @@
 
     /* ── Cashback calculator ── */
     .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; }
-    .calc-card { padding: 28px; }
+    /* align-items: center keeps the grid's own alignment, so the left column
+       (taller — heading, sub, output, note) is untouched; this nudges only
+       the card up within its own cell. */
+    .calc-card { padding: 28px; margin-top: -28px; }
+    .calc-more { text-align: center; margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--line); }
     .calc-row { margin-bottom: 20px; }
     .calc-label { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: .82rem; font-weight: 600; margin-bottom: 9px; }
     .calc-label em { font-style: normal; color: var(--ink-soft); font-weight: 500; }
@@ -372,11 +394,18 @@
     .disclaim { font-size: .76rem; color: var(--ink-soft); text-align: center; margin-top: 20px; line-height: 1.6; }
 
     /* ── Big CTA ── */
-    .cta-slab { padding: clamp(48px, 6vw, 80px) clamp(24px, 5vw, 64px); text-align: center; overflow: hidden; position: relative; }
+    /* Flex + gap, not each child's own margin, so the space above the buttons
+       holds up however many children are actually visible. .cta-sub used to
+       carry that gap on its own margin-bottom — fine while it was always
+       there, but signed in it's display:none, and a hidden element's margin
+       doesn't hold a gap open: the heading and the button dropped flush
+       against each other. Gap only spans elements still in flow, so a hidden
+       .cta-sub is skipped instead of leaving a collapsed space behind. */
+    .cta-slab { padding: clamp(48px, 6vw, 80px) clamp(24px, 5vw, 64px); text-align: center; overflow: hidden; position: relative; display: flex; flex-direction: column; align-items: center; gap: 22px; }
     .cta-slab > * { position: relative; z-index: 1; }
     .cta-slab .h-display { color: #fff; }
     .cta-slab .hl { background: var(--neon); color: #0B1220; padding: 0 6px; }
-    .cta-sub { color: rgba(255,255,255,.7); font-size: 1.02rem; margin: 18px auto 34px; max-width: 460px; }
+    .cta-sub { color: rgba(255,255,255,.7); font-size: 1.02rem; margin: 0 auto; max-width: 460px; }
     @media (max-width: 900px) {
       /* The carousel goes back to a CSS transform — the same mechanism as the
          review wall, which has always been the smooth one on a phone — and both
@@ -420,7 +449,10 @@
          applied between all five of them and the block fell apart. */
       .calc-grid { display: flex; flex-direction: column; gap: 16px; }
       .calc-grid > div:first-child { display: contents; }
-      .calc-card { order: 2; }
+      /* The desktop -28px nudges the card up against a taller grid sibling;
+         stacked in document order here, that same offset would pull it up
+         into whatever sits above it instead. */
+      .calc-card { order: 2; margin-top: 0; }
       .calc-note { order: 3; margin-top: 18px; }
       .pwall { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 460px; }
     }
@@ -638,14 +670,14 @@
       </div>
       <div class="card calc-card reveal reveal-delay-2">
         <div class="calc-row">
-          <div class="calc-label"><span>Monthly spend <em>at partner brands</em></span><b id="calcSpendLabel">£80</b></div>
-          <input type="range" class="calc-range" id="calcSpend" min="10" max="400" step="10" value="80" aria-label="Monthly spend at partner brands, in pounds">
+          <div class="calc-label"><span>Monthly spend <em>at brands</em></span><b id="calcSpendLabel">£80</b></div>
+          <input type="range" class="calc-range" id="calcSpend" min="10" max="400" step="10" value="80" aria-label="Monthly spend at brands, in pounds">
         </div>
         <div class="calc-row">
           <div class="calc-label"><span>How often you post about a purchase</span></div>
           <div class="calc-cats" id="calcPost">
-            <button type="button" class="calc-cat" data-post="0.25" aria-pressed="false">Now and then</button>
-            <button type="button" class="calc-cat" data-post="0.5" aria-pressed="true">About half</button>
+            <button type="button" class="calc-cat" data-post="0" aria-pressed="false">Never</button>
+            <button type="button" class="calc-cat" data-post="0.5" aria-pressed="true">Now and then</button>
             <button type="button" class="calc-cat" data-post="0.8" aria-pressed="false">Most times</button>
           </div>
         </div>
@@ -657,6 +689,9 @@
         <div class="calc-row" style="margin-bottom:0">
           <div class="calc-label"><span>Category</span></div>
           <div class="calc-cats" id="calcCats"></div>
+        </div>
+        <div class="calc-more">
+          <a href="how-it-works.html" class="btn btn-lg btn-lime">Find out more &rarr;</a>
         </div>
       </div>
     </div>

@@ -77,7 +77,7 @@
         // Signed out: neither chip has anywhere real to go (both just bounce
         // to sign-in), so showing "My Account" / "Dashboard" was promising
         // pages that don't exist yet for this visitor. One honest button.
-        cta.innerHTML = '<a href="signin.html" class="btn btn-sm btn-ink">Sign In</a>';
+        cta.innerHTML = '<a href="signin.html" class="btn btn-sm">Sign In</a>';
       }
     }
   }
