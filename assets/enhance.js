@@ -68,12 +68,17 @@
     // Pages with their own hand-built avatar+name block (feed/dashboard/account/
     // receipt) own their .nav-cta already — don't blow it away from under them.
     if (!cta.querySelector('.nav-user')) {
-      var acctHref = session ? 'dashboard.html' : 'signin.html';
-      var dashHref = session ? 'feed.html' : 'signin.html';
-      var chips = '';
-      if (here !== 'dashboard.html') chips += '<a href="' + acctHref + '" class="btn btn-sm">My Account</a>';
-      if (here !== 'feed.html')      chips += '<a href="' + dashHref + '" class="btn btn-sm btn-ink">Dashboard</a>';
-      cta.innerHTML = chips;
+      if (session) {
+        var chips = '';
+        if (here !== 'dashboard.html') chips += '<a href="dashboard.html" class="btn btn-sm">My Account</a>';
+        if (here !== 'feed.html')      chips += '<a href="feed.html" class="btn btn-sm btn-ink">Dashboard</a>';
+        cta.innerHTML = chips;
+      } else {
+        // Signed out: neither chip has anywhere real to go (both just bounce
+        // to sign-in), so showing "My Account" / "Dashboard" was promising
+        // pages that don't exist yet for this visitor. One honest button.
+        cta.innerHTML = '<a href="signin.html" class="btn btn-sm btn-ink">Sign In</a>';
+      }
     }
   }
 

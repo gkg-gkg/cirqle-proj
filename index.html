@@ -8,7 +8,7 @@
   <title>Cirqle — Shop. Share. Get Paid.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Parisienne&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
     /* ── HERO ── */
@@ -118,6 +118,13 @@
        of the wall are set to one interval so the run down to the buttons reads
        as evenly spaced rather than tightening at the end. */
     .hero-sub { font-size: clamp(1.02rem, 1.7vw, 1.18rem); color: var(--ink-soft); max-width: 700px; margin: 0 auto 26px; line-height: 1.7; }
+    /* "real cash" used to be underlined (.squiggle) two words before an actual
+       underlined link — same blue, same underline, so the eye couldn't tell
+       which one was clickable. A script face reads as emphasis without
+       borrowing the link's own signature; no underline to confuse with
+       .hero-jump right after it. Sized up because script faces sit smaller
+       than a sans-serif at the same declared size. */
+    .cash-script { font-family: 'Parisienne', cursive; font-size: 1.5em; color: var(--blue); line-height: 1; }
     /* --blue is the only blue that passes as text (4.80:1); --neon would not. */
     .hero-jump { color: var(--blue); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid rgba(0,114,214,.38); transition: border-color .18s var(--snap); }
     .hero-jump:hover { border-bottom-color: var(--blue); }
@@ -476,7 +483,7 @@
          that is allowed to be text on white. Over the photo wall this link was
          1.7:1 and no scrim could reach it — the gradient is what makes it
          fixable with a colour. */
-      .hero-band .hero-jump, .hero-band .squiggle { color: var(--blue-deep); }
+      .hero-band .hero-jump, .hero-band .cash-script { color: var(--blue-deep); }
       .hero-band .hero-jump { border-bottom-color: rgba(0,92,176,.45); }
       .hero-band .squiggle::after { background: var(--blue-deep); }
       .hero-band {
@@ -534,7 +541,7 @@
   <header class="hero">
     <div>
       <h1 class="hero-h fade-up d1">Shop. Share.<br>Get <span class="hl">Paid</span>.</h1>
-      <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, and earn <span class="squiggle">real cash</span>, straight to your wallet. <a href="#calculator" class="hero-jump">Find out how much you could earn</a></p>
+      <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, and earn <span class="cash-script">real cash</span>, straight to your wallet. <a href="#calculator" class="hero-jump">Find out how much you could earn</a></p>
       <div class="hero-actions btn-row fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
         <a href="signup.html" class="btn btn-lg">Sign up</a>
@@ -660,10 +667,14 @@
     <div class="section-inner">
       <div class="card card-ink cta-slab reveal">
         <h2 class="h-display">Ready to shop, share<br>and get <span class="hl">paid</span>?</h2>
-        <p class="cta-sub">Signing up takes about a minute, and it's free.</p>
+        <!-- "Signing up takes a minute" and a Sign up button are both dead
+             weight for someone already signed in — Browse Deals is the only
+             live CTA that applies to them, so it's all they get. -->
+        <p class="cta-sub" data-auth="out">Signing up takes about a minute, and it's free.</p>
         <div class="btn-row" style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap">
-          <a href="signup.html" class="btn btn-lg btn-lime">Sign up →</a>
-          <a href="browse.html" class="btn btn-lg">Browse Deals</a>
+          <a href="how-it-works.html" class="btn btn-lg btn-lime" data-auth="out">Find out more →</a>
+          <a href="signup.html" class="btn btn-lg" data-auth="out">Sign up</a>
+          <a href="browse.html" class="btn btn-lg btn-lime" data-auth="in" style="display:none">Browse Deals</a>
         </div>
       </div>
     </div>
