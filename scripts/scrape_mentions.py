@@ -28,7 +28,8 @@ from dotenv import load_dotenv
 ACTOR_ID = "apify/instagram-scraper"
 
 # Instagram account whose mentions we scrape (override on the CLI if needed).
-ACCOUNT = "cirqle.ltd"
+# The live account is cirqle.co.uk — see backend/app/instagram.py's BRAND_HANDLE.
+ACCOUNT = "cirqle.co.uk"
 
 # Repo root is the parent of this script's folder; write results into data/.
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "data" / "mentions.json"

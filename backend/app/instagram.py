@@ -5,7 +5,7 @@ NEVER reaches the browser — that is the whole point of Phase 2. The frontend
 asks our API to refresh; our API does the scrape and returns only the finished
 posts.
 
-We scrape the *brand* account's mentions (posts that tag @cirqle.ltd) and let
+We scrape the *brand* account's mentions (posts that tag @cirqle.co.uk) and let
 the caller filter down to a single user's own posts.
 """
 import os
@@ -21,7 +21,12 @@ from .storage import upload_image_bytes
 ACTOR_ID = "apify/instagram-scraper"
 
 # Instagram account whose mentions we scrape. Override with CIRQLE_BRAND_HANDLE.
-BRAND_HANDLE = os.environ.get("CIRQLE_BRAND_HANDLE", "cirqle.ltd")
+# cirqle.ltd was never the live account's handle — the real one is cirqle.co.uk,
+# so scraping the old default found nothing: users were told in the site's own
+# copy to tag @cirqle, which Instagram either turned into a dead link or, worse,
+# tagged a stranger's account, and even a correct tag of @cirqle.co.uk still
+# wouldn't have been picked up by this scraper looking at cirqle.ltd.
+BRAND_HANDLE = os.environ.get("CIRQLE_BRAND_HANDLE", "cirqle.co.uk")
 
 # Every user's feed is filtered from the SAME brand-wide scrape, so a burst of
 # refreshes would otherwise fire many identical ~1-min Apify runs. Cache the raw
