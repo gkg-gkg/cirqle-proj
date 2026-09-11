@@ -94,6 +94,7 @@ def _campaign_out(c: Campaign) -> CampaignOut:
         perPostCap=c.per_post_cap,
         budgetTotal=c.budget_total,
         budgetRemaining=c.budget_remaining,
+        referralsEnabled=c.referrals_enabled,
     )
 
 

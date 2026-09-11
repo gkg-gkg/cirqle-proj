@@ -98,6 +98,10 @@
     .card-desc { font-size: .8rem; color: var(--ink-soft); line-height: 1.5; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .card-meta { display: flex; gap: 6px; flex-wrap: wrap; }
     .card-meta .chip { font-size: .68rem; padding: 3px 10px; }
+    /* Cashback in the footer is per-brand and varies; a referral bonus is a
+       flat amount the same on every deal that pays one, so it reads as a chip
+       here rather than competing with the rate for footer space. */
+    .chip-referral { background: var(--blue-tint); border-color: rgba(56,182,255,.42); color: var(--ink); font-weight: 700; }
 
     .card-footer {
       border-top: var(--bw) solid var(--line);
@@ -260,6 +264,9 @@
     // hardcoded. We fetch GET /campaigns, build the same card markup + data-*
     // attributes the filter/sort/postcode logic below relies on, then run it.
     const API = window.CIRQLE_API_BASE;
+    // What one verified referral pays the referrer — REWARD_REFERRER in the
+    // backend (backend/app/referrals.py) — matches index.html's calculator.
+    const REFERRAL_REWARD = 1;
     const grid = document.getElementById('dealsGrid');
     const emptyState = document.getElementById('emptyState');
     const countNum = document.getElementById('countNum');
@@ -296,10 +303,17 @@
       el.dataset.discount = c.rate;
       el.dataset.id = c.id;
       el.dataset.brand = (c.brand || '').toLowerCase();
-      // Chips: online/in-store · end date (omitted for ongoing deals) · claims.
+      // Chips: online/in-store · end date (omitted for ongoing deals) · claims
+      // · referral bonus (only on deals the brand has actually opted into —
+      // referralsEnabled, not shown at all otherwise). Cashback varies by
+      // brand and lives in the footer; the referral bonus is the same flat
+      // amount on every deal that pays one, so it reads as a chip up here
+      // instead of competing with the rate for footer space.
       const place = /online/i.test(c.location || '') ? 'Online' : 'In-store';
       const expiryTxt = shortExpiry(c.expiry);
       const expiryChip = expiryTxt === 'Ongoing' ? '' : `<span class="chip">${esc(expiryTxt)}</span>`;
+      const referralChip = c.referralsEnabled
+        ? `<span class="chip chip-referral">+£${REFERRAL_REWARD} referral</span>` : '';
       el.innerHTML = `
         <div class="card-image">
           ${thumb}
@@ -313,6 +327,7 @@
             <span class="chip chip-place">${place}</span>
             ${expiryChip}
             <span class="chip">${Number(c.claims || 0).toLocaleString()} claims</span>
+            ${referralChip}
           </div>
         </div>
         <div class="card-footer">

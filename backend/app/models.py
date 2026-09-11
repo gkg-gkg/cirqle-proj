@@ -716,6 +716,7 @@ class CampaignOut(BaseModel):
     perPostCap: Optional[float] = None
     budgetTotal: Optional[float] = None
     budgetRemaining: Optional[float] = None
+    referralsEnabled: bool = False   # does this deal pay a referral bonus on top of cashback?
 
 
 # ── Receipts / cashback (Phase 4 + 5) ──
