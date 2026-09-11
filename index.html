@@ -27,13 +27,15 @@
          is what .hero-band's min-height is actually binding against (see
          below), a taller .hero grows the band — and the wall — right along
          with it, not just the gap under the copy. Trading it off the top
-         keeps .hero's total height fixed, so only the copy moves. Current
-         split (verified at 901/1024/1440/1920px): headline sits a few px
-         lower than the last pass, the "shift it down a touch" this is doing,
-         and — the actual reason for the size of the move — .hero measures
-         802px at the widest padding case against .hero-band's 813px floor
-         below, 11px to spare. */
-      padding: clamp(36px, calc(10vw - 36px), 94px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh - 14px);
+         keeps .hero's total height fixed, so only the copy moves.
+         A further -10px on the bottom (asked for on its own, after the wall
+         was fixed to exactly one screen) moves the copy down again — and
+         only ever helps the one-screen guarantee rather than risking it,
+         since less bottom padding means a shorter .hero, further from
+         .hero-band's floor rather than closer to it. Verified at 1527px
+         (the widest padding case): .hero now measures 792px against the
+         813px floor, 21px to spare, up from 11px before this. */
+      padding: clamp(36px, calc(10vw - 36px), 94px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh - 24px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -392,7 +394,7 @@
        doesn't hold a gap open: the heading and the button dropped flush
        against each other. Gap only spans elements still in flow, so a hidden
        .cta-sub is skipped instead of leaving a collapsed space behind. */
-    .cta-slab { padding: clamp(48px, 6vw, 80px) clamp(24px, 5vw, 64px); text-align: center; overflow: hidden; position: relative; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+    .cta-slab { padding: clamp(48px, 6vw, 80px) clamp(24px, 5vw, 64px); text-align: center; overflow: hidden; position: relative; display: flex; flex-direction: column; align-items: center; gap: 32px; }
     .cta-slab > * { position: relative; z-index: 1; }
     .cta-slab .h-display { color: #fff; }
     .cta-slab .hl { background: var(--neon); color: #0B1220; padding: 0 6px; }
@@ -567,7 +569,11 @@
       <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, and earn <span class="cash-script">real cash</span>, straight to your wallet. <a href="#calculator" class="hero-jump">Find out how much you could earn</a></p>
       <div class="hero-actions btn-row fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
-        <a href="signup.html" class="btn btn-lg">Sign up</a>
+        <!-- Signing up is dead weight once you're already a member — swap it
+             for the same "learn how it works" link the signed-in bottom CTA
+             uses instead. -->
+        <a href="signup.html" class="btn btn-lg" data-auth="out">Sign up</a>
+        <a href="how-it-works.html" class="btn btn-lg" data-auth="in" style="display:none">Find out more</a>
       </div>
     </div>
 
@@ -693,14 +699,17 @@
     <div class="section-inner">
       <div class="card card-ink cta-slab reveal">
         <h2 class="h-display">Ready to shop, share<br>and get <span class="hl">paid</span>?</h2>
-        <!-- "Signing up takes a minute" and a Sign up button are both dead
-             weight for someone already signed in — Browse Deals is the only
-             live CTA that applies to them, so it's all they get. -->
+        <!-- "Signing up takes a minute" and the Sign up button are both dead
+             weight for someone already signed in, so neither shows — but
+             Find out more is still worth having even once you've joined,
+             so it stays alongside Browse Deals rather than disappearing
+             with Sign up. -->
         <p class="cta-sub" data-auth="out">Signing up takes about a minute, and it's free.</p>
         <div class="btn-row" style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap">
           <a href="how-it-works.html" class="btn btn-lg btn-lime" data-auth="out">Find out more →</a>
           <a href="signup.html" class="btn btn-lg" data-auth="out">Sign up</a>
           <a href="browse.html" class="btn btn-lg btn-lime" data-auth="in" style="display:none">Browse Deals</a>
+          <a href="how-it-works.html" class="btn btn-lg" data-auth="in" style="display:none">Find out more</a>
         </div>
       </div>
     </div>
