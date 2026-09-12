@@ -282,6 +282,10 @@
       grid-template-columns: repeat(4, 1fr);
       grid-auto-rows: clamp(132px, 14vw, 174px);
       gap: clamp(10px, 1.1vw, 14px);
+      /* dense: a tall tile is ordered by deal count, not by where it fits, so
+         without backfilling it pushes past a free full-height column and
+         leaves a hole above it. */
+      grid-auto-flow: row dense;
     }
     .cat-tile {
       position: relative; display: block; overflow: hidden;
@@ -1093,21 +1097,29 @@
     // Gymshark, black-and-white archive scans on Amazon, the Hogwarts Express
     // on Trainline) and several carry non-commercial licences, so they can't
     // front the homepage. These come from the site's own licensed set in
-    // assets/wall. A category with no photo here is skipped rather than shown
-    // as an empty tile — Travel has no travel photo in the set yet.
+    // assets/wall, which has no travel shot — Travel borrows the sunny
+    // promenade, which sells the idea without literally illustrating it. A
+    // category with no photo here is skipped rather than shown as an empty
+    // tile, which now only matters if a NEW category is added to the
+    // catalogue: all six live ones are mapped.
+    // `tall` means the photo is a full-length subject: a wide tile keeps only
+    // a thin band of it and returns a headless torso, so these claim the
+    // full-height slots. `pos` overrides the default crop where the subject
+    // isn't where object-position's default lands it. Exactly two tall and
+    // four wide tile the 4x3 grid with no holes.
     var CATEGORY_PHOTO = {
-      'Fashion & Beauty': 'assets/wall/w1.jpg',
-      'Food & Drink':     'assets/wall/w11.jpg',
-      'Electronics':      'assets/wall/w17.jpg',
-      'Fitness':          'assets/wall/w14.jpg',
-      'Home & Living':    'assets/wall/w22.jpg'
+      'Fashion & Beauty': { src: 'assets/wall/w1.jpg',  tall: true },
+      'Travel':           { src: 'assets/wall/w19.jpg', tall: true },
+      'Food & Drink':     { src: 'assets/wall/w11.jpg' },
+      'Electronics':      { src: 'assets/wall/w17.jpg', pos: '50% 62%' },
+      'Fitness':          { src: 'assets/wall/w14.jpg' },
+      'Home & Living':    { src: 'assets/wall/w22.jpg', pos: '50% 65%' }
     };
 
-    // Shows the four best-stocked categories that have a photo — not all of
-    // them — so a category down to its last deal never gets a lonely tile.
-    // Keys the link the same way browse.html's own filter tabs do (catKey
-    // there: first word of the category, lowercased), so browse.html?cat=
-    // fashion lands on exactly the right filter.
+    // Every category that has a photo, best-stocked first. Keys the link the
+    // same way browse.html's own filter tabs do (catKey there: first word of
+    // the category, lowercased), so browse.html?cat=fashion lands on exactly
+    // the right filter.
     function buildCategoryShortcuts(deals) {
       var wrap = document.getElementById('catGrid');
       if (!wrap) return;
@@ -1117,15 +1129,15 @@
         if (!c || !CATEGORY_PHOTO[c]) return;
         counts[c] = (counts[c] || 0) + 1;
       });
-      var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 4);
+      var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 6);
       if (!top.length) { dropSection('categories'); return; }
-      // Alternating tall/wide is what makes it a mosaic rather than a row.
-      var shape = ['tall', 'wide', 'tall', 'wide'];
-      wrap.innerHTML = top.map(function (name, i) {
+      wrap.innerHTML = top.map(function (name) {
         var key = name.trim().split(' ')[0].toLowerCase();
+        var photo = CATEGORY_PHOTO[name];
         var n = counts[name];
-        return '<a class="cat-tile ' + shape[i] + '" href="browse.html?cat=' + encodeURIComponent(key) + '">' +
-          '<img class="cat-img" src="' + CATEGORY_PHOTO[name] + '" alt="" loading="lazy" decoding="async">' +
+        return '<a class="cat-tile ' + (photo.tall ? 'tall' : 'wide') + '" href="browse.html?cat=' + encodeURIComponent(key) + '">' +
+          '<img class="cat-img" src="' + photo.src + '" alt="" loading="lazy" decoding="async"' +
+            (photo.pos ? ' style="object-position:' + photo.pos + '"' : '') + '>' +
           '<span class="cat-badge">' + cirqleIcon(cirqleCatIcon(name), 'ico-deep') + '</span>' +
           '<span class="cat-body">' +
             '<b class="cat-tile-name">' + esc(name) + '</b>' +
