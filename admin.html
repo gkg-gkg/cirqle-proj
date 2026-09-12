@@ -622,6 +622,7 @@
   </div>
 
   <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script>
     const API = window.CIRQLE_API_BASE;
     const $ = id => document.getElementById(id);
@@ -766,13 +767,13 @@
         row.className = 'clist-item';
         const catCls = 'ico ico-' + cirqleCatIcon(c.category);
         const thumb = (c.images && c.images.length)
-          ? `<img src="${c.images[0]}" alt="" onerror="this.outerHTML='<i class=&quot;${catCls}&quot;></i>'">`
+          ? `<img src="${esc(c.images[0])}" alt="" onerror="this.outerHTML='<i class=&quot;${catCls}&quot;></i>'">`
           : `<i class="${catCls}"></i>`;
         row.innerHTML = `
           <div class="clist-thumb">${thumb}</div>
           <div class="clist-main">
-            <div class="clist-title">${c.brand} — ${c.rate}%</div>
-            <div class="clist-sub">${c.cardTitle || c.title} · ${c.images.length} image(s)</div>
+            <div class="clist-title">${esc(c.brand)} — ${c.rate}%</div>
+            <div class="clist-sub">${esc(c.cardTitle || c.title)} · ${c.images.length} image(s)</div>
           </div>
           <div class="clist-actions">
             <button class="btn mini" data-edit="${c.id}">Edit</button>
@@ -1005,8 +1006,6 @@
     // ── Partnership applications: review brand submissions; approve → live deal ──
     // Applications are PUBLIC submissions (untrusted input) — escape everything
     // before it goes anywhere near innerHTML.
-    const esc = s => String(s ?? '').replace(/[&<>"']/g,
-      c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const fmtDate = iso => iso ? new Date(iso).toLocaleString('en-GB',
       { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 

@@ -234,6 +234,7 @@
   </div>
 
   <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script>
     // ── Auth check ──
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
@@ -267,10 +268,6 @@
     }
     // Handles are member-supplied, so anything from them is escaped before it
     // reaches innerHTML.
-    function escapeHtml(s) {
-      return String(s ?? '').replace(/[&<>"']/g,
-        c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
     function fmtWhen(iso) {
       const d = new Date(iso); if (isNaN(d)) return '';
       return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -291,7 +288,7 @@
           : '';
         return '<div class="activity-item">' +
           '<span class="coin ' + m.cls + '" style="font-size:.95rem">' + m.icon + '</span>' +
-          '<div><div class="activity-name">' + (a.brand || 'Cashback') + ' — ' + m.label + '</div>' +
+          '<div><div class="activity-name">' + escapeHtml(a.brand || 'Cashback') + ' — ' + m.label + '</div>' +
           '<div class="activity-date">' + fmtWhen(a.date) + viewLink + '</div></div>' +
           '<span class="activity-amount ' + m.amt + '">' + amt + '</span>' +
         '</div>';

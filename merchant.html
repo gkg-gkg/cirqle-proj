@@ -1016,6 +1016,7 @@
   </div>
 
   <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script>
     const API = window.CIRQLE_API_BASE;
     const SKEY = 'cirqle_merchant';
@@ -1655,12 +1656,6 @@
              <span class="sbadge ${escapeHtml(s.status)}">${escapeHtml(s.status)}</span>
            </div>`;
       }).join('');
-    }
-
-    function escapeHtml(s) {
-      return String(s == null ? '' : s)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     // ── Tabs (Overview / Posts / Profile / Billing) ──

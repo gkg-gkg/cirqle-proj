@@ -272,6 +272,25 @@
     /* The way through to the full explanation, under the three tiles. */
     .steps-more { text-align: center; margin-top: clamp(26px, 3.4vw, 38px); }
 
+    /* ── Shop by category: four tiles into browse.html, built from real
+       catalogue counts (buildCategoryShortcuts). Badge gradient matches the
+       cycle tiles' middle stage for a consistent palette. ── */
+    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(14px, 2vw, 22px); }
+    .cat-tile {
+      display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+      padding: 30px 16px; text-decoration: none; color: inherit;
+    }
+    .cat-tile-ico {
+      width: 54px; height: 54px; border-radius: 50%; flex: none;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(160deg, #E9F3FA 0%, #CAE4F4 100%);
+    }
+    .cat-tile-name { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; }
+    .cat-tile-count { font-size: .82rem; color: var(--ink-soft); }
+    @media (max-width: 780px) {
+      .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
     /* phone */
     .ph {
       width: 142px; border-radius: 20px 20px 0 0; background: #0B1220;
@@ -633,6 +652,18 @@
     </div>
   </section>
 
+  <!-- ══ SHOP BY CATEGORY — the four categories with the most live deals,
+       built from the same catalogue fetch as the carousel/calculator below. ══ -->
+  <section class="section" id="categories">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">Shop by <span class="hl">category.</span></h2>
+        <p class="h-sub reveal reveal-delay-2">Jump straight to the deals you're after.</p>
+      </div>
+      <div class="cat-grid reveal reveal-delay-3" id="catGrid"></div>
+    </div>
+  </section>
+
 
   <!-- ══ REVIEW WALL ══
        Illustrative review cards. The photography is licensed stock and the
@@ -761,6 +792,7 @@
   </footer>
 
   <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script>
   (function () {
     'use strict';
@@ -780,12 +812,6 @@
     var logoSrc = function (name) {
       return 'assets/logos/' + name + (SVG_LOGOS[name] ? '.svg' : '.png');
     };
-    var esc = function (s) {
-      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-      });
-    };
-
     // ── Review wall: small avatar + quote + rating. Content is illustrative,
     //    and the disclaimer under the wall says so. ──
     var REVIEWS = [
@@ -900,12 +926,15 @@
         if (!deals.length) throw new Error('catalogue empty');
         buildCarousel(deals);
         buildCalculator(deals);
+        buildCategoryShortcuts(deals);
       })
       .catch(function (err) {
-        // The carousel and calculator both need the catalogue; the three step
-        // tiles are static and stay put. Never leave a heading over blank space.
+        // The carousel, calculator and category tiles all need the catalogue;
+        // the three step tiles are static and stay put. Never leave a heading
+        // over blank space.
         dropSection('flow');
         dropSection('calculator');
+        dropSection('categories');
         if (window.console) console.warn('Cirqle: deals unavailable —', err.message);
       });
 
@@ -1013,6 +1042,33 @@
       [still, small].forEach(function (m) {
         if (m.addEventListener) m.addEventListener('change', layout);
       });
+    }
+
+    // Shows the four categories with the most live deals — not all of them —
+    // so a category down to its last one or two deals never gets a lonely
+    // tile. Keys the link the same way browse.html's own filter tabs do
+    // (catKey there: first word of the category, lowercased), so
+    // browse.html?cat=fashion lands on exactly the right filter.
+    function buildCategoryShortcuts(deals) {
+      var wrap = document.getElementById('catGrid');
+      if (!wrap) return;
+      var counts = {};
+      deals.forEach(function (d) {
+        var c = (d.category || '').trim();
+        if (!c) return;
+        counts[c] = (counts[c] || 0) + 1;
+      });
+      var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 4);
+      if (!top.length) { dropSection('categories'); return; }
+      wrap.innerHTML = top.map(function (name) {
+        var key = name.trim().split(' ')[0].toLowerCase();
+        var n = counts[name];
+        return '<a class="cat-tile card card-hover spot" href="browse.html?cat=' + encodeURIComponent(key) + '">' +
+          '<span class="cat-tile-ico">' + cirqleIcon(cirqleCatIcon(name), 'ico-lg ico-deep') + '</span>' +
+          '<span class="cat-tile-name">' + esc(name) + '</span>' +
+          '<span class="cat-tile-count">' + n + ' live deal' + (n === 1 ? '' : 's') + '</span>' +
+          '</a>';
+      }).join('');
     }
 
     // Earnings the way they actually land: only spending at partner brands counts,

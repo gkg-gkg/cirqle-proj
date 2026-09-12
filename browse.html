@@ -260,6 +260,7 @@
   </div>
 
   <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script>
     // Deals are now loaded from the backend catalog (Phase 3) instead of being
     // hardcoded. We fetch GET /campaigns, build the same card markup + data-*
@@ -275,8 +276,6 @@
     let activeFilter = 'all';
     let searchTerm = '';
 
-    const esc = s => String(s ?? '').replace(/[&<>"]/g,
-      c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     // Filter tabs key on the first word of the category ("Fashion & Beauty" -> fashion).
     const catKey = cat => (cat || '').trim().split(' ')[0].toLowerCase();
     const earnNum = earn => parseFloat(String(earn).replace(/[^0-9.]/g, '')) || 0;
@@ -386,7 +385,13 @@
         const data = await res.json();
         cards = data.map(renderCard);
         cards.forEach(c => grid.insertBefore(c, emptyState));
-        applyFilters();
+        // Deep-link from the homepage's category tiles: ?cat=fashion lands
+        // pre-filtered. Matched against the tab's own data-filter (not built
+        // into a selector string) so a malformed value can't do anything but
+        // fail to match.
+        const wantedCat = new URLSearchParams(location.search).get('cat');
+        const wantedTab = wantedCat && Array.from(tabs).find(t => t.dataset.filter === wantedCat);
+        if (wantedTab) wantedTab.click(); else applyFilters();
         sortCards(sortSelect.value);   // default: "Most popular"
       } catch (err) {
         countNum.textContent = 0;

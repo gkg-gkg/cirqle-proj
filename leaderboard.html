@@ -138,6 +138,7 @@
   </div>
 
   <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script>
     // ── Auth check ──
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
@@ -149,11 +150,6 @@
 
     // Display names are member-supplied, so they're escaped before they reach
     // innerHTML — same rule as the handles on the dashboard.
-    function escapeHtml(s) {
-      return String(s ?? '').replace(/[&<>"']/g,
-        c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
-
     function fmtDate(iso) {
       const d = new Date(iso);
       return isNaN(d) ? '' : d.toLocaleDateString('en-GB',

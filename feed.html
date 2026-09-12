@@ -282,6 +282,7 @@
   </div>
 
   <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script src="assets/ig-account.js"></script>
   <script>
     // ── Auth guard ──
@@ -297,9 +298,6 @@
     let allMentions = [];   // full cirqle mentions list currently loaded
 
     // ── Helpers ──
-    function esc(s) {
-      return (s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
     function fmtDate(ts) {
       if (!ts) return '';
       const d = new Date(ts);

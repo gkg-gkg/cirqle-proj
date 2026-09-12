@@ -187,6 +187,7 @@
   </div>
 
   <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script>
     // This deal is now loaded from the backend catalog (Phase 3) by its id,
     // instead of a hardcoded `deals` map. The hero carousel shows real uploaded
@@ -267,12 +268,12 @@
       document.getElementById('totalPaid').textContent = c.totalPaid;
       document.getElementById('rateVal').textContent = c.rate + '%';
       document.getElementById('membersVal').textContent = c.members;
-      document.getElementById('termsList').innerHTML = c.terms;
+      document.getElementById('termsList').innerHTML = sanitizeHtml(c.terms);
       document.getElementById('expiry').textContent = /ongoing/i.test(c.expiry) ? 'Ongoing offer — available now'
         : /members/i.test(c.expiry) ? c.expiry
         : `Offer expires ${c.expiry} — don't miss out`;
       document.getElementById('infoTags').innerHTML =
-        `<span class="chip">${c.location || ''}</span>` + (c.tags || []).map(t => `<span class="chip">${t}</span>`).join('');
+        `<span class="chip">${esc(c.location || '')}</span>` + (c.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('');
 
       // Build the carousel from real images, or a single category-icon slide.
       c._catIcon = cirqleCatIcon(c.category);
