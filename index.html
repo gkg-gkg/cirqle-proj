@@ -277,23 +277,45 @@
        are the site's own licensed set in assets/wall, which is portrait 3:4
        and only 225px wide, so tiles stay modest and the tall ones carry the
        portraits at close to native aspect. ── */
+    /* Fallback for any tile count other than six — uniform, no holes. */
     .cat-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       grid-auto-rows: clamp(132px, 14vw, 174px);
       gap: clamp(10px, 1.1vw, 14px);
-      /* dense: a tall tile is ordered by deal count, not by where it fits, so
-         without backfilling it pushes past a free full-height column and
-         leaves a hole above it. */
-      grid-auto-flow: row dense;
     }
+    /* The mosaic proper. Six columns over four uneven rows, with every tile
+       explicitly placed: auto-placement can only ever produce tidy bands, and
+       the point here is that the tiles DON'T line up. The two full-height
+       tiles are deliberately staggered — the left one runs rows 1-3, the
+       middle one rows 2-4 — so no horizontal seam crosses the whole block.
+       The six areas tile all 24 cells exactly; changing one means re-checking
+       the others or a hole opens. */
+    .cat-grid.mosaic {
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows:
+        clamp(118px, 12.5vw, 158px)
+        clamp(76px, 8vw, 100px)
+        clamp(84px, 8.8vw, 112px)
+        clamp(112px, 11.8vw, 150px);
+      grid-auto-rows: auto;
+    }
+    .cat-grid.mosaic > :nth-child(1) { grid-area: 1 / 1 / 4 / 3; }
+    .cat-grid.mosaic > :nth-child(2) { grid-area: 1 / 3 / 2 / 7; }
+    .cat-grid.mosaic > :nth-child(3) { grid-area: 2 / 5 / 4 / 7; }
+    .cat-grid.mosaic > :nth-child(4) { grid-area: 2 / 3 / 5 / 5; }
+    .cat-grid.mosaic > :nth-child(5) { grid-area: 4 / 1 / 5 / 3; }
+    .cat-grid.mosaic > :nth-child(6) { grid-area: 4 / 5 / 5 / 7; }
     .cat-tile {
       position: relative; display: block; overflow: hidden;
       border-radius: 16px; text-decoration: none; color: #fff;
       background: var(--paper-deep); box-shadow: var(--shadow-sm);
     }
-    .cat-tile.tall { grid-row: span 2; }
-    .cat-tile.wide { grid-column: span 2; }
+    /* Spans are for the fallback grid only — inside .mosaic the explicit
+       areas own placement, and a reset here would out-specify them. In the
+       mosaic .tall/.wide survive purely as the type-scale hook below. */
+    .cat-grid:not(.mosaic) .cat-tile.tall { grid-row: span 2; }
+    .cat-grid:not(.mosaic) .cat-tile.wide { grid-column: span 2; }
     .cat-img {
       position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: cover;
@@ -331,12 +353,19 @@
     .cat-tile.tall .cat-tile-name { font-size: 1.18rem; }
     .cat-tile-count { display: block; font-size: .78rem; opacity: .92; margin-top: 2px; }
     @media (max-width: 780px) {
-      /* The 4-column mosaic can't reflow into 2 columns on its own — the
-         spans leave holes auto-placement won't backtrack into. Reset them
-         and run a simpler stack: full, pair, full. */
-      .cat-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: clamp(118px, 27vw, 152px); }
-      .cat-tile.tall, .cat-tile.wide { grid-row: auto; grid-column: auto; }
-      .cat-tile:first-child, .cat-tile:last-child { grid-column: span 2; }
+      /* Six columns of photo don't survive a phone, so the mosaic is a
+         desktop idea only: drop back to two columns and let the tiles flow,
+         with the first and last full-bleed so it still breaks up. */
+      .cat-grid, .cat-grid.mosaic {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: none;
+        grid-auto-rows: clamp(118px, 27vw, 152px);
+      }
+      .cat-grid.mosaic > :nth-child(n) { grid-area: auto; }
+      /* Matched to the reset's specificity and placed after it, or the
+         grid-area:auto above would win and these two wouldn't span. */
+      .cat-grid > .cat-tile:first-child,
+      .cat-grid > .cat-tile:last-child { grid-column: span 2; }
     }
 
     /* phone */
@@ -1131,7 +1160,25 @@
       });
       var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 6);
       if (!top.length) { dropSection('categories'); return; }
-      wrap.innerHTML = top.map(function (name) {
+
+      // The mosaic's slots 1 and 4 are the full-height ones (see the CSS).
+      // Deal count decides the running order, but a portrait photo in a
+      // letterbox slot is a headless torso, so the two `tall` categories are
+      // steered into those slots and the rest close up around them. Without
+      // this the order is at the mercy of a tie in deal counts.
+      var SLOT_IS_TALL = [true, false, false, true, false, false];
+      var tallPool = [], widePool = [];
+      top.forEach(function (n) { (CATEGORY_PHOTO[n].tall ? tallPool : widePool).push(n); });
+      var arranged = [];
+      for (var i = 0; i < top.length; i++) {
+        var want = SLOT_IS_TALL[i] ? tallPool : widePool;
+        var other = SLOT_IS_TALL[i] ? widePool : tallPool;
+        arranged.push(want.length ? want.shift() : other.shift());
+      }
+      // Only the exact six tile the grid; anything else uses the plain one.
+      wrap.classList.toggle('mosaic', arranged.length === 6);
+
+      wrap.innerHTML = arranged.map(function (name) {
         var key = name.trim().split(' ')[0].toLowerCase();
         var photo = CATEGORY_PHOTO[name];
         var n = counts[name];
