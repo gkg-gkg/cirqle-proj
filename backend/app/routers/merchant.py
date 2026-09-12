@@ -62,11 +62,18 @@ from .campaigns import require_admin
 # that turns it back into a number, and validating a visit rate against the
 # posted one needs the same reading of it.
 from .receipts import _earn_to_amount
+from ..cashback import APPROVED_STATUSES
 
 router = APIRouter(prefix="/merchant", tags=["merchant"])
 
 _TIMESERIES_DAYS = 30
-_CASHBACK_GIVEN = ("confirmed", "paid")
+# Claims an admin has approved — same list cashback.py uses to decide a claim
+# is owed, so a merchant's balance/refund room can't drift from what members
+# are actually owed. Used to be a locally-defined ("confirmed", "paid") tuple
+# that omitted "verified" (the status admin approval actually sets), which
+# under-reported cashback given and let refunds be approved against an
+# inflated available balance.
+_CASHBACK_GIVEN = APPROVED_STATUSES
 # Receipt currencies that count toward a merchant's revenue. "" is included
 # because most UK receipts don't print a currency at all, and Cirqle trades in
 # pounds — an explicit foreign code is the only thing worth excluding.
@@ -97,7 +104,8 @@ def _message_out(msg: MerchantMessage) -> MerchantMessageOut:
 
 
 # ── Merchant auth ──
-@router.post("/signin", response_model=MerchantAuthOut)
+@router.post("/signin", response_model=MerchantAuthOut,
+             dependencies=[rate_limit("signin", limit=10, window=300)])
 def signin(data: MerchantSigninIn, session: Session = Depends(get_session)):
     email = data.email.lower()
     m = session.exec(select(Merchant).where(Merchant.email == email)).first()

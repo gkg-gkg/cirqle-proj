@@ -156,10 +156,10 @@ def test_the_whole_referral_journey(client, session, brand):
     assert wallets["referral"]["spent"] == 1.5
     assert wallets["referral"]["balance"] == 13.5
     # The cashback wallet is untouched by the bonuses — the point of two pots.
-    # It still reads the full £500 because the merchant's bill counts a claim
-    # only once it is STORED as confirmed/paid, and an admin approval stores
-    # "verified". That gap is pre-existing and unrelated to referrals.
-    assert wallets["cashback"]["balance"] == 500.0
+    # It reads £480 because both receipts' £10 cashback claims were approved
+    # ("verified") — money owed to the members, counted against the merchant's
+    # bill from the moment of approval, not just once withdrawn ("paid").
+    assert wallets["cashback"]["balance"] == 480.0
     assert wallets["cashback"]["toppedUp"] == 500.0
 
     # ── 8. The admin can see both sides ──────────────────────────────────────

@@ -16,6 +16,7 @@ from ..activity import log_activity
 from ..db import get_session
 from ..models import (Campaign, MerchantApplication, MerchantApplicationIn,
                       MerchantApplicationOut)
+from ..ratelimit import rate_limit
 from .campaigns import require_admin
 
 router = APIRouter(prefix="/partners", tags=["partners"])
@@ -51,7 +52,8 @@ def _app_out(a: MerchantApplication) -> MerchantApplicationOut:
     )
 
 
-@router.post("", response_model=MerchantApplicationOut, status_code=201)
+@router.post("", response_model=MerchantApplicationOut, status_code=201,
+             dependencies=[rate_limit("partner_application", limit=5, window=3600)])
 def submit_application(data: MerchantApplicationIn,
                        session: Session = Depends(get_session)):
     """Public: a brand submits the partnership form. Stored as 'pending'."""
