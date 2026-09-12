@@ -70,7 +70,7 @@
         <ul>
           <li><strong>Account data:</strong> your first and last name, email address, password (stored only as a secure bcrypt hash — never in plain text), your Instagram handle, and the date you signed up.</li>
           <li><strong>Cashback claims:</strong> photos of receipts you upload (stored privately), the deal you claimed against, the Instagram post linked to the claim (if any — a repeat visit can be logged without one), and the cashback amount and its status (pending, confirmed, paid, or rejected).</li>
-          <li><strong>What your receipt says:</strong> we read each receipt automatically to check the claim. From that reading we keep the shop's name, the total, the currency, the purchase date and the order or transaction number. We do this to confirm the purchase is genuine and not a duplicate, and to tell the brand what their deals earned. The reading is done by Amazon Textract inside our own AWS account — see section 5 — and it is not a chatbot or a system that learns from your data.</li>
+          <li><strong>What your receipt says:</strong> we read each receipt automatically to check the claim. From that reading we keep the shop's name, the total, the currency, the purchase date and the order or transaction number. We do this to confirm the purchase is genuine and not a duplicate, and to tell the brand what their deals earned. The automatic reading is done by AI, which receives the receipt image itself — see section 5. This is not used to train any AI model. We also keep the ability to read a receipt using Amazon Textract inside our own AWS account, used when a claim needs a manual re-check.</li>
           <li><strong>Instagram post data:</strong> where you provide an Instagram handle and refresh your feed, we collect public posts that tag our brand account — see section 4.</li>
           <li><strong>Technical data:</strong> our website is hosted on GitHub Pages and our API on Amazon Web Services (AWS). As part of normal operation and security, those providers process standard request data such as your IP address, the time of the request, and your browser type. We do not run our own advertising or analytics tracking.</li>
           <li><strong>Brand / partnership data:</strong> if you apply to partner with us as a brand, we collect the business and contact details you submit in that form.</li>
@@ -104,7 +104,8 @@
         <h2>5. Who we share it with</h2>
         <p>We do <strong>not</strong> sell your personal data. We share it only with service providers ("processors") who act on our instructions, and where the law requires:</p>
         <ul>
-          <li><strong>Amazon Web Services (AWS)</strong> — hosting, database, private receipt storage, and email delivery. Your data is stored in AWS's UK (London) region.</li>
+          <li><strong>Amazon Web Services (AWS)</strong> — hosting, database, private receipt storage, and email delivery. Your data is stored in AWS's UK (London) region. AWS's Amazon Textract service is also used to read a receipt when a claim needs a manual re-check.</li>
+          <li><strong>An AI provider</strong> — reads your receipt image automatically to check a claim, as described in section 2. Does not train its models on this data.</li>
           <li><strong>Apify</strong> — retrieves the public Instagram post data described in section 4.</li>
           <li><strong>GitHub (GitHub Pages)</strong> — serves our website.</li>
           <li><strong>Google Fonts</strong> — serves the fonts our pages use; this may involve your browser's IP address being seen by Google.</li>
@@ -156,7 +157,7 @@
 
       <section id="transfers">
         <h2>6. International transfers</h2>
-        <p>Your account and cashback data is stored in the UK (AWS London region). Some of our providers (for example Apify, Google, and GitHub) may process limited data outside the UK. Where they do, we rely on appropriate safeguards — such as UK "adequacy" decisions or the International Data Transfer Agreement — to keep your data protected to UK standards.</p>
+        <p>Your account and cashback data is stored in the UK (AWS London region). Some of our providers (for example our AI provider, Apify, Google, and GitHub) may process limited data outside the UK. Where they do, we rely on appropriate safeguards — such as UK "adequacy" decisions or the International Data Transfer Agreement — to keep your data protected to UK standards.</p>
       </section>
 
       <section id="retention">
