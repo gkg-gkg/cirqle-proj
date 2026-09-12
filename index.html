@@ -272,23 +272,67 @@
     /* The way through to the full explanation, under the three tiles. */
     .steps-more { text-align: center; margin-top: clamp(26px, 3.4vw, 38px); }
 
-    /* ── Shop by category: four tiles into browse.html, built from real
-       catalogue counts (buildCategoryShortcuts). Badge gradient matches the
-       cycle tiles' middle stage for a consistent palette. ── */
-    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(14px, 2vw, 22px); }
+    /* ── Shop by category: a photo mosaic — two tall tiles, two wide ones,
+       built from real catalogue counts (buildCategoryShortcuts). The photos
+       are the site's own licensed set in assets/wall, which is portrait 3:4
+       and only 225px wide, so tiles stay modest and the tall ones carry the
+       portraits at close to native aspect. ── */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: clamp(132px, 14vw, 174px);
+      gap: clamp(10px, 1.1vw, 14px);
+    }
     .cat-tile {
-      display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
-      padding: 30px 16px; text-decoration: none; color: inherit;
+      position: relative; display: block; overflow: hidden;
+      border-radius: 16px; text-decoration: none; color: #fff;
+      background: var(--paper-deep); box-shadow: var(--shadow-sm);
     }
-    .cat-tile-ico {
-      width: 54px; height: 54px; border-radius: 50%; flex: none;
+    .cat-tile.tall { grid-row: span 2; }
+    .cat-tile.wide { grid-column: span 2; }
+    .cat-img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      /* The source photos are portrait; a wide tile keeps only a narrow band
+         of them, and centring it decapitates anyone in shot. Biased up so the
+         band lands on the subject. Tall tiles are near-native aspect, so this
+         barely moves them. */
+      object-position: 50% 34%;
+      transition: transform .55s var(--snap);
+    }
+    .cat-tile:hover .cat-img { transform: scale(1.06); }
+    /* Bottom-weighted scrim, in PX not percentages. Percentage stops rescale
+       with the tile, so on the short mobile tiles the dark end compressed
+       under the copy and the name dropped to 1.8:1. Anchored in px, the
+       bottom ~50px — exactly where the copy sits — stays at .74+ of
+       near-black on every tile size, which is >9:1 for white type even where
+       the photo behind is pure white. Re-measure if the copy block grows. */
+    .cat-tile::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(to top,
+        rgba(8,14,24,.92) 0px, rgba(8,14,24,.74) 52px,
+        rgba(8,14,24,.22) 96px, rgba(8,14,24,0) 140px);
+    }
+    .cat-badge {
+      position: absolute; top: 12px; left: 12px; z-index: 2;
+      width: 32px; height: 32px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(160deg, #E9F3FA 0%, #CAE4F4 100%);
+      background: rgba(255,255,255,.93);
     }
-    .cat-tile-name { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; }
-    .cat-tile-count { font-size: .82rem; color: var(--ink-soft); }
+    .cat-body { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 14px 16px; }
+    .cat-tile-name {
+      display: block; font-family: var(--font-display); font-weight: 700;
+      font-size: 1.04rem; letter-spacing: -.02em;
+    }
+    .cat-tile.tall .cat-tile-name { font-size: 1.18rem; }
+    .cat-tile-count { display: block; font-size: .78rem; opacity: .92; margin-top: 2px; }
     @media (max-width: 780px) {
-      .cat-grid { grid-template-columns: repeat(2, 1fr); }
+      /* The 4-column mosaic can't reflow into 2 columns on its own — the
+         spans leave holes auto-placement won't backtrack into. Reset them
+         and run a simpler stack: full, pair, full. */
+      .cat-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: clamp(118px, 27vw, 152px); }
+      .cat-tile.tall, .cat-tile.wide { grid-row: auto; grid-column: auto; }
+      .cat-tile:first-child, .cat-tile:last-child { grid-column: span 2; }
     }
 
     /* phone */
@@ -1044,29 +1088,49 @@
       });
     }
 
-    // Shows the four categories with the most live deals — not all of them —
-    // so a category down to its last one or two deals never gets a lonely
-    // tile. Keys the link the same way browse.html's own filter tabs do
-    // (catKey there: first word of the category, lowercased), so
-    // browse.html?cat=fashion lands on exactly the right filter.
+    // Category photography, curated by hand. Deliberately NOT the catalogue's
+    // own campaign images: those are unrelated scraped stock (a cat statue on
+    // Gymshark, black-and-white archive scans on Amazon, the Hogwarts Express
+    // on Trainline) and several carry non-commercial licences, so they can't
+    // front the homepage. These come from the site's own licensed set in
+    // assets/wall. A category with no photo here is skipped rather than shown
+    // as an empty tile — Travel has no travel photo in the set yet.
+    var CATEGORY_PHOTO = {
+      'Fashion & Beauty': 'assets/wall/w1.jpg',
+      'Food & Drink':     'assets/wall/w11.jpg',
+      'Electronics':      'assets/wall/w17.jpg',
+      'Fitness':          'assets/wall/w14.jpg',
+      'Home & Living':    'assets/wall/w22.jpg'
+    };
+
+    // Shows the four best-stocked categories that have a photo — not all of
+    // them — so a category down to its last deal never gets a lonely tile.
+    // Keys the link the same way browse.html's own filter tabs do (catKey
+    // there: first word of the category, lowercased), so browse.html?cat=
+    // fashion lands on exactly the right filter.
     function buildCategoryShortcuts(deals) {
       var wrap = document.getElementById('catGrid');
       if (!wrap) return;
       var counts = {};
       deals.forEach(function (d) {
         var c = (d.category || '').trim();
-        if (!c) return;
+        if (!c || !CATEGORY_PHOTO[c]) return;
         counts[c] = (counts[c] || 0) + 1;
       });
       var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 4);
       if (!top.length) { dropSection('categories'); return; }
-      wrap.innerHTML = top.map(function (name) {
+      // Alternating tall/wide is what makes it a mosaic rather than a row.
+      var shape = ['tall', 'wide', 'tall', 'wide'];
+      wrap.innerHTML = top.map(function (name, i) {
         var key = name.trim().split(' ')[0].toLowerCase();
         var n = counts[name];
-        return '<a class="cat-tile card card-hover spot" href="browse.html?cat=' + encodeURIComponent(key) + '">' +
-          '<span class="cat-tile-ico">' + cirqleIcon(cirqleCatIcon(name), 'ico-lg ico-deep') + '</span>' +
-          '<span class="cat-tile-name">' + esc(name) + '</span>' +
-          '<span class="cat-tile-count">' + n + ' live deal' + (n === 1 ? '' : 's') + '</span>' +
+        return '<a class="cat-tile ' + shape[i] + '" href="browse.html?cat=' + encodeURIComponent(key) + '">' +
+          '<img class="cat-img" src="' + CATEGORY_PHOTO[name] + '" alt="" loading="lazy" decoding="async">' +
+          '<span class="cat-badge">' + cirqleIcon(cirqleCatIcon(name), 'ico-deep') + '</span>' +
+          '<span class="cat-body">' +
+            '<b class="cat-tile-name">' + esc(name) + '</b>' +
+            '<span class="cat-tile-count">' + n + ' live deal' + (n === 1 ? '' : 's') + '</span>' +
+          '</span>' +
           '</a>';
       }).join('');
     }
