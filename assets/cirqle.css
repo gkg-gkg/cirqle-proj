@@ -132,17 +132,6 @@ body::after {
   z-index: 0;
 }
 
-/* dot-grid texture layer — fades out radially (place inside position:relative) */
-.dots {
-  position: absolute;
-  background-image: radial-gradient(circle, #C4D2DF 1.2px, transparent 1.2px);
-  background-size: 24px 24px;
-  -webkit-mask-image: radial-gradient(ellipse 70% 75% at 50% 40%, #000 25%, transparent 72%);
-  mask-image: radial-gradient(ellipse 70% 75% at 50% 40%, #000 25%, transparent 72%);
-  pointer-events: none;
-  z-index: 0;
-}
-
 /* ══════════════════════════════════════
    NAV
    ══════════════════════════════════════ */

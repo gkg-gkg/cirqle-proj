@@ -28,14 +28,15 @@
          below), a taller .hero grows the band — and the wall — right along
          with it, not just the gap under the copy. Trading it off the top
          keeps .hero's total height fixed, so only the copy moves.
-         A further -10px on the bottom (asked for on its own, after the wall
-         was fixed to exactly one screen) moves the copy down again — and
-         only ever helps the one-screen guarantee rather than risking it,
-         since less bottom padding means a shorter .hero, further from
-         .hero-band's floor rather than closer to it. Verified at 1527px
-         (the widest padding case): .hero now measures 792px against the
-         813px floor, 21px to spare, up from 11px before this. */
-      padding: clamp(36px, calc(10vw - 36px), 94px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh - 24px);
+         Successive -10px then -20px trims to the bottom (each asked for on
+         its own, after the wall was fixed to exactly one screen) move the
+         copy down — and only ever help the one-screen guarantee rather than
+         risking it, since less bottom padding means a shorter .hero, further
+         from .hero-band's floor rather than closer to it. The scrim's bright
+         pool has to travel with the copy or near-black type drifts off it
+         onto darker photography, so the radial below is re-centred whenever
+         this number moves, and the contrast re-measured. */
+      padding: clamp(36px, calc(10vw - 36px), 94px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh - 44px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }

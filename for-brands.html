@@ -11,11 +11,42 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
-    .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 64px; }
-    .why-card { padding: 24px; }
+    /* Six benefits as a mosaic rather than a 3x2 of identical cards. Every
+       tile is placed explicitly — auto-flow can only produce even bands, and
+       the point is that these don't line up: the lead tile is 3 columns wide
+       over 2 rows, the one under it only 2 columns over 2 rows, so the left
+       edge steps. The six areas tile all 24 cells exactly; changing one means
+       re-checking the others or a hole opens. Size carries the hierarchy now,
+       so the lead tile is the tinted one. */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(4, minmax(92px, auto));
+      gap: 16px; margin-bottom: 64px;
+    }
+    .why-grid > :nth-child(1) { grid-area: 1 / 1 / 3 / 4; }
+    .why-grid > :nth-child(2) { grid-area: 1 / 4 / 2 / 7; }
+    .why-grid > :nth-child(3) { grid-area: 2 / 4 / 3 / 7; }
+    .why-grid > :nth-child(4) { grid-area: 3 / 1 / 5 / 3; }
+    .why-grid > :nth-child(5) { grid-area: 3 / 3 / 4 / 7; }
+    .why-grid > :nth-child(6) { grid-area: 4 / 3 / 5 / 7; }
+    .why-card { padding: 24px; display: flex; flex-direction: column; justify-content: center; }
         .why-icon { font-size: 1.7rem; display: block; margin-bottom: 10px; }
     .why-title { font-family: var(--font-display); font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
     .why-text { font-size: .83rem; color: var(--ink-soft); line-height: 1.6; }
+    /* The lead tile has the room for it, and type scale is what stops a
+       bigger box reading as the same card with more padding. */
+    .why-grid > :nth-child(1) .why-icon { font-size: 2.3rem; margin-bottom: 14px; }
+    .why-grid > :nth-child(1) .why-title { font-size: 1.5rem; margin-bottom: 10px; }
+    .why-grid > :nth-child(1) .why-text { font-size: .96rem; max-width: 42ch; }
+    /* The two full-height tiles hold far more height than their copy needs,
+       and centring it left an island in the middle. Icon to the top, words to
+       the foot, so the height looks spent rather than left over. (margin-top
+       on the title rather than space-between on the card: the icon, title and
+       text are siblings, so space-between would push the title away from its
+       own paragraph.) */
+    .why-grid > :nth-child(1), .why-grid > :nth-child(4) { justify-content: flex-start; }
+    .why-grid > :nth-child(1) .why-title, .why-grid > :nth-child(4) .why-title { margin-top: auto; }
     .steps-list { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
     .step-item { display: flex; gap: 14px; align-items: flex-start; padding: 18px; }
     .step-text { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; padding-top: 8px; }
@@ -65,8 +96,20 @@
       50% { box-shadow: 0 8px 26px rgba(53,99,127,.34), 0 0 0 7px rgba(67,125,158,.09), inset 0 1px 0 rgba(255,255,255,.18); }
     }
 
-    @media(max-width:760px){ .why-grid { grid-template-columns: 1fr 1fr; } .steps-list { grid-template-columns: 1fr; } .stats-section { grid-template-columns: 1fr 1fr; } }
-    @media(max-width:500px){ .why-grid { grid-template-columns: 1fr; } }
+    /* The mosaic is a desktop idea: six columns of card don't survive a
+       narrow screen. Drop the explicit areas (or they'd hold their spans and
+       overflow) and fall back to an even grid. */
+    @media(max-width:760px){
+      .why-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
+      .why-grid > :nth-child(n) { grid-area: auto; }
+      /* Five cards after the lead leave the last one alone in a column, so it
+         spans too — full, pair, pair, full. */
+      .why-grid > :nth-child(1), .why-grid > :nth-child(6) { grid-column: span 2; }
+      .why-grid > :nth-child(1) .why-title { font-size: 1.2rem; }
+      .why-grid > :nth-child(1) .why-text { font-size: .88rem; }
+      .steps-list { grid-template-columns: 1fr; } .stats-section { grid-template-columns: 1fr 1fr; }
+    }
+    @media(max-width:500px){ .why-grid { grid-template-columns: 1fr; } .why-grid > :nth-child(n) { grid-column: auto; } }
   </style>
 </head>
 <body>
@@ -90,11 +133,15 @@
     </div>
 
     <div class="why-grid">
-      <div class="card card-hover why-card fade-up d1"><span class="why-icon"><i class="ico ico-megaphone"></i></span><div class="why-title">Authentic content at scale</div><div class="why-text">Thousands of genuine shoppers sharing your brand — not paid actors. Real content that converts.</div></div>
-      <div class="card card-lime card-hover why-card fade-up d2"><span class="why-icon"><i class="ico ico-cash"></i></span><div class="why-title">Performance-only pricing</div><div class="why-text">You only pay cashback when a verified purchase happens. Zero wasted spend on impressions or clicks.</div></div>
+      <!-- Order is the mosaic's reading order, so the DOM matches what's on
+           screen. The lead tile is the pay-for-performance one deliberately:
+           it's both the strongest pitch and the one claim here that the
+           product actually delivers today. -->
+      <div class="card card-lime card-hover why-card fade-up d1"><span class="why-icon"><i class="ico ico-cash"></i></span><div class="why-title">Performance-only pricing</div><div class="why-text">You only pay cashback when a verified purchase happens. Zero wasted spend on impressions or clicks.</div></div>
+      <div class="card card-hover why-card fade-up d2"><span class="why-icon"><i class="ico ico-megaphone"></i></span><div class="why-title">Authentic content at scale</div><div class="why-text">Thousands of genuine shoppers sharing your brand — not paid actors. Real content that converts.</div></div>
       <div class="card card-sky card-hover why-card fade-up d3"><span class="why-icon"><i class="ico ico-chart"></i></span><div class="why-title">Full attribution</div><div class="why-text">See exactly which posts drove which purchases. Real-time dashboard with conversion data and ROI.</div></div>
-      <div class="card card-pink card-hover why-card fade-up d4"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Targeted reach</div><div class="why-text">Choose your audience by category, location, or spend level. Only pay for the shoppers who matter most.</div></div>
-      <div class="card card-tang card-hover why-card fade-up d5"><span class="why-icon"><i class="ico ico-bolt"></i></span><div class="why-title">Live in 48 hours</div><div class="why-text">Set up your cashback campaign and go live in under two days. No tech work on your side required.</div></div>
+      <div class="card card-tang card-hover why-card fade-up d4"><span class="why-icon"><i class="ico ico-bolt"></i></span><div class="why-title">Live in 48 hours</div><div class="why-text">Set up your cashback campaign and go live in under two days. No tech work on your side required.</div></div>
+      <div class="card card-pink card-hover why-card fade-up d5"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Targeted reach</div><div class="why-text">Choose your audience by category, location, or spend level. Only pay for the shoppers who matter most.</div></div>
       <div class="card card-hover why-card fade-up d6"><span class="why-icon"><i class="ico ico-users"></i></span><div class="why-title">Dedicated account manager</div><div class="why-text">Every brand partner gets a dedicated account manager. We set you up, then optimise continuously.</div></div>
     </div>
 
