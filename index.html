@@ -601,7 +601,11 @@
          flex-start below is undoing, and it is why the top padding is what sets
          the copy's position: it is the "shift it down" control, and the bottom
          padding is the strip of wall left under the buttons. */
-      .hero { padding-top: 52px; padding-bottom: 112px; padding-left: 12px; padding-right: 12px; }
+      /* padding-bottom is the strip of band under the buttons, and so it is
+         also the gap between them and the closing rule — see .band's padding
+         below, which sets the other half. 112px put the rule 105px under the
+         buttons and only 22px over the next heading. */
+      .hero { padding-top: 52px; padding-bottom: 70px; padding-left: 12px; padding-right: 12px; }
       .hero-actions { max-width: 400px; margin: 0 auto; }
       .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
       /* ── Phones get a gradient band, not the photo wall ──
@@ -616,12 +620,20 @@
          --ink-soft. Sampled off the composited band: headline 10.66:1, sub
          7.47:1, buttons 17.50:1, against 3.45 / 4.60 / 11.41 over the frames. */
       .hero-wall, .hero-scrim { display: none; }
-      /* The band's own 60px top padding was landing on top of the hero's 112px
-         tail, and that tail is near-white gradient by the time it passes the
-         buttons — so the two read as one 196px block of white before the next
-         heading. The tail stays (it is the length of the band); the padding is
-         the half that was doing nothing. */
-      .band { padding-top: 16px; }
+      /* This was 16px, cut down from 60 back when the hero's tail was a
+         near-white gradient and the two stacked into one 196px block of empty
+         white before the next heading. The tail is no longer invisible: the
+         band now ends on a hairline rule, and against a visible edge the old
+         16px put the next heading 22px below the line while the buttons sat
+         105px above it — the rule read as belonging to the heading rather than
+         closing the hero.
+
+         The two gaps are set independently — .hero's padding-bottom above the
+         line, this below it — so they are balanced as a pair. Measured on the
+         live page (local renders can't load this section): buttons bottom 481,
+         rule 586, heading 608. Total space 127px, so the rule wants to sit at
+         544.5, which is 63-64px each side. */
+      .band { padding-top: 58px; }
       /* --blue is 4.80:1 on white, which is the whole of its margin — any tint
          behind it drops it under AA, and on this gradient it measures 3.93:1.
          --blue-deep is the palette's next step and clears 5.45:1 in the same
