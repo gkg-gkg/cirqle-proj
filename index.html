@@ -638,9 +638,38 @@
            under it, set by .hero's bottom padding above. */
         min-height: 0;
         justify-content: flex-start;
+        /* Light shaped AROUND the copy, not a single wash through it.
+           The old band was one vertical fade: every pixel on a row was the same
+           colour, so there was nothing to look at and nowhere for the eye to
+           land. This borrows the desktop scrim's idea instead — rich colour at
+           the edges, a bright pool where the words are — which is what lets the
+           base tint go deeper without touching the text's contrast.
+
+           Layer order matters and is top-down: the white pool is FIRST because
+           it has to sit over the blooms. Deepening the base and adding corner
+           light without it drops the sub-copy and the --blue-deep link straight
+           through AA (measured: 3.9:1 on the deepened base alone). */
         background:
-          radial-gradient(132% 56% at 50% 0%, rgba(56,182,255,.52) 0%, rgba(56,182,255,.20) 46%, rgba(56,182,255,0) 76%),
-          linear-gradient(180deg, #D9EFFC 0%, #E9F6FD 30%, var(--blue-pale) 58%, var(--paper) 88%);
+          /* The pool. Centred on the copy block, not the band, so the bright
+             part tracks the words rather than the geometry. Everything below is
+             free to be as saturated as it likes because this sits over it. */
+          radial-gradient(116% 46% at 50% 36%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.66) 50%, rgba(255,255,255,0) 100%),
+          /* Three off-axis blooms, each a different blue. Different POSITIONS
+             and different HUES are what make this read as depth rather than as
+             a fade — one light source is a gradient, three is a space. The
+             deepest sits top-right, against the cyan top-left, so the band has
+             a diagonal to travel along instead of only up-down. */
+          radial-gradient(84% 52% at 104% 0%, rgba(0,92,176,.52) 0%, rgba(0,114,214,.22) 38%, rgba(0,114,214,0) 70%),
+          radial-gradient(76% 46% at -6% 10%, rgba(102,212,255,.85) 0%, rgba(102,212,255,.30) 40%, rgba(102,212,255,0) 72%),
+          /* Carries brand colour back under the buttons, so the band doesn't
+             give up and go white the moment the copy ends. */
+          radial-gradient(70% 34% at 82% 78%, rgba(56,182,255,.34) 0%, rgba(56,182,255,0) 72%),
+          /* The original neon bloom off the top edge, kept as the key light. */
+          radial-gradient(132% 56% at 50% 0%, rgba(56,182,255,.58) 0%, rgba(56,182,255,.22) 46%, rgba(56,182,255,0) 78%),
+          /* Deeper at the top than the old #D9EFFC, and it holds colour much
+             further down before the white join — the band has somewhere to
+             travel now instead of fading out by the halfway mark. */
+          linear-gradient(180deg, #A6D6F6 0%, #C8E8FB 20%, #DFF2FD 44%, #EFF8FD 68%, var(--blue-pale) 84%, var(--paper) 96%);
       }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
