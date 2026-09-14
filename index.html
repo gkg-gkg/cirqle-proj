@@ -641,13 +641,14 @@
          that is allowed to be text on white. Over the photo wall this link was
          1.7:1 and no scrim could reach it — the gradient is what makes it
          fixable with a colour. */
-      /* --blue-deep (#005CB0) measured 4.80:1 on the darkened panel — passing,
-         but only 1.07x the floor, which made the link the one thing stopping
-         this band going any deeper. Stepped once further for this band only,
-         exactly as --ink-soft is above and for the same reason. */
-      .hero-band .hero-jump, .hero-band .cash-script { color: #00457F; }
-      .hero-band .hero-jump { border-bottom-color: rgba(0,69,127,.45); }
-      .hero-band .squiggle::after { background: #00457F; }
+      /* --blue-deep measures 5.16:1 on this panel. It briefly needed stepping
+         to an off-palette #00457F when the tint was two shades deeper (4.80:1
+         there, only 1.07x the floor); lightening the panel gave that back, so
+         the band is on the palette's own blue again. Deepen the tint past
+         roughly #C6E2F5 and this is the first thing that breaks. */
+      .hero-band .hero-jump, .hero-band .cash-script { color: var(--blue-deep); }
+      .hero-band .hero-jump { border-bottom-color: rgba(0,92,176,.45); }
+      .hero-band .squiggle::after { background: var(--blue-deep); }
       .hero-band {
         /* A viewport minimum ran the band on for half a screen after the
            buttons, so there is none: it is the copy plus the strip of gradient
@@ -663,13 +664,15 @@
            first. All three were more interesting than the page wanted at the
            very top of it — the hero's job is to put the headline and the two
            buttons in front of you, and a busy ground competed with them. The
-           tint is a couple of steps deeper than .band-soft because this is the
-           hero and it has to register as blue, not merely off-white.
+           tint is a few steps deeper than .band-soft because this is the hero
+           and it has to register as blue, not merely off-white — but only a
+           few: past roughly #C6E2F5 the --blue-deep link drops under 1.1x its
+           contrast floor and needs an off-palette colour to survive.
 
            The tail to --paper is what hands the band over to the white section
            under it, so the hairline reads as the panel's own edge rather than
            as a seam between two different colours. */
-        background: linear-gradient(180deg, #E3F0FA 0%, #C6E2F5 38%, #C6E2F5 62%, #DEEEF9 88%, var(--paper) 100%);
+        background: linear-gradient(180deg, #EAF4FB 0%, #D3E9F7 38%, #D3E9F7 62%, #E5F1FB 88%, var(--paper) 100%);
         border-bottom: 1px solid rgba(56,182,255,.16);
       }
       /* box-shadow cannot be composited, so this repainted the button on the
