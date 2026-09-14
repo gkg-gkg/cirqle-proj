@@ -962,10 +962,6 @@
 
     // ── Everything below needs the real catalogue ──
     var CATEGORY_FALLBACK = 'Fashion & Beauty';
-    // What one verified referral pays the referrer — REWARD_REFERRER in
-    // backend/app/referrals.py. The referee's 50p is theirs, not the referrer's,
-    // so it is deliberately not counted here.
-    var REFERRAL_REWARD = 1;
 
     // The catalogue drives the carousel and the calculator. It used to be a bare
     // fetch with a silent catch, so a slow or failed request left both sections
@@ -1198,15 +1194,19 @@
     // Earnings the way they actually land: only spending at partner brands counts,
     // only the purchases you share count, and rates vary across the deals in
     // a category — so this reports a range, from the category's lowest published
-    // rate to its average, rather than one confident-looking number. Referrals sit
-    // on top as a flat £1 each (REWARD_REFERRER in the backend), so they shift both
-    // ends of the range by the same amount rather than widening it.
+    // rate to its average, rather than one confident-looking number. Referrals get
+    // the same treatment: what one pays is set per campaign now (the API's
+    // referralRewardReferrer, floor 50p), so a category holding a £1 deal and a £4
+    // one genuinely spans that rather than collapsing to one figure. Only the
+    // referrer's side counts — the referee's share is theirs, not yours.
     function buildCalculator(deals) {
       var cats = {};
       deals.forEach(function (d) {
         var c = (d.category || '').trim();
         if (!c || !d.rate) return;
-        (cats[c] = cats[c] || []).push(d.rate);
+        var e = cats[c] || (cats[c] = { rates: [], refs: [] });
+        e.rates.push(d.rate);
+        if (d.referralsEnabled && d.referralRewardReferrer) e.refs.push(d.referralRewardReferrer);
       });
       var names = Object.keys(cats).sort();
       if (!names.length) throw new Error('no categories');
@@ -1229,32 +1229,45 @@
                (n === active ? 'true' : 'false') + '">' + esc(n) + '</button>';
       }).join('');
 
+      function range(a) {
+        if (!a.length) return { lo: 0, hi: 0 };
+        var sum = a.reduce(function (s, v) { return s + v; }, 0);
+        return { lo: Math.min.apply(null, a), hi: sum / a.length };
+      }
       function stats(c) {
-        var a = cats[c] || [0];
-        var lo = Math.min.apply(null, a);
-        var avg = a.reduce(function (s, v) { return s + v; }, 0) / a.length;
-        return { lo: lo, hi: avg };
+        var e = cats[c] || { rates: [0], refs: [] };
+        return { rate: range(e.rates), ref: range(e.refs) };
       }
       function render() {
         var v = +spend.value;
         var n = +refs.value;
         var s = stats(active);
         var eligible = v * 12 * postRate;          // £ a year actually claimed on
-        var bonus = n * 12 * REFERRAL_REWARD;      // £ a year, from n referrals a month
-        var lo = Math.round(eligible * s.lo / 100 + bonus);
-        var hi = Math.round(eligible * s.hi / 100 + bonus);
+        var bonusLo = n * 12 * s.ref.lo;           // £ a year, from n referrals a month
+        var bonusHi = n * 12 * s.ref.hi;
+        var lo = Math.round(eligible * s.rate.lo / 100 + bonusLo);
+        var hi = Math.round(eligible * s.rate.hi / 100 + bonusHi);
         spendLabel.textContent = '£' + v;
         refsLabel.textContent = String(n);
-        out.textContent = (lo === hi) ? ('£' + lo) : ('£' + lo + '\u2013£' + hi);
+        out.textContent = (lo === hi) ? ('£' + lo) : ('£' + lo + '–£' + hi);
         // A category holding one deal has no range to report — "7–7.0%" was the
         // same rate printed twice.
-        var rates = (s.lo.toFixed(1) === s.hi.toFixed(1))
-          ? s.hi.toFixed(1).replace(/\.0$/, '')
-          : s.lo.toFixed(0) + '\u2013' + s.hi.toFixed(1);
+        var rates = (s.rate.lo.toFixed(1) === s.rate.hi.toFixed(1))
+          ? s.rate.hi.toFixed(1).replace(/\.0$/, '')
+          : s.rate.lo.toFixed(0) + '–' + s.rate.hi.toFixed(1);
+        var tail = '.';
+        if (n && !s.ref.hi) {
+          // Every deal here has referrals switched off, so the slider genuinely
+          // changes nothing — say that rather than leaving the figure unmoved.
+          tail = ', though no ' + active.toLowerCase() + ' deal pays a referral bonus yet.';
+        } else if (n) {
+          var bLo = Math.round(bonusLo), bHi = Math.round(bonusHi);
+          tail = ', plus ' + (bLo === bHi ? '£' + bHi : '£' + bLo + '–£' + bHi) +
+                 ' from ' + n + (n === 1 ? ' friend' : ' friends') + ' referred a month.';
+        }
         sub.textContent = 'On £' + v + ' a month at ' + active.toLowerCase() +
           ' partners, sharing ' + Math.round(postRate * 100) + '% of them, at ' +
-          rates + '% across our live deals' +
-          (n ? ', plus £' + bonus + ' from ' + n + (n === 1 ? ' friend' : ' friends') + ' referred a month.' : '.');
+          rates + '% across our live deals' + tail;
       }
       function wire(container, onPick) {
         container.addEventListener('click', function (e) {
