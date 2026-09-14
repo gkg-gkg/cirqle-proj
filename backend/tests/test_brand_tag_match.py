@@ -325,3 +325,26 @@ def test_a_feed_refresh_stores_the_brands_a_post_tags(session, client, monkeypat
     stored = session.get(Mention, "p9")
     # Our own handle dropped, the brand's kept — and stored as read, not NULL.
     assert json.loads(stored.tagged_handles) == ["nandosuk"]
+
+
+def test_apifys_own_mentions_field_is_read_too():
+    """Apify parses caption @mentions into their own field. Confirmed present
+    on a live scrape alongside taggedUsers and hashtags."""
+    post = {"mentions": ["NandosUK"], "caption": ""}
+    assert extract_tagged_handles(post) == ["nandosuk"]
+
+
+def test_the_live_apify_shape_is_what_we_parse():
+    """The exact shape a live mentions scrape returned on 2026-09-15 — dicts
+    carrying username next to full_name/id — plus our own handle among them,
+    which is what every post in a mentions scrape has by definition."""
+    post = {
+        "ownerUsername": "someone",
+        "taggedUsers": [
+            {"full_name": "cirqle", "id": "66855950877", "username": "cirqle.co.uk"},
+            {"full_name": "Nandos", "id": "39052370116", "username": "NandosUK"},
+        ],
+        "mentions": [],
+        "caption": "#cirqle #merchant",
+    }
+    assert extract_tagged_handles(post) == ["nandosuk"]

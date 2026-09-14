@@ -79,7 +79,19 @@ def extract_tagged_handles(post: dict) -> list[str]:
     # Apify has shipped taggedUsers as dicts ({"username": ...}) and, on some
     # actor versions, as bare strings. Accept both rather than quietly
     # capturing nothing the next time the actor changes shape under us.
+    # Verified against a live scrape 2026-09-15: dicts, carrying username
+    # alongside full_name/id/profile_pic_url.
     for entry in (post.get("taggedUsers") or []):
+        if isinstance(entry, dict):
+            add(entry.get("username") or "")
+        elif isinstance(entry, str):
+            add(entry)
+
+    # Apify parses caption @mentions into their own field. The regex below
+    # covers the same ground, but this is the actor's own parse rather than
+    # our guess at one, so take it first and let the regex be the backstop
+    # for anything it misses.
+    for entry in (post.get("mentions") or []):
         if isinstance(entry, dict):
             add(entry.get("username") or "")
         elif isinstance(entry, str):
