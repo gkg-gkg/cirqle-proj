@@ -371,11 +371,26 @@
         grid-template-rows: none;
         grid-auto-rows: clamp(118px, 27vw, 152px);
       }
+      /* Two alternating row heights, matching the tile rhythm below: the wide
+         feature row reads better short and banner-like, the row holding two
+         squarer tiles better tall. */
+      .cat-grid.mosaic {
+        grid-auto-rows: clamp(104px, 24vw, 136px) clamp(132px, 32vw, 172px);
+      }
       .cat-grid.mosaic > :nth-child(n) { grid-area: auto; }
       /* Matched to the reset's specificity and placed after it, or the
-         grid-area:auto above would win and these two wouldn't span. */
-      .cat-grid > .cat-tile:first-child,
-      .cat-grid > .cat-tile:last-child { grid-column: span 2; }
+         grid-area:auto above would win and these wouldn't span. */
+      /* Nine tiles over two columns: full-bleed every third from the first, so
+         a wide feature alternates with a pair the whole way down. The run of
+         tiles between two full-bleed ones must stay EVEN — an odd run strands
+         one tile in a row and opens a hole beside it, which is exactly what
+         first-child/last-child started doing when the mosaic went from six
+         tiles to nine. */
+      .cat-grid.mosaic > .cat-tile:nth-child(3n+1) { grid-column: span 2; }
+      /* The plain fallback grid (any count other than nine) keeps the old
+         first-and-last treatment, which pairs cleanly at six. */
+      .cat-grid:not(.mosaic) > .cat-tile:first-child,
+      .cat-grid:not(.mosaic) > .cat-tile:last-child { grid-column: span 2; }
     }
 
     /* phone */
