@@ -629,75 +629,36 @@
          that is allowed to be text on white. Over the photo wall this link was
          1.7:1 and no scrim could reach it — the gradient is what makes it
          fixable with a colour. */
-      .hero-band .hero-jump, .hero-band .cash-script { color: var(--blue-deep); }
-      .hero-band .hero-jump { border-bottom-color: rgba(0,92,176,.45); }
-      .hero-band .squiggle::after { background: var(--blue-deep); }
+      /* --blue-deep (#005CB0) measured 4.80:1 on the darkened panel — passing,
+         but only 1.07x the floor, which made the link the one thing stopping
+         this band going any deeper. Stepped once further for this band only,
+         exactly as --ink-soft is above and for the same reason. */
+      .hero-band .hero-jump, .hero-band .cash-script { color: #00457F; }
+      .hero-band .hero-jump { border-bottom-color: rgba(0,69,127,.45); }
+      .hero-band .squiggle::after { background: #00457F; }
       .hero-band {
         /* A viewport minimum ran the band on for half a screen after the
            buttons, so there is none: it is the copy plus the strip of gradient
            under it, set by .hero's bottom padding above. */
         min-height: 0;
         justify-content: flex-start;
-        /* A field of circles, not a wash. The band began life as one vertical
-           fade — every pixel on a row the same colour, nothing to look at and
-           nowhere for the eye to land.
+        /* The same treatment as the review wall below (.band-soft), which is
+           a calm tinted panel rather than anything shaped: a soft vertical
+           tint that is deepest through the middle and eases off at both ends,
+           closed with a hairline blue rule.
 
-           Layer order is top-down and all three of the non-circle layers are
-           corrections for something that broke: the white hand-off stops the
-           band's edge from cutting circles in half, the pool keeps the copy
-           legible over them, and the ground is pale so the circles have
-           something to stand against. */
-        background:
-          /* Topmost, and first for that reason: the circles now run all the way
-             to the foot of the band, so without this the band's own edge cuts
-             them mid-circle and the join to the section below is a hard line
-             across the full width. This is the same guard the desktop scrim
-             puts at its foot, and for the same reason. It is also what makes
-             the deepest circles read as fading INTO the next section rather
-             than stopping at it. */
-          linear-gradient(180deg, rgba(255,255,255,0) 72%, rgba(255,255,255,.55) 86%, rgba(255,255,255,.92) 95%, #FFFFFF 100%),
-          /* The pool. Centred on the copy block, not the band, so the bright
-             part tracks the words rather than the geometry. It sits over the
-             circles, which is what lets them be as saturated as they are: take
-             it away and they land on the sub-copy and the --blue-deep link and
-             put both through AA.
+           This band went through blooms, a scatter and a field of circles
+           first. All three were more interesting than the page wanted at the
+           very top of it — the hero's job is to put the headline and the two
+           buttons in front of you, and a busy ground competed with them. The
+           tint is a couple of steps deeper than .band-soft because this is the
+           hero and it has to register as blue, not merely off-white.
 
-             ── The circles, below ──
-             12 of them, all ROUGHLY ONE SIZE (106-130px). Size deliberately
-             does NOT fall off with depth — an earlier pass shrank them as they
-             descended and it read as perspective rather than as a fade. The
-             fade is alpha plus a lerp toward white, so a circle near the foot
-             is the same circle, paler, on its way to the section below.
-
-             Positions are stratified down the band, one per slice: pure
-             rejection sampling left a dead 40% at the foot. Spacing still
-             scales with radius so they cannot sit concentric — overlapping
-             circles average back into the smooth field this replaced.
-
-             Radii are px, not %, so a circle stays round at 599px instead of
-             stretching. Nothing is animated and nothing is random at runtime:
-             the seed was spent once, up front, so every render is identical. */
-          radial-gradient(107px 107px at 94.9% -6.3%, rgba(56,182,255,0.78) 0%, rgba(56,182,255,0.624) 36%, rgba(56,182,255,0) 82%),
-          radial-gradient(120px 120px at 27.8% 0.7%, rgba(102,212,255,0.776) 0%, rgba(102,212,255,0.621) 36%, rgba(102,212,255,0) 82%),
-          radial-gradient(119px 119px at 63.8% 16.2%, rgba(16,151,233,0.675) 0%, rgba(16,151,233,0.54) 36%, rgba(16,151,233,0) 82%),
-          radial-gradient(125px 125px at -0.1% 23.0%, rgba(116,216,255,0.63) 0%, rgba(116,216,255,0.504) 36%, rgba(116,216,255,0) 82%),
-          radial-gradient(113px 113px at 95.3% 32.8%, rgba(81,191,255,0.563) 0%, rgba(81,191,255,0.45) 36%, rgba(81,191,255,0) 82%),
-          radial-gradient(107px 107px at 43.7% 42.6%, rgba(127,219,255,0.494) 0%, rgba(127,219,255,0.395) 36%, rgba(127,219,255,0) 82%),
-          radial-gradient(107px 107px at -3.3% 52.4%, rgba(52,167,237,0.423) 0%, rgba(52,167,237,0.338) 36%, rgba(52,167,237,0) 82%),
-          radial-gradient(115px 115px at 76.3% 58.1%, rgba(136,222,255,0.38) 0%, rgba(136,222,255,0.304) 36%, rgba(136,222,255,0) 82%),
-          radial-gradient(108px 108px at 27.2% 70.3%, rgba(110,202,255,0.284) 0%, rgba(110,202,255,0.227) 36%, rgba(110,202,255,0) 82%),
-          radial-gradient(106px 106px at 109.5% 77.7%, rgba(116,204,255,0.221) 0%, rgba(116,204,255,0.177) 36%, rgba(116,204,255,0) 82%),
-          radial-gradient(120px 120px at 61.4% 87.0%, rgba(123,207,255,0.15) 0%, rgba(123,207,255,0.12) 36%, rgba(123,207,255,0) 82%),
-          radial-gradient(130px 130px at -11.4% 97.9%, rgba(97,186,241,0.15) 0%, rgba(97,186,241,0.12) 36%, rgba(97,186,241,0) 82%),
-
-          /* The key light off the top edge, under the scatter — it is what
-             keeps 22 scattered blobs reading as one lit surface rather than as
-             confetti. */
-          radial-gradient(132% 50% at 50% 0%, rgba(56,182,255,.16) 0%, rgba(56,182,255,.06) 46%, rgba(56,182,255,0) 78%),
-          /* The ground the scatter sits on. Lighter at the top than the version
-             this replaces (#A6D6F6): the blobs now supply the depth that the
-             base used to have to carry alone. */
-          linear-gradient(180deg, #DCEFFC 0%, #E7F5FD 24%, #F0F9FE 50%, #F7FCFE 72%, var(--blue-pale) 88%, var(--paper) 97%);
+           The tail to --paper is what hands the band over to the white section
+           under it, so the hairline reads as the panel's own edge rather than
+           as a seam between two different colours. */
+        background: linear-gradient(180deg, #E3F0FA 0%, #C6E2F5 38%, #C6E2F5 62%, #DEEEF9 88%, var(--paper) 100%);
+        border-bottom: 1px solid rgba(56,182,255,.16);
       }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
