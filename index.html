@@ -226,6 +226,10 @@
        old size a 128px file had to cover ~220 device pixels on a phone; inset
        like this it covers ~150, so the PNGs that have no vector stay crisp. */
     .htile-img { width: 100%; height: 100%; object-fit: contain; display: block; padding: 17px 26px; }
+    /* A brand with no logo file falls back to its own catalogue photo. A photo
+       is not a mark: it fills the panel edge to edge instead of sitting inset,
+       or it reads as a snapshot dropped in a frame. */
+    .htile-img.is-photo { object-fit: cover; padding: 0; }
     .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 7px; background: rgba(255,255,255,.92); color: var(--ink); }
     .htile-body { padding: 12px 13px 13px; }
     .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
@@ -285,28 +289,33 @@
       grid-auto-rows: clamp(132px, 14vw, 174px);
       gap: clamp(10px, 1.1vw, 14px);
     }
-    /* The mosaic proper. Six columns over four uneven rows, with every tile
+    /* The mosaic proper. Six columns over six uneven rows, with every tile
        explicitly placed: auto-placement can only ever produce tidy bands, and
-       the point here is that the tiles DON'T line up. The two full-height
-       tiles are deliberately staggered — the left one runs rows 1-3, the
-       middle one rows 2-4 — so no horizontal seam crosses the whole block.
-       The six areas tile all 24 cells exactly; changing one means re-checking
-       the others or a hole opens. */
+       the point here is that the tiles DON'T line up. Every row boundary is
+       crossed by at least one tile — 1 spans rows 1-3 and 3 spans rows 2-4 up
+       top, 5 and 6 span rows 4-5 and 7 spans rows 5-6 below — so no horizontal
+       seam ever runs the full width. The nine areas tile all 36 cells exactly;
+       changing one means re-checking the others or a hole opens. */
     .cat-grid.mosaic {
       grid-template-columns: repeat(6, 1fr);
       grid-template-rows:
         clamp(118px, 12.5vw, 158px)
         clamp(76px, 8vw, 100px)
         clamp(84px, 8.8vw, 112px)
-        clamp(112px, 11.8vw, 150px);
+        clamp(96px, 10vw, 128px)
+        clamp(84px, 8.8vw, 112px)
+        clamp(104px, 11vw, 140px);
       grid-auto-rows: auto;
     }
     .cat-grid.mosaic > :nth-child(1) { grid-area: 1 / 1 / 4 / 3; }
     .cat-grid.mosaic > :nth-child(2) { grid-area: 1 / 3 / 2 / 7; }
-    .cat-grid.mosaic > :nth-child(3) { grid-area: 2 / 5 / 4 / 7; }
-    .cat-grid.mosaic > :nth-child(4) { grid-area: 2 / 3 / 5 / 5; }
-    .cat-grid.mosaic > :nth-child(5) { grid-area: 4 / 1 / 5 / 3; }
-    .cat-grid.mosaic > :nth-child(6) { grid-area: 4 / 5 / 5 / 7; }
+    .cat-grid.mosaic > :nth-child(3) { grid-area: 2 / 3 / 5 / 5; }
+    .cat-grid.mosaic > :nth-child(4) { grid-area: 2 / 5 / 4 / 7; }
+    .cat-grid.mosaic > :nth-child(5) { grid-area: 4 / 1 / 6 / 3; }
+    .cat-grid.mosaic > :nth-child(6) { grid-area: 4 / 5 / 6 / 7; }
+    .cat-grid.mosaic > :nth-child(7) { grid-area: 5 / 3 / 7 / 5; }
+    .cat-grid.mosaic > :nth-child(8) { grid-area: 6 / 1 / 7 / 3; }
+    .cat-grid.mosaic > :nth-child(9) { grid-area: 6 / 5 / 7 / 7; }
     .cat-tile {
       position: relative; display: block; overflow: hidden;
       border-radius: 16px; text-decoration: none; color: #fff;
@@ -730,7 +739,7 @@
     </div>
   </section>
 
-  <!-- ══ SHOP BY CATEGORY — the four categories with the most live deals,
+  <!-- ══ SHOP BY CATEGORY — the nine categories with the most live deals,
        built from the same catalogue fetch as the carousel/calculator below. ══ -->
   <section class="section" id="categories">
     <div class="section-inner">
@@ -889,6 +898,17 @@
     };
     var logoSrc = function (name) {
       return 'assets/logos/' + name + (SVG_LOGOS[name] ? '.svg' : '.png');
+    };
+    // Not every brand in the catalogue has a file in assets/logos — a new deal
+    // arrives long before its mark does. Those fall back to the deal's own
+    // photo rather than an empty panel. On window so the inline onerror can
+    // reach it: the carousel rewrites innerHTML on resize, which drops attached
+    // listeners, and inline attributes survive that.
+    window.cirqleTileFallback = function (img) {
+      img.onerror = null;
+      var photo = img.getAttribute('data-photo');
+      if (photo) { img.src = photo; img.className = 'htile-img is-photo'; }
+      else { img.style.display = 'none'; }
     };
     // ── Review wall: small avatar + quote + rating. Content is illustrative,
     //    and the disclaimer under the wall says so. ──
@@ -1065,12 +1085,14 @@
         var paid = (i % 4 === 3);
         // Partner logos live in assets/logos, keyed by a slug of the brand name.
         var logo = logoSrc(slug(d.brand));
+        var shot = (d.images && d.images[0]) || '';   // used only if the logo 404s
         var spend = 40 + (i % 6) * 15;
         var earn = (spend * (d.rate || 0) / 100).toFixed(2);
         return '<div class="htile' + (paid ? ' paid' : '') + ' t' + (i % 6) + '">' +
             '<div class="htile-shot" style="background:' + (LOGO_BG[slug(d.brand)] || '#fff') + '">' +
               '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
-              ' onerror="this.style.display=\'none\'">' +
+              (shot ? ' data-photo="' + esc(shot) + '"' : '') +
+              ' onerror="cirqleTileFallback(this)">' +
               '<span class="htile-state">' + (paid ? 'Paid' : 'Shared') + '</span>' +
             '</div>' +
             '<div class="htile-body">' +
@@ -1139,7 +1161,11 @@
       'Food & Drink':     { src: 'assets/wall/w11.jpg' },
       'Electronics':      { src: 'assets/wall/w17.jpg', pos: '50% 62%' },
       'Fitness':          { src: 'assets/wall/w14.jpg' },
-      'Home & Living':    { src: 'assets/wall/w22.jpg', pos: '50% 65%' }
+      'Home & Living':    { src: 'assets/wall/w22.jpg', pos: '50% 65%' },
+      'Entertainment':    { src: 'assets/wall/w18.jpg' },
+      'Kids & Baby':      { src: 'assets/wall/w21.jpg' },
+      // The cat sits high in the frame; the default centre crop cuts it out.
+      'Pets':             { src: 'assets/wall/w23.jpg', pos: '50% 30%' }
     };
 
     // Every category that has a photo, best-stocked first. Keys the link the
@@ -1155,15 +1181,15 @@
         if (!c || !CATEGORY_PHOTO[c]) return;
         counts[c] = (counts[c] || 0) + 1;
       });
-      var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 6);
+      var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; }).slice(0, 9);
       if (!top.length) { dropSection('categories'); return; }
 
-      // The mosaic's slots 1 and 4 are the full-height ones (see the CSS).
+      // The mosaic's slots 1 and 3 are the full-height ones (see the CSS).
       // Deal count decides the running order, but a portrait photo in a
       // letterbox slot is a headless torso, so the two `tall` categories are
       // steered into those slots and the rest close up around them. Without
       // this the order is at the mercy of a tie in deal counts.
-      var SLOT_IS_TALL = [true, false, false, true, false, false];
+      var SLOT_IS_TALL = [true, false, true, false, false, false, false, false, false];
       var tallPool = [], widePool = [];
       top.forEach(function (n) { (CATEGORY_PHOTO[n].tall ? tallPool : widePool).push(n); });
       var arranged = [];
@@ -1172,8 +1198,8 @@
         var other = SLOT_IS_TALL[i] ? widePool : tallPool;
         arranged.push(want.length ? want.shift() : other.shift());
       }
-      // Only the exact six tile the grid; anything else uses the plain one.
-      wrap.classList.toggle('mosaic', arranged.length === 6);
+      // Only the exact nine tile the grid; anything else uses the plain one.
+      wrap.classList.toggle('mosaic', arranged.length === 9);
 
       wrap.innerHTML = arranged.map(function (name) {
         var key = name.trim().split(' ')[0].toLowerCase();
