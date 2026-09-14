@@ -121,7 +121,7 @@
     .feed-empty .et { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; margin-bottom: 6px; }
     .feed-empty .es { font-size: .9rem; color: var(--ink-soft); }
 
-    /* ── Share tabs — Online (Instagram) / In person (referrals) ──
+    /* ── Share tabs — the same sharing, online or in-person ──
        Same underline pattern as merchant.html's .mtab, under a new name since
        this page has its own <style>. Everything above the tabs (title, sub,
        Refresh, Log a repeat visit) is common to both; below is where they
@@ -209,7 +209,7 @@
     <div class="feed-head">
       <div>
         <div class="feed-title fade-up d1">What you've shared</div>
-        <p class="feed-sub fade-up d2">View what you've shared with your friends, online and in person.</p>
+        <p class="feed-sub fade-up d2">View what you've shared with your friends, online or in-person.</p>
       </div>
       <div class="refresh-area fade-up d2">
         <div class="refresh-row">
@@ -234,7 +234,7 @@
     <!-- Everything above is common to both; the tabs are where they diverge. -->
     <nav class="share-tabs" role="tablist">
       <button class="share-tab active" id="tabOnline" data-tab="online" role="tab" aria-selected="true" aria-controls="panelOnline"><i class="ico ico-instagram"></i> Online</button>
-      <button class="share-tab" id="tabPerson" data-tab="person" role="tab" aria-selected="false" aria-controls="panelPerson"><i class="ico ico-users"></i> In person</button>
+      <button class="share-tab" id="tabPerson" data-tab="person" role="tab" aria-selected="false" aria-controls="panelPerson"><i class="ico ico-users"></i> In-person</button>
     </nav>
 
     <div class="share-panel" id="panelOnline" role="tabpanel" aria-labelledby="tabOnline">
@@ -579,7 +579,7 @@
       }
     }
 
-    // ── Share tabs: Online (Instagram) / In person (referrals) ──
+    // ── Share tabs: the same sharing, online or in-person ──
     // The URL hash is what lets a link point straight at either tab, and what
     // lets the tab survive a refresh. Referral data loads once, the first
     // time the In person tab is opened — no point fetching it for someone who
@@ -599,7 +599,7 @@
     document.getElementById('tabOnline').addEventListener('click', () => showShareTab('online'));
     document.getElementById('tabPerson').addEventListener('click', () => showShareTab('person'));
 
-    // ── "In person" tab: your handle, referrals, referral season, streak ──
+    // ── "In-person" tab: your handle, referrals, referral season, streak ──
     // Referrals run on handles, not share links: a friend types your @handle
     // when they upload their own receipt, so showing (and copying) it is the
     // useful action here — matches dashboard.html's copyHandle().
@@ -677,7 +677,7 @@
         const items = await res.json();
         const list = document.getElementById('referralsList');
         if (!items.length) {
-          list.innerHTML = '<div class="ref-empty">No referrals yet. Share your handle above, or tag a friend in your next post.</div>';
+          list.innerHTML = '<div class="ref-empty">Nothing yet. Share your handle with a friend, or tag one in your next post.</div>';
           return;
         }
         list.innerHTML = items.map(r => {
