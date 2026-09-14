@@ -638,84 +638,57 @@
            under it, set by .hero's bottom padding above. */
         min-height: 0;
         justify-content: flex-start;
-        /* Light shaped AROUND the copy, not a single wash through it.
-           The old band was one vertical fade: every pixel on a row was the same
-           colour, so there was nothing to look at and nowhere for the eye to
-           land. This borrows the desktop scrim's idea instead — rich colour at
-           the edges, a bright pool where the words are — which is what lets the
-           base tint go deeper without touching the text's contrast.
+        /* A field of circles, not a wash. The band began life as one vertical
+           fade — every pixel on a row the same colour, nothing to look at and
+           nowhere for the eye to land.
 
-           Layer order matters and is top-down: the white pool is FIRST because
-           it has to sit over the blooms. Deepening the base and adding corner
-           light without it drops the sub-copy and the --blue-deep link straight
-           through AA (measured: 3.9:1 on the deepened base alone). */
+           Layer order is top-down and all three of the non-circle layers are
+           corrections for something that broke: the white hand-off stops the
+           band's edge from cutting circles in half, the pool keeps the copy
+           legible over them, and the ground is pale so the circles have
+           something to stand against. */
         background:
+          /* Topmost, and first for that reason: the circles now run all the way
+             to the foot of the band, so without this the band's own edge cuts
+             them mid-circle and the join to the section below is a hard line
+             across the full width. This is the same guard the desktop scrim
+             puts at its foot, and for the same reason. It is also what makes
+             the deepest circles read as fading INTO the next section rather
+             than stopping at it. */
+          linear-gradient(180deg, rgba(255,255,255,0) 72%, rgba(255,255,255,.55) 86%, rgba(255,255,255,.92) 95%, #FFFFFF 100%),
           /* The pool. Centred on the copy block, not the band, so the bright
-             part tracks the words rather than the geometry. It is FIRST because
-             it has to sit over the scatter: the dispersions below are free to be
-             as saturated as they like precisely because this mutes them wherever
-             the words are. Take it away and the deep blobs land on the sub-copy
-             and the --blue-deep link and put both through AA. */
-          radial-gradient(104% 40% at 50% 35%, rgba(255,255,255,.72) 0%, rgba(255,255,255,.42) 48%, rgba(255,255,255,0) 100%),
+             part tracks the words rather than the geometry. It sits over the
+             circles, which is what lets them be as saturated as they are: take
+             it away and they land on the sub-copy and the --blue-deep link and
+             put both through AA.
 
-          /* ── The scatter ──
-             26 dispersions of blue at fixed pseudo-random positions, biggest
-             painted first so the small bright ones read on top. Three
-             brand blues rather than one at 26 opacities — a single hue at
-             varying alpha reads as dirt on the screen, three reads as light.
-             The deepest blue is a bit-part, and its alpha is damped a further
-             38% on top: a dark blob carries more visual weight than a light one
-             at equal alpha, so undamped it reads as a blemish rather than light.
+             ── The circles, below ──
+             12 of them, all ROUGHLY ONE SIZE (106-130px). Size deliberately
+             does NOT fall off with depth — an earlier pass shrank them as they
+             descended and it read as perspective rather than as a fade. The
+             fade is alpha plus a lerp toward white, so a circle near the foot
+             is the same circle, paler, on its way to the section below.
 
-             The ground is deliberately PALE and the key light is nearly gone.
-             Both used to be blue enough that a blue blob had nothing to stand
-             against — at 110px the first attempt at this size vanished into the
-             top of the band completely. The blobs have to BE the colour here,
-             not tint a ground that already had it.
+             Positions are stratified down the band, one per slice: pure
+             rejection sampling left a dead 40% at the foot. Spacing still
+             scales with radius so they cannot sit concentric — overlapping
+             circles average back into the smooth field this replaced.
 
-             Spacing is rejection-sampled — a blob is only placed where it
-             isn't sitting on its neighbour, and the test scales with radius, so
-             bigger blobs claim more room instead of piling up. This is the difference between a
-             scatter and a gradient: overlapping blobs average out into exactly
-             the smooth field this exists to stop being. Radii are small and the
-             falloff ends at 82% rather than fading to 100%, because that edge
-             is what makes a dispersion read as one.
-
-             Radii are in PX, not %, so a blob stays a blob at every width
-             instead of stretching into a smear on a wide phone — the same trap
-             the hero scrim's stops hit twice.
-
-             Both size and alpha fall off with depth (roughly (1 - y)^1.6), so
-             the field thins out as it approaches the white section below and
-             the band hands over without an edge. Nothing here is animated and
-             nothing is random at runtime: the seed was spent once, up front, so
-             every render is identical. */
-          radial-gradient(110px 110px at 1.1% 19.8%, rgba(0,144,232,0.444) 0%, rgba(0,144,232,0.346) 34%, rgba(0,144,232,0) 82%),
-          radial-gradient(103px 103px at 97.0% -10.8%, rgba(56,182,255,0.761) 0%, rgba(56,182,255,0.594) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(96px 96px at 40.4% -11.1%, rgba(56,182,255,0.715) 0%, rgba(56,182,255,0.558) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(83px 83px at 81.0% 20.0%, rgba(0,144,232,0.462) 0%, rgba(0,144,232,0.36) 34%, rgba(0,144,232,0) 82%),
-          radial-gradient(70px 70px at 42.7% 19.1%, rgba(56,182,255,0.692) 0%, rgba(56,182,255,0.54) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(58px 58px at 111.5% 58.0%, rgba(0,144,232,0.237) 0%, rgba(0,144,232,0.185) 34%, rgba(0,144,232,0) 82%),
-          radial-gradient(56px 56px at 9.7% 55.2%, rgba(102,212,255,0.394) 0%, rgba(102,212,255,0.307) 34%, rgba(102,212,255,0) 82%),
-          radial-gradient(52px 52px at 90.7% 43.8%, rgba(56,182,255,0.508) 0%, rgba(56,182,255,0.396) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(52px 52px at 113.6% 36.3%, rgba(56,182,255,0.554) 0%, rgba(56,182,255,0.432) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(51px 51px at 70.3% 52.8%, rgba(56,182,255,0.363) 0%, rgba(56,182,255,0.283) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(49px 49px at 36.5% 42.4%, rgba(56,182,255,0.444) 0%, rgba(56,182,255,0.346) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(49px 49px at -13.4% 51.1%, rgba(102,212,255,0.427) 0%, rgba(102,212,255,0.333) 34%, rgba(102,212,255,0) 82%),
-          radial-gradient(38px 38px at 84.5% 80.5%, rgba(102,212,255,0.262) 0%, rgba(102,212,255,0.204) 34%, rgba(102,212,255,0) 82%),
-          radial-gradient(34px 34px at 105.6% 73.5%, rgba(56,182,255,0.272) 0%, rgba(56,182,255,0.212) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(33px 33px at 38.3% 63.1%, rgba(56,182,255,0.36) 0%, rgba(56,182,255,0.281) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(32px 32px at 41.0% 74.4%, rgba(56,182,255,0.275) 0%, rgba(56,182,255,0.215) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(31px 31px at -1.2% 81.7%, rgba(56,182,255,0.252) 0%, rgba(56,182,255,0.197) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(30px 30px at 57.3% 73.7%, rgba(0,144,232,0.19) 0%, rgba(0,144,232,0.148) 34%, rgba(0,144,232,0) 82%),
-          radial-gradient(30px 30px at -13.0% 73.9%, rgba(102,212,255,0.277) 0%, rgba(102,212,255,0.216) 34%, rgba(102,212,255,0) 82%),
-          radial-gradient(30px 30px at 27.8% 77.8%, rgba(102,212,255,0.306) 0%, rgba(102,212,255,0.239) 34%, rgba(102,212,255,0) 82%),
-          radial-gradient(30px 30px at 91.4% 65.2%, rgba(56,182,255,0.278) 0%, rgba(56,182,255,0.217) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(29px 29px at 76.4% 67.8%, rgba(56,182,255,0.322) 0%, rgba(56,182,255,0.251) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(28px 28px at 12.7% 75.8%, rgba(56,182,255,0.264) 0%, rgba(56,182,255,0.206) 34%, rgba(56,182,255,0) 82%),
-          radial-gradient(26px 26px at 21.6% 68.5%, rgba(102,212,255,0.26) 0%, rgba(102,212,255,0.203) 34%, rgba(102,212,255,0) 82%),
-          radial-gradient(24px 24px at 66.7% 81.9%, rgba(0,144,232,0.162) 0%, rgba(0,144,232,0.126) 34%, rgba(0,144,232,0) 82%),
-          radial-gradient(22px 22px at 53.1% 83.0%, rgba(56,182,255,0.28) 0%, rgba(56,182,255,0.218) 34%, rgba(56,182,255,0) 82%),
+             Radii are px, not %, so a circle stays round at 599px instead of
+             stretching. Nothing is animated and nothing is random at runtime:
+             the seed was spent once, up front, so every render is identical. */
+          radial-gradient(107px 107px at 94.9% -6.3%, rgba(56,182,255,0.78) 0%, rgba(56,182,255,0.624) 36%, rgba(56,182,255,0) 82%),
+          radial-gradient(120px 120px at 27.8% 0.7%, rgba(102,212,255,0.776) 0%, rgba(102,212,255,0.621) 36%, rgba(102,212,255,0) 82%),
+          radial-gradient(119px 119px at 63.8% 16.2%, rgba(16,151,233,0.675) 0%, rgba(16,151,233,0.54) 36%, rgba(16,151,233,0) 82%),
+          radial-gradient(125px 125px at -0.1% 23.0%, rgba(116,216,255,0.63) 0%, rgba(116,216,255,0.504) 36%, rgba(116,216,255,0) 82%),
+          radial-gradient(113px 113px at 95.3% 32.8%, rgba(81,191,255,0.563) 0%, rgba(81,191,255,0.45) 36%, rgba(81,191,255,0) 82%),
+          radial-gradient(107px 107px at 43.7% 42.6%, rgba(127,219,255,0.494) 0%, rgba(127,219,255,0.395) 36%, rgba(127,219,255,0) 82%),
+          radial-gradient(107px 107px at -3.3% 52.4%, rgba(52,167,237,0.423) 0%, rgba(52,167,237,0.338) 36%, rgba(52,167,237,0) 82%),
+          radial-gradient(115px 115px at 76.3% 58.1%, rgba(136,222,255,0.38) 0%, rgba(136,222,255,0.304) 36%, rgba(136,222,255,0) 82%),
+          radial-gradient(108px 108px at 27.2% 70.3%, rgba(110,202,255,0.284) 0%, rgba(110,202,255,0.227) 36%, rgba(110,202,255,0) 82%),
+          radial-gradient(106px 106px at 109.5% 77.7%, rgba(116,204,255,0.221) 0%, rgba(116,204,255,0.177) 36%, rgba(116,204,255,0) 82%),
+          radial-gradient(120px 120px at 61.4% 87.0%, rgba(123,207,255,0.15) 0%, rgba(123,207,255,0.12) 36%, rgba(123,207,255,0) 82%),
+          radial-gradient(130px 130px at -11.4% 97.9%, rgba(97,186,241,0.15) 0%, rgba(97,186,241,0.12) 36%, rgba(97,186,241,0) 82%),
 
           /* The key light off the top edge, under the scatter — it is what
              keeps 22 scattered blobs reading as one lit surface rather than as
