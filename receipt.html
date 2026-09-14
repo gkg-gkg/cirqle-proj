@@ -52,6 +52,7 @@
     .deal-field { margin-bottom: 18px; }
     .deal-field label { display: block; font-size: .82rem; font-weight: 800; color: var(--ink-soft); margin-bottom: 8px; }
     .deal-field select, .deal-field input { width: 100%; padding: 11px 13px; border: var(--bw) solid var(--line); border-radius: 14px; font: inherit; font-size: .9rem; background: var(--card); color: var(--ink); }
+    .deal-hint { font-size: .82rem; color: var(--ink-soft); margin-top: 8px; }
 
     @media (max-width: 900px) { .nav-name { display: none; } }
   </style>
@@ -80,6 +81,9 @@
       <div class="deal-field">
         <label for="dealSelect">Which deal is this receipt for?</label>
         <select id="dealSelect"><option value="">Loading deals…</option></select>
+        <!-- Why the list looks the way it does: narrowed to the brand tagged in
+             the post, or the whole catalogue when we couldn't read a brand. -->
+        <p class="deal-hint" id="dealHint" hidden></p>
       </div>
       <!-- Only on a first claim, where a post backs it. Saying who referred you
            is about how you found the place, so a repeat visit can't name one —
@@ -144,19 +148,74 @@
     // this post. The feed reads /receipts to flip the tile to "uploaded".
     // Load the deal list so the user can say which deal this receipt is for
     // (that's how we know the cashback amount).
+    //
+    // On a post claim we ask what THAT post is allowed to claim rather than for
+    // the whole catalogue: the server reads which brands the post tags and
+    // narrows the list to them. That's a convenience, not the control — the
+    // same rule runs again when the receipt is uploaded, so nothing here can be
+    // got around by editing the page.
+    const ALL_DEALS_URL = `${window.CIRQLE_API_BASE}/campaigns`;
+
+    // Why a list we couldn't narrow still shows everything.
+    const DEAL_HINTS = {
+      no_tag_data:
+        'We haven\'t read the tags on this post yet, so every deal is listed. ' +
+        'Choose the brand you tagged — we check it against your post on upload.',
+      no_brand_tagged:
+        'We couldn\'t spot a Cirqle brand tagged in this post, so every deal is ' +
+        'listed. Choose the brand you actually bought from.'
+    };
+
     async function loadDeals() {
       const sel = document.getElementById('dealSelect');
+      const hint = document.getElementById('dealHint');
       sel.innerHTML = '<option value="">Loading deals…</option>';
+      hint.hidden = true;
       try {
-        const res = await fetch(`${window.CIRQLE_API_BASE}/campaigns`);
+        let res;
+        if (postId) {
+          res = await fetch(
+            `${window.CIRQLE_API_BASE}/feed/posts/${encodeURIComponent(postId)}/campaigns`,
+            { headers: { 'Authorization': 'Bearer ' + session.token } });
+          if (res.status === 401 || res.status === 403) { signOut(); return; }
+          // We don't have this post stored any more — a feed refresh drops
+          // posts Instagram stopped returning, and a stale tab can still link
+          // to one. Fall back to the catalogue rather than dead-ending them;
+          // the upload check still applies either way.
+          if (res.status === 404) res = await fetch(ALL_DEALS_URL);
+        } else {
+          res = await fetch(ALL_DEALS_URL);
+        }
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        const deals = await res.json();
-        if (!Array.isArray(deals) || !deals.length) {
+
+        // /campaigns returns a bare array; the per-post endpoint wraps it.
+        const body = await res.json();
+        const wrapped = !Array.isArray(body);
+        const deals = wrapped ? (body.campaigns || []) : body;
+        const reason = wrapped ? (body.reason || '') : '';
+        const tagged = (wrapped ? body.taggedHandles : []) || [];
+        const brands = tagged.map(h => '@' + h).join(', ');
+
+        if (!deals.length) {
           sel.innerHTML = '<option value="">No deals available right now</option>';
+          if (reason === 'matched' && brands) {
+            hint.textContent = brands + ' isn\'t running a deal right now, so ' +
+              'there\'s nothing to claim on this post yet.';
+            hint.hidden = false;
+          }
           return;
         }
+
         sel.innerHTML = '<option value="">Choose a deal…</option>' +
           deals.map(c => `<option value="${c.id}">${c.brand} — ${c.rate}% back</option>`).join('');
+
+        if (reason === 'matched' && brands) {
+          hint.textContent = 'Showing deals for ' + brands + ', the brand tagged in your post.';
+          hint.hidden = false;
+        } else if (DEAL_HINTS[reason]) {
+          hint.textContent = DEAL_HINTS[reason];
+          hint.hidden = false;
+        }
       } catch (e) {
         // Surface the REAL reason (network / CORS / server error) instead of
         // hiding it, and let the user retry without reloading the page.

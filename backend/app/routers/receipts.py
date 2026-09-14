@@ -17,7 +17,7 @@ from fastapi import (APIRouter, BackgroundTasks, Depends, File, Form,
                      HTTPException, UploadFile)
 from sqlmodel import Session, func, select
 
-from .. import referrals
+from .. import brandtags, referrals
 from ..activity import log_activity
 from ..aqs import ALGORITHM_VERSION, compute_aqs, compute_payout
 from ..cashback import (APPROVED_STATUSES, admin_status, clears_at,
@@ -167,6 +167,26 @@ def create_receipt(
                 detail=("This deal doesn't accept repeat visits yet — share a "
                         "post to claim it."))
 
+    # Does the post actually tag the brand whose deal this claims? Tagging
+    # @cirqle.co.uk is what got the post scraped; it says nothing about which
+    # brand the post is about. Without this, the member's pick in the deal
+    # dropdown is taken on trust, and tagging one brand while claiming
+    # another's deal bills the wrong merchant for a post that never named them.
+    #
+    # Only an outright contradiction is refused — a post that names a DIFFERENT
+    # Cirqle brand. Everything softer (tags we never captured, a brand we don't
+    # run deals for) is recorded for the reviewer and let through, because it
+    # is our missing data, not the member's fault. See app/brandtags.py.
+    mention = session.get(Mention, post_id) if post_id else None
+    tag_match = ""
+    if kind == "post":
+        tag_match = brandtags.evaluate(mention, campaign, session)
+        if tag_match == brandtags.MISMATCH:
+            raise HTTPException(
+                status_code=422,
+                detail="Your post tags a different brand to the deal you chose. "
+                       "Pick the deal for the brand you tagged in the post.")
+
     referrer_id: Optional[int] = None
     referral_handle, referral_status = "", ""
     if referred_by_handle and referred_by_handle.strip():
@@ -250,6 +270,7 @@ def create_receipt(
         existing.referred_by_user_id = referrer_id
         existing.referred_by_handle = referral_handle
         existing.referral_status = referral_status
+        existing.tag_match = tag_match
         receipt = existing
     else:
         receipt = Receipt(
@@ -258,6 +279,7 @@ def create_receipt(
             brand=brand, amount=amount, image_key=key, image_sha256=digest,
             status="pending", referred_by_user_id=referrer_id,
             referred_by_handle=referral_handle, referral_status=referral_status,
+            tag_match=tag_match,
         )
 
     session.add(receipt)
@@ -273,7 +295,6 @@ def create_receipt(
 
     # A visit claim has no post, so its 3-day clearing window runs from the
     # upload instead — which is what clears_at() already falls back to.
-    mention = session.get(Mention, post_id) if post_id else None
     post_ts = parse_post_ts(mention.timestamp) if mention else None
     return _receipt_out(receipt, effective_status(receipt, post_ts))
 
@@ -297,6 +318,7 @@ def admin_list_receipts(
         st = admin_status(r, parse_post_ts(m.timestamp) if m else None)
         summary, reasons = summarise(r)
         out.append(AdminReceiptOut(
+            tagMatch=r.tag_match,
             id=r.id, userEmail=u.email, userName=f"{u.first_name} {u.last_name}",
             postId=r.post_id, brand=r.brand, amount=r.amount, status=st,
             uploadedAt=r.uploaded_at, imageUrl=receipt_view_url(r.image_key),

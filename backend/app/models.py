@@ -99,6 +99,18 @@ class Mention(SQLModel, table=True):
     # it can be null if that lookup failed or hasn't run yet).
     follower_count_at_scrape: Optional[int] = None
     following_count_at_scrape: Optional[int] = None
+    # Which OTHER accounts this post tags — JSON-encoded list[str] of
+    # normalised handles (the same TEXT trick as Campaign.tags). This is how we
+    # know which BRAND a post is about: tagging @cirqle.co.uk is what got the
+    # post scraped at all, so it tells us nothing on its own.
+    #
+    # NULL and "[]" mean different things and the difference matters:
+    #   NULL -> we never captured this post's tags (scraped before this column
+    #           existed, or the member hasn't refreshed their feed since).
+    #   "[]" -> we read the post and it tagged nobody.
+    # Only the second is evidence. NULL never counts against a claim — see
+    # app/brandtags.py.
+    tagged_handles: Optional[str] = None
     scraped_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -261,6 +273,13 @@ class Receipt(SQLModel, table=True):
     # runs again when this claim confirms, since 'pending' can still become
     # 'verified' (or be rejected) long after upload.
     referral_status: str = ""
+    # ── Brand-tag agreement ──
+    # Whether the post behind this claim actually tags the brand whose deal it
+    # claims, decided at upload from Mention.tagged_handles (see
+    # app/brandtags.py for the values). Advisory and admin-facing: a real
+    # contradiction is rejected outright at upload, so a stored claim never
+    # holds "mismatch". "" on a visit claim, which has no post to check.
+    tag_match: str = ""
     # ── Automated check (Phase 8) ──
     # Filled in the background shortly after upload by app/verify.py. Advisory
     # only for now: the admin still approves every claim, and these columns just
@@ -729,6 +748,18 @@ class CampaignOut(BaseModel):
     referralRewardReferee: float = 0.5    # £ this deal pays the referee, if enabled
 
 
+class PostCampaignsOut(BaseModel):
+    """The deals one Instagram post is allowed to claim, and why that list.
+
+    Feeds the deal picker on receipt.html. `reason` is what the page tells the
+    member — whether we narrowed the list to the brand they tagged, or couldn't
+    and are showing everything.
+    """
+    reason: str                       # see app/brandtags.py
+    taggedHandles: list[str] = []     # the accounts we read off the post
+    campaigns: list[CampaignOut] = []
+
+
 # ── Receipts / cashback (Phase 4 + 5) ──
 # Receipts stay private on S3; the owner (and admin) view them via short-lived
 # presigned URLs only.
@@ -761,6 +792,8 @@ class AdminReceiptOut(BaseModel):
     checkScore: int = 0
     checkSummary: str = ""           # one line: what the check made of it
     checkReasons: list[str] = []     # the individual findings, worst first
+    # Did the post tag the brand whose deal this claims? See app/brandtags.py.
+    tagMatch: str = ""
 
 
 class AdminVerificationReceiptOut(BaseModel):

@@ -8,21 +8,26 @@
 
 The browser never sees the Apify token, and each user only sees their own posts.
 """
+import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
+from .. import brandtags
 from ..db import get_session
 from ..handles import normalize_handle
 from ..instagram import (
     ScrapeError,
+    extract_tagged_handles,
     mirror_display_image,
     scrape_brand_mentions,
     scrape_profile_stats,
 )
-from ..models import FeedPost, FeedRefreshOut, Mention, User
+from ..models import (FeedPost, FeedRefreshOut, Mention, PostCampaignsOut,
+                      User)
 from ..security import get_current_user
+from .campaigns import _campaign_out
 
 router = APIRouter(prefix="/feed", tags=["feed"])
 
@@ -58,6 +63,34 @@ def get_feed(
     ).all()
     updated = max((m.scraped_at for m in rows), default=None)
     return FeedRefreshOut(posts=[_mention_to_post(m) for m in rows], updated=updated)
+
+
+@router.get("/posts/{post_id}/campaigns", response_model=PostCampaignsOut)
+def post_campaigns(
+    post_id: str,
+    user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """The deals this post is allowed to claim — the brands it actually tags.
+
+    The receipt page fills its deal picker from here rather than from the whole
+    catalogue, so a member isn't casually offered one brand's deal on a post
+    about another. This is a convenience only: the picker runs in the browser,
+    so the same rule is enforced again at upload (see routers/receipts.py),
+    which is the check that actually counts.
+    """
+    mention = session.get(Mention, post_id)
+    # Same 404 for "no such post" and "not yours" — whether a post id exists
+    # isn't something one member should learn about another.
+    if mention is None or mention.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Post not found.")
+
+    reason, campaigns = brandtags.campaigns_for_post(mention, session)
+    return PostCampaignsOut(
+        reason=reason,
+        taggedHandles=brandtags.decode_handles(mention) or [],
+        campaigns=[_campaign_out(c) for c in campaigns],
+    )
 
 
 @router.post("/refresh", response_model=FeedRefreshOut)
@@ -122,6 +155,9 @@ def refresh(
                 owner_full_name=fp.ownerFullName,
                 likes_count=fp.likesCount,
                 comments_count=fp.commentsCount,
+                # Read now, while we still have the raw Apify item — the
+                # stored FeedPost above doesn't carry the tag fields.
+                tagged_handles=json.dumps(extract_tagged_handles(p)),
                 follower_count_at_scrape=profile_stats.get("followers") if profile_stats else None,
                 following_count_at_scrape=profile_stats.get("following") if profile_stats else None,
                 scraped_at=now,

@@ -87,7 +87,7 @@
     .rbadge.rejected { background: #FBE0E0; color: #a62222; }
     /* Automated receipt check (advisory — the admin still decides) */
     .rcheck { margin-top: 6px; font-size: .74rem; line-height: 1.45; }
-    .rcheck .score { display: inline-block; padding: 1px 7px; border-radius: 7px; font-size: .68rem; font-weight: 800; }
+    .rcheck .score { display: inline-block; padding: 1px 7px; border-radius: 7px; font-size: .68rem; font-weight: 800; background: var(--paper-deep); color: var(--ink-soft); }
     .rcheck.good .score { background: #DDF5E3; color: #1c7c3a; }
     .rcheck.warn .score { background: #FFF1D6; color: #8a5a00; }
     .rcheck.bad .score { background: #FBE0E0; color: #a62222; }
@@ -878,6 +878,19 @@
           } else if (r.checkStatus === 'error') {
             check = `<div class="rcheck"><span class="muted">${esc(r.checkSummary)}</span></div>`;
           }
+          // Did the post tag the brand whose deal this claims? An outright
+          // contradiction never reaches here (upload refuses it), so these are
+          // the softer cases: worth a reviewer's eye, not a rejection.
+          const TAG_NOTE = {
+            matched: ['good', 'Post tags this brand'],
+            no_brand_tagged: ['warn', 'No Cirqle brand tagged in the post'],
+            no_tag_data: ['', 'Post tags never captured — nothing to check against'],
+            unverifiable: ['', 'No Instagram handle on file for this brand']
+          };
+          const note = TAG_NOTE[r.tagMatch];
+          const tag = note
+            ? `<div class="rcheck ${note[0]}"><span class="score">tag</span> ${esc(note[1])}</div>`
+            : '';
           let actions = '';
           if (r.status === 'pending')
             actions = `<button class="btn mini" data-verify="${r.id}">Verify</button><button class="btn mini btn-pink" data-reject="${r.id}">Reject</button>`;
@@ -897,6 +910,7 @@
             <div class="clist-main">
               <div class="clist-title">${esc(r.brand) || '—'} · £${Number(r.amount).toFixed(2)} <span class="rbadge ${esc(r.status)}">${esc(r.status)}</span></div>
               <div class="clist-sub">${esc(r.userName)} · ${esc(r.userEmail)}</div>
+              ${tag}
               ${check}
             </div>
             <div class="clist-actions">${actions}</div>`;

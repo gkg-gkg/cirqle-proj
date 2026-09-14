@@ -9,12 +9,14 @@ We scrape the *brand* account's mentions (posts that tag @cirqle.co.uk) and let
 the caller filter down to a single user's own posts.
 """
 import os
+import re
 import time
 from typing import Optional
 
 import httpx
 from apify_client import ApifyClient
 
+from .handles import normalize_handle
 from .storage import upload_image_bytes
 
 # apify/instagram-scraper — same actor the old client-side code used.
@@ -41,8 +43,52 @@ _PROFILE_CACHE_TTL_SECONDS = 900
 _profile_cache: dict = {}
 
 
+# An Instagram handle is letters, digits, periods and underscores. It can't
+# END with a period, so a trailing one is the sentence's punctuation, not part
+# of the handle ("thanks @nandosuk." -> nandosuk).
+_CAPTION_MENTION_RE = re.compile(r"@([A-Za-z0-9._]+)")
+
+
 class ScrapeError(RuntimeError):
     """Raised when we cannot complete a scrape (missing token or Apify failure)."""
+
+
+def extract_tagged_handles(post: dict) -> list[str]:
+    """Every OTHER account tagged in one scraped post, normalised.
+
+    Two sources, because neither is complete on its own: `taggedUsers` holds the
+    photo tags, which never appear in the caption text, and the caption holds
+    @mentions, which aren't photo tags. A member who tags the brand either way
+    means the same thing by it.
+
+    Our own brand handle is dropped: a mentions scrape returns posts BECAUSE
+    they tag @cirqle.co.uk, so keeping it would say nothing about which brand
+    the post is actually about.
+
+    Returns a de-duplicated list in first-seen order. An empty list is a real
+    answer — "we read this post and nothing was tagged" — and is deliberately
+    different from never having looked (see models.Mention.tagged_handles).
+    """
+    handles: list[str] = []
+
+    def add(raw: str) -> None:
+        handle = normalize_handle(raw).rstrip(".")
+        if handle and handle != BRAND_HANDLE.lower() and handle not in handles:
+            handles.append(handle)
+
+    # Apify has shipped taggedUsers as dicts ({"username": ...}) and, on some
+    # actor versions, as bare strings. Accept both rather than quietly
+    # capturing nothing the next time the actor changes shape under us.
+    for entry in (post.get("taggedUsers") or []):
+        if isinstance(entry, dict):
+            add(entry.get("username") or "")
+        elif isinstance(entry, str):
+            add(entry)
+
+    for match in _CAPTION_MENTION_RE.finditer(post.get("caption") or ""):
+        add(match.group(1))
+
+    return handles
 
 
 def _do_scrape(token: str, limit: int) -> list[dict]:
