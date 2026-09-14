@@ -651,25 +651,63 @@
            through AA (measured: 3.9:1 on the deepened base alone). */
         background:
           /* The pool. Centred on the copy block, not the band, so the bright
-             part tracks the words rather than the geometry. Everything below is
-             free to be as saturated as it likes because this sits over it. */
-          radial-gradient(116% 46% at 50% 36%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.66) 50%, rgba(255,255,255,0) 100%),
-          /* Three off-axis blooms, each a different blue. Different POSITIONS
-             and different HUES are what make this read as depth rather than as
-             a fade — one light source is a gradient, three is a space. The
-             deepest sits top-right, against the cyan top-left, so the band has
-             a diagonal to travel along instead of only up-down. */
-          radial-gradient(84% 52% at 104% 0%, rgba(0,92,176,.52) 0%, rgba(0,114,214,.22) 38%, rgba(0,114,214,0) 70%),
-          radial-gradient(76% 46% at -6% 10%, rgba(102,212,255,.85) 0%, rgba(102,212,255,.30) 40%, rgba(102,212,255,0) 72%),
-          /* Carries brand colour back under the buttons, so the band doesn't
-             give up and go white the moment the copy ends. */
-          radial-gradient(70% 34% at 82% 78%, rgba(56,182,255,.34) 0%, rgba(56,182,255,0) 72%),
-          /* The original neon bloom off the top edge, kept as the key light. */
-          radial-gradient(132% 56% at 50% 0%, rgba(56,182,255,.58) 0%, rgba(56,182,255,.22) 46%, rgba(56,182,255,0) 78%),
-          /* Deeper at the top than the old #D9EFFC, and it holds colour much
-             further down before the white join — the band has somewhere to
-             travel now instead of fading out by the halfway mark. */
-          linear-gradient(180deg, #A6D6F6 0%, #C8E8FB 20%, #DFF2FD 44%, #EFF8FD 68%, var(--blue-pale) 84%, var(--paper) 96%);
+             part tracks the words rather than the geometry. It is FIRST because
+             it has to sit over the scatter: the dispersions below are free to be
+             as saturated as they like precisely because this mutes them wherever
+             the words are. Take it away and the deep blobs land on the sub-copy
+             and the --blue-deep link and put both through AA. */
+          radial-gradient(104% 40% at 50% 35%, rgba(255,255,255,.72) 0%, rgba(255,255,255,.42) 48%, rgba(255,255,255,0) 100%),
+
+          /* ── The scatter ──
+             20 small dispersions of blue at fixed pseudo-random positions,
+             biggest painted first so the small bright ones read on top. Three
+             brand blues rather than one at 20 opacities — a single hue at
+             varying alpha reads as dirt on the screen, three reads as light.
+             The deepest blue is deliberately a bit-part (8% of picks): on a
+             pale ground a dark blob reads as a smudge, not as light.
+
+             Radii are in PX, not %, so a blob stays a blob at every width
+             instead of stretching into a smear on a wide phone — the same trap
+             the hero scrim's stops hit twice.
+
+             Positions are STRATIFIED, one blob per horizontal slice of the
+             band rather than 20 uniform samples — uniform sampling clumps, and
+             a clump at the top just rebuilds the single glow this replaces.
+
+             Both size and alpha fall off with depth (roughly (1 - y)^1.9), so
+             the field thins out as it approaches the white section below and
+             the band hands over without an edge. Nothing here is animated and
+             nothing is random at runtime: the seed was spent once, up front, so
+             every render is identical. */
+          radial-gradient(101px 101px at 50.3% -5.5%, rgba(56,182,255,0.62) 0%, rgba(56,182,255,0.248) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(98px 98px at 62.1% -0.9%, rgba(56,182,255,0.62) 0%, rgba(56,182,255,0.248) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(83px 83px at 82.2% 5.5%, rgba(56,182,255,0.62) 0%, rgba(56,182,255,0.248) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(73px 73px at 3.3% 9.2%, rgba(102,212,255,0.602) 0%, rgba(102,212,255,0.241) 40%, rgba(102,212,255,0) 100%),
+          radial-gradient(66px 66px at 86.6% 18.9%, rgba(56,182,255,0.52) 0%, rgba(56,182,255,0.208) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(64px 64px at 59.3% 26.4%, rgba(56,182,255,0.31) 0%, rgba(56,182,255,0.124) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(62px 62px at 71.5% 13.7%, rgba(0,144,232,0.441) 0%, rgba(0,144,232,0.176) 40%, rgba(0,144,232,0) 100%),
+          radial-gradient(62px 62px at 56.9% 20.6%, rgba(102,212,255,0.393) 0%, rgba(102,212,255,0.157) 40%, rgba(102,212,255,0) 100%),
+          radial-gradient(56px 56px at 37.9% 29.4%, rgba(56,182,255,0.359) 0%, rgba(56,182,255,0.144) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(52px 52px at 80.0% 33.9%, rgba(102,212,255,0.324) 0%, rgba(102,212,255,0.13) 40%, rgba(102,212,255,0) 100%),
+          radial-gradient(49px 49px at 40.4% 37.1%, rgba(56,182,255,0.335) 0%, rgba(56,182,255,0.134) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(42px 42px at 2.3% 48.1%, rgba(56,182,255,0.232) 0%, rgba(56,182,255,0.093) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(41px 41px at 96.3% 49.6%, rgba(56,182,255,0.225) 0%, rgba(56,182,255,0.09) 40%, rgba(56,182,255,0) 100%),
+          radial-gradient(41px 41px at 48.3% 70.7%, rgba(102,212,255,0.142) 0%, rgba(102,212,255,0.057) 40%, rgba(102,212,255,0) 100%),
+          radial-gradient(40px 40px at 108.5% 56.7%, rgba(102,212,255,0.185) 0%, rgba(102,212,255,0.074) 40%, rgba(102,212,255,0) 100%),
+          radial-gradient(38px 38px at 86.0% 58.3%, rgba(102,212,255,0.176) 0%, rgba(102,212,255,0.07) 40%, rgba(102,212,255,0) 100%),
+          radial-gradient(37px 37px at 16.9% 40.3%, rgba(102,212,255,0.233) 0%, rgba(102,212,255,0.093) 40%, rgba(102,212,255,0) 100%),
+          radial-gradient(35px 35px at 45.0% 67.9%, rgba(0,144,232,0.148) 0%, rgba(0,144,232,0.059) 40%, rgba(0,144,232,0) 100%),
+          radial-gradient(31px 31px at 98.9% 76.1%, rgba(102,212,255,0.151) 0%, rgba(102,212,255,0.06) 40%, rgba(102,212,255,0) 100%),
+          radial-gradient(28px 28px at 25.3% 63.0%, rgba(102,212,255,0.147) 0%, rgba(102,212,255,0.059) 40%, rgba(102,212,255,0) 100%),
+
+          /* The key light off the top edge, under the scatter — it is what
+             keeps 22 scattered blobs reading as one lit surface rather than as
+             confetti. */
+          radial-gradient(132% 56% at 50% 0%, rgba(56,182,255,.46) 0%, rgba(56,182,255,.18) 46%, rgba(56,182,255,0) 78%),
+          /* The ground the scatter sits on. Lighter at the top than the version
+             this replaces (#A6D6F6): the blobs now supply the depth that the
+             base used to have to carry alone. */
+          linear-gradient(180deg, #BCE2FA 0%, #D2ECFC 22%, #E4F4FD 46%, #F1F9FE 70%, var(--blue-pale) 86%, var(--paper) 96%);
       }
       /* box-shadow cannot be composited, so this repainted the button on the
          main thread every frame for as long as the page was open — competing
