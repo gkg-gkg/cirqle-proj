@@ -39,6 +39,23 @@ _EXT_BY_TYPE = {
     "image/webp": ".webp",
 }
 
+_MEDIA_TYPE_BY_EXT = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+}
+
+
+def media_type_for_key(key: str) -> str:
+    """The image media type Claude's vision API needs for a stored object
+    key, inferred from its extension (set at upload time from the original
+    file's real content-type -- see _extension). Falls back to jpeg for
+    anything unrecognized so a stray/legacy key still round-trips instead of
+    raising."""
+    return _MEDIA_TYPE_BY_EXT.get(Path(key or "").suffix.lower(), "image/jpeg")
+
 
 class StorageError(RuntimeError):
     """Bad input — e.g. the upload isn't an image (maps to HTTP 400)."""

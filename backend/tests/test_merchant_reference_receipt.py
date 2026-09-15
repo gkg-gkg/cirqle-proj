@@ -37,7 +37,7 @@ def test_upload_happy_path_sets_ready(client, session, monkeypatch):
     merchant = _merchant(session)
     token = create_merchant_token(merchant)
     monkeypatch.setattr("app.routers.merchant.extract_reference_fields",
-                        lambda image_bytes: rv.ReferenceExtraction.model_validate(VALID_EXTRACTION))
+                        lambda image_bytes, **k: rv.ReferenceExtraction.model_validate(VALID_EXTRACTION))
 
     resp = client.post(
         "/merchant/reference-receipt",
@@ -59,7 +59,7 @@ def test_low_confidence_extraction_needs_manual_fix(client, session, monkeypatch
     token = create_merchant_token(merchant)
     low_confidence = dict(VALID_EXTRACTION, confidence=20)
     monkeypatch.setattr("app.routers.merchant.extract_reference_fields",
-                        lambda image_bytes: rv.ReferenceExtraction.model_validate(low_confidence))
+                        lambda image_bytes, **k: rv.ReferenceExtraction.model_validate(low_confidence))
 
     resp = client.post(
         "/merchant/reference-receipt",
@@ -74,7 +74,7 @@ def test_extraction_failure_still_stores_the_image_as_needs_manual_fix(client, s
     merchant = _merchant(session)
     token = create_merchant_token(merchant)
 
-    def boom(image_bytes):
+    def boom(image_bytes, **k):
         raise rv.VerificationCallError("simulated failure")
 
     monkeypatch.setattr("app.routers.merchant.extract_reference_fields", boom)
@@ -90,6 +90,32 @@ def test_extraction_failure_still_stores_the_image_as_needs_manual_fix(client, s
     assert body["referenceFields"] is None
 
 
+def test_upload_passes_the_real_media_type_not_a_hardcoded_jpeg(client, session, monkeypatch):
+    """Regression test: Claude decodes the base64 payload as whatever
+    media_type is declared, so a PNG upload wrongly declared "image/jpeg"
+    fails to decode -- misleadingly surfacing as "not clear enough" no
+    matter how legible the photo actually is. extract_reference_fields must
+    be called with the upload's real type, derived from the stored key's
+    extension (see storage.media_type_for_key)."""
+    merchant = _merchant(session)
+    token = create_merchant_token(merchant)
+    seen = {}
+
+    def spy(image_bytes, media_type="image/jpeg"):
+        seen["media_type"] = media_type
+        return rv.ReferenceExtraction.model_validate(VALID_EXTRACTION)
+
+    monkeypatch.setattr("app.routers.merchant.extract_reference_fields", spy)
+
+    resp = client.post(
+        "/merchant/reference-receipt",
+        headers={"Authorization": f"Bearer {token}"},
+        files={"image": ("ref.png", _png_upload(), "image/png")},
+    )
+    assert resp.status_code == 200, resp.text
+    assert seen["media_type"] == "image/png"
+
+
 def test_submit_campaign_blocked_until_reference_is_ready(client, session, monkeypatch):
     merchant = _merchant(session)
     token = create_merchant_token(merchant)
@@ -102,7 +128,7 @@ def test_submit_campaign_blocked_until_reference_is_ready(client, session, monke
     assert "reference receipt" in resp.json()["detail"].lower()
 
     monkeypatch.setattr("app.routers.merchant.extract_reference_fields",
-                        lambda image_bytes: rv.ReferenceExtraction.model_validate(VALID_EXTRACTION))
+                        lambda image_bytes, **k: rv.ReferenceExtraction.model_validate(VALID_EXTRACTION))
     up = client.post("/merchant/reference-receipt", headers=headers,
                      files={"image": ("ref.png", _png_upload(), "image/png")})
     assert up.status_code == 200

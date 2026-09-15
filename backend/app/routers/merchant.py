@@ -50,8 +50,8 @@ from ..ratelimit import rate_limit
 from ..receipt_verification import VerificationCallError, extract_reference_fields
 from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
-from ..storage import (StorageError, delete_image, delete_receipt, read_receipt,
-                       receipt_view_url, upload_image, upload_receipt)
+from ..storage import (StorageError, delete_image, delete_receipt, media_type_for_key,
+                       read_receipt, receipt_view_url, upload_image, upload_receipt)
 from ..payments import (OVERAGE_RATE, TIERS, PaymentError,
                         create_portal_session, create_subscription_session,
                         create_topup_session, ensure_customer, month_start,
@@ -228,8 +228,9 @@ def upload_reference_receipt(image: UploadFile = File(...),
     old_key = merchant.reference_receipt_s3_key
     image_bytes = read_receipt(key)
     try:
-        extracted = extract_reference_fields(image_bytes)
-    except VerificationCallError:
+        extracted = extract_reference_fields(image_bytes, media_type=media_type_for_key(key))
+    except VerificationCallError as exc:
+        print(f"reference receipt extraction failed for merchant {merchant.id}: {exc}")
         merchant.reference_receipt_s3_key = key
         merchant.reference_fields = None
         merchant.reference_status = "needs_manual_fix"
