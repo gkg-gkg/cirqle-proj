@@ -36,7 +36,7 @@ from sqlmodel import Session, select
 
 from . import db
 from .models import Campaign, Merchant, Receipt
-from .storage import read_receipt
+from .storage import media_type_for_key, read_receipt
 from .verify import _required_spend, apply_reading
 
 # ── Config (env-read; this repo has no config module, matches instagram.py's
@@ -187,17 +187,22 @@ def _client():
     return anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 
-def extract_reference_fields(image_bytes: bytes) -> ReferenceExtraction:
+def extract_reference_fields(image_bytes: bytes, media_type: str = "image/jpeg") -> ReferenceExtraction:
     """One synchronous Claude call reading a merchant's reference receipt.
     Raises VerificationCallError on any failure — no retry (rare, merchant-
-    triggered action; a failure just surfaces as an error to retry by hand)."""
+    triggered action; a failure just surfaces as an error to retry by hand).
+
+    media_type MUST match the actual bytes (Claude decodes the base64 payload
+    as whatever type is declared, and a mismatch — e.g. a PNG upload declared
+    as jpeg — fails outright regardless of image quality). Pass
+    storage.media_type_for_key(key) rather than assuming jpeg."""
     try:
         response = _client().messages.create(
             model=VERIFICATION_MODEL,
             max_tokens=500,
             system=_REFERENCE_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": [
-                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
+                {"type": "image", "source": {"type": "base64", "media_type": media_type,
                                              "data": _b64(image_bytes)}},
             ]}],
         )
@@ -210,15 +215,22 @@ def extract_reference_fields(image_bytes: bytes) -> ReferenceExtraction:
 
 
 def call_claude_verification(reference_bytes: bytes, new_bytes: bytes,
-                             campaign_context: str) -> ClaudeReceiptVerification:
+                             campaign_context: str,
+                             reference_media_type: str = "image/jpeg",
+                             new_media_type: str = "image/jpeg") -> ClaudeReceiptVerification:
     """One multimodal Claude call, one retry on transient failure. Raises
     VerificationCallError if both attempts fail — never returns a value the
-    caller could mistake for a valid result."""
+    caller could mistake for a valid result.
+
+    The two media_type args MUST match each image's real format — Claude
+    decodes the base64 payload as the declared type, so e.g. a PNG receipt
+    declared as jpeg fails outright regardless of the photo's actual clarity.
+    Pass storage.media_type_for_key(key) for each, not a fixed guess."""
     content = [
         {"type": "text", "text": campaign_context},
-        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
+        {"type": "image", "source": {"type": "base64", "media_type": reference_media_type,
                                      "data": _b64(reference_bytes)}},
-        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
+        {"type": "image", "source": {"type": "base64", "media_type": new_media_type,
                                      "data": _b64(new_bytes)}},
     ]
     last_error: Optional[Exception] = None
@@ -361,7 +373,9 @@ def run_claude_verification(receipt_id: int) -> None:
             duplicate = find_duplicate_hash(session, new_hash, receipt.id)
 
             result = call_claude_verification(
-                reference_bytes, image_bytes, build_campaign_context(campaign))
+                reference_bytes, image_bytes, build_campaign_context(campaign),
+                reference_media_type=media_type_for_key(merchant.reference_receipt_s3_key),
+                new_media_type=media_type_for_key(receipt.image_key))
 
             receipt.ocr_fields = json.dumps(result.ocr_fields.model_dump())
             receipt.authenticity_score = result.authenticity.score

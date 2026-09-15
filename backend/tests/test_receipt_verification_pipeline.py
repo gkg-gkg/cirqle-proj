@@ -185,3 +185,33 @@ def test_claude_call_failure_never_resolves_to_auto_approval(session, monkeypatc
 def test_unknown_receipt_is_a_no_op(session, cashback_spy):
     rv.run_claude_verification(999999)   # must not raise
     assert cashback_spy == []
+
+
+def test_media_types_are_derived_from_each_key_not_hardcoded(session, monkeypatch, cashback_spy):
+    """Regression test: Claude decodes each base64 image as whatever
+    media_type is declared, so both images must be declared using their own
+    real (extension-derived) type -- not a fixed "image/jpeg" guess that
+    fails to decode a non-jpeg upload regardless of the photo's clarity."""
+    user, merchant, campaign, receipt = _seed(session)
+    (storage.RECEIPTS_DIR).mkdir(parents=True, exist_ok=True)
+    (storage.RECEIPTS_DIR / "ref.webp").write_bytes(_png_bytes((5, 5, 5)))
+    merchant.reference_receipt_s3_key = "ref.webp"
+    session.add(merchant)
+    session.commit()
+    (storage.RECEIPTS_DIR / "new.png").write_bytes(_png_bytes((6, 6, 6)))
+    receipt.image_key = "new.png"
+    session.add(receipt)
+    session.commit()
+
+    seen = {}
+
+    def spy(reference_bytes, new_bytes, campaign_context, reference_media_type=None, new_media_type=None):
+        seen["reference_media_type"] = reference_media_type
+        seen["new_media_type"] = new_media_type
+        return rv.ClaudeReceiptVerification.model_validate(VALID_RESULT)
+
+    monkeypatch.setattr(rv, "call_claude_verification", spy)
+
+    rv.run_claude_verification(receipt.id)
+    assert seen["reference_media_type"] == "image/webp"
+    assert seen["new_media_type"] == "image/png"
