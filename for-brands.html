@@ -11,18 +11,108 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=12" />
   <style>
-    /* Six benefits as a mosaic rather than a 3x2 of identical cards. Every
-       tile is placed explicitly — auto-flow can only produce even bands, and
-       the point is that these don't line up: the lead tile is 3 columns wide
-       over 2 rows, the one under it only 2 columns over 2 rows, so the left
-       edge steps. The six areas tile all 24 cells exactly; changing one means
-       re-checking the others or a hole opens. Size carries the hierarchy now,
-       so the lead tile is the tinted one. */
+    /* ── The chain ──
+       The same device how-it-works.html uses for members, with the brand's
+       five steps instead of three. Classes are deliberately named the same as
+       that page's, so the two read as one idea; they're page-scoped styles on
+       both, not shared CSS, so a change here doesn't touch the member page. */
+    .chain { margin: 0 auto; max-width: 860px; }
+    .link-row {
+      display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+      gap: clamp(20px, 4vw, 48px);
+      padding: clamp(22px, 3vw, 30px) clamp(22px, 3vw, 34px);
+    }
+    .link-row.flip .link-stage { order: -1; }
+    .link-stage {
+      position: relative; border-radius: 16px; overflow: hidden; min-height: 262px;
+      background: linear-gradient(160deg, #EEF5FB 0%, #DDEDF8 100%);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    /* Each stage a shade deeper than the last, so the chain reads as travel. */
+    .link-row:nth-of-type(2) .link-stage { background: linear-gradient(160deg, #EBF4FA 0%, #D4E8F6 100%); }
+    .link-row:nth-of-type(3) .link-stage { background: linear-gradient(160deg, #E9F3FA 0%, #CAE4F4 100%); }
+    .link-row:nth-of-type(4) .link-stage { background: linear-gradient(160deg, #E5F1F9 0%, #BDDEF1 100%); }
+    .link-row:nth-of-type(5) .link-stage { background: linear-gradient(160deg, #E2F0F9 0%, #B1D8EF 100%); }
+    .link-n {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 50%; margin-bottom: 12px;
+      font-family: var(--font-display); font-weight: 700; font-size: .9rem; color: #0B1220;
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon));
+      box-shadow: 0 4px 12px rgba(56,182,255,.38);
+    }
+    .link-t { font-family: var(--font-display); font-weight: 700; letter-spacing: -.03em; font-size: clamp(1.4rem, 2.6vw, 1.8rem); margin: 0 0 10px; }
+    .link-d { font-size: .93rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
+    .link-d b { color: var(--ink); font-weight: 600; }
+    .joint { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 4px 0; }
+    .joint i { display: block; width: 1.5px; height: 26px; background: linear-gradient(180deg, transparent, var(--neon-line)); }
+    .joint i + i { background: linear-gradient(180deg, var(--neon-line), transparent); }
+    .joint span { display: block; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--neon); background: var(--paper); margin: 5px 0; }
+
+    /* ── Portal mock ──
+       A scrap of the merchant portal rather than a phone: what a brand
+       actually looks at is a desktop panel. Bled off the bottom of the stage
+       the same way the member page bleeds its phone. */
+    .pane {
+      width: 244px; border-radius: 13px 13px 0 0; overflow: hidden;
+      background: var(--paper); border: var(--bw) solid var(--line); border-bottom: 0;
+      margin-bottom: -16px; box-shadow: 0 -2px 26px rgba(11,18,32,.14);
+    }
+    .pane-bar { display: flex; gap: 5px; align-items: center; padding: 9px 11px; background: var(--paper-deep); border-bottom: 1px solid var(--line); }
+    .pane-bar i { width: 7px; height: 7px; border-radius: 50%; background: #CBD7E2; display: block; }
+    .pane-bar b { font-family: var(--font-display); font-size: .56rem; color: var(--ink-soft); margin-left: 5px; letter-spacing: .04em; text-transform: uppercase; }
+    .pane-body { padding: 12px 12px 18px; display: flex; flex-direction: column; gap: 8px; }
+    .m-label { font-size: .5rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
+    .m-box { height: 19px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper-deep); }
+    .m-btn { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: .58rem; color: #0B1220; padding: 6px; border-radius: 7px; background: linear-gradient(180deg, var(--neon-soft), var(--neon)); }
+    .m-row { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 7px; min-width: 0; }
+    .m-line { height: 5px; border-radius: 99px; background: #E4EBF2; display: block; flex: 1; }
+    /* Width twice over: flex-basis for the lines sitting in a row, width for
+       the ones stacked down the receipt slip, where a basis would be height. */
+    .m-line.w40 { flex: 0 0 40%; width: 40%; }
+    .m-line.w60 { flex: 0 0 60%; width: 60%; }
+    .m-line.w25 { flex: 0 0 25%; width: 25%; }
+    .m-slip .m-line { flex: 0 0 5px; }
+    .m-chip { font-size: .5rem; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: var(--blue-tint); color: var(--ink); white-space: nowrap; }
+    .m-chip.on { background: var(--neon); color: #0B1220; }
+    .m-amt { margin-left: auto; font-family: var(--font-display); font-size: .58rem; color: var(--ink); white-space: nowrap; }
+    .m-bal { background: linear-gradient(140deg, var(--neon-soft), var(--neon)); border-radius: 9px; padding: 9px 10px; color: #0B1220; }
+    .m-bal span { display: block; font-size: .45rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+    .m-bal b { font-family: var(--font-display); font-size: 1rem; letter-spacing: -.02em; }
+    .m-slip { border: 1px dashed var(--line); border-radius: 8px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--paper-deep); }
+
+    /* Phone mock, for the one step that happens on a shopper's phone. Same
+       markup and image as how-it-works.html and the homepage tiles. */
+    .ph { width: 148px; border-radius: 20px 20px 0 0; background: #0B1220; padding: 7px 7px 0; margin-bottom: -14px; box-shadow: 0 -2px 30px rgba(11,18,32,.22); }
+    .ph-screen { background: #fff; border-radius: 14px 14px 0 0; padding: 9px 8px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 214px; }
+    .ph-notch { width: 40px; height: 4px; border-radius: 99px; background: #33405A; margin: 0 auto 6px; }
+    .ps-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .ps-brand { font-family: var(--font-display); font-weight: 700; font-size: .6rem; color: var(--ink); }
+    .ps-img { width: 100%; border-radius: 8px; object-fit: cover; display: block; height: 92px; }
+    .ps-cap { font-size: .52rem; color: var(--ink-soft); line-height: 1.4; }
+    .ps-cap b { color: var(--blue); }
+    .ps-btn { margin-top: auto; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: .58rem; color: #0B1220; padding: 6px; border-radius: 7px; background: linear-gradient(180deg, var(--neon-soft), var(--neon)); }
+
+    /* ── Optional per-deal settings ── */
+    .ways { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(14px, 2vw, 20px); }
+    .way { display: flex; gap: 15px; align-items: flex-start; padding: 22px 24px; }
+    .way-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .way-t { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
+    .way-d { font-size: .87rem; color: var(--ink-soft); line-height: 1.6; margin: 5px 0 0; }
+    .way-pay { display: inline-block; margin-top: 9px; font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+
+    /* ── What the portal shows ──
+       Six tiles as a mosaic rather than a 3x2 of identical cards. Every tile is
+       placed explicitly — auto-flow can only produce even bands, and the point
+       is that these don't line up: the lead tile is 3 columns wide over 2 rows,
+       the one under it only 2 columns over 2 rows, so the left edge steps. The
+       six areas tile all 24 cells exactly; changing one means re-checking the
+       others or a hole opens. Size carries the hierarchy, so the lead tile is
+       the tinted one. */
     .why-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       grid-template-rows: repeat(4, minmax(92px, auto));
-      gap: 16px; margin-bottom: 64px;
+      gap: 16px;
     }
     .why-grid > :nth-child(1) { grid-area: 1 / 1 / 3 / 4; }
     .why-grid > :nth-child(2) { grid-area: 1 / 4 / 2 / 7; }
@@ -31,30 +121,32 @@
     .why-grid > :nth-child(5) { grid-area: 3 / 3 / 4 / 7; }
     .why-grid > :nth-child(6) { grid-area: 4 / 3 / 5 / 7; }
     .why-card { padding: 24px; display: flex; flex-direction: column; justify-content: center; }
-        .why-icon { font-size: 1.7rem; display: block; margin-bottom: 10px; }
+    .why-icon { font-size: 1.7rem; display: block; margin-bottom: 10px; }
     .why-title { font-family: var(--font-display); font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
     .why-text { font-size: .83rem; color: var(--ink-soft); line-height: 1.6; }
-    /* The lead tile has the room for it, and type scale is what stops a
-       bigger box reading as the same card with more padding. */
+    /* The lead tile has the room for it, and type scale is what stops a bigger
+       box reading as the same card with more padding. */
     .why-grid > :nth-child(1) .why-icon { font-size: 2.3rem; margin-bottom: 14px; }
     .why-grid > :nth-child(1) .why-title { font-size: 1.5rem; margin-bottom: 10px; }
     .why-grid > :nth-child(1) .why-text { font-size: .96rem; max-width: 42ch; }
-    /* The two full-height tiles hold far more height than their copy needs,
-       and centring it left an island in the middle. Icon to the top, words to
-       the foot, so the height looks spent rather than left over. (margin-top
-       on the title rather than space-between on the card: the icon, title and
-       text are siblings, so space-between would push the title away from its
-       own paragraph.) */
+    /* The two full-height tiles hold far more height than their copy needs, and
+       centring it left an island in the middle. Icon to the top, words to the
+       foot, so the height looks spent rather than left over. (margin-top on the
+       title rather than space-between on the card: the icon, title and text are
+       siblings, so space-between would push the title away from its own
+       paragraph.) */
     .why-grid > :nth-child(1), .why-grid > :nth-child(4) { justify-content: flex-start; }
     .why-grid > :nth-child(1) .why-title, .why-grid > :nth-child(4) .why-title { margin-top: auto; }
-    .steps-list { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
-    .step-item { display: flex; gap: 14px; align-items: flex-start; padding: 18px; }
-    .step-text { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; padding-top: 8px; }
-    .step-text strong { color: var(--ink); }
-    .stats-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 56px; }
-    .b-stat { text-align: center; padding: 24px 12px; }
-        .b-stat-v { font-family: var(--font-display); font-weight: 800; font-size: 2rem; letter-spacing: -0.03em; }
-    .b-stat-l { font-size: .78rem; font-weight: 700; color: var(--ink-soft); margin-top: 4px; }
+
+    /* ── Pricing, read from the same endpoint the billing portal uses ── */
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .plan-card { padding: 24px 22px; display: flex; flex-direction: column; }
+    .plan-name { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; letter-spacing: -.01em; }
+    .plan-allow { margin: 14px 0 6px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper-deep); font-size: .82rem; line-height: 1.5; }
+    .plan-allow strong { font-weight: 800; }
+    .plan-blurb { font-size: .84rem; color: var(--ink-soft); line-height: 1.6; }
+    .plan-note { font-size: .85rem; color: var(--ink-soft); line-height: 1.65; margin-top: 18px; }
+
     .cta-box { text-align: center; padding: 44px 30px; margin-top: 60px; position: relative; overflow: hidden; }
     .cta-box > :not(.cta-ring) { position: relative; z-index: 1; }
     .cta-ring {
@@ -96,10 +188,14 @@
       50% { box-shadow: 0 8px 26px rgba(53,99,127,.34), 0 0 0 7px rgba(67,125,158,.09), inset 0 1px 0 rgba(255,255,255,.18); }
     }
 
-    /* The mosaic is a desktop idea: six columns of card don't survive a
-       narrow screen. Drop the explicit areas (or they'd hold their spans and
-       overflow) and fall back to an even grid. */
-    @media(max-width:760px){
+    @media (max-width: 820px) {
+      .ways { grid-template-columns: 1fr; }
+      .plans { grid-template-columns: 1fr; }
+    }
+    /* The mosaic is a desktop idea: six columns of card don't survive a narrow
+       screen. Drop the explicit areas (or they'd hold their spans and overflow)
+       and fall back to an even grid. */
+    @media (max-width: 760px) {
       .why-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
       .why-grid > :nth-child(n) { grid-area: auto; }
       /* Five cards after the lead leave the last one alone in a column, so it
@@ -107,9 +203,15 @@
       .why-grid > :nth-child(1), .why-grid > :nth-child(6) { grid-column: span 2; }
       .why-grid > :nth-child(1) .why-title { font-size: 1.2rem; }
       .why-grid > :nth-child(1) .why-text { font-size: .88rem; }
-      .steps-list { grid-template-columns: 1fr; } .stats-section { grid-template-columns: 1fr 1fr; }
     }
-    @media(max-width:500px){ .why-grid { grid-template-columns: 1fr; } .why-grid > :nth-child(n) { grid-column: auto; } }
+    @media (max-width: 700px) {
+      /* One column, and the mock goes above its words — a portal panel next to
+         a paragraph at this width leaves both too narrow to read. */
+      .link-row, .link-row.flip { grid-template-columns: 1fr; gap: 18px; padding: 20px; }
+      .link-row .link-stage, .link-row.flip .link-stage { order: -1; min-height: 232px; }
+      .joint i { height: 20px; }
+    }
+    @media (max-width: 500px) { .why-grid { grid-template-columns: 1fr; } .why-grid > :nth-child(n) { grid-column: auto; } }
   </style>
 </head>
 <body>
@@ -125,39 +227,159 @@
       <span class="hero-blob blob-a" aria-hidden="true"></span>
       <span class="hero-blob blob-b" aria-hidden="true"></span>
       <h1 class="h-display fade-up d1" style="margin-top:20px">Turn your customers into your <span class="hl hl-lime">best marketing</span></h1>
-      <p class="h-sub fade-up d2" style="margin:16px auto 0">Cirqle connects brands with real shoppers who share their purchases authentically. You get organic UGC and new customers. They get paid. Everyone wins.</p>
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">Cirqle is a cashback marketplace. You set the rate and fund it up front; shoppers buy from you, post about it on Instagram, and claim with a receipt. You pay for purchases that actually happened — and keep the posts, the customers and the data behind them.</p>
       <div class="btn-row fade-up d3" style="margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
         <a href="contact.html" class="btn btn-lg btn-lime">Get in touch →</a>
         <a href="merchant.html" class="btn btn-lg">Merchant sign in</a>
       </div>
     </div>
 
-    <div class="why-grid">
-      <!-- Order is the mosaic's reading order, so the DOM matches what's on
-           screen. The lead tile is the pay-for-performance one deliberately:
-           it's both the strongest pitch and the one claim here that the
-           product actually delivers today. -->
-      <div class="card card-lime card-hover why-card fade-up d1"><span class="why-icon"><i class="ico ico-cash"></i></span><div class="why-title">Performance-only pricing</div><div class="why-text">You only pay cashback when a verified purchase happens. Zero wasted spend on impressions or clicks.</div></div>
-      <div class="card card-hover why-card fade-up d2"><span class="why-icon"><i class="ico ico-megaphone"></i></span><div class="why-title">Authentic content at scale</div><div class="why-text">Thousands of genuine shoppers sharing your brand — not paid actors. Real content that converts.</div></div>
-      <div class="card card-sky card-hover why-card fade-up d3"><span class="why-icon"><i class="ico ico-chart"></i></span><div class="why-title">Full attribution</div><div class="why-text">See exactly which posts drove which purchases. Real-time dashboard with conversion data and ROI.</div></div>
-      <div class="card card-tang card-hover why-card fade-up d4"><span class="why-icon"><i class="ico ico-bolt"></i></span><div class="why-title">Live in 48 hours</div><div class="why-text">Set up your cashback campaign and go live in under two days. No tech work on your side required.</div></div>
-      <div class="card card-pink card-hover why-card fade-up d5"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Targeted reach</div><div class="why-text">Choose your audience by category, location, or spend level. Only pay for the shoppers who matter most.</div></div>
-      <div class="card card-hover why-card fade-up d6"><span class="why-icon"><i class="ico ico-users"></i></span><div class="why-title">Dedicated account manager</div><div class="why-text">Every brand partner gets a dedicated account manager. We set you up, then optimise continuously.</div></div>
+    <!-- ══ THE CHAIN ══ -->
+    <div class="prose reveal"><h2>What actually happens, start to finish</h2></div>
+    <div class="chain" style="margin-top:22px">
+      <div class="card link-row reveal">
+        <div>
+          <span class="link-n">1</span>
+          <h2 class="link-t">You apply</h2>
+          <p class="link-d">Tell us about the brand on the <a href="contact.html">partnership form</a> — your category, the rate you have in mind, roughly what you sell in a month. <b>A person reads every application.</b> If it's a fit we email an invite link, you choose your own password from it, and that's your portal login. We never send a password out by email or by hand.</p>
+        </div>
+        <div class="link-stage">
+          <div class="pane">
+            <div class="pane-bar"><i></i><i></i><i></i><b>Partnership form</b></div>
+            <div class="pane-body">
+              <div><div class="m-label">Brand</div><div class="m-box"></div></div>
+              <div><div class="m-label">Target cashback rate</div><div class="m-box"></div></div>
+              <div class="m-btn">Send application</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
+
+      <div class="card link-row flip reveal">
+        <div>
+          <span class="link-n">2</span>
+          <h2 class="link-t">You set the account up</h2>
+          <p class="link-d">Two things before a deal can go live. Pick a <b>membership plan</b> (they're further down this page). Then upload <b>one real receipt of your own</b> as a reference: every claim made against your deals is compared with it, so a receipt from a different shop, or one that has been edited, has something concrete to fail against. You upload it once and it is reused across every campaign you run.</p>
+        </div>
+        <div class="link-stage">
+          <div class="pane">
+            <div class="pane-bar"><i></i><i></i><i></i><b>Reference receipt</b></div>
+            <div class="pane-body">
+              <div class="m-slip">
+                <span class="m-line w60"></span>
+                <span class="m-line"></span>
+                <span class="m-line w40"></span>
+                <span class="m-line w25"></span>
+              </div>
+              <div class="m-row"><span class="m-chip on">Ready</span><span class="m-line"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
+
+      <div class="card link-row reveal">
+        <div>
+          <span class="link-n">3</span>
+          <h2 class="link-t">You publish a deal</h2>
+          <p class="link-d">You write it: <b>the cashback rate, what counts as a qualifying spend, the expiry date and your own terms.</b> We review it before anything appears. Approved, it goes live on <a href="browse.html">Browse Deals</a> with its own deal page. Rejected, the reason is waiting in your portal, so you can change it and send it back. You can run more than one deal at a time.</p>
+        </div>
+        <div class="link-stage">
+          <div class="pane">
+            <div class="pane-bar"><i></i><i></i><i></i><b>Your campaigns</b></div>
+            <div class="pane-body">
+              <div class="m-row"><span class="m-chip">12% back</span><span class="m-line"></span><span class="m-chip on">Live</span></div>
+              <div class="m-row"><span class="m-chip">8% back</span><span class="m-line"></span><span class="m-chip">In review</span></div>
+              <div class="m-row"><span class="m-line w60"></span><span class="m-amt">£0.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
+
+      <div class="card link-row flip reveal">
+        <div>
+          <span class="link-n">4</span>
+          <h2 class="link-t">You fund it up front</h2>
+          <p class="link-d">Cashback is <b>prepaid</b>. You top up a balance by card, and approved claims come out of it — nothing is charged per impression or per click, and no invoice arrives at the end of the month for spend you didn't plan. Referral bonuses, if you switch them on, come out of a <b>second, separate wallet</b>, so a busy month of referrals can't quietly eat the cashback you set aside.</p>
+        </div>
+        <div class="link-stage">
+          <div class="pane">
+            <div class="pane-bar"><i></i><i></i><i></i><b>Billing</b></div>
+            <div class="pane-body">
+              <div class="m-bal"><span>Cashback wallet</span><b>£420.00</b></div>
+              <div class="m-row"><span class="m-line w60"></span><span class="m-amt">£75.00</span></div>
+              <div class="m-row"><span class="m-line w40"></span><span class="m-amt">&minus;£12.60</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
+
+      <div class="card link-row reveal">
+        <div>
+          <span class="link-n">5</span>
+          <h2 class="link-t">Shoppers buy, share and claim</h2>
+          <p class="link-d">A member buys from you, <b>follows @cirqle.co.uk and posts about it tagging you and us</b>, then uploads the receipt. We check the receipt against your reference, check the post really tagged your brand, and approve or reject the claim. Approved cashback clears <b>three days after the date they posted</b>, and comes out of your balance then. You see the claim, the post and the spend behind it.</p>
+        </div>
+        <div class="link-stage">
+          <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle.co.uk</b> <b>@yourbrand</b></div><div class="ps-btn">Share</div></div></div>
+        </div>
+      </div>
     </div>
 
-    <div class="prose reveal"><h2>How it works for brands</h2></div>
-    <div class="steps-list">
-      <div class="card step-item reveal"><span class="coin coin-sky">1</span><p class="step-text"><strong>Set your rate</strong> — choose a cashback % that works for your margins.</p></div>
-      <div class="card step-item reveal reveal-delay-1"><span class="coin coin-pink">2</span><p class="step-text"><strong>Go live</strong> — your deal is listed to 50k+ active Cirqle shoppers.</p></div>
-      <div class="card step-item reveal reveal-delay-2"><span class="coin coin-lime">3</span><p class="step-text"><strong>Shoppers share</strong> — verified purchases get shared with friends, online and in-person.</p></div>
-      <div class="card step-item reveal reveal-delay-3"><span class="coin">4</span><p class="step-text"><strong>Track ROI</strong> — see real conversions, content volume, and payback in your dashboard.</p></div>
+    <!-- ══ PER-DEAL SETTINGS ══ -->
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>Two settings on every deal</h2>
+      <p>Both are off unless you turn them on, and both are set per deal, not per account — funding a wallet never enrols a campaign you didn't choose.</p>
+    </div>
+    <div class="ways" style="margin-top:22px">
+      <div class="card way reveal">
+        <span class="way-ico"><i class="ico ico-users"></i></span>
+        <div>
+          <div class="way-t">Referral bonuses</div>
+          <p class="way-d">Pay a member who sends a friend your way, and the friend who buys. You set what each side is worth — the defaults are £1 and 50p, and neither can go below 50p. It is only paid when the friend's first claim on that deal clears, so a bonus never goes out on a purchase that didn't happen.</p>
+          <span class="way-pay">Paid from your referral wallet</span>
+        </div>
+      </div>
+      <div class="card way reveal reveal-delay-1">
+        <span class="way-ico"><i class="ico ico-refresh"></i></span>
+        <div>
+          <div class="way-t">Repeat visits</div>
+          <p class="way-d">Let someone who has already claimed your deal come back and claim again from the receipt alone, with no second post. You choose what a visit is worth; it can't be set higher than the deal's own cashback, so posting always stays the better option for the shopper.</p>
+          <span class="way-pay">Paid from your cashback wallet</span>
+        </div>
+      </div>
     </div>
 
-    <div class="stats-section">
-      <div class="card b-stat reveal"><div class="b-stat-v">50k+</div><div class="b-stat-l">Active shoppers</div></div>
-      <div class="card card-lime b-stat reveal reveal-delay-1"><div class="b-stat-v">4.2x</div><div class="b-stat-l">Average ROAS</div></div>
-      <div class="card card-pink b-stat reveal reveal-delay-2"><div class="b-stat-v">UK</div><div class="b-stat-l">Household-name brand partners</div></div>
-      <div class="card card-sky b-stat reveal reveal-delay-3"><div class="b-stat-v">48h</div><div class="b-stat-l">Time to go live</div></div>
+    <!-- ══ THE PORTAL ══ -->
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>What you can see while it runs</h2>
+      <p>Everything below is read off real claims and real posts — there are no modelled or estimated figures in the portal.</p>
+    </div>
+    <div class="why-grid" style="margin-top:22px">
+      <div class="card card-lime card-hover why-card reveal"><span class="why-icon"><i class="ico ico-chart"></i></span><div class="why-title">Every claim, with the receipt behind it</div><div class="why-text">Views, clicks, claims and conversion for each deal, plus what people actually spent — taken off the receipts themselves, not estimated from your rate. With it: average basket size, and how much of that revenue came from a receipt we could read.</div></div>
+      <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-instagram"></i></span><div class="why-title">The posts themselves</div><div class="why-text">Every Instagram post tagging your brand — image, caption, and the account that posted it.</div></div>
+      <div class="card card-sky card-hover why-card reveal"><span class="why-icon"><i class="ico ico-cash"></i></span><div class="why-title">What it cost against what it made</div><div class="why-text">Revenue set against your programme cost — cashback, bonuses and fees together — and the share of revenue you handed back.</div></div>
+      <div class="card card-tang card-hover why-card reveal"><span class="why-icon"><i class="ico ico-users"></i></span><div class="why-title">Your customers, exportable</div><div class="why-text">Everyone who has bought through a deal of yours, with their first and most recent claim — and an Export CSV button when you'd rather have it in a spreadsheet.</div></div>
+      <div class="card card-pink card-hover why-card reveal"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Who brought whom</div><div class="why-text">Which customers were referred and which found you themselves, the chains that got them there, and the posts doing the most referring.</div></div>
+      <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-refresh"></i></span><div class="why-title">Whether they come back</div><div class="why-text">Return rate by the month people joined, and how that compares with other brands in your category.</div></div>
+    </div>
+
+    <!-- ══ PRICING — from /merchant/plans, the same source the billing portal
+         and contact.html read, so this page can't drift from what's charged. ══ -->
+    <div id="pricingSection" style="display:none">
+      <div class="prose reveal" style="margin-top:64px">
+        <h2>How billing works</h2>
+        <p>Two separate things: a monthly membership, and cashback credit you top up as you need it. The credit is yours to spend on shopper cashback — it is not a fee, and what you don't spend stays on your balance. You choose a plan when you <a href="contact.html">apply</a>.</p>
+      </div>
+      <div class="plans" style="margin-top:22px" id="plansGrid"></div>
+      <p class="plan-note" id="planNote"></p>
     </div>
 
     <div class="card card-ink cta-box reveal">
@@ -167,31 +389,34 @@
       <a href="contact.html" class="btn btn-lg btn-lime">Get in touch →</a>
     </div>
   </div>
+
+  <script src="assets/api.js"></script>
+  <script src="assets/escape.js"></script>
   <script>
-    // Count the stat figures up when they scroll into view ("50k+" -> 0..50k+).
-    (function () {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const els = document.querySelectorAll('.b-stat-v');
-      if (!els.length || !('IntersectionObserver' in window)) return;
-      const obs = new IntersectionObserver(entries => {
-        entries.forEach(en => {
-          if (!en.isIntersecting) return;
-          obs.unobserve(en.target);
-          const raw = en.target.textContent.trim();
-          const m = raw.match(/^([\d.]+)(.*)$/);
-          if (!m) return;
-          const target = parseFloat(m[1]), suffix = m[2];
-          const dec = m[1].includes('.') ? 1 : 0;
-          const step = target / (1100 / 16);
-          let cur = 0;
-          const t = setInterval(() => {
-            cur = Math.min(cur + step, target);
-            en.target.textContent = cur.toFixed(dec) + suffix;
-            if (cur >= target) { en.target.textContent = raw; clearInterval(t); }
-          }, 16);
-        });
-      }, { threshold: 0.6 });
-      els.forEach(el => obs.observe(el));
+    // Membership prices come from the API rather than the markup: contact.html
+    // and the billing portal read the same endpoint, so a price change in
+    // payments.py reaches all three at once. If the call fails the section
+    // stays hidden — a stale price on a pricing page is worse than no page.
+    // (No `reveal` class on the injected cards: enhance.js collects those once
+    // at load, so anything added later would stay stuck at opacity 0.)
+    (async function () {
+      const money = n => '£' + (Number(n) % 1 ? Number(n).toFixed(2) : Math.round(n));
+      try {
+        const res = await fetch(`${window.CIRQLE_API_BASE}/merchant/plans`);
+        if (!res.ok) return;
+        const plans = await res.json();
+        if (!Array.isArray(plans) || !plans.length) return;
+        document.getElementById('plansGrid').innerHTML = plans.map(p => `
+          <div class="card plan-card">
+            <div class="plan-name">${esc(p.name)}</div>
+            <div class="plan-allow">Includes <strong>${money(p.allowance)}</strong> of fee-free cashback credit each month</div>
+            <div class="plan-blurb">${esc(p.blurb)}</div>
+          </div>`).join('');
+        document.getElementById('planNote').textContent =
+          `Top up as much cashback credit as you like. The allowance resets on the 1st, ` +
+          `and credit beyond it carries a small platform fee, shown before you pay.`;
+        document.getElementById('pricingSection').style.display = '';
+      } catch (e) { /* offline or API down — leave the section hidden */ }
     })();
   </script>
   <script src="assets/enhance.js"></script>
