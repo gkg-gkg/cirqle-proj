@@ -249,8 +249,6 @@
         grid.innerHTML = plans.map(p => `
           <div class="card plan-card" data-plan="${p.id}">
             <div class="plan-name">${p.name}</div>
-            <div class="plan-price">${money(p.fee)}</div>
-            <div class="plan-per">per month</div>
             <div class="plan-allow">Includes <strong>${money(p.allowance)}</strong> of fee-free cashback credit each month</div>
             <div class="plan-blurb">${p.blurb}</div>
             <button type="button" class="btn btn-lime" data-choose="${p.id}">Choose ${p.name}</button>
@@ -271,7 +269,7 @@
       document.querySelectorAll('.plan-card').forEach(c =>
         c.classList.toggle('selected', c.dataset.plan === id));
       document.getElementById('chosenText').textContent =
-        `Applying for ${plan.name} — ${money(plan.fee)}/mo`;
+        `Applying for ${plan.name}`;
       document.getElementById('chosenBanner').classList.add('on');
       document.getElementById('applyForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
