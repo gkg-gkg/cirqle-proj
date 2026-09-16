@@ -138,15 +138,6 @@
     .why-grid > :nth-child(1), .why-grid > :nth-child(4) { justify-content: flex-start; }
     .why-grid > :nth-child(1) .why-title, .why-grid > :nth-child(4) .why-title { margin-top: auto; }
 
-    /* ── Pricing, read from the same endpoint the billing portal uses ── */
-    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .plan-card { padding: 24px 22px; display: flex; flex-direction: column; }
-    .plan-name { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; letter-spacing: -.01em; }
-    .plan-allow { margin: 14px 0 6px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper-deep); font-size: .82rem; line-height: 1.5; }
-    .plan-allow strong { font-weight: 800; }
-    .plan-blurb { font-size: .84rem; color: var(--ink-soft); line-height: 1.6; }
-    .plan-note { font-size: .85rem; color: var(--ink-soft); line-height: 1.65; margin-top: 18px; }
-
     .cta-box { text-align: center; padding: 44px 30px; margin-top: 60px; position: relative; overflow: hidden; }
     .cta-box > :not(.cta-ring) { position: relative; z-index: 1; }
     .cta-ring {
@@ -190,7 +181,6 @@
 
     @media (max-width: 820px) {
       .ways { grid-template-columns: 1fr; }
-      .plans { grid-template-columns: 1fr; }
     }
     /* The mosaic is a desktop idea: six columns of card don't survive a narrow
        screen. Drop the explicit areas (or they'd hold their spans and overflow)
@@ -261,7 +251,7 @@
         <div>
           <span class="link-n">2</span>
           <h2 class="link-t">You set the account up</h2>
-          <p class="link-d">Two things before a deal can go live. Pick a <b>membership plan</b> (they're further down this page). Then upload <b>one real receipt of your own</b> as a reference: every claim made against your deals is compared with it, so a receipt from a different shop, or one that has been edited, has something concrete to fail against. You upload it once and it is reused across every campaign you run.</p>
+          <p class="link-d">Two things before a deal can go live. Pick a <b>membership plan</b> — the options are on the <a href="contact.html">application form</a>. Then upload <b>one real receipt of your own</b> as a reference: every claim made against your deals is compared with it, so a receipt from a different shop, or one that has been edited, has something concrete to fail against. You upload it once and it is reused across every campaign you run.</p>
         </div>
         <div class="link-stage">
           <div class="pane">
@@ -371,17 +361,6 @@
       <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-refresh"></i></span><div class="why-title">Whether they come back</div><div class="why-text">Return rate by the month people joined, and how that compares with other brands in your category.</div></div>
     </div>
 
-    <!-- ══ PRICING — from /merchant/plans, the same source the billing portal
-         and contact.html read, so this page can't drift from what's charged. ══ -->
-    <div id="pricingSection" style="display:none">
-      <div class="prose reveal" style="margin-top:64px">
-        <h2>How billing works</h2>
-        <p>Two separate things: a monthly membership, and cashback credit you top up as you need it. The credit is yours to spend on shopper cashback — it is not a fee, and what you don't spend stays on your balance. You choose a plan when you <a href="contact.html">apply</a>.</p>
-      </div>
-      <div class="plans" style="margin-top:22px" id="plansGrid"></div>
-      <p class="plan-note" id="planNote"></p>
-    </div>
-
     <div class="card card-ink cta-box reveal">
       <span class="cta-ring" aria-hidden="true"></span>
       <h2 style="color:var(--paper); font-size:clamp(1.6rem,3.4vw,2.2rem)">Ready to grow with <span class="hl hl-lime" style="color:var(--ink)">Cirqle?</span></h2>
@@ -390,35 +369,6 @@
     </div>
   </div>
 
-  <script src="assets/api.js"></script>
-  <script src="assets/escape.js"></script>
-  <script>
-    // Membership prices come from the API rather than the markup: contact.html
-    // and the billing portal read the same endpoint, so a price change in
-    // payments.py reaches all three at once. If the call fails the section
-    // stays hidden — a stale price on a pricing page is worse than no page.
-    // (No `reveal` class on the injected cards: enhance.js collects those once
-    // at load, so anything added later would stay stuck at opacity 0.)
-    (async function () {
-      const money = n => '£' + (Number(n) % 1 ? Number(n).toFixed(2) : Math.round(n));
-      try {
-        const res = await fetch(`${window.CIRQLE_API_BASE}/merchant/plans`);
-        if (!res.ok) return;
-        const plans = await res.json();
-        if (!Array.isArray(plans) || !plans.length) return;
-        document.getElementById('plansGrid').innerHTML = plans.map(p => `
-          <div class="card plan-card">
-            <div class="plan-name">${esc(p.name)}</div>
-            <div class="plan-allow">Includes <strong>${money(p.allowance)}</strong> of fee-free cashback credit each month</div>
-            <div class="plan-blurb">${esc(p.blurb)}</div>
-          </div>`).join('');
-        document.getElementById('planNote').textContent =
-          `Top up as much cashback credit as you like. The allowance resets on the 1st, ` +
-          `and credit beyond it carries a small platform fee, shown before you pay.`;
-        document.getElementById('pricingSection').style.display = '';
-      } catch (e) { /* offline or API down — leave the section hidden */ }
-    })();
-  </script>
   <script src="assets/enhance.js"></script>
 </body>
 </html>
