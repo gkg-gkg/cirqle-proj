@@ -18,6 +18,17 @@
     .breadcrumb a:hover { color: var(--pink-deep); }
     .breadcrumb-sep { opacity: .4; }
 
+    /* This deal is a placeholder using a well-known brand's name — the brand
+       has not onboarded. Full width above the layout, so it is read before the
+       rate and the Shop button rather than after them. */
+    .preview-note {
+      display: flex; gap: 11px; align-items: flex-start;
+      padding: 13px 16px; margin-bottom: 22px;
+      border: var(--bw) solid var(--line); border-radius: var(--r-card);
+      background: var(--blue-tint); color: var(--ink);
+      font-size: .86rem; line-height: 1.55;
+    }
+    .preview-note .ico { flex-shrink: 0; margin-top: 2px; }
     .deal-layout { display: grid; grid-template-columns: 1fr 340px; gap: 30px; }
 
     /* Hero card */
@@ -103,6 +114,8 @@
       <span id="bcCategory">Fashion</span><span class="breadcrumb-sep">›</span>
       <span id="bcTitle" style="font-weight:800;color:var(--ink)">Deal</span>
     </div>
+
+    <div class="preview-note fade-up"><i class="ico ico-tag"></i><span><b>Example listing, not a live deal.</b> <span id="pnBrand">This brand</span> has not onboarded with Cirqle &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. It can&rsquo;t be claimed yet. <a href="for-brands.html">Brands can apply here</a>.</span></div>
 
     <div class="deal-layout">
       <div>
@@ -263,6 +276,7 @@
       document.getElementById('heroDesc').textContent = c.longDesc;
       document.getElementById('bcCategory').textContent = c.category;
       document.getElementById('bcTitle').textContent = c.brand;
+      document.getElementById('pnBrand').textContent = c.brand;
       document.getElementById('earnBig').textContent = c.earn;
       document.getElementById('earnDesc').textContent = c.spendDesc;
       // Social proof, straight off the row. A campaign that has never been

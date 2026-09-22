@@ -66,6 +66,17 @@
     }
 
     /* ── Grid ── */
+    /* Every listing in this grid is a placeholder using a well-known brand's
+       name — none of them has onboarded. The note sits above the grid, not under
+       it, because the grid is the thing being qualified. */
+    .preview-note {
+      display: flex; gap: 11px; align-items: flex-start;
+      padding: 13px 16px; margin-bottom: 18px;
+      border: var(--bw) solid var(--line); border-radius: var(--r-card);
+      background: var(--blue-tint); color: var(--ink);
+      font-size: .86rem; line-height: 1.55;
+    }
+    .preview-note .ico { flex-shrink: 0; margin-top: 2px; }
     .results-count { font-size: .85rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 18px; }
     .results-count span { font-family: var(--font-display); font-weight: 800; color: var(--ink); font-size: 1rem; }
     .deals-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
@@ -202,7 +213,7 @@
   <!-- PAGE HEADER: title, subtitle, then search + compact limited-time banner -->
   <div class="browse-head">
     <h1 class="h-display fade-up d1" style="margin-top:18px">All the <span class="hl hl-pink">deals.</span></h1>
-    <p class="h-sub fade-up d2" style="margin-top:10px">The best cashback from top UK brands.</p>
+    <p class="h-sub fade-up d2" style="margin-top:10px">A preview of the cashback marketplace we're building.</p>
   </div>
 
   <!-- SIDEBAR + DEALS GRID -->
@@ -245,7 +256,8 @@
 
       <!-- Deals -->
       <div>
-        <p class="results-count"><span id="countNum">12</span> deals available</p>
+        <div class="preview-note"><i class="ico ico-tag"></i><span><b>These are example listings, not live deals.</b> Cirqle has not onboarded any of the brands shown &mdash; they stand in to show how a listing will look, at a rate the brand itself would set. Nothing here can be claimed yet. <a href="for-brands.html">Brands can apply here</a>.</span></div>
+        <p class="results-count"><span id="countNum">12</span> example deals</p>
 
         <div class="deals-grid" id="dealsGrid">
 

@@ -737,7 +737,7 @@
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">From share to <span class="hl">paid.</span></h2>
-        <p class="h-sub reveal reveal-delay-2" id="flowSub">Takeaways, trainers, gym memberships, tech and city breaks &mdash; every live deal at its published rate.</p>
+        <p class="h-sub reveal reveal-delay-2" id="flowSub">Example listings, not live partnerships. This is how a deal will look once a brand joins &mdash; the brands shown are not onboarded with Cirqle yet.</p>
       </div>
     </div>
     <div class="hcar reveal" id="flowCar">
@@ -785,7 +785,7 @@
     </div>
   </section>
 
-  <!-- ══ SHOP BY CATEGORY — the nine categories with the most live deals,
+  <!-- ══ SHOP BY CATEGORY — the nine categories with the most example deals,
        built from the same catalogue fetch as the carousel/calculator below. ══ -->
   <section class="section" id="categories">
     <div class="section-inner">
@@ -821,7 +821,7 @@
     <div class="section-inner calc-grid">
       <div>
         <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Sharing is what pays: cashback on the purchases you share, plus &pound;1 for every friend who buys because you shared with them. Rates come straight from our live deals.</p>
+        <p class="h-sub reveal reveal-delay-2">Sharing is what pays: cashback on the purchases you share, plus &pound;1 for every friend who buys because you shared with them. Rates come from the example listings in our catalogue, not from live brand partnerships.</p>
         <div class="calc-out reveal reveal-delay-3" style="margin-top:28px">
           <div class="calc-out-label">Realistic earnings a year</div>
           <div class="calc-out-val" id="calcOut">&mdash;</div>
@@ -1103,23 +1103,11 @@
       'uber-eats': '#ffffff'
     };
     function buildCarousel(deals) {
-      // How many deals, across how many categories — counted from the catalogue
-      // rather than typed into the markup, so the claim can't go stale as
-      // merchants join or leave. The markup keeps a number-free fallback for the
-      // case where the catalogue never arrives (this section is hidden then).
-      var sub = document.getElementById('flowSub');
-      if (sub) {
-        var catCount = {};
-        deals.forEach(function (d) {
-          var c = (d.category || '').trim();
-          if (c) catCount[c] = 1;
-        });
-        var nCats = Object.keys(catCount).length;
-        sub.textContent = deals.length + (deals.length === 1 ? ' live deal' : ' live deals') +
-          (nCats > 1 ? ' across ' + nCats + ' categories' : '') +
-          ' \u2014 takeaways, trainers, gym memberships, tech and city breaks, ' +
-          'each at its published rate.';
-      }
+      // The subtitle used to count the catalogue — "26 live deals across 9
+      // categories". Every one of those is a placeholder listing and no brand
+      // has onboarded, so the count read as a roster we do not have. It is
+      // static copy in the markup now, and says so plainly; there is nothing
+      // here worth counting until brands actually join.
 
       var car = document.getElementById('flowCar');
       var r1 = document.getElementById('carRow1'), r2 = document.getElementById('carRow2');
@@ -1256,7 +1244,7 @@
           '<span class="cat-badge">' + cirqleIcon(cirqleCatIcon(name), 'ico-deep') + '</span>' +
           '<span class="cat-body">' +
             '<b class="cat-tile-name">' + esc(name) + '</b>' +
-            '<span class="cat-tile-count">' + n + ' live deal' + (n === 1 ? '' : 's') + '</span>' +
+            '<span class="cat-tile-count">' + n + ' example deal' + (n === 1 ? '' : 's') + '</span>' +
           '</span>' +
           '</a>';
       }).join('');
@@ -1337,8 +1325,8 @@
                  ' from ' + n + (n === 1 ? ' friend' : ' friends') + ' referred a month.';
         }
         sub.textContent = 'On £' + v + ' a month at ' + active.toLowerCase() +
-          ' partners, sharing ' + Math.round(postRate * 100) + '% of them, at ' +
-          rates + '% across our live deals' + tail;
+          ' brands, sharing ' + Math.round(postRate * 100) + '% of them, at ' +
+          rates + '% across our example deals' + tail;
       }
       function wire(container, onPick) {
         container.addEventListener('click', function (e) {
