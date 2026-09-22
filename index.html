@@ -230,7 +230,6 @@
        is not a mark: it fills the panel edge to edge instead of sitting inset,
        or it reads as a snapshot dropped in a frame. */
     .htile-img.is-photo { object-fit: cover; padding: 0; }
-    .htile-state { position: absolute; top: 9px; left: 9px; font-size: .58rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 4px 9px; border-radius: 7px; background: rgba(255,255,255,.92); color: var(--ink); }
     .htile-body { padding: 12px 13px 13px; }
     .htile-brand { font-family: var(--font-display); font-size: .86rem; font-weight: 700; line-height: 1.2; }
     .htile-cap { font-size: .68rem; color: var(--ink-soft); margin-top: 3px; }
@@ -251,7 +250,6 @@
     .htile.t5 .htile-cap { color: rgba(255,255,255,.88); }
     .htile.t5 .htile-foot { border-top-color: rgba(255,255,255,.28); }
     .htile.t5 .htile-rate { background: rgba(255,255,255,.20); color: #fff; border-color: rgba(255,255,255,.38); }
-    .htile.paid .htile-state { background: rgba(11,18,32,.85); color: var(--neon-soft); }
 
     /* ── The cycle: three white tiles, each a phone doing the step ──
        The phones are drawn in CSS rather than screenshotted, so they stay sharp
@@ -1104,9 +1102,6 @@
       'tui': '#70cbf4',
       'uber-eats': '#ffffff'
     };
-    // Share → paid tiles. Brand and rate are real; the caption and the worked
-    // example are illustrative, and the section header says so.
-    var CAPTIONS = ['Story tagged @cirqle.co.uk', 'Haul post · 2 tags', 'Link sent to a friend', 'Grid post', 'Unboxing story', 'Friend referred'];
     function buildCarousel(deals) {
       // How many deals, across how many categories — counted from the catalogue
       // rather than typed into the markup, so the claim can't go stale as
@@ -1129,26 +1124,28 @@
       var car = document.getElementById('flowCar');
       var r1 = document.getElementById('carRow1'), r2 = document.getElementById('carRow2');
       if (!car || !r1 || !r2) return;
+      // Every field on a tile is the brand's own published listing: its rate,
+      // and the worked example it publishes alongside it ("£13.00" / "on a £100
+      // spend"). Nothing here is member activity — the tiles used to carry a
+      // Paid/Shared badge, a caption like "Haul post · 2 tags" and a £ figure
+      // derived from the tile's position in the row, which read as a live feed
+      // of other people's earnings when no such thing had happened.
       var tiles = deals.map(function (d, i) {
-        var paid = (i % 4 === 3);
         // Partner logos live in assets/logos, keyed by a slug of the brand name.
         var logo = logoSrc(slug(d.brand));
         var shot = (d.images && d.images[0]) || '';   // used only if the logo 404s
-        var spend = 40 + (i % 6) * 15;
-        var earn = (spend * (d.rate || 0) / 100).toFixed(2);
-        return '<div class="htile' + (paid ? ' paid' : '') + ' t' + (i % 6) + '">' +
+        return '<div class="htile t' + (i % 6) + '">' +
             '<div class="htile-shot" style="background:' + (LOGO_BG[slug(d.brand)] || '#fff') + '">' +
               '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
               (shot ? ' data-photo="' + esc(shot) + '"' : '') +
               ' onerror="cirqleTileFallback(this)">' +
-              '<span class="htile-state">' + (paid ? 'Paid' : 'Shared') + '</span>' +
             '</div>' +
             '<div class="htile-body">' +
               '<div class="htile-brand">' + esc(d.brand) + '</div>' +
-              '<div class="htile-cap">' + CAPTIONS[i % CAPTIONS.length] + '</div>' +
+              '<div class="htile-cap">' + esc(d.spendDesc || d.category || '') + '</div>' +
               '<div class="htile-foot">' +
                 '<span class="htile-rate">' + Math.round(d.rate) + '% back</span>' +
-                '<span class="htile-amt">£' + earn + '</span>' +
+                '<span class="htile-amt">' + esc(d.earn || '') + '</span>' +
               '</div>' +
             '</div>' +
           '</div>';
