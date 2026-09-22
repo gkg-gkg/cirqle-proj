@@ -160,7 +160,7 @@
             <div class="cashback-label">You could earn</div>
             <div class="cashback-big" id="earnBig">£13.00</div>
             <div class="cashback-desc" id="earnDesc">on a £100 spend</div>
-            <div class="cashback-total" id="totalPaid">£112,705 paid to members</div>
+            <div class="cashback-total" id="totalPaid">£0 paid to members</div>
             <button class="btn btn-lg btn-ink shop-big-btn" id="shopBtn" onclick="handleShop()">Shop &amp; Earn</button>
             <button class="btn save-btn" onclick="handleSave()">Save deal</button>
             <div class="action-note">Opens the brand's website in a new tab. Shop as normal, then share to unlock your cashback.</div>
@@ -172,7 +172,7 @@
               <div class="stat-mini-label">Cashback rate</div>
             </div>
             <div class="card card-sky stat-mini fade-up d3">
-              <div class="stat-mini-val" id="membersVal">4.2k</div>
+              <div class="stat-mini-val" id="membersVal">0</div>
               <div class="stat-mini-label">Members used this</div>
             </div>
           </div>
@@ -265,9 +265,12 @@
       document.getElementById('bcTitle').textContent = c.brand;
       document.getElementById('earnBig').textContent = c.earn;
       document.getElementById('earnDesc').textContent = c.spendDesc;
-      document.getElementById('totalPaid').textContent = c.totalPaid;
+      // Social proof, straight off the row. A campaign that has never been
+      // claimed stores these empty, and empty has to read as zero rather than
+      // as a blank space the eye fills in with something better.
+      document.getElementById('totalPaid').textContent = c.totalPaid || '£0 paid to members';
       document.getElementById('rateVal').textContent = c.rate + '%';
-      document.getElementById('membersVal').textContent = c.members;
+      document.getElementById('membersVal').textContent = c.members || '0';
       document.getElementById('termsList').innerHTML = sanitizeHtml(c.terms);
       document.getElementById('expiry').textContent = /ongoing/i.test(c.expiry) ? 'Ongoing offer — available now'
         : /members/i.test(c.expiry) ? c.expiry
