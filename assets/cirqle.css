@@ -74,7 +74,7 @@ body {
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
@@ -148,12 +148,6 @@ body::after {
   background: var(--paper);
   border-bottom: 1px solid transparent;
   transition: border-color .3s, box-shadow .3s;
-  /* Pull the box up over the iPhone notch/status-bar area and repay it as
-     padding, so the nav's own white paint — not Safari's translucent
-     glass tint — covers that strip. Without this, iOS 26's "Liquid
-     Glass" chrome shows a blurred peek of whatever's scrolling behind it. */
-  margin-top: calc(-1 * env(safe-area-inset-top, 0px));
-  padding-top: calc(14px + env(safe-area-inset-top, 0px));
 }
 @supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
   .nav {
@@ -224,7 +218,7 @@ body::after {
 .nav-burger.open span::before { top: 0; transform: rotate(45deg); }
 .nav-burger.open span::after  { top: 0; transform: rotate(-45deg); }
 .nav-menu {
-  position: fixed; top: calc(64px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px;
+  position: fixed; top: 64px; left: 12px; right: 12px;
   z-index: 999;
   background: var(--card);
   border: 1px solid var(--line); border-radius: var(--r-card);
