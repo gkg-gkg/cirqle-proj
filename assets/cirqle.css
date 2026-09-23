@@ -77,6 +77,10 @@ body {
   overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  /* viewport-fit=cover lets the page paint edge-to-edge, so the document has
+     to start below the notch itself — otherwise the nav lays out underneath
+     the status bar. Zero on every device without a safe area. */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 ::selection { background: var(--blue-tint); color: var(--blue-deep); }
 ::-webkit-scrollbar { width: 10px; }
@@ -104,9 +108,23 @@ body::after {
   z-index: 6000;
 }
 
+/* Notch / status-bar cover. iOS 26 Safari's status bar is translucent glass
+   that only *tints* itself from what is underneath, so page content scrolling
+   past stays visible up there. The cure is real opaque pixels: a fixed white
+   bar exactly the height of the safe-area inset, sitting above the nav so
+   nothing can scroll over it. Collapses to 0 height off notched phones. */
+body::before {
+  content: '';
+  position: fixed; top: 0; left: 0; right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--paper);
+  z-index: 5000;
+  pointer-events: none;
+}
+
 /* ── Scroll progress bar (injected by enhance.js) ── */
 .scroll-progress {
-  position: fixed; top: 0; left: 0;
+  position: fixed; top: env(safe-area-inset-top, 0px); left: 0;
   height: 2px; width: 0;
   background: linear-gradient(90deg, var(--blue), var(--teal));
   z-index: 3000;
@@ -136,7 +154,7 @@ body::after {
    NAV
    ══════════════════════════════════════ */
 .nav {
-  position: sticky; top: 0;
+  position: sticky; top: env(safe-area-inset-top, 0px);
   z-index: 1000;
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px;
@@ -218,7 +236,7 @@ body::after {
 .nav-burger.open span::before { top: 0; transform: rotate(45deg); }
 .nav-burger.open span::after  { top: 0; transform: rotate(-45deg); }
 .nav-menu {
-  position: fixed; top: 64px; left: 12px; right: 12px;
+  position: fixed; top: calc(env(safe-area-inset-top, 0px) + 64px); left: 12px; right: 12px;
   z-index: 999;
   background: var(--card);
   border: 1px solid var(--line); border-radius: var(--r-card);
