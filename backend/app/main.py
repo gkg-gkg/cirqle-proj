@@ -17,9 +17,15 @@ load_dotenv()  # read backend/.env if present
 from .routers import (account, adminlog, analytics, auth, campaigns, events,  # noqa: E402
                       feed, leaderboard, members, merchant, partners,
                       payouts_admin, receipts, stripe_webhook)
+from .ratelimit import GlobalRateLimit  # noqa: E402
 from .storage import MEDIA_DIR  # noqa: E402
 
 app = FastAPI(title="Cirqle API")
+
+# Per-IP ceiling on every request. Added before CORSMiddleware on purpose: the
+# last-added middleware is outermost, so CORS wraps this and its 429s carry
+# CORS headers (see ratelimit.GlobalRateLimit).
+app.add_middleware(GlobalRateLimit)
 
 # Which website origins may call this API. Set CIRQLE_CORS_ORIGINS (comma-
 # separated) to override; otherwise default to our known production frontends.

@@ -9,13 +9,15 @@ from sqlmodel import Session
 
 from ..db import get_session
 from ..models import Campaign, DealEvent, EventIn
+from ..ratelimit import rate_limit
 
 router = APIRouter(prefix="/events", tags=["events"])
 
 _ALLOWED_KINDS = ("view", "click")
 
 
-@router.post("", status_code=204)
+# Anonymous, so without a cap anyone could inflate a merchant's view/click stats.
+@router.post("", status_code=204, dependencies=[rate_limit("events", limit=60, window=600)])
 def log_event(data: EventIn, session: Session = Depends(get_session)):
     """Record a view/click for a deal. 204 on success (nothing to return)."""
     if data.kind not in _ALLOWED_KINDS:

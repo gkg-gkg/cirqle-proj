@@ -10,15 +10,17 @@ which puts them on S3 in prod or backend/media/ locally).
 """
 import json
 import os
+import secrets
 
 from fastapi import (APIRouter, Depends, File, Form, Header, HTTPException,
-                     Response, UploadFile)
+                     Request, Response, UploadFile)
 from sqlmodel import Session, select
 
 from ..activity import log_activity
 from ..db import get_session
 from ..models import (Campaign, CampaignIn, CampaignOut, CampaignSubmission,
                       DealEvent, MerchantApplication, Receipt)
+from ..ratelimit import admin_guard
 from ..storage import StorageError, StorageUploadError, delete_image, upload_image
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
@@ -57,9 +59,12 @@ _FIELD_MAP = {
 }
 
 
-def require_admin(x_admin_key: str = Header(default="")):
-    """Gate write endpoints behind the shared admin key (X-Admin-Key header)."""
-    if x_admin_key != ADMIN_KEY:
+def require_admin(request: Request, x_admin_key: str = Header(default="")):
+    """Gate write endpoints behind the shared admin key (X-Admin-Key header).
+    Wrong guesses are rate limited per IP (ratelimit.admin_guard)."""
+    ok = secrets.compare_digest(x_admin_key.encode(), ADMIN_KEY.encode())
+    admin_guard(request, ok)
+    if not ok:
         raise HTTPException(status_code=401, detail="Invalid or missing admin key.")
 
 
