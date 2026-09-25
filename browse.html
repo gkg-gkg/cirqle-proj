@@ -160,7 +160,7 @@
     @media (max-width: 1060px) { .deals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 900px) {
       /* sidebar collapses above the grid: categories become a swipeable row,
-         sort + postcode sit side by side */
+         search + sort sit side by side */
       .deals-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
       .filter-col { position: static; gap: 16px; }
       .side-cats { flex-direction: row; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 6px; padding-bottom: 4px; }
@@ -174,8 +174,13 @@
     @media (max-width: 620px) {
       .search-wrap { width: 100%; }
       .search-input { width: 100%; }
-      /* sort + postcode stay side by side (each half-width) */
+      /* search + sort stay side by side (each half-width) — at that width the
+         controls lose their roomy desktop padding or the placeholder and the
+         selected sort both get cut off mid-word. */
       .side-row { gap: 12px; }
+      .search-input { padding: 11px 12px 11px 36px; font-size: .84rem; }
+      .search-icon { left: 12px; }
+      .sort-select { padding: 11px 8px; font-size: .84rem; }
 
       /* tiles: two-up, compact, no description */
       .deals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -222,9 +227,26 @@
 
       <!-- Filter sidebar -->
       <aside class="filter-col fade-up">
-        <div class="search-wrap">
-          <span class="search-icon"><i class="ico ico-search ico-soft"></i></span>
-          <input class="search-input" type="text" id="searchInput" placeholder="Search deals…" aria-label="Search deals" />
+        <!-- Search and sort share one row: half the width each on a phone,
+             where .side-row is a flex row, and stacked in the sidebar on
+             desktop, where it dissolves into `display: contents`. -->
+        <div class="side-row">
+          <div>
+            <div class="side-group-title">Search</div>
+            <div class="search-wrap">
+              <span class="search-icon"><i class="ico ico-search ico-soft"></i></span>
+              <input class="search-input" type="text" id="searchInput" placeholder="Search deals…" aria-label="Search deals" />
+            </div>
+          </div>
+          <div>
+            <div class="side-group-title">Sort by</div>
+            <select class="sort-select" id="sortSelect" aria-label="Sort deals">
+              <option value="popular">Most popular</option>
+              <option value="cashback">Highest cashback</option>
+              <option value="newest">Newest first</option>
+              <option value="discount">Biggest discount</option>
+            </select>
+          </div>
         </div>
         <div>
           <div class="side-group-title">Categories</div>
@@ -239,17 +261,6 @@
             <button class="side-cat" data-filter="entertainment">Entertainment</button>
             <button class="side-cat" data-filter="kids">Kids &amp; Baby</button>
             <button class="side-cat" data-filter="pets">Pets</button>
-          </div>
-        </div>
-        <div class="side-row">
-          <div>
-            <div class="side-group-title">Sort by</div>
-            <select class="sort-select" id="sortSelect" aria-label="Sort deals">
-              <option value="popular">Most popular</option>
-              <option value="cashback">Highest cashback</option>
-              <option value="newest">Newest first</option>
-              <option value="discount">Biggest discount</option>
-            </select>
           </div>
         </div>
       </aside>

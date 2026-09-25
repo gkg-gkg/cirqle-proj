@@ -174,10 +174,16 @@ html::before {
   transition: border-color .3s, box-shadow .3s;
 }
 @supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
-  .nav {
-    background: rgba(255,255,255,.82);
-    backdrop-filter: saturate(180%) blur(12px);
-    -webkit-backdrop-filter: saturate(180%) blur(12px);
+  /* …and only on a pointer-sized screen. On a phone the blur is what you see
+     scrolling past: content ghosts through the bar, and iOS carries that same
+     translucency up into the status-bar strip above it, so the clock and
+     battery sit over a moving page. Phones keep the opaque base. */
+  @media (min-width: 901px) {
+    .nav {
+      background: rgba(255,255,255,.82);
+      backdrop-filter: saturate(180%) blur(12px);
+      -webkit-backdrop-filter: saturate(180%) blur(12px);
+    }
   }
 }
 .nav.scrolled { border-bottom-color: var(--line); box-shadow: 0 8px 30px rgba(15,23,42,.05); }

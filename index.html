@@ -568,6 +568,32 @@
       .calc-note { order: 3; margin-top: 18px; }
       .pwall { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 460px; }
     }
+    @media (max-width: 620px) {
+      /* The calculator is the one block on this page meant to be played with,
+         so all of it — heading, result and every control — has to land on a
+         single phone screen. Nothing here is cut; the whole thing scales down
+         together, which is why the type, the chips, the row gaps and the card
+         padding all move at once. */
+      #calculator .h-sub { font-size: .8rem; margin-top: 6px; line-height: 1.5; }
+      #calculator .calc-grid { gap: 12px; }
+      .calc-out { padding: 12px 15px; border-radius: 12px; }
+      .calc-out-val { font-size: 1.8rem; }
+      .calc-out-sub { font-size: .73rem; }
+      .calc-card { padding: 14px; }
+      .calc-row { margin-bottom: 11px; }
+      .calc-label { font-size: .76rem; margin-bottom: 6px; }
+      .calc-label b { font-size: .95rem; }
+      .calc-cats { gap: 5px; }
+      .calc-cat { font-size: .72rem; padding: 5px 9px; border-radius: 6px; }
+      .calc-range { height: 5px; }
+      .calc-range::-webkit-slider-thumb { width: 19px; height: 19px; }
+      .calc-range::-moz-range-thumb { width: 19px; height: 19px; }
+      .calc-more { margin-top: 11px; padding-top: 11px; }
+      .calc-more .btn { font-size: .88rem; padding: 10px 20px; }
+      /* The same fact is spelled out in the paragraph under the card, so
+         inside it the line is just height. */
+      .calc-card .calc-note { display: none; }
+    }
     @media (max-width: 600px) {
       /* The cards have to fit half a narrow screen, so the furniture shrinks
          with them — otherwise the name and amount fight over one line. */
@@ -817,12 +843,12 @@
   </section>
 
   <!-- ══ CASHBACK CALCULATOR — driven by real published rates ══ -->
-  <section class="section" id="calculator" style="padding-top:clamp(48px,6vw,86px)">
+  <section class="section" id="calculator" style="padding-top:clamp(28px,6vw,86px)">
     <div class="section-inner calc-grid">
       <div>
-        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(2rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
+        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(1.5rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
         <p class="h-sub reveal reveal-delay-2">Sharing is what pays: cashback on the purchases you share, plus &pound;1 for every friend who buys because you shared with them. Rates come from the example listings in our catalogue, not from live brand partnerships.</p>
-        <div class="calc-out reveal reveal-delay-3" style="margin-top:28px">
+        <div class="calc-out reveal reveal-delay-3" style="margin-top:clamp(14px,3vw,28px)">
           <div class="calc-out-label">Realistic earnings a year</div>
           <div class="calc-out-val" id="calcOut">&mdash;</div>
           <div class="calc-out-sub" id="calcSub">Choose a category to start</div>

@@ -128,6 +128,21 @@
       <div class="greeting-sub fade-up d2">Here's your cashback overview.</div>
     </div>
 
+    <!-- Wallet. Above the counters, not beside the activity list: the balance
+         is the one number this page exists to show, and the four tiles below
+         are the breakdown of it. -->
+    <div class="card wallet-card fade-up d1">
+      <div class="wallet-label">Available balance</div>
+      <div class="wallet-balance">£<span id="walletBal">47.80</span></div>
+      <div class="wallet-sub" id="walletSub">Ready to withdraw to your bank</div>
+      <div class="wallet-referrals" id="walletReferrals" hidden></div>
+      <div class="wallet-actions">
+        <button class="btn btn-ink" id="withdrawBtn" onclick="withdraw()">Withdraw</button>
+        <a href="browse.html" class="btn">Find deals</a>
+        <button class="btn" onclick="copyHandle()">Refer a friend</button>
+      </div>
+    </div>
+
     <div class="stats-row">
       <div class="card stat-card fade-up d1">
         <div class="stat-label">Total earned</div>
@@ -153,19 +168,6 @@
 
     <div class="main-grid">
       <div>
-        <!-- Wallet -->
-        <div class="card wallet-card fade-up d3">
-          <div class="wallet-label">Available balance</div>
-          <div class="wallet-balance">£<span id="walletBal">47.80</span></div>
-          <div class="wallet-sub" id="walletSub">Ready to withdraw to your bank</div>
-          <div class="wallet-referrals" id="walletReferrals" hidden></div>
-          <div class="wallet-actions">
-            <button class="btn btn-ink" id="withdrawBtn" onclick="withdraw()">Withdraw</button>
-            <a href="browse.html" class="btn">Find deals</a>
-            <button class="btn" onclick="copyHandle()">Refer a friend</button>
-          </div>
-        </div>
-
         <!-- Activity -->
         <div class="card fade-up d4">
           <div class="panel-title">Recent activity</div>
