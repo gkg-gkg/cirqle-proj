@@ -124,16 +124,16 @@
           <div class="hero-img" id="heroImg" style="background:var(--sky)">
             <img id="heroImage" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none" onerror="this.style.display='none'" />
             <span id="heroEmoji" aria-hidden="true"><i class="ico ico-bag"></i></span>
-            <button class="hero-arrow hero-arrow-prev" id="heroPrev" type="button" aria-label="Previous image">◀</button>
-            <button class="hero-arrow hero-arrow-next" id="heroNext" type="button" aria-label="Next image">▶</button>
-            <span class="hero-badge sticker sticker-lime" id="heroBadge">13% cashback</span>
-            <span class="hero-chip chip" id="heroChip" style="background:var(--card)">Nike</span>
+            <button class="hero-arrow hero-arrow-prev" id="heroPrev" type="button" aria-label="Previous image" style="display:none">◀</button>
+            <button class="hero-arrow hero-arrow-next" id="heroNext" type="button" aria-label="Next image" style="display:none">▶</button>
+            <span class="hero-badge sticker sticker-lime" id="heroBadge" style="display:none"></span>
+            <span class="hero-chip chip" id="heroChip" style="background:var(--card);display:none"></span>
             <div class="hero-dots" id="heroDots"></div>
           </div>
           <div class="hero-body">
-            <div class="hero-brand" id="heroBrand">Nike</div>
-            <div class="hero-title" id="heroTitle">Nike Summer Sale — up to 13% back</div>
-            <div class="hero-desc" id="heroDesc">Shop the biggest sale of the year and earn cashback on every purchase.</div>
+            <div class="hero-brand" id="heroBrand"></div>
+            <div class="hero-title" id="heroTitle">Loading deal…</div>
+            <div class="hero-desc" id="heroDesc"></div>
           </div>
         </div>
 
@@ -141,7 +141,7 @@
         <div class="card info-card fade-up d2">
           <div class="panel-title">Deal details</div>
           <div class="info-row" id="infoTags"></div>
-          <div class="expiry-note" id="expiry">Offer expires 30 Jun 2026 — don't miss out</div>
+          <div class="expiry-note" id="expiry"></div>
         </div>
 
         <!-- Steps -->
@@ -171,8 +171,8 @@
         <div class="sticky-panel">
           <div class="card action-card fade-up d1">
             <div class="cashback-label">You could earn</div>
-            <div class="cashback-big" id="earnBig">£13.00</div>
-            <div class="cashback-desc" id="earnDesc">on a £100 spend</div>
+            <div class="cashback-big" id="earnBig">—</div>
+            <div class="cashback-desc" id="earnDesc"></div>
             <div class="cashback-total" id="totalPaid">£0 paid to members</div>
             <button class="btn btn-lg btn-ink shop-big-btn" id="shopBtn" onclick="handleShop()">Shop &amp; Earn</button>
             <button class="btn save-btn" onclick="handleSave()">Save deal</button>
@@ -181,7 +181,7 @@
 
           <div class="stat-mini-row">
             <div class="card card-pink stat-mini fade-up d2">
-              <div class="stat-mini-val" id="rateVal">13%</div>
+              <div class="stat-mini-val" id="rateVal">—</div>
               <div class="stat-mini-label">Cashback rate</div>
             </div>
             <div class="card card-sky stat-mini fade-up d3">
@@ -221,7 +221,7 @@
     let slide = 0;
     let dots = [];
 
-    const isUrl = s => /^(https?:)?\/\//.test(s) || String(s).startsWith('/');
+    const ICON_SLIDE = '__icon__';   // the single fallback slide when a deal has no images
 
     // ── Deal-event tracking (Phase 6): count a view on load + a click on Shop.
     // keepalive lets the request survive the page navigating away on click.
@@ -240,7 +240,7 @@
       const heroEmoji = document.getElementById('heroEmoji');
       const heroImage = document.getElementById('heroImage');
       const val = slides[slide];
-      if (isUrl(val)) {
+      if (val !== ICON_SLIDE) {
         heroImage.src = val;
         heroImage.style.display = '';
         heroEmoji.style.display = 'none';
@@ -270,6 +270,8 @@
       document.getElementById('heroImg').style.background = c.bg || 'var(--sky)';
       document.getElementById('heroBadge').textContent = c.rate + '% cashback';
       document.getElementById('heroChip').textContent = c.brand;
+      document.getElementById('heroBadge').style.display = '';
+      document.getElementById('heroChip').style.display = '';
       document.getElementById('heroBrand').textContent = c.brand;
       document.getElementById('tagBrand').textContent = '@' + c.brand.toLowerCase().replace(/\s+/g, '');
       document.getElementById('heroTitle').textContent = c.title;
@@ -294,8 +296,12 @@
 
       // Build the carousel from real images, or a single category-icon slide.
       c._catIcon = cirqleCatIcon(c.category);
-      slides = (c.images && c.images.length) ? c.images : ['__icon__'];
+      slides = (c.images && c.images.length) ? c.images : [ICON_SLIDE];
       slide = 0;
+      // Arrows and dots only mean something with 2+ slides.
+      const multi = slides.length > 1;
+      ['heroPrev', 'heroNext', 'heroDots'].forEach(elId =>
+        document.getElementById(elId).style.display = multi ? '' : 'none');
       const heroDots = document.getElementById('heroDots');
       heroDots.innerHTML = slides
         .map((_, i) => `<button class="hero-dot${i === 0 ? ' active' : ''}" type="button" aria-label="Image ${i + 1}"></button>`)

@@ -968,6 +968,15 @@
       'nike': 1, 'adidas': 1, 'h-m': 1, 'spotify': 1, 'boots': 1,
       'ikea': 1, 'uber-eats': 1, 'tui': 1, 'deliveroo': 1, 'airbnb': 1
     };
+    // Every brand with a file in assets/logos. Checked up front so a brand with
+    // no mark goes straight to its deal photo instead of requesting a logo,
+    // 404ing, and visibly swapping a beat later. Add a slug when adding a file.
+    var HAS_LOGO = {
+      'adidas': 1, 'airbnb': 1, 'amazon': 1, 'asos': 1, 'boots': 1, 'costa': 1,
+      'currys': 1, 'deliveroo': 1, 'domino-s': 1, 'gymshark': 1, 'h-m': 1,
+      'ikea': 1, 'jd-sports': 1, 'nike': 1, 'puregym': 1, 'sephora': 1,
+      'spotify': 1, 'trainline': 1, 'tui': 1, 'uber-eats': 1
+    };
     var logoSrc = function (name) {
       return 'assets/logos/' + name + (SVG_LOGOS[name] ? '.svg' : '.png');
     };
@@ -1146,13 +1155,20 @@
       // of other people's earnings when no such thing had happened.
       var tiles = deals.map(function (d, i) {
         // Partner logos live in assets/logos, keyed by a slug of the brand name.
-        var logo = logoSrc(slug(d.brand));
-        var shot = (d.images && d.images[0]) || '';   // used only if the logo 404s
-        return '<div class="htile t' + (i % 6) + '">' +
-            '<div class="htile-shot" style="background:' + (LOGO_BG[slug(d.brand)] || '#fff') + '">' +
-              '<img class="htile-img" src="' + logo + '" alt="' + esc(d.brand) + '" decoding="async"' +
+        // No logo file -> use the deal's photo from the start (onerror stays as
+        // a safety net for a listed logo that fails to load).
+        var s = slug(d.brand);
+        var shot = (d.images && d.images[0]) || '';
+        var useLogo = HAS_LOGO[s] || !shot;
+        var img = useLogo
+          ? '<img class="htile-img" src="' + logoSrc(s) + '" alt="' + esc(d.brand) + '" decoding="async"' +
               (shot ? ' data-photo="' + esc(shot) + '"' : '') +
-              ' onerror="cirqleTileFallback(this)">' +
+              ' onerror="cirqleTileFallback(this)">'
+          : '<img class="htile-img is-photo" src="' + esc(shot) + '" alt="' + esc(d.brand) + '" decoding="async"' +
+              ' onerror="cirqleTileFallback(this)">';
+        return '<div class="htile t' + (i % 6) + '">' +
+            '<div class="htile-shot" style="background:' + (LOGO_BG[s] || '#fff') + '">' +
+              img +
             '</div>' +
             '<div class="htile-body">' +
               '<div class="htile-brand">' + esc(d.brand) + '</div>' +

@@ -674,6 +674,7 @@ class FeedPost(BaseModel):
     ownerFullName: Optional[str] = None
     likesCount: Optional[int] = None
     commentsCount: Optional[int] = None
+    taggedHandles: list[str] = []   # accounts tagged besides @cirqle.co.uk (the brand)
 
 
 class FeedRefreshOut(BaseModel):

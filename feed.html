@@ -308,6 +308,13 @@
       d.className = 'noimg'; d.textContent = 'No image';
       if (img.parentNode) img.parentNode.replaceChild(d, img);
     }
+    // @cirqle.co.uk plus whichever accounts the post actually tagged (the brand).
+    // Older API responses have no taggedHandles, so this falls back to ours alone.
+    function tagsLine(p) {
+      const own = (p.ownerUsername || '').toLowerCase();
+      const others = (p.taggedHandles || []).filter(h => h && h.toLowerCase() !== own);
+      return ['cirqle.co.uk'].concat(others).map(h => '@' + esc(h)).join(' ');
+    }
 
     // ── Timing rules ──
     const DAY_MS = 86400000, HOUR_MS = 3600000;
@@ -418,7 +425,7 @@
             '<div class="post-body">' +
               '<div>' +
                 '<div class="post-owner">' + esc(p.ownerFullName || p.ownerUsername || 'Unknown') + '</div>' +
-                '<div class="post-tags">@cirqle.co.uk @brand</div>' +
+                '<div class="post-tags">' + tagsLine(p) + '</div>' +
               '</div>' +
               '<div class="post-caption">' + caption + '</div>' +
               timers +
