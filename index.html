@@ -392,13 +392,14 @@
       /* Phone tiles are only 104-172px tall, so the desktop scrim (140px
          reach) darkened nearly the whole photo. Shorter and lighter here:
          ~.57 black behind the name (~40px up) still gives ~4.5:1 for white
-         type over a pure-white frame; the text-shadow is insurance. */
+         type over a pure-white frame. Lightened once more at Garv's request
+         (.72/.46), so the text-shadow now does real work on bright frames. */
       .cat-tile::after {
         background: linear-gradient(to top,
-          rgba(8,14,24,.80) 0px, rgba(8,14,24,.55) 44px,
-          rgba(8,14,24,.15) 76px, rgba(8,14,24,0) 96px);
+          rgba(8,14,24,.72) 0px, rgba(8,14,24,.46) 44px,
+          rgba(8,14,24,.10) 72px, rgba(8,14,24,0) 90px);
       }
-      .cat-body { text-shadow: 0 1px 8px rgba(8,14,24,.55); }
+      .cat-body { text-shadow: 0 1px 10px rgba(8,14,24,.65); }
     }
 
     /* phone */
@@ -864,7 +865,7 @@
   <section class="section" id="calculator" style="padding-top:clamp(28px,6vw,86px)">
     <div class="section-inner calc-grid">
       <div>
-        <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(1.5rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
+        <h2 class="h-display reveal reveal-delay-1">What would you<br><span class="hl">earn back?</span></h2>
         <p class="h-sub reveal reveal-delay-2">Cashback on what you share, plus &pound;1 for every friend who buys. Based on our example rates.</p>
         <div class="calc-out reveal reveal-delay-3" style="margin-top:clamp(14px,3vw,28px)">
           <div class="calc-out-label">Estimated earnings a year</div>
@@ -1247,17 +1248,19 @@
     // full-height slots. `pos` overrides the default crop where the subject
     // isn't where object-position's default lands it. Exactly two tall and
     // four wide tile the 4x3 grid with no holes.
+    // Full-resolution CC0 photos (Openverse / WordPress Photo Directory,
+    // vetted for third-party logos). The old assets/wall thumbnails were
+    // 225x300 and went soft when stretched over these tiles.
     var CATEGORY_PHOTO = {
-      'Fashion & Beauty': { src: 'assets/wall/w1.jpg',  tall: true },
-      'Travel':           { src: 'assets/wall/w19.jpg', tall: true },
-      'Food & Drink':     { src: 'assets/wall/w11.jpg' },
-      'Electronics':      { src: 'assets/wall/w17.jpg', pos: '50% 62%' },
-      'Fitness':          { src: 'assets/wall/w14.jpg' },
-      'Home & Living':    { src: 'assets/wall/w22.jpg', pos: '50% 65%' },
-      'Entertainment':    { src: 'assets/wall/w18.jpg' },
-      'Kids & Baby':      { src: 'assets/wall/w21.jpg' },
-      // The cat sits high in the frame; the default centre crop cuts it out.
-      'Pets':             { src: 'assets/wall/w23.jpg', pos: '50% 30%' }
+      'Fashion & Beauty': { src: 'assets/cats/fashion.jpg', tall: true },
+      'Travel':           { src: 'assets/cats/travel.jpg',  tall: true, pos: '50% 70%' },
+      'Food & Drink':     { src: 'assets/cats/food.jpg',    pos: '50% 55%' },
+      'Electronics':      { src: 'assets/cats/electronics.jpg', pos: '50% 50%' },
+      'Fitness':          { src: 'assets/cats/fitness.jpg', pos: '50% 50%' },
+      'Home & Living':    { src: 'assets/cats/home.jpg',    pos: '50% 40%' },
+      'Entertainment':    { src: 'assets/cats/entertainment.jpg', pos: '50% 40%' },
+      'Kids & Baby':      { src: 'assets/cats/kids.jpg',    pos: '50% 35%' },
+      'Pets':             { src: 'assets/cats/pets.jpg',    pos: '50% 50%' }
     };
 
     // Every category that has a photo, best-stocked first. Keys the link the

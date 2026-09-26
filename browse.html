@@ -152,6 +152,40 @@
     .postcode-input::placeholder { color: #93A0AD; }
     .postcode-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(60,125,166,.15); }
     .pc-note { font-size: .76rem; font-weight: 700; color: var(--blue-deep); min-height: 1em; }
+    .pc-note:empty { display: none; }
+    .pc-note.err { color: #B42318; }
+    .pc-note button { border: 0; background: none; padding: 0; font: inherit; color: var(--blue); text-decoration: underline; cursor: pointer; }
+
+    /* ── Location: postcode box with a "use my location" button inside ── */
+    .loc-wrap { position: relative; }
+    .loc-wrap .postcode-input { padding-right: 42px; }
+    .loc-btn {
+      position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px; border: 0; border-radius: 9px;
+      background: var(--blue-pale); color: var(--blue-deep); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .loc-btn .ico { color: inherit; }
+    .loc-btn:disabled { opacity: .5; cursor: progress; }
+
+    /* ── Categories: a multi-select dropdown styled like the sort select ── */
+    .cat-dd { position: relative; }
+    .dd-btn { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 30px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 11px center; }
+    .dd-panel {
+      position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; min-width: 100%; width: max-content; max-width: 260px;
+      background: var(--card); border: var(--bw) solid var(--line); border-radius: 12px;
+      box-shadow: var(--shadow); padding: 6px;
+    }
+    .dd-opt { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px;
+      font-size: .86rem; font-weight: 600; color: var(--ink); cursor: pointer; }
+    .dd-opt:hover { background: var(--paper-deep); }
+    .dd-opt input { width: 16px; height: 16px; accent-color: var(--blue); margin: 0; }
+    .dd-clear { display: block; width: 100%; margin-top: 4px; padding: 8px 10px; border: 0; border-top: 1px solid var(--line);
+      background: none; text-align: left; font: 700 .8rem var(--font-body); color: var(--blue); cursor: pointer; }
+    .chip-dist[hidden] { display: none; }   /* .chip's display would beat [hidden] */
+    .chip-dist { background: var(--blue-pale); border-color: transparent; color: var(--blue-deep); font-weight: 700; }
 
     .empty-state { grid-column: 1 / -1; text-align: center; padding: 70px 20px; display: none; }
     .empty-state.visible { display: block; }
@@ -184,6 +218,10 @@
       .search-input { padding: 11px 12px 11px 36px; font-size: .84rem; }
       .search-icon { left: 12px; }
       .sort-select { padding: 11px 8px; font-size: .84rem; }
+      /* Match the sort select beside it: phones force 16px on form fields
+         (cirqle.css, stops iOS zooming on focus) and a button misses that. */
+      .dd-btn { font-size: 16px; min-height: 46px; padding-right: 26px; background-position: right 8px center; }
+      .loc-wrap .postcode-input { padding: 11px 40px 11px 12px; font-size: .84rem; }
 
       /* tiles: two-up, compact, no description */
       .deals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -251,21 +289,34 @@
             </select>
           </div>
         </div>
-        <div>
-          <div class="side-group-title">Categories</div>
-          <div class="side-cats" role="tablist" aria-label="Deal categories">
-            <button class="side-cat active" data-filter="all">All deals</button>
-            <button class="side-cat" data-filter="fashion">Fashion &amp; Beauty</button>
-            <button class="side-cat" data-filter="food">Food &amp; Drink</button>
-            <button class="side-cat" data-filter="electronics">Electronics</button>
-            <button class="side-cat" data-filter="travel">Travel</button>
-            <button class="side-cat" data-filter="home">Home &amp; Living</button>
-            <button class="side-cat" data-filter="fitness">Fitness</button>
-            <button class="side-cat" data-filter="entertainment">Entertainment</button>
-            <button class="side-cat" data-filter="kids">Kids &amp; Baby</button>
-            <button class="side-cat" data-filter="pets">Pets</button>
+        <!-- Location and categories share the second row the same way. -->
+        <div class="side-row">
+          <div>
+            <div class="side-group-title">Location</div>
+            <form class="loc-wrap" id="locForm" autocomplete="on">
+              <input class="postcode-input" id="locInput" type="text" placeholder="Postcode"
+                     autocomplete="postal-code" enterkeyhint="search" maxlength="10" aria-label="Your postcode" />
+              <button class="loc-btn" id="locBtn" type="button" aria-label="Use my location" title="Use my location"><i class="ico ico-pin"></i></button>
+            </form>
+          </div>
+          <div class="cat-dd">
+            <div class="side-group-title">Categories</div>
+            <button class="sort-select dd-btn" id="catBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="catPanel">All categories</button>
+            <div class="dd-panel" id="catPanel" hidden>
+              <label class="dd-opt"><input type="checkbox" value="fashion"> Fashion &amp; Beauty</label>
+              <label class="dd-opt"><input type="checkbox" value="food"> Food &amp; Drink</label>
+              <label class="dd-opt"><input type="checkbox" value="electronics"> Electronics</label>
+              <label class="dd-opt"><input type="checkbox" value="travel"> Travel</label>
+              <label class="dd-opt"><input type="checkbox" value="home"> Home &amp; Living</label>
+              <label class="dd-opt"><input type="checkbox" value="fitness"> Fitness</label>
+              <label class="dd-opt"><input type="checkbox" value="entertainment"> Entertainment</label>
+              <label class="dd-opt"><input type="checkbox" value="kids"> Kids &amp; Baby</label>
+              <label class="dd-opt"><input type="checkbox" value="pets"> Pets</label>
+              <button class="dd-clear" id="catClear" type="button">Show all categories</button>
+            </div>
           </div>
         </div>
+        <div class="pc-note" id="locStatus" aria-live="polite"></div>
         <div>
           <div class="side-group-title">Where</div>
           <div class="side-cats" aria-label="Where you can use the deal">
@@ -306,12 +357,17 @@
     const grid = document.getElementById('dealsGrid');
     const emptyState = document.getElementById('emptyState');
     const countNum = document.getElementById('countNum');
-    const tabs = document.querySelectorAll('.side-cat[data-filter]');
+    const catBtn = document.getElementById('catBtn');
+    const catPanel = document.getElementById('catPanel');
+    const catBoxes = [...catPanel.querySelectorAll('input[type=checkbox]')];
     const whereTabs = document.querySelectorAll('.side-cat[data-where]');
     const sortSelect = document.getElementById('sortSelect');
 
     let cards = [];            // rendered .deal-card elements
-    let activeFilter = 'all';
+    const activeCats = new Set();   // empty = every category
+    // Set once the shopper gives a postcode or their location: {lat, lng, label}.
+    let userLoc = null;
+    const RADIUS_MI = 10;
     let activeWhere = 'all';
     let searchTerm = '';
 
@@ -328,6 +384,14 @@
       const instore = /in-store|store|cinema/i.test(loc || '');
       return (online || instore) ? [online && 'online', instore && 'instore'].filter(Boolean).join(' ')
                                  : 'online instore';
+    }
+
+    // Great-circle distance in miles between two lat/lng points (haversine).
+    function miles(a, b) {
+      const R = 3958.8, rad = d => d * Math.PI / 180;
+      const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
     }
 
     function shortExpiry(e) {
@@ -351,6 +415,7 @@
       el.dataset.id = c.id;
       el.dataset.brand = (c.brand || '').toLowerCase();
       el.dataset.where = whereOf(c.location);
+      el._stores = c.stores || [];   // [{name, postcode, lat, lng}] — see "Location" below
       // Chips: claims · referral bonus (only on deals the brand has actually
       // opted into — referralsEnabled, not shown at all otherwise). The
       // amount is per campaign now (referralRewardReferrer — a merchant sets
@@ -373,6 +438,7 @@
             <div class="card-title">${esc(c.cardTitle || c.title)}</div>
           </div>
           <div class="card-meta">
+            <span class="chip chip-dist" hidden></span>
             ${c.location ? `<span class="chip chip-loc"><i class="ico ico-pin"></i>${esc(c.location)}</span>` : ''}
             <span class="chip">${Number(c.claims || 0).toLocaleString()} claims</span>
             ${referralChip}
@@ -395,18 +461,24 @@
         const cat = card.dataset.category;
         const title = card.querySelector('.card-title').textContent.toLowerCase();
         const brand = card.dataset.brand || '';
-        const matchesCat = activeFilter === 'all' || cat === activeFilter;
+        const matchesCat = !activeCats.size || activeCats.has(cat);
         const matchesSearch = !searchTerm || title.includes(searchTerm) || brand.includes(searchTerm);
         const matchesWhere = activeWhere === 'all' || card.dataset.where.split(' ').includes(activeWhere);
-        if (matchesCat && matchesSearch && matchesWhere) { card.classList.remove('hidden'); visible++; }
+        const matchesNear = !userLoc || card._dist <= RADIUS_MI;
+        if (matchesCat && matchesSearch && matchesWhere && matchesNear) { card.classList.remove('hidden'); visible++; }
         else card.classList.add('hidden');
       });
       countNum.textContent = visible;
       emptyState.classList.toggle('visible', visible === 0);
+      emptyState.querySelector('.empty-title').textContent = userLoc ? 'Nothing near you yet' : 'No deals found';
+      emptyState.querySelector('.empty-sub').textContent = userLoc
+        ? `No brand has listed a store within ${RADIUS_MI} miles of ${userLoc.label} yet. Online deals work from anywhere — clear the location to see them.`
+        : 'Try a different search, category or location.';
     }
 
     function sortCards(value) {
       [...cards].sort((a, b) => {
+        if (userLoc) return a._dist - b._dist;   // nearest first while a location is set
         if (value === 'cashback') return +b.dataset.cashback - +a.dataset.cashback;
         if (value === 'discount') return +b.dataset.discount - +a.dataset.discount;
         if (value === 'popular')  return +b.dataset.clicks - +a.dataset.clicks;
@@ -417,12 +489,80 @@
 
 
     // Wire the (always-present) controls up front.
-    tabs.forEach(tab => tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      activeFilter = tab.dataset.filter;
-      applyFilters();
+    // ── Categories dropdown (multi-select) ──
+    function setCatLabel() {
+      const picked = catBoxes.filter(b => b.checked);
+      catBtn.textContent = !picked.length ? 'All categories'
+        : picked.length === 1 ? picked[0].parentElement.textContent.trim()
+        : `${picked.length} categories`;
+    }
+    function toggleCatPanel(open) {
+      catPanel.hidden = !open;
+      catBtn.setAttribute('aria-expanded', String(open));
+    }
+    catBtn.addEventListener('click', () => toggleCatPanel(catPanel.hidden));
+    catBoxes.forEach(box => box.addEventListener('change', () => {
+      box.checked ? activeCats.add(box.value) : activeCats.delete(box.value);
+      setCatLabel(); applyFilters();
     }));
+    document.getElementById('catClear').addEventListener('click', () => {
+      catBoxes.forEach(b => { b.checked = false; }); activeCats.clear();
+      setCatLabel(); applyFilters(); toggleCatPanel(false);
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('.cat-dd')) toggleCatPanel(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleCatPanel(false); });
+
+    // ── Location ──
+    // A postcode goes through our own API (which asks postcodes.io), so the
+    // shopper's IP never reaches a third party. "Use my location" asks the
+    // browser for permission and never leaves the device: distances to each
+    // deal's stores are worked out right here.
+    const locInput = document.getElementById('locInput');
+    const locBtn = document.getElementById('locBtn');
+    const locStatus = document.getElementById('locStatus');
+    function status(html, isErr) { locStatus.innerHTML = html; locStatus.classList.toggle('err', !!isErr); }
+    function setLocation(loc) {
+      userLoc = loc;
+      cards.forEach(card => {
+        let best = Infinity, bestStore = null;
+        if (loc) card._stores.forEach(s => { const d = miles(loc, s); if (d < best) { best = d; bestStore = s; } });
+        card._dist = best;
+        const chip = card.querySelector('.chip-dist');
+        chip.hidden = !(loc && best <= RADIUS_MI);
+        if (!chip.hidden) chip.textContent = (best < 10 ? best.toFixed(1) : Math.round(best)) + ' mi' + (bestStore.name ? ' · ' + bestStore.name : '');
+      });
+      if (loc) status(`Deals with a store within ${RADIUS_MI} miles of ${esc(loc.label)} · <button type="button" id="locClear">Clear</button>`);
+      else status('');
+      applyFilters();
+      sortCards(sortSelect.value);
+    }
+    locStatus.addEventListener('click', e => {
+      if (e.target.id === 'locClear') { locInput.value = ''; setLocation(null); }
+    });
+    document.getElementById('locForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const q = locInput.value.trim();
+      if (!q) { setLocation(null); return; }
+      status('Finding ' + esc(q.toUpperCase()) + '…');
+      try {
+        const res = await fetch(`${API}/geo/postcode?q=${encodeURIComponent(q)}`);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(res.status === 404 ? "Postcode search isn't available yet." : (body.detail || "Couldn't look that postcode up."));
+        setLocation({ lat: body.lat, lng: body.lng, label: body.postcode });
+      } catch (err) { status(esc(err.message), true); }
+    });
+    locBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) { status("Your browser can't share its location — enter a postcode instead.", true); return; }
+      locBtn.disabled = true; status('Waiting for permission…');
+      navigator.geolocation.getCurrentPosition(pos => {
+        locBtn.disabled = false; locInput.value = '';
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'your location' });
+      }, err => {
+        locBtn.disabled = false;
+        status(err.code === 1 ? 'Location permission was declined — enter a postcode instead.'
+                              : "Couldn't get your location — enter a postcode instead.", true);
+      }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+    });
     whereTabs.forEach(tab => tab.addEventListener('click', () => {
       whereTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
@@ -448,8 +588,9 @@
         // into a selector string) so a malformed value can't do anything but
         // fail to match.
         const wantedCat = new URLSearchParams(location.search).get('cat');
-        const wantedTab = wantedCat && Array.from(tabs).find(t => t.dataset.filter === wantedCat);
-        if (wantedTab) wantedTab.click(); else applyFilters();
+        const wantedBox = wantedCat && catBoxes.find(b => b.value === wantedCat);
+        if (wantedBox) { wantedBox.checked = true; activeCats.add(wantedBox.value); setCatLabel(); }
+        applyFilters();
         sortCards(sortSelect.value);   // default: "Most popular"
       } catch (err) {
         countNum.textContent = 0;
