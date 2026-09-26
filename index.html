@@ -879,11 +879,11 @@
           <div class="calc-cats" id="calcCats"></div>
         </div>
         <div class="calc-row">
-          <div class="calc-label"><span>Spend at brands <em>in a month</em></span><b id="calcSpendLabel">£80</b></div>
-          <input type="range" class="calc-range" id="calcSpend" min="10" max="400" step="10" value="80" aria-label="Spend at brands in a month, in pounds">
+          <div class="calc-label"><span>Spend at <span id="calcSpendCat">fashion &amp; beauty</span> brands <em>a month</em></span><b id="calcSpendLabel">£80</b></div>
+          <input type="range" class="calc-range" id="calcSpend" min="10" max="400" step="10" value="80" aria-label="Spend at brands in the chosen category a month, in pounds">
         </div>
         <div class="calc-row">
-          <div class="calc-label"><span>How often you share a purchase</span></div>
+          <div class="calc-label"><span>How often you share a purchase <em>online</em></span></div>
           <div class="calc-cats" id="calcPost">
             <button type="button" class="calc-cat" data-post="0" aria-pressed="false">Never</button>
             <button type="button" class="calc-cat" data-post="0.5" aria-pressed="true">Now and then</button>
@@ -891,8 +891,8 @@
           </div>
         </div>
         <div class="calc-row" style="margin-bottom:0">
-          <div class="calc-label"><span>Friends referred <em>in a month</em></span><b id="calcRefsLabel">3</b></div>
-          <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends referred in a month">
+          <div class="calc-label"><span>Friends who buy because you shared <em>a month</em></span><b id="calcRefsLabel">3</b></div>
+          <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends who buy because you shared, a month">
           <p class="calc-note" style="margin-top:8px">&pound;1 of cashback per referral, paid once their first claim is approved.</p>
         </div>
         <div class="calc-more">
@@ -1340,6 +1340,7 @@
       var refsLabel = document.getElementById('calcRefsLabel');
       var out = document.getElementById('calcOut');
       var sub = document.getElementById('calcSub');
+      var spendCat = document.getElementById('calcSpendCat');
       if (!wrap || !spend || !postWrap || !refs) return;
 
       var active = names.indexOf('Fashion & Beauty') > -1 ? 'Fashion & Beauty' : names[0];
@@ -1371,24 +1372,27 @@
         spendLabel.textContent = '£' + v;
         refsLabel.textContent = String(n);
         out.textContent = (lo === hi) ? ('£' + lo) : ('£' + lo + '–£' + hi);
-        // A category holding one deal has no range to report — "7–7.0%" was the
-        // same rate printed twice.
-        var rates = (s.rate.lo.toFixed(1) === s.rate.hi.toFixed(1))
-          ? s.rate.hi.toFixed(1).replace(/\.0$/, '')
-          : s.rate.lo.toFixed(0) + '–' + s.rate.hi.toFixed(1);
-        var tail = '.';
+        // The line under the total says, in words, where that figure comes
+        // from: cashback on the share of this category's spending you share
+        // online, plus the referral bonus. Numbers alone read as noise.
+        var catWord = active === 'Pets' ? 'pet' : active.toLowerCase();
+        spendCat.textContent = catWord;
+        var money = function (a, b) { a = Math.round(a); b = Math.round(b); return a === b ? '£' + b : '£' + a + '–£' + b; };
+        var shareWord = postRate >= 0.8 ? 'most' : postRate >= 0.5 ? 'half' : 'none';
+        var cash = postRate
+          ? money(eligible * s.rate.lo / 100, eligible * s.rate.hi / 100) + ' cashback from sharing ' + shareWord +
+            ' of your ' + catWord + ' buys online'
+          : 'No cashback until you share a purchase online';
+        var friends = '';
         if (n && !s.ref.hi) {
           // Every deal here has referrals switched off, so the slider genuinely
           // changes nothing — say that rather than leaving the figure unmoved.
-          tail = ' · no referral bonus here yet';
+          friends = '. No ' + catWord + ' deal pays a friend bonus yet';
         } else if (n) {
-          var bLo = Math.round(bonusLo), bHi = Math.round(bonusHi);
-          tail = ' · +' + (bLo === bHi ? '£' + bHi : '£' + bLo + '–£' + bHi) +
-                 ' from ' + n + (n === 1 ? ' friend' : ' friends');
+          friends = ', plus ' + money(bonusLo, bonusHi) + ' for ' + n + (n === 1 ? ' friend' : ' friends') +
+                    ' a month who buy because you shared';
         }
-        // One scannable line: spend · share rate · cashback rate · referrals.
-        sub.textContent = '£' + v + '/month · ' + Math.round(postRate * 100) + '% shared · ' +
-          rates + '% back' + tail;
+        sub.textContent = cash + friends + '.';
       }
       function wire(container, onPick) {
         container.addEventListener('click', function (e) {

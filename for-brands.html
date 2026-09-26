@@ -205,7 +205,9 @@
          to both screen edges; .page's 20px gutter comes back as padding so
          the first card lines up with the heading. The joints are a vertical
          device and mean nothing sideways. */
-      .chain {
+      /* The settings pair and the dashboard tiles use the same strip, so all
+         three sections on this page read and swipe the same way. */
+      .chain, .ways, .why-grid {
         display: flex; gap: 14px; align-items: stretch;
         overflow-x: auto; overflow-y: hidden;
         scroll-snap-type: x mandatory;
@@ -215,12 +217,25 @@
         padding: 4px 20px 12px;
         scroll-padding: 0 20px;
       }
-      .chain::-webkit-scrollbar { display: none; }
+      .chain::-webkit-scrollbar, .ways::-webkit-scrollbar, .why-grid::-webkit-scrollbar { display: none; }
       .chain .joint { display: none; }
       .chain .link-row {
         flex: 0 0 84%; min-width: 0; scroll-snap-align: center;
         align-content: start; margin: 0;
       }
+      .ways .way { flex: 0 0 84%; min-width: 0; scroll-snap-align: center; }
+      /* Dashboard tiles are short, so narrower: more of the next one shows.
+         The desktop mosaic's spans and type scale are undone here. */
+      .why-grid > .why-card, .why-grid > :nth-child(n) {
+        flex: 0 0 70%; min-width: 0; scroll-snap-align: center;
+        grid-column: auto; justify-content: flex-start;
+      }
+      .why-grid > :nth-child(n) .why-icon { font-size: 1.7rem; margin-bottom: 10px; }
+      .why-grid > :nth-child(n) .why-title { font-size: 1.05rem; margin-top: 0; }
+      .why-grid > :nth-child(n) .why-text { font-size: .86rem; }
+      /* Stacked, full width — the same as the homepage hero. */
+      .hero-btns { flex-direction: column; align-items: stretch; max-width: 360px; margin-left: auto; margin-right: auto; }
+      .hero-btns > .btn { flex: none; width: 100%; }
     }
     @media (max-width: 500px) { .why-grid { grid-template-columns: 1fr; } .why-grid > :nth-child(n) { grid-column: auto; } }
   </style>
@@ -238,21 +253,21 @@
       <span class="hero-blob blob-a" aria-hidden="true"></span>
       <span class="hero-blob blob-b" aria-hidden="true"></span>
       <h1 class="h-display fade-up d1" style="margin-top:20px">Turn your customers into your <span class="hl hl-lime">best marketing</span></h1>
-      <p class="h-sub fade-up d2" style="margin:16px auto 0">Cirqle is a cashback marketplace. You set the rate and fund it up front; shoppers buy from you, post about it on Instagram, and claim with a receipt. You pay for purchases that actually happened — and keep the posts, the customers and the data behind them.</p>
-      <div class="btn-row fade-up d3" style="margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">You set the cashback. Customers buy from you, share it with their friends — online or in&#8209;person — and claim with their receipt. You only pay for real purchases.</p>
+      <div class="btn-row hero-btns fade-up d3" style="margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
         <a href="contact.html" class="btn btn-lg btn-lime">Get in touch →</a>
         <a href="merchant.html" class="btn btn-lg">Merchant sign in</a>
       </div>
     </div>
 
     <!-- ══ THE CHAIN ══ -->
-    <div class="prose reveal"><h2>What actually happens, start to finish</h2></div>
+    <div class="prose reveal"><h2>From sign-up to sales</h2></div>
     <div class="chain" style="margin-top:22px">
       <div class="card link-row reveal">
         <div>
           <span class="link-n">1</span>
           <h2 class="link-t">You apply</h2>
-          <p class="link-d">Tell us about the brand on the <a href="contact.html">partnership form</a> — your category, the rate you have in mind, roughly what you sell in a month. <b>A person reads every application.</b> If it's a fit we email an invite link, you choose your own password from it, and that's your portal login. We never send a password out by email or by hand.</p>
+          <p class="link-d">Tell us about your brand on the <a href="contact.html">partnership form</a>. <b>A real person reviews it</b>, and if it's a fit we email you an invite to set up your login.</p>
         </div>
         <div class="link-stage">
           <div class="pane">
@@ -271,8 +286,8 @@
       <div class="card link-row flip reveal">
         <div>
           <span class="link-n">2</span>
-          <h2 class="link-t">You set the account up</h2>
-          <p class="link-d">Two things before a deal can go live. Pick a <b>membership plan</b> — the options are on the <a href="contact.html">application form</a>. Then upload <b>one real receipt of your own</b> as a reference: every claim made against your deals is compared with it, so a receipt from a different shop, or one that has been edited, has something concrete to fail against. You upload it once and it is reused across every campaign you run.</p>
+          <h2 class="link-t">You set up your account</h2>
+          <p class="link-d">Pick a <b>plan</b> and upload <b>one of your own receipts</b>. We check every claim against it, so fake or edited receipts get caught.</p>
         </div>
         <div class="link-stage">
           <div class="pane">
@@ -296,7 +311,7 @@
         <div>
           <span class="link-n">3</span>
           <h2 class="link-t">You publish a deal</h2>
-          <p class="link-d">You write it: <b>the cashback rate, what counts as a qualifying spend, the expiry date and your own terms.</b> We review it before anything appears. Approved, it goes live on <a href="browse.html">Browse Deals</a> with its own deal page. Rejected, the reason is waiting in your portal, so you can change it and send it back. You can run more than one deal at a time.</p>
+          <p class="link-d">Choose <b>your cashback rate, minimum spend, end date and terms</b>. Once we've checked it, it goes live on <a href="browse.html">Browse Deals</a>. Run as many as you like.</p>
         </div>
         <div class="link-stage">
           <div class="pane">
@@ -316,7 +331,7 @@
         <div>
           <span class="link-n">4</span>
           <h2 class="link-t">You fund it up front</h2>
-          <p class="link-d">Cashback is <b>prepaid</b>. You top up a balance by card, and approved claims come out of it — nothing is charged per impression or per click, and no invoice arrives at the end of the month for spend you didn't plan. Referral bonuses, if you switch them on, come out of a <b>second, separate wallet</b>, so a busy month of referrals can't quietly eat the cashback you set aside.</p>
+          <p class="link-d">Top up by card. Cashback only leaves your balance when a claim is approved — <b>no per-click fees, no surprise invoices</b>.</p>
         </div>
         <div class="link-stage">
           <div class="pane">
@@ -336,7 +351,7 @@
         <div>
           <span class="link-n">5</span>
           <h2 class="link-t">Shoppers buy, share and claim</h2>
-          <p class="link-d">A member buys from you, <b>follows @cirqle.co.uk and posts about it tagging you and us</b>, then uploads the receipt. We check the receipt against your reference, check the post really tagged your brand, and approve or reject the claim. Approved cashback clears <b>three days after the date they posted</b>, and comes out of your balance then. You see the claim, the post and the spend behind it.</p>
+          <p class="link-d">A customer buys from you, <b>shares it with their friends — online or in&#8209;person</b> — and uploads the receipt. We check it, and you see every claim, share and receipt.</p>
         </div>
         <div class="link-stage">
           <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle.co.uk</b> <b>@yourbrand</b></div><div class="ps-btn">Share</div></div></div>
@@ -346,46 +361,46 @@
 
     <!-- ══ PER-DEAL SETTINGS ══ -->
     <div class="prose reveal" style="margin-top:64px">
-      <h2>Two settings on every deal</h2>
-      <p>Both are off unless you turn them on, and both are set per deal, not per account — funding a wallet never enrols a campaign you didn't choose.</p>
+      <h2>Two ways to get more from every customer</h2>
+      <p>Both optional, switched on deal by deal.</p>
     </div>
     <div class="ways" style="margin-top:22px">
       <div class="card way reveal">
         <span class="way-ico"><i class="ico ico-users"></i></span>
         <div>
           <div class="way-t">Referral bonuses</div>
-          <p class="way-d">Pay a member who sends a friend your way, and the friend who buys. You set what each side is worth — the defaults are £1 and 50p, and neither can go below 50p. It is only paid when the friend's first claim on that deal clears, so a bonus never goes out on a purchase that didn't happen.</p>
-          <span class="way-pay">Paid from your referral wallet</span>
+          <p class="way-d">When a friend buys because a customer shared your deal with them, you reward both. You set the amounts, from 50p each, paid only once the friend's purchase is approved.</p>
+          <span class="way-pay">From your referral wallet</span>
         </div>
       </div>
       <div class="card way reveal reveal-delay-1">
         <span class="way-ico"><i class="ico ico-refresh"></i></span>
         <div>
           <div class="way-t">Repeat visits</div>
-          <p class="way-d">Let someone who has already claimed your deal come back and claim again from the receipt alone, with no second post. You choose what a visit is worth; it can't be set higher than the deal's own cashback, so posting always stays the better option for the shopper.</p>
-          <span class="way-pay">Paid from your cashback wallet</span>
+          <p class="way-d">Customers who've already claimed can earn again next time they buy, without sharing again. You set the amount, up to your normal cashback.</p>
+          <span class="way-pay">From your cashback wallet</span>
         </div>
       </div>
     </div>
 
     <!-- ══ THE PORTAL ══ -->
     <div class="prose reveal" style="margin-top:64px">
-      <h2>What you can see while it runs</h2>
-      <p>Everything below is read off real claims and real posts — there are no modelled or estimated figures in the portal.</p>
+      <h2>What your dashboard shows you</h2>
+      <p>All from real claims and receipts. Nothing estimated.</p>
     </div>
     <div class="why-grid" style="margin-top:22px">
-      <div class="card card-lime card-hover why-card reveal"><span class="why-icon"><i class="ico ico-chart"></i></span><div class="why-title">Every claim, with the receipt behind it</div><div class="why-text">Views, clicks, claims and conversion for each deal, plus what people actually spent — taken off the receipts themselves, not estimated from your rate. With it: average basket size, and how much of that revenue came from a receipt we could read.</div></div>
-      <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-instagram"></i></span><div class="why-title">The posts themselves</div><div class="why-text">Every Instagram post tagging your brand — image, caption, and the account that posted it.</div></div>
-      <div class="card card-sky card-hover why-card reveal"><span class="why-icon"><i class="ico ico-cash"></i></span><div class="why-title">What it cost against what it made</div><div class="why-text">Revenue set against your programme cost — cashback, bonuses and fees together — and the share of revenue you handed back.</div></div>
-      <div class="card card-tang card-hover why-card reveal"><span class="why-icon"><i class="ico ico-users"></i></span><div class="why-title">Your customers, exportable</div><div class="why-text">Everyone who has bought through a deal of yours, with their first and most recent claim — and an Export CSV button when you'd rather have it in a spreadsheet.</div></div>
-      <div class="card card-pink card-hover why-card reveal"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Who brought whom</div><div class="why-text">Which customers were referred and which found you themselves, the chains that got them there, and the posts doing the most referring.</div></div>
-      <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-refresh"></i></span><div class="why-title">Whether they come back</div><div class="why-text">Return rate by the month people joined, and how that compares with other brands in your category.</div></div>
+      <div class="card card-lime card-hover why-card reveal"><span class="why-icon"><i class="ico ico-chart"></i></span><div class="why-title">Claims and sales</div><div class="why-text">Views, clicks, claims and what customers really spent on each deal, read straight off their receipts.</div></div>
+      <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-instagram"></i></span><div class="why-title">Every share</div><div class="why-text">Each Instagram post that tags your brand, and who posted it.</div></div>
+      <div class="card card-sky card-hover why-card reveal"><span class="why-icon"><i class="ico ico-cash"></i></span><div class="why-title">Cost against revenue</div><div class="why-text">What you paid out, next to what you made.</div></div>
+      <div class="card card-tang card-hover why-card reveal"><span class="why-icon"><i class="ico ico-users"></i></span><div class="why-title">Your customers</div><div class="why-text">Everyone who bought through your deals. Export it to a spreadsheet anytime.</div></div>
+      <div class="card card-pink card-hover why-card reveal"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Who brought whom</div><div class="why-text">Which customers came from a friend, and whose shares bring in the most.</div></div>
+      <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-refresh"></i></span><div class="why-title">Who comes back</div><div class="why-text">How many customers return, compared with similar brands.</div></div>
     </div>
 
     <div class="card card-ink cta-box reveal">
       <span class="cta-ring" aria-hidden="true"></span>
       <h2 style="color:var(--paper); font-size:clamp(1.6rem,3.4vw,2.2rem)">Ready to grow with <span class="hl hl-lime" style="color:var(--ink)">Cirqle?</span></h2>
-      <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Tell us about your brand and we'll set up a 20-minute call to explore what's possible.</p>
+      <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Tell us about your brand and we'll get back to you.</p>
       <a href="contact.html" class="btn btn-lg btn-lime">Get in touch →</a>
     </div>
   </div>
