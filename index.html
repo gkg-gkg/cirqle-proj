@@ -57,8 +57,11 @@
          --ink-soft (#64748B) measures 3.98:1 against the scrimmed wall, which
          fails AA, so the token is darkened for this band only. Since the copy
          moved down onto the livelier part of the wall, #455668 was itself
-         bottoming out at 4.27:1 on the darkest frames — hence one step further. */
-      --ink-soft: #3B4A58;
+         bottoming out at 4.27:1 on the darkest frames — hence one step further.
+         2026-09-26: the wall was made more vibrant (saturation, less white and
+         blue over the outer photos) and #3B4A58 then sat under AA at 1280px,
+         so one more step. Re-measure if the scrim changes. */
+      --ink-soft: #2F3D4A;
     }
     .hero-wall, .hero-scrim { position: absolute; inset: 0; pointer-events: none; }
     .hero-wall { z-index: 0; }
@@ -73,7 +76,7 @@
     /* object-position nudged above center: shifts which part of each source
        photo shows through the fixed-height crop, pushing the wall's imagery
        up slightly without changing the band's height or the wall's length. */
-    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; object-position: 50% 35%; border-radius: 12px; display: block; filter: saturate(1.2) contrast(.97); }
+    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; object-position: 50% 35%; border-radius: 12px; display: block; filter: saturate(1.45) contrast(1.05); }
     .hero-scrim {
       z-index: 1;
       /* A real vignette: a bright pool behind the copy falling off to a dark
@@ -85,15 +88,15 @@
            fade underneath can never reach the page colour. Without this the join
            to the section below steps by ~29 levels — a visible seam. */
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(105% 64% at 50% 51%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.76) 44%, rgba(255,255,255,.30) 76%, rgba(18,28,42,.20) 100%),
+        radial-gradient(105% 64% at 50% 51%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.78) 40%, rgba(255,255,255,.22) 68%, rgba(18,28,42,.12) 100%),
         linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%),
         /* The phone band's neon bloom brought over the photography. Last in the
            stack, so it sits directly on the wall and the white vignette above it
            still clears the copy — tint the photos, not the words. Desktop only:
            the ≤900px rule replaces this whole background, and phones have no
            scrim at all. */
-        radial-gradient(132% 58% at 50% 0%, rgba(56,182,255,.34) 0%, rgba(56,182,255,.14) 46%, rgba(56,182,255,0) 78%),
-        linear-gradient(180deg, rgba(56,182,255,.20) 0%, rgba(56,182,255,.12) 42%, rgba(56,182,255,.05) 72%, rgba(56,182,255,0) 92%);
+        radial-gradient(132% 58% at 50% 0%, rgba(56,182,255,.16) 0%, rgba(56,182,255,.06) 46%, rgba(56,182,255,0) 78%),
+        linear-gradient(180deg, rgba(56,182,255,.08) 0%, rgba(56,182,255,.05) 42%, rgba(56,182,255,.02) 72%, rgba(56,182,255,0) 92%);
     }
     @media (max-width: 900px) {
       .hw-grid { grid-template-columns: repeat(4, 1fr); }
