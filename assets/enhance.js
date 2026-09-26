@@ -43,9 +43,13 @@
   } catch (e) { /* ignore malformed session */ }
 
   // ── Consistent top banner across the main site ──
-  // Centre = Browse Deals + For brands; right = My Account / Dashboard chips.
-  // How it works is deliberately NOT here: it hangs off the "Find out more"
-  // button under the homepage's three tiles, and nowhere else.
+  // Centre = Browse Deals + the audience pair, For customers / For brands;
+  // right = My Account / Dashboard chips. "For customers" points at the home
+  // page, because the home page IS the customer side — so on index.html it
+  // marks itself as current, and anyone who wandered into for-brands.html has
+  // a visible way back.
+  // How it works is deliberately NOT here: it hangs off the "How it works"
+  // buttons in the page body, and nowhere else.
   // The chip for the page you're on is hidden, and there's no sign-out chip
   // (sign-out lives on the account page). Skipped on the auth pages + merchant
   // portal, which keep their own navs.
@@ -61,6 +65,7 @@
     }
     navLinks.innerHTML =
       '<li><a href="browse.html">Browse Deals</a></li>' +
+      '<li><a href="index.html">For customers</a></li>' +
       '<li><a href="for-brands.html">For brands</a></li>';
 
     var cta = nav.querySelector('.nav-cta');
@@ -113,6 +118,7 @@
     menu.id = 'navMenu';
     var links = [
       ['browse.html', 'Browse Deals'],
+      ['index.html', 'For customers'],
       ['for-brands.html', 'For brands'],
       ['about.html', 'About'],
       ['help.html', 'Help centre'],

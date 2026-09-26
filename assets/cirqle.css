@@ -298,6 +298,12 @@ body::after {
 }
 .btn-lime:hover::after, .btn-ink:hover::after { left: 135%; }
 .btn-lg { font-size: 1rem; padding: 14px 28px; }
+/* One step above .btn-lg, for a standalone CTA that has to carry a section on
+   its own — the "How it works" button under the homepage cycle, and the one in
+   the closing slab. Big enough to be the thing you look at, not so big it
+   reads as a banner. Only use it where the button stands alone: in a .btn-row
+   pair an oversized sibling just looks like a mistake. */
+.btn-xl { font-size: 1.12rem; padding: 18px 40px; border-radius: 12px; font-weight: 700; }
 .btn-sm { font-size: .82rem; padding: 8px 15px; }
 .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn.success { background: var(--blue); color: #fff; border-color: transparent; }
@@ -774,6 +780,7 @@ body::after {
    genuinely want a full-width control set width:100% inline, which still wins. */
 @media (max-width: 600px) {
   .btn-lg { font-size: .92rem; padding: 12px 18px; }
+  .btn-xl { font-size: 1rem; padding: 15px 28px; }
   /* A row of actions stays a row. Buttons share the width evenly and their
      labels shrink to fit instead of pushing the second button onto a new line. */
   .btn-row { display: flex; flex-wrap: nowrap; gap: 10px; align-items: stretch; }
@@ -781,6 +788,7 @@ body::after {
 }
 @media (max-width: 380px) {
   .btn-lg { font-size: .86rem; padding: 11px 14px; }
+  .btn-xl { font-size: .95rem; padding: 13px 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
