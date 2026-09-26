@@ -25,7 +25,10 @@ def _png_upload(color=(10, 20, 30)):
 
 
 def _merchant(session, **overrides):
+    # A fully set-up account: profile complete and a live plan, so each test
+    # exercises only the reference-receipt gate.
     m = Merchant(email="m@brand.com", password_hash="x", business_name="Acme",
+                website="https://acme.example", categories='["Fashion & Beauty"]',
                 subscription_status="active", **overrides)
     session.add(m)
     session.commit()

@@ -199,9 +199,10 @@ class MerchantApplication(SQLModel, table=True):
     """A brand's partnership application, submitted from contact.html.
 
     Public (no user account needed) — merchants aren't Cirqle users. The admin
-    reviews these on admin.html and, on approve, a live `Campaign` is created
-    from the key fields (`campaign_id` links to it). Lifecycle:
-      pending -> approved (deal published)  or  rejected.
+    reviews these on admin.html; approving creates the merchant login and emails
+    the invite. Lifecycle: pending -> approved (login invited) or rejected.
+    `campaign_id` is only set on older applications, which were published as a
+    deal on approval before the form was shortened.
     `goals` holds a JSON-encoded list[str] as TEXT (same trick as Campaign.tags).
     """
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -943,15 +944,18 @@ class LeaderboardOptIn(BaseModel):
 
 
 class MerchantApplicationIn(BaseModel):
-    """What contact.html's partnership form sends. The key fields needed to
-    publish a deal on approval are required; the rest is optional context."""
-    brand: str
-    website: str
-    category: str
-    cashbackRate: float
+    """What contact.html sends. The application is deliberately short — first
+    name, work email, phone, how they heard — and everything else about the
+    brand is collected in the merchant portal after they're approved (see
+    MerchantProfileOut.profileComplete). The old long-form fields stay
+    accepted so nothing that still sends them breaks."""
     firstName: str
-    lastName: str
     email: EmailStr
+    brand: str = ""
+    website: str = ""
+    category: str = ""
+    cashbackRate: float = 0
+    lastName: str = ""
     markets: str = ""
     phone: str = ""
     role: str = ""
@@ -993,6 +997,8 @@ class MerchantApplicationOut(BaseModel):
     kind: str = "application"
     campaignId: Optional[int] = None
     createdAt: datetime
+    inviteSent: Optional[bool] = None   # set only on the approve response
+    hasLogin: bool = False              # a merchant account exists for this application
 
 
 # ── Merchant portal (Phase 6) ──
@@ -1373,6 +1379,9 @@ class MerchantProfileOut(BaseModel):
     tips: str
     logoUrl: str
     createdAt: datetime
+    # False until the brand name, website and a category are filled in. A new
+    # merchant's application doesn't carry them, so the portal asks first.
+    profileComplete: bool = False
 
 
 class ReferenceReceiptOut(BaseModel):

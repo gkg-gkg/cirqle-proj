@@ -1049,7 +1049,7 @@
 
     function appDetail(a) {
       const rows = [
-        ['Website', `<a href="${esc(a.website)}" target="_blank" rel="noopener noreferrer">${esc(a.website)}</a>`],
+        ['Website', a.website ? `<a href="${esc(a.website)}" target="_blank" rel="noopener noreferrer">${esc(a.website)}</a>` : ''],
         ['Markets', esc(a.markets)],
         ['Contact', esc(`${a.firstName} ${a.lastName}${a.role ? ' — ' + a.role : ''}`)],
         ['Email', esc(a.email)],
@@ -1082,20 +1082,26 @@
         data.forEach(a => {
           const row = document.createElement('div');
           row.className = 'clist-item';
-          const actions = a.status === 'pending'
+          // Short applications carry no brand until the merchant fills it in
+          // on the portal, so fall back to the person's name.
+          const who = a.brand || `${a.firstName || ''} ${a.lastName || ''}`.trim() || a.email;
+          const isQ = a.kind === 'enquiry';
+          const actions = a.status === 'pending' && !isQ
             ? `<button class="btn mini" data-approve="${a.id}">Approve</button><button class="btn mini btn-pink" data-rejapp="${a.id}">Reject</button>`
             : (a.status === 'approved'
                 ? (a.campaignId ? `<a class="btn mini" href="deal.html?id=${a.campaignId}" target="_blank" rel="noopener">Deal #${a.campaignId}</a>` : '')
-                  + `<button class="btn mini btn-lime" data-mklogin="${a.id}">Create login</button>`
+                  // Approving now creates the login; this only remains for
+                  // applications approved before that, which have none.
+                  + (a.hasLogin ? '<span class="rbadge approved">login invited</span>' : `<button class="btn mini btn-lime" data-mklogin="${a.id}">Create login</button>`)
                 : '');
           row.innerHTML = `
             <div class="clist-thumb"><i class="ico ico-users"></i></div>
             <div class="clist-main">
-              <div class="clist-title">${esc(a.brand)}${a.kind === 'enquiry'
+              <div class="clist-title">${esc(who)}${isQ
               ? ' <span class="rbadge verified">question</span>'
-              : ` — ${esc(a.cashbackRate)}%`} <span class="rbadge ${esc(a.status)}">${esc(a.status)}</span>${
+              : (a.cashbackRate ? ` — ${esc(a.cashbackRate)}%` : '')} <span class="rbadge ${esc(a.status)}">${esc(a.status)}</span>${
               a.tier ? ` <span class="rbadge approved">${esc(a.tier)}</span>` : ''}</div>
-              <div class="clist-sub">${esc(a.category)} · ${esc(a.firstName)} ${esc(a.lastName)} · ${esc(a.email)}</div>
+              <div class="clist-sub">${[a.category, a.email, a.phone, a.heard && 'heard via ' + a.heard].filter(Boolean).map(esc).join(' · ')}</div>
             </div>
             <div class="clist-actions">
               <button class="btn mini" data-detail>Details</button>
@@ -1106,12 +1112,12 @@
           row.querySelector('[data-detail]').addEventListener('click', () =>
             row.querySelector('.app-detail').classList.toggle('open'));
           const ap = row.querySelector('[data-approve]');
-          if (ap) ap.addEventListener('click', () => approveApp(a.id, a.brand));
+          if (ap) ap.addEventListener('click', () => approveApp(a.id, who, a.email));
           const rj = row.querySelector('[data-rejapp]');
           if (rj) rj.addEventListener('click', () => setApp(a.id, 'reject'));
           const ml = row.querySelector('[data-mklogin]');
-          if (ml) ml.addEventListener('click', () => createMerchantLogin(a.id, a.brand));
-          row.querySelector('[data-delapp]').addEventListener('click', () => delApp(a.id, a.brand));
+          if (ml) ml.addEventListener('click', () => createMerchantLogin(a.id, who));
+          row.querySelector('[data-delapp]').addEventListener('click', () => delApp(a.id, who));
           list.appendChild(row);
         });
       } catch (e) {
@@ -1119,16 +1125,18 @@
       }
     }
 
-    async function approveApp(id, brand) {
-      if (!confirm(`Approve ${brand}? This publishes it as a live deal on the site.`)) return;
+    async function approveApp(id, brand, email) {
+      if (!confirm(`Approve ${brand}? This creates their merchant login and emails ${email} an invite to set a password.`)) return;
       const res = await fetch(`${API}/partners/${id}/approve`, {
         method: 'POST', headers: { 'X-Admin-Key': keyInput.value },
       });
       const body = await res.json().catch(() => ({}));
       if (res.ok) {
-        setPMsg(`Approved ${brand} — live as deal #${body.campaignId}. Refine images/copy in the campaign editor above.`, true);
+        setPMsg(body.inviteSent
+          ? `Approved ${brand} — invite emailed to ${email}. They'll add their brand details in the portal.`
+          : `Approved ${brand}, but the invite email failed to send. Check the server logs, then use "Resend invite".`, body.inviteSent);
         loadApps();
-        loadList();   // the new deal appears in the campaign catalog
+        loadThreads();
         loadActivity();
         loadAnalytics();
       } else if (res.status === 401) setPMsg('Invalid admin key.', false);
