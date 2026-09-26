@@ -198,8 +198,29 @@
       /* One column, and the mock goes above its words — a portal panel next to
          a paragraph at this width leaves both too narrow to read. */
       .link-row, .link-row.flip { grid-template-columns: 1fr; gap: 18px; padding: 20px; }
-      .link-row .link-stage, .link-row.flip .link-stage { order: -1; min-height: 232px; }
-      .joint i { height: 20px; }
+      .link-row .link-stage, .link-row.flip .link-stage { order: -1; min-height: 200px; }
+      /* Stacked, the five steps were five screens of scrolling. As a snapped
+         strip (the homepage's Shop/Share/Earn device) they're a flick apart,
+         and the next card's edge showing says it can be flicked. Full-bleed
+         to both screen edges; .page's 20px gutter comes back as padding so
+         the first card lines up with the heading. The joints are a vertical
+         device and mean nothing sideways. */
+      .chain {
+        display: flex; gap: 14px; align-items: stretch;
+        overflow-x: auto; overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        margin-left: -20px; margin-right: -20px;
+        padding: 4px 20px 12px;
+        scroll-padding: 0 20px;
+      }
+      .chain::-webkit-scrollbar { display: none; }
+      .chain .joint { display: none; }
+      .chain .link-row {
+        flex: 0 0 84%; min-width: 0; scroll-snap-align: center;
+        align-content: start; margin: 0;
+      }
     }
     @media (max-width: 500px) { .why-grid { grid-template-columns: 1fr; } .why-grid > :nth-child(n) { grid-column: auto; } }
   </style>

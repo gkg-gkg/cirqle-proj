@@ -389,6 +389,16 @@
          first-and-last treatment, which pairs cleanly at six. */
       .cat-grid:not(.mosaic) > .cat-tile:first-child,
       .cat-grid:not(.mosaic) > .cat-tile:last-child { grid-column: span 2; }
+      /* Phone tiles are only 104-172px tall, so the desktop scrim (140px
+         reach) darkened nearly the whole photo. Shorter and lighter here:
+         ~.57 black behind the name (~40px up) still gives ~4.5:1 for white
+         type over a pure-white frame; the text-shadow is insurance. */
+      .cat-tile::after {
+        background: linear-gradient(to top,
+          rgba(8,14,24,.80) 0px, rgba(8,14,24,.55) 44px,
+          rgba(8,14,24,.15) 76px, rgba(8,14,24,0) 96px);
+      }
+      .cat-body { text-shadow: 0 1px 8px rgba(8,14,24,.55); }
     }
 
     /* phone */
@@ -438,6 +448,9 @@
         padding: 4px clamp(20px, 4vw, 44px) 10px;
       }
       .cycle::-webkit-scrollbar { display: none; }
+      /* Below 600px .section's gutter is 18px, not the clamp's 20px, so the
+         full-bleed margin overshot by 2px and the page scrolled sideways. */
+      @media (max-width: 600px) { .cycle { margin: 0 -18px; padding-left: 18px; padding-right: 18px; } }
       /* Not 100%: the sliver of the next card is the affordance. */
       .cyc { flex: 0 0 84%; min-width: 0; scroll-snap-align: center; }
     }
@@ -565,7 +578,6 @@
          stacked in document order here, that same offset would pull it up
          into whatever sits above it instead. */
       .calc-card { order: 2; margin-top: 0; }
-      .calc-note { order: 3; margin-top: 18px; }
       .pwall { grid-template-columns: repeat(2, minmax(0, 1fr)); height: 460px; }
     }
     @media (max-width: 620px) {
@@ -574,6 +586,9 @@
          single phone screen. Nothing here is cut; the whole thing scales down
          together, which is why the type, the chips, the row gaps and the card
          padding all move at once. */
+      /* The heading is a shrink-wrapped, centred flex item here; left-aligned
+         text inside it put its two lines at different offsets. */
+      #calculator h2, #calculator .h-sub { text-align: center; }
       #calculator .h-sub { font-size: .8rem; margin-top: 6px; line-height: 1.5; }
       #calculator .calc-grid { gap: 12px; }
       .calc-out { padding: 12px 15px; border-radius: 12px; }
@@ -590,8 +605,7 @@
       .calc-range::-moz-range-thumb { width: 19px; height: 19px; }
       .calc-more { margin-top: 11px; padding-top: 11px; }
       .calc-more .btn { font-size: .88rem; padding: 10px 20px; }
-      /* The same fact is spelled out in the paragraph under the card, so
-         inside it the line is just height. */
+      /* The £1-per-friend fact is already in the intro line above. */
       .calc-card .calc-note { display: none; }
     }
     @media (max-width: 600px) {
@@ -630,8 +644,12 @@
          below, which sets the other half. 112px put the rule 105px under the
          buttons and only 22px over the next heading. */
       .hero { padding-top: 52px; padding-bottom: 70px; padding-left: 12px; padding-right: 12px; }
-      .hero-actions { max-width: 400px; margin: 0 auto; }
-      .hero-actions .btn-lg { font-size: .86rem; padding: 11px 14px; }
+      /* Stacked, full width: Browse Deals on top, Sign up under it. The
+         closing CTA gets the same treatment — side by side, "Find out more →"
+         was squeezed to half a slab and clipped. flex:none undoes .btn-row's
+         equal-width flex:1 1 0 from cirqle.css. */
+      .hero-actions, #cta .btn-row { flex-direction: column; align-items: stretch; width: 100%; max-width: 360px; margin: 0 auto; }
+      .hero-actions .btn-lg, #cta .btn-row .btn-lg { flex: none; width: 100%; font-size: .95rem; padding: 14px 20px; }
       /* ── Phones get a gradient band, not the photo wall ──
          The wall and the scrim go together: the scrim existed only to hold
          photography back, and there is none here. Neon carries fills and glows
@@ -847,13 +865,12 @@
     <div class="section-inner calc-grid">
       <div>
         <h2 class="h-display reveal reveal-delay-1" style="font-size:clamp(1.5rem,4.4vw,3.2rem)">What would you<br><span class="hl">earn back?</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Sharing is what pays: cashback on the purchases you share, plus &pound;1 for every friend who buys because you shared with them. Rates come from the example listings in our catalogue, not from live brand partnerships.</p>
+        <p class="h-sub reveal reveal-delay-2">Cashback on what you share, plus &pound;1 for every friend who buys. Based on our example rates.</p>
         <div class="calc-out reveal reveal-delay-3" style="margin-top:clamp(14px,3vw,28px)">
-          <div class="calc-out-label">Realistic earnings a year</div>
+          <div class="calc-out-label">Estimated earnings a year</div>
           <div class="calc-out-val" id="calcOut">&mdash;</div>
           <div class="calc-out-sub" id="calcSub">Choose a category to start</div>
         </div>
-        <p class="calc-note">A range, not a promise. The low end uses the lowest published rate in that category and the high end the average, applied only to the purchases you actually share and get approved. Friends are counted at &pound;1 each &mdash; what you earn when a friend buys after you share with them and their first claim is approved. Real earnings depend on which deals are live when you shop.</p>
       </div>
       <div class="card calc-card reveal reveal-delay-2">
         <div class="calc-row">
@@ -1360,15 +1377,15 @@
         if (n && !s.ref.hi) {
           // Every deal here has referrals switched off, so the slider genuinely
           // changes nothing — say that rather than leaving the figure unmoved.
-          tail = ', though no ' + active.toLowerCase() + ' deal pays a referral bonus yet.';
+          tail = ' · no referral bonus here yet';
         } else if (n) {
           var bLo = Math.round(bonusLo), bHi = Math.round(bonusHi);
-          tail = ', plus ' + (bLo === bHi ? '£' + bHi : '£' + bLo + '–£' + bHi) +
-                 ' from ' + n + (n === 1 ? ' friend' : ' friends') + ' referred a month.';
+          tail = ' · +' + (bLo === bHi ? '£' + bHi : '£' + bLo + '–£' + bHi) +
+                 ' from ' + n + (n === 1 ? ' friend' : ' friends');
         }
-        sub.textContent = 'On £' + v + ' a month at ' + active.toLowerCase() +
-          ' brands, sharing ' + Math.round(postRate * 100) + '% of them, at ' +
-          rates + '% across our example deals' + tail;
+        // One scannable line: spend · share rate · cashback rate · referrals.
+        sub.textContent = '£' + v + '/month · ' + Math.round(postRate * 100) + '% shared · ' +
+          rates + '% back' + tail;
       }
       function wire(container, onPick) {
         container.addEventListener('click', function (e) {

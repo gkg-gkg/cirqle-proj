@@ -111,6 +111,8 @@
     /* Cashback in the footer is per-brand and varies; a referral bonus is a
        flat amount the same on every deal that pays one, so it reads as a chip
        here rather than competing with the rate for footer space. */
+    .chip-loc { gap: 4px; }
+    .chip-loc .ico { color: var(--ink-soft); }
     .chip-referral { background: var(--blue-tint); border-color: rgba(56,182,255,.42); color: var(--ink); font-weight: 700; }
 
     .card-footer {
@@ -171,6 +173,7 @@
       .side-row > * { flex: 1; min-width: 0; }
       .side-group-title { margin-bottom: 6px; }
     }
+    @media (max-width: 560px) { .browse-head { padding-top: 24px; } }
     @media (max-width: 620px) {
       .search-wrap { width: 100%; }
       .search-input { width: 100%; }
@@ -263,6 +266,14 @@
             <button class="side-cat" data-filter="pets">Pets</button>
           </div>
         </div>
+        <div>
+          <div class="side-group-title">Where</div>
+          <div class="side-cats" aria-label="Where you can use the deal">
+            <button class="side-cat active" data-where="all">Anywhere</button>
+            <button class="side-cat" data-where="online">Online</button>
+            <button class="side-cat" data-where="instore">In store</button>
+          </div>
+        </div>
       </aside>
 
       <!-- Deals -->
@@ -276,7 +287,7 @@
           <div class="empty-state" id="emptyState">
             <div class="empty-icon"><i class="ico ico-ghost ico-soft"></i></div>
             <div class="empty-title">No deals found</div>
-            <div class="empty-sub">Try a different search term or category.</div>
+            <div class="empty-sub">Try a different search, category or location.</div>
           </div>
 
         </div>
@@ -295,16 +306,29 @@
     const grid = document.getElementById('dealsGrid');
     const emptyState = document.getElementById('emptyState');
     const countNum = document.getElementById('countNum');
-    const tabs = document.querySelectorAll('.side-cat');
+    const tabs = document.querySelectorAll('.side-cat[data-filter]');
+    const whereTabs = document.querySelectorAll('.side-cat[data-where]');
     const sortSelect = document.getElementById('sortSelect');
 
     let cards = [];            // rendered .deal-card elements
     let activeFilter = 'all';
+    let activeWhere = 'all';
     let searchTerm = '';
 
     // Filter tabs key on the first word of the category ("Fashion & Beauty" -> fashion).
     const catKey = cat => (cat || '').trim().split(' ')[0].toLowerCase();
     const earnNum = earn => parseFloat(String(earn).replace(/[^0-9.]/g, '')) || 0;
+
+    // Where a deal can be used, read off the brand's own location text
+    // ("In-store & online", "App & online", "UK cinemas & online"...). Text
+    // that names neither ("UK wide", "UK departures") matches both rather
+    // than silently vanishing from each filter.
+    function whereOf(loc) {
+      const online = /online|app/i.test(loc || '');
+      const instore = /in-store|store|cinema/i.test(loc || '');
+      return (online || instore) ? [online && 'online', instore && 'instore'].filter(Boolean).join(' ')
+                                 : 'online instore';
+    }
 
     function shortExpiry(e) {
       if (/ongoing/i.test(e)) return 'Ongoing';
@@ -326,6 +350,7 @@
       el.dataset.discount = c.rate;
       el.dataset.id = c.id;
       el.dataset.brand = (c.brand || '').toLowerCase();
+      el.dataset.where = whereOf(c.location);
       // Chips: claims · referral bonus (only on deals the brand has actually
       // opted into — referralsEnabled, not shown at all otherwise). The
       // amount is per campaign now (referralRewardReferrer — a merchant sets
@@ -348,6 +373,7 @@
             <div class="card-title">${esc(c.cardTitle || c.title)}</div>
           </div>
           <div class="card-meta">
+            ${c.location ? `<span class="chip chip-loc"><i class="ico ico-pin"></i>${esc(c.location)}</span>` : ''}
             <span class="chip">${Number(c.claims || 0).toLocaleString()} claims</span>
             ${referralChip}
           </div>
@@ -371,7 +397,8 @@
         const brand = card.dataset.brand || '';
         const matchesCat = activeFilter === 'all' || cat === activeFilter;
         const matchesSearch = !searchTerm || title.includes(searchTerm) || brand.includes(searchTerm);
-        if (matchesCat && matchesSearch) { card.classList.remove('hidden'); visible++; }
+        const matchesWhere = activeWhere === 'all' || card.dataset.where.split(' ').includes(activeWhere);
+        if (matchesCat && matchesSearch && matchesWhere) { card.classList.remove('hidden'); visible++; }
         else card.classList.add('hidden');
       });
       countNum.textContent = visible;
@@ -396,12 +423,17 @@
       activeFilter = tab.dataset.filter;
       applyFilters();
     }));
+    whereTabs.forEach(tab => tab.addEventListener('click', () => {
+      whereTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeWhere = tab.dataset.where;
+      applyFilters();
+    }));
     document.getElementById('searchInput').addEventListener('input', e => {
       searchTerm = e.target.value.toLowerCase().trim();
       applyFilters();
     });
     sortSelect.addEventListener('change', e => sortCards(e.target.value));
-    // Postcode: Enter (or the mobile keyboard's Search key) runs the search.
 
     // Load the catalog, render, then apply the default sort.
     (async function load() {
