@@ -891,8 +891,8 @@
           </div>
         </div>
         <div class="calc-row" style="margin-bottom:0">
-          <div class="calc-label"><span>Friends who buy because you shared <em>a month</em></span><b id="calcRefsLabel">3</b></div>
-          <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends who buy because you shared, a month">
+          <div class="calc-label"><span>Friends you've referred <em>a month</em></span><b id="calcRefsLabel">3</b></div>
+          <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends you've referred a month">
           <p class="calc-note" style="margin-top:8px">&pound;1 of cashback per referral, paid once their first claim is approved.</p>
         </div>
         <div class="calc-more">
@@ -1390,7 +1390,7 @@
           friends = '. No ' + catWord + ' deal pays a friend bonus yet';
         } else if (n) {
           friends = ', plus ' + money(bonusLo, bonusHi) + ' for ' + n + (n === 1 ? ' friend' : ' friends') +
-                    ' a month who buy because you shared';
+                    ' referred a month';
         }
         sub.textContent = cash + friends + '.';
       }
