@@ -176,6 +176,10 @@ class Campaign(SQLModel, table=True):
     bg: str = "var(--paper-deep)"
     tags: str = "[]"           # JSON-encoded list[str]
     images: str = "[]"         # JSON-encoded list[str] of image URLs
+    # JSON list of {"name", "postcode", "lat", "lng"} — the brand's physical
+    # stores, for "deals near me". Coordinates come from app/geo.py when the
+    # deal is saved, so the browse page can measure distance without a lookup.
+    stores: str = "[]"
     merchant_id: Optional[int] = Field(default=None, foreign_key="merchant.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -683,6 +687,11 @@ class FeedRefreshOut(BaseModel):
 
 
 # ── Campaigns (Phase 3) ──
+class StoreIn(BaseModel):
+    name: str = ""
+    postcode: str
+
+
 class CampaignIn(BaseModel):
     """The text fields the admin form sends (as a JSON payload alongside the
     uploaded image files). Every field is optional so PATCH can send a partial
@@ -707,12 +716,26 @@ class CampaignIn(BaseModel):
     brandUrl: Optional[str] = None
     bg: Optional[str] = None
     tags: Optional[list[str]] = None
+    stores: Optional[list[StoreIn]] = None   # replaces the whole list when sent
     cashbackMode: Optional[str] = None
     baseCashback: Optional[float] = None
     expectedEngagementBaseline: Optional[float] = None
     maxMultiplier: Optional[float] = None
     perPostCap: Optional[float] = None
     budgetTotal: Optional[float] = None   # budgetRemaining is system-managed, never admin-set directly
+
+
+class StoreOut(BaseModel):
+    name: str = ""
+    postcode: str
+    lat: float
+    lng: float
+
+
+class GeoOut(BaseModel):
+    postcode: str
+    lat: float
+    lng: float
 
 
 class CampaignOut(BaseModel):
@@ -737,6 +760,7 @@ class CampaignOut(BaseModel):
     bg: str
     tags: list[str]
     images: list[str]
+    stores: list[StoreOut] = []
     cashbackMode: str = "flat"
     baseCashback: Optional[float] = None
     expectedEngagementBaseline: Optional[float] = None

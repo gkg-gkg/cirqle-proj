@@ -610,6 +610,11 @@
         </div>
         <div class="field"><label>Brand URL</label><input id="f_brandUrl" placeholder="https://www.nike.com/gb" /></div>
         <div class="field"><label>Tags (comma-separated)</label><input id="f_tags" placeholder="Fashion & Beauty, Footwear, Sale" /></div>
+        <div class="field">
+          <label>Stores (one per line: <em>Name, Postcode</em> — or just a postcode)</label>
+          <textarea id="f_stores" rows="3" placeholder="Oxford Street, W1D 1BS&#10;Manchester Arndale, M4 3AQ"></textarea>
+          <div class="muted" style="margin:6px 0 0">Powers "deals near me" on Browse. Leave empty for online-only deals. An unknown postcode stops the save.</div>
+        </div>
         <div class="field"><label>Terms (HTML allowed)</label><textarea id="f_terms"></textarea></div>
         <div class="field">
           <label>Images (select up to 5)</label>
@@ -717,6 +722,7 @@
       $('editId').value = '';
       FIELDS.forEach(f => { const el = $('f_' + f); if (el) el.value = ''; });
       $('f_tags').value = '';
+      $('f_stores').value = '';
       $('f_images').value = '';
       $('f_category').value = 'Fashion & Beauty';
       $('formTitle').textContent = 'New campaign';
@@ -752,6 +758,7 @@
       $('editId').value = c.id;
       FIELDS.forEach(f => { const el = $('f_' + f); if (el) el.value = c[f] ?? ''; });
       $('f_tags').value = (c.tags || []).join(', ');
+      $('f_stores').value = (c.stores || []).map(s => s.name ? `${s.name}, ${s.postcode}` : s.postcode).join('\n');
       $('f_images').value = '';
       $('formTitle').textContent = `Edit #${c.id} — ${c.brand}`;
       $('formSub').textContent = 'Changes go live on the public site as soon as you save.';
@@ -816,6 +823,12 @@
       });
       const tags = $('f_tags').value.split(',').map(t => t.trim()).filter(Boolean);
       if (tags.length) payload.tags = tags;
+      // Always sent, so emptying the box really clears a deal's stores. The
+      // postcode is whatever follows the LAST comma (store names can have commas).
+      payload.stores = $('f_stores').value.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+        const i = l.lastIndexOf(',');
+        return i < 0 ? { postcode: l } : { name: l.slice(0, i).trim(), postcode: l.slice(i + 1).trim() };
+      });
 
       const fd = new FormData();
       fd.append('payload', JSON.stringify(payload));
