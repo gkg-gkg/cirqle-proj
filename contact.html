@@ -115,11 +115,7 @@
         const res = await fetch(`${window.CIRQLE_API_BASE}/partners`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          // The empty brand/website/category/rate/lastName keys are only for
-          // an API that predates the short form (it required them). Harmless
-          // after that; remove once the backend deploy is confirmed.
-          body: JSON.stringify({ firstName: val('fn'), email: val('em'), phone: val('phone'), heard: val('heard'),
-                                 brand: '', website: '', category: '', cashbackRate: 0, lastName: '' }),
+          body: JSON.stringify({ firstName: val('fn'), email: val('em'), phone: val('phone'), heard: val('heard') }),
         });
         if (res.status === 201) {
           document.getElementById('successMsg').style.display = 'block';
@@ -162,7 +158,6 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             firstName: first, lastName: rest.join(' '), email,
-            brand: '', website: '', category: '', cashbackRate: 0,   // see handleSubmit
             message, kind: 'enquiry',
           }),
         });
