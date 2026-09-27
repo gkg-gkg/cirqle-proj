@@ -43,34 +43,24 @@
     .link-d { font-size: .95rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
     /* a { color: inherit } globally, so inline links inside these card blocks
        need the same treatment .prose a gets or they read as plain text. */
-    .link-d a, .way-d a {
+    .link-d a {
       color: var(--blue); font-weight: 500;
       text-decoration-color: rgba(67,125,158,.35);
       text-underline-offset: 3px;
       transition: text-decoration-color .2s;
     }
-    .link-d a:hover, .way-d a:hover { text-decoration-color: var(--blue); }
+    .link-d a:hover { text-decoration-color: var(--blue); }
     .link-d b { color: var(--ink); font-weight: 600; }
 
     /* The joint between two links: a hairline rail that fades in and out, with
        one hollow ring riding it. The ring is the brand's circle at its smallest,
        and the fade is what keeps the rail from reading as a hard divider. */
-    .joint { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 4px 0; }
-    .joint i { display: block; width: 1.5px; height: 26px; background: linear-gradient(180deg, transparent, var(--neon-line)); }
-    .joint i + i { background: linear-gradient(180deg, var(--neon-line), transparent); }
-    .joint span { display: block; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--neon); background: var(--paper); margin: 5px 0; }
     /* The last joint curls back into step one, so the loop is visible rather
        than just asserted in the copy. */
     .loop-back { text-align: center; margin-top: 6px; }
     .loop-back p { font-size: .9rem; color: var(--ink-soft); margin: 10px auto 0; max-width: 420px; line-height: 1.6; }
 
     /* ── Sharing, on social media or in-person ── */
-    .ways { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(14px, 2vw, 20px); }
-    .way { display: flex; gap: 15px; align-items: flex-start; padding: 22px 24px; }
-    .way-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
-    .way-t { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
-    .way-d { font-size: .87rem; color: var(--ink-soft); line-height: 1.6; margin: 5px 0 0; }
-    .way-pay { display: inline-block; margin-top: 9px; font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
 
     /* ── The four claims the homepage used to carry ── */
     .facts-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -103,14 +93,96 @@
 
     @media (max-width: 820px) {
       .facts-strip { grid-template-columns: repeat(2, 1fr); }
-      .ways { grid-template-columns: 1fr; }
     }
     @media (max-width: 700px) {
       /* One column, and the mock goes above its words — a phone screen next to
          a paragraph at this width leaves both too narrow to read. */
       .link-row, .link-row.flip { grid-template-columns: 1fr; gap: 18px; padding: 20px; }
       .link-row .link-stage, .link-row.flip .link-stage { order: -1; min-height: 232px; }
-      .joint i { height: 20px; }
+    }
+
+    /* ══ 2026-09-27: carousel, dropdowns, rules timeline ══
+       Same components as for-brands.html / for-brands-verification.html,
+       page-scoped here as they are there. */
+    .chain { display: flex; gap: 20px; align-items: stretch; overflow-x: auto; overflow-y: hidden; max-width: 860px; margin: 16px auto 0;
+      scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; padding: 6px 0 20px; outline: none; }
+    .chain::-webkit-scrollbar { display: none; }
+    .chain .link-row { flex: 0 0 100%; min-width: 0; margin: 0; scroll-snap-align: start; }
+    .chain .link-stage > * { transition: transform .55s var(--snap), opacity .55s; }
+    .chain .link-row:not(.active) .link-stage > * { transform: translateY(18px) scale(.96); opacity: .55; }
+    .loop-back { margin-top: 0; }
+    .steps-nav { display: flex; align-items: center; gap: 16px; max-width: 860px; margin: 40px auto 0; }
+    .steps-bar { position: relative; flex: 1; display: flex; justify-content: space-between; list-style: none; margin: 0; padding: 0; }
+    .steps-bar::before, .steps-fill { content: ''; position: absolute; left: 17px; right: 17px; top: 17px; height: 3px; border-radius: 3px; background: var(--line); z-index: 0; }
+    .steps-fill { right: auto; width: 0; background: linear-gradient(90deg, var(--neon), var(--blue)); transition: width .45s var(--snap); }
+    .steps-bar li { position: relative; z-index: 1; }
+    .steps-bar button { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; font: inherit; }
+    .steps-bar b { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: .9rem; color: var(--ink-soft); background: #fff; border: 2px solid var(--line);
+      transition: background .3s, color .3s, border-color .3s, transform .3s; }
+    .steps-bar span { font-size: .78rem; font-weight: 700; color: var(--ink-soft); transition: color .3s; }
+    .steps-bar button.done b { border-color: var(--blue); color: var(--blue-deep); }
+    .steps-bar button[aria-selected="true"] b { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; border-color: transparent; transform: scale(1.12); box-shadow: 0 6px 16px rgba(56,182,255,.4); }
+    .steps-bar button[aria-selected="true"] span { color: var(--ink); }
+    .steps-bar button:hover b { border-color: var(--blue); }
+    .steps-bar button:focus-visible b { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .steps-arrows { display: flex; gap: 8px; }
+    .steps-arrow { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: #fff; cursor: pointer;
+      font-size: 1.05rem; font-weight: 800; color: var(--ink); box-shadow: var(--shadow-sm); transition: background .2s, color .2s, opacity .2s; }
+    .steps-arrow:hover:not(:disabled) { background: var(--blue); color: #fff; border-color: transparent; }
+    .steps-arrow:disabled { opacity: .35; cursor: default; }
+
+    .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(14px, 2vw, 20px); align-items: start; }
+    .tile { padding: 0; overflow: hidden; }
+    .tile-head { display: flex; align-items: flex-start; gap: 15px; width: 100%; padding: 20px 22px; background: none; border: 0; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+    .tile-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .tile-head-txt { flex: 1; min-width: 0; }
+    .tile-t { display: block; font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
+    .tile-lead { display: block; font-size: .85rem; color: var(--ink-soft); line-height: 1.55; margin-top: 4px; }
+    .tile-chev { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: .6rem; color: var(--ink-soft); transition: transform .3s var(--snap), background .2s, color .2s, border-color .2s; }
+    .tile.open .tile-chev { transform: rotate(180deg); background: var(--blue); color: #fff; border-color: transparent; }
+    .tile-head:hover .tile-chev { border-color: var(--blue); color: var(--blue); }
+    .tile-head:focus-visible { outline: 2px solid var(--blue); outline-offset: -3px; border-radius: var(--r-card); }
+    .tile-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s var(--snap); }
+    .tile.open .tile-body { grid-template-rows: 1fr; }
+    .tile-body-inner { overflow: hidden; }
+    .tile-body-inner > * { margin: 0 22px 0 75px; }
+    .tile-body-inner > :last-child { margin-bottom: 20px; }
+    .tile-d { font-size: .87rem; color: var(--ink-soft); line-height: 1.6; }
+    .tile-d b { color: var(--ink); font-weight: 600; }
+    .tile-tag { display: inline-block; margin-top: 10px; font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+
+    .verify { display: grid; grid-template-columns: 250px 1fr; gap: clamp(26px, 5vw, 56px); margin-top: 28px; align-items: start; }
+    .verify-art { position: sticky; top: 96px; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 30px 20px; border-radius: var(--r-card); background: linear-gradient(160deg, #EEF6FC 0%, #D7EAF7 100%); }
+    .verify-stamp { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; font-size: .86rem; color: #0B1220; padding: 8px 14px; border-radius: 99px; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); box-shadow: 0 8px 20px rgba(56,182,255,.35); }
+    .fb-receipt { position: relative; width: 196px; background: #fff; padding: 16px 16px 20px; overflow: hidden; font-family: ui-monospace, Menlo, monospace; font-size: .66rem; color: #334155; box-shadow: 0 16px 34px rgba(11,18,32,.14); transform: rotate(-3deg); -webkit-mask: radial-gradient(6px at 50% 100%, #0000 98%, #000) 50% / 14px 100% repeat-x; }
+    .fb-rc-shop { font-weight: 800; font-size: .8rem; text-align: center; letter-spacing: .08em; color: #0B1220; }
+    .fb-rc-sub { text-align: center; margin: 3px 0 10px; opacity: .7; }
+    .fb-rc-line { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #D5DEE7; }
+    .fb-rc-tot { font-weight: 800; color: #0B1220; border-bottom: 0; padding-top: 6px; }
+    .fb-rc-bar { height: 22px; margin-top: 10px; opacity: .8; background: repeating-linear-gradient(90deg, #0B1220 0 2px, transparent 2px 4px, #0B1220 4px 5px, transparent 5px 8px); }
+    .fb-scan { position: absolute; left: 0; right: 0; height: 26px; top: -26px; border-bottom: 2px solid var(--neon); background: linear-gradient(180deg, rgba(56,182,255,0), rgba(56,182,255,.45)); animation: fbScan 4.8s ease-in-out infinite; }
+    @keyframes fbScan { 0% { top: -26px; } 85%, 100% { top: 100%; } }
+    .vflow { list-style: none; margin: 0; padding: 0; position: relative; }
+    .vflow::before { content: ''; position: absolute; left: 21px; top: 22px; bottom: 22px; width: 2px; background: linear-gradient(180deg, var(--neon), var(--blue)); opacity: .35; }
+    .vflow li { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding: 0 0 22px; }
+    .vflow li:last-child { padding-bottom: 0; }
+    .vf-n { position: relative; z-index: 1; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; border: 2px solid rgba(56,182,255,.45); color: var(--blue); font-size: 1.05rem; animation: vfLight 4.8s ease-in-out infinite; animation-delay: calc(var(--i) * .8s); }
+    @keyframes vfLight { 0%, 22%, 100% { background: #fff; color: var(--blue); box-shadow: none; } 6%, 14% { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; box-shadow: 0 0 0 6px rgba(56,182,255,.18); } }
+    .vf-t { margin: 10px 0 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: -.02em; }
+    .vf-t span { color: var(--blue); margin-right: 4px; }
+    .vf-d { margin: 4px 0 0; font-size: .9rem; color: var(--ink-soft); line-height: 1.55; }
+    @media (max-width: 860px) { .tiles { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) {
+      .verify { grid-template-columns: 1fr; }
+      .verify-art { position: static; flex-direction: row; justify-content: center; padding: 22px 16px; }
+      .fb-receipt { width: 168px; }
+    }
+    @media (max-width: 700px) { .steps-nav { gap: 10px; } .steps-bar span { font-size: .68rem; } .steps-arrows { display: none; } }
+    @media (max-width: 560px) { .tile-body-inner > * { margin-left: 22px; } }
+    @media (prefers-reduced-motion: reduce) {
+      .chain { scroll-behavior: auto; } .chain .link-stage > * { transition: none; transform: none !important; opacity: 1 !important; }
+      .fb-scan, .vf-n { animation: none; }
     }
   </style>
 </head>
@@ -134,8 +206,20 @@
       <p class="h-sub fade-up d2" style="margin:16px auto 0">Buy from a brand you already like, share it with your friends, on social media or in-person, and the cashback lands in your wallet as real money. Here is the whole thing, start to finish.</p>
     </div>
 
-    <!-- ══ THE CHAIN ══ -->
-    <div class="chain">
+    <!-- ══ THE CHAIN ══ one step at a time: step bar, arrows, keyboard, swipe -->
+    <div class="steps-nav reveal">
+      <ol class="steps-bar" role="tablist" aria-label="Steps">
+        <li><button type="button" role="tab" data-i="0" aria-selected="true"><b>1</b><span>Shop</span></button></li>
+        <li><button type="button" role="tab" data-i="1" aria-selected="false"><b>2</b><span>Share</span></button></li>
+        <li><button type="button" role="tab" data-i="2" aria-selected="false"><b>3</b><span>Earn</span></button></li>
+        <span class="steps-fill" aria-hidden="true"></span>
+      </ol>
+      <div class="steps-arrows">
+        <button type="button" class="steps-arrow" data-dir="-1" aria-label="Previous step" disabled>&larr;</button>
+        <button type="button" class="steps-arrow" data-dir="1" aria-label="Next step">&rarr;</button>
+      </div>
+    </div>
+    <div class="chain" tabindex="0" aria-label="Shop, share, earn, one step at a time">
       <div class="card link-row reveal">
         <div>
           <span class="link-n">1</span>
@@ -146,8 +230,6 @@
           <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">Nike</span><span class="ps-chip">13% back</span></div><img class="ps-img" src="assets/steps/shop.jpg" alt="" loading="lazy" decoding="async"><span class="ps-line w70"></span><span class="ps-line w45"></span><div class="ps-btn">Shop now</div></div></div>
         </div>
       </div>
-
-      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
 
       <div class="card link-row flip reveal">
         <div>
@@ -160,112 +242,103 @@
         </div>
       </div>
 
-      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
-
       <div class="card link-row reveal">
         <div>
           <span class="link-n">3</span>
           <h2 class="link-t">Earn</h2>
-          <p class="link-d">We check the claim &mdash; the receipt against the brand's own reference receipt, and the post against the deal you claimed (<a href="#verification">here's exactly what that means</a>) &mdash; and once it is approved your cashback <b>clears three days after the date you posted</b>. Withdraw it to your bank account. No expiry, no store credit, just your own bank account.</p>
+          <p class="link-d">We check the claim &mdash; the receipt against the brand's own reference receipt, and the post against the deal you claimed (<a href="#rules">here are the rules</a>) &mdash; and once it is approved your cashback <b>clears three days after the date you posted</b>. Withdraw it to your bank account. No expiry, no store credit, just your own bank account.</p>
         </div>
         <div class="link-stage">
           <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-bal"><span>Wallet</span><b>£47.80</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w50"></span><b class="ps-amt">+£3.50</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w40"></span><b class="ps-amt">+£2.10</b></div><div class="ps-btn">Withdraw</div></div></div>
         </div>
       </div>
 
-      <div class="loop-back reveal">
-        <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
-        <p>And back to the top: the cashback from one shop is what buys the next one. That is the cirqle.</p>
-      </div>
+    </div>
+    <div class="loop-back reveal">
+      <p>And back to the top: the cashback from one shop is what buys the next one. That is the cirqle.</p>
     </div>
 
-    <!-- ══ THE SHARE STEP, IN FULL ══ -->
+    <!-- ══ THE SHARE STEP ══ two dropdowns: the gist on the card, detail on tap -->
     <div class="prose reveal" style="margin-top:64px">
-      <h2>Sharing, on social media or in-person</h2>
-      <p>It is one step either way &mdash; you are telling people about something you bought. What changes is where. Share on social media, share with a friend in-person, or do both on the same purchase: they stack, and the bonus for a friend is paid on top of your own cashback.</p>
+      <h2>Sharing, on social media or in&#8209;person</h2>
+      <p>Either way, you&rsquo;re telling people about something you bought. Do both on the same purchase and they stack.</p>
     </div>
-    <div class="ways" style="margin-top:22px">
-      <div class="card way reveal">
-        <span class="way-ico"><i class="ico ico-instagram"></i></span>
-        <div>
-          <div class="way-t">Sharing on social media</div>
-          <p class="way-d">Follow <b>@cirqle.co.uk</b> on Instagram, tag us and the brand in the caption, then upload your receipt and pick the post it belongs to. It doesn't need to be polished, but it does need to stay up until we've checked it.</p>
-          <span class="way-pay">Earns the deal's published rate on what you spent</span>
-        </div>
+    <div class="tiles" style="margin-top:22px">
+      <div class="card tile reveal">
+        <button class="tile-head" type="button" aria-expanded="false" aria-controls="share-social">
+          <span class="tile-ico"><i class="ico ico-instagram"></i></span>
+          <span class="tile-head-txt">
+            <span class="tile-t">On social media</span>
+            <span class="tile-lead">Post what you bought, tagging us and the brand.</span>
+          </span>
+          <span class="tile-chev" aria-hidden="true">&#9660;</span>
+        </button>
+        <div class="tile-body" id="share-social"><div class="tile-body-inner">
+          <p class="tile-d">Follow <b>@cirqle.co.uk</b> on Instagram, post tagging us and the brand, then upload your receipt and pick the post it belongs to. It doesn&rsquo;t need to be polished, but it does need to stay up until we&rsquo;ve checked it.</p>
+          <span class="tile-tag">Earns the deal&rsquo;s cashback rate</span>
+        </div></div>
       </div>
-      <div class="card way reveal reveal-delay-1">
-        <span class="way-ico"><i class="ico ico-users"></i></span>
-        <div>
-          <div class="way-t">Sharing in-person</div>
-          <p class="way-d">There's no link to send &mdash; tell them face to face, or let them spot your post. Either way, once they buy and <b>type your Instagram handle into their own claim</b>, you're both paid. It has to be their first claim on that deal, and your post has to come before their purchase.</p>
-          <span class="way-pay">&pound;1 to you, 50p to them, funded by the brand</span>
-        </div>
+      <div class="card tile reveal reveal-delay-1">
+        <button class="tile-head" type="button" aria-expanded="false" aria-controls="share-person">
+          <span class="tile-ico"><i class="ico ico-users"></i></span>
+          <span class="tile-head-txt">
+            <span class="tile-t">In&#8209;person</span>
+            <span class="tile-lead">Tell a friend. When they buy, you both get a bonus.</span>
+          </span>
+          <span class="tile-chev" aria-hidden="true">&#9660;</span>
+        </button>
+        <div class="tile-body" id="share-person"><div class="tile-body-inner">
+          <p class="tile-d">There&rsquo;s no link to send. Your friend buys, then <b>types your Instagram handle into their own claim</b>. It has to be their first claim on that deal, and your post has to come before their purchase.</p>
+          <span class="tile-tag">&pound;1 to you, 50p to them, paid by the brand</span>
+        </div></div>
       </div>
     </div>
 
-
-    <!-- ══ EVERY CLAIM IS CHECKED ══
-         The anti-fraud work is the reason the rates can be what they are, so
-         it belongs on the page rather than buried in the terms. Framed for
-         the honest shopper: the checks are not aimed at you, they are what
-         stops someone else taking the money that funds your cashback. -->
-    <div class="prose reveal" style="margin-top:64px" id="verification">
-      <h2>Every claim is checked</h2>
-      <p>Cashback is real money, and it comes out of a pot the brand has funded. Every pound someone takes with a fake receipt or a bought-follower account is a pound that isn't there for the people who actually shopped and actually shared. So we check &mdash; <b>every claim, the same way, every time</b>. None of this is aimed at you. It is what keeps the rates worth having.</p>
+    <!-- ══ THE RULES ══ what a shopper actually has to do, in order. The
+         anti-fraud detail lives on the brands' page; here it's one line. -->
+    <div class="prose reveal" style="margin-top:64px" id="rules">
+      <h2>The rules, from buying to getting paid</h2>
+      <p>Six simple steps. Every receipt and post is checked automatically, and a real person looks at anything unusual.</p>
     </div>
-    <div class="ways" style="margin-top:22px">
-      <div class="card way reveal">
-        <span class="way-ico"><i class="ico ico-receipt"></i></span>
-        <div>
-          <div class="way-t">Your receipt is read, not glanced at</div>
-          <p class="way-d">Every brand on Cirqle gives us a reference receipt when they join. Yours is compared against it &mdash; <b>store name, address, phone number, VAT number and the layout of the receipt itself</b>. A receipt that didn't come from that brand doesn't look like that brand's receipts, and it shows.</p>
-          <span class="way-pay">Checked against the brand's own reference receipt</span>
+    <div class="verify">
+      <div class="verify-art" aria-hidden="true">
+        <div class="fb-receipt">
+          <div class="fb-rc-shop">A CIRQLE BRAND</div>
+          <div class="fb-rc-sub">Receipt · keep this</div>
+          <div class="fb-rc-line"><span>Running shoes</span><span>£64.99</span></div>
+          <div class="fb-rc-line"><span>Sports socks</span><span>£8.00</span></div>
+          <div class="fb-rc-line fb-rc-tot"><span>Total</span><span>£72.99</span></div>
+          <div class="fb-rc-bar"></div>
+          <span class="fb-scan"></span>
         </div>
+        <div class="verify-stamp"><i class="ico ico-check"></i> Cashback cleared</div>
       </div>
-      <div class="card way reveal reveal-delay-1">
-        <span class="way-ico"><i class="ico ico-check"></i></span>
-        <div>
-          <div class="way-t">The numbers have to add up</div>
-          <p class="way-d">We add the line items up against the subtotal, and the subtotal plus tax against the total &mdash; in code, not by eye. <b>That is the part that catches made-up receipts.</b> Receipt generators copy how a receipt looks, and then routinely get its sums wrong. We also check the purchase fits the deal: the right sort of item, a date that makes sense, and at least the minimum spend.</p>
-          <span class="way-pay">Arithmetic recomputed on every receipt</span>
-        </div>
-      </div>
-      <div class="card way reveal">
-        <span class="way-ico"><i class="ico ico-refresh"></i></span>
-        <div>
-          <div class="way-t">One receipt, one claim</div>
-          <p class="way-d">The same receipt can't be claimed twice, by you or by anyone else. An identical upload is rejected outright, and a re-saved, cropped or re-photographed copy is caught too &mdash; we fingerprint what the image <i>looks like</i>, not just the file. The same goes across accounts: one receipt turning up on two profiles gets both of them looked at.</p>
-          <span class="way-pay">Duplicate and near-duplicate images blocked</span>
-        </div>
-      </div>
-      <div class="card way reveal reveal-delay-1">
-        <span class="way-ico"><i class="ico ico-instagram"></i></span>
-        <div>
-          <div class="way-t">The post has to be real, and has to stay up</div>
-          <p class="way-d">We read the accounts tagged in your post and check them against the deal you claimed. Tag a different Cirqle brand and the claim is turned down there and then. And the post needs to <b>stay up until we've checked it</b> &mdash; a post deleted before then is one we can't verify, so the claim can be withheld.</p>
-          <span class="way-pay">Brand tag matched to the deal you claimed</span>
-        </div>
-      </div>
-      <div class="card way reveal">
-        <span class="way-ico"><i class="ico ico-ghost"></i></span>
-        <div>
-          <div class="way-t">Bot and bought-follower accounts are scored</div>
-          <p class="way-d">We look at the shape of the account, not just its size: <b>follower-to-following ratio, engagement rate, and how consistent it is across recent posts</b>. Engagement far below what an account that size should get reads as bought followers. Engagement far above it, or engagement that is suspiciously identical post after post, reads as a pod. A real account with 300 real followers scores better than a bought one with 30,000.</p>
-          <span class="way-pay">Nothing to do if your account is genuine</span>
-        </div>
-      </div>
-      <div class="card way reveal reveal-delay-1">
-        <span class="way-ico"><i class="ico ico-lock"></i></span>
-        <div>
-          <div class="way-t">You can't refer yourself</div>
-          <p class="way-d">Referral bonuses need <b>both</b> people identity-verified through Stripe, and are blocked when two accounts share bank or identity details &mdash; compared as fingerprints, so we never hold the details themselves. Your post also has to come before your friend's purchase, and it only counts on their first claim for that deal. A second account of your own gets you nothing.</p>
-          <span class="way-pay">Stripe identity verification on both sides</span>
-        </div>
-      </div>
-    </div>
-    <div class="prose reveal" style="margin-top:26px">
-      <p>On top of all that, anything that still looks odd &mdash; the same deal claimed over and over, a claim filed minutes after the account was made, one image or one post backing several accounts &mdash; <b>goes to a person before any money moves</b>. Not through. There is no version of this where a fake claim quietly pays out.</p>
-      <p><b>What it means if you're genuine:</b> keep the post up until your claim is approved, use each receipt once, and share before your friend buys. Do that and there is nothing here to think about &mdash; your cashback clears three days after the date you posted, as normal.</p>
+      <ol class="vflow">
+        <li class="reveal" style="--i:0">
+          <span class="vf-n"><i class="ico ico-bag"></i></span>
+          <div><h3 class="vf-t"><span>1</span> Buy from a Cirqle brand</h3><p class="vf-d">Online or in store. Check the deal&rsquo;s minimum spend and keep your receipt.</p></div>
+        </li>
+        <li class="reveal" style="--i:1">
+          <span class="vf-n"><i class="ico ico-user"></i></span>
+          <div><h3 class="vf-t"><span>2</span> Follow @cirqle.co.uk</h3><p class="vf-d">Follow us on Instagram before you post.</p></div>
+        </li>
+        <li class="reveal" style="--i:2">
+          <span class="vf-n"><i class="ico ico-instagram"></i></span>
+          <div><h3 class="vf-t"><span>3</span> Share it</h3><p class="vf-d">Post tagging us and the brand, or tell a friend who then enters your handle.</p></div>
+        </li>
+        <li class="reveal" style="--i:3">
+          <span class="vf-n"><i class="ico ico-receipt"></i></span>
+          <div><h3 class="vf-t"><span>4</span> Upload your receipt</h3><p class="vf-d">Pick the post it goes with. Each receipt can only be claimed once.</p></div>
+        </li>
+        <li class="reveal" style="--i:4">
+          <span class="vf-n"><i class="ico ico-clock"></i></span>
+          <div><h3 class="vf-t"><span>5</span> Keep your post up</h3><p class="vf-d">Leave it up until your claim is approved.</p></div>
+        </li>
+        <li class="reveal" style="--i:5">
+          <span class="vf-n"><i class="ico ico-cash"></i></span>
+          <div><h3 class="vf-t"><span>6</span> Get paid</h3><p class="vf-d">Cashback clears three days after you posted. Send it to your bank whenever you like.</p></div>
+        </li>
+      </ol>
     </div>
 
     <div class="prose reveal" style="margin-top:52px">
@@ -305,6 +378,53 @@
     </div>
   </div>
 
+  <script>
+    // Dropdowns: independent, keyboard-friendly (the head is a <button>).
+    document.querySelectorAll('.tile-head').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        btn.closest('.tile').classList.toggle('open', !open);
+      });
+    });
+    // Shop / Share / Earn carousel — same behaviour as for-brands.html.
+    (function () {
+      var chain = document.querySelector('.chain');
+      var cards = [].slice.call(chain.querySelectorAll('.link-row'));
+      var tabs = [].slice.call(document.querySelectorAll('.steps-bar button'));
+      var arrows = document.querySelectorAll('.steps-arrow');
+      var fill = document.querySelector('.steps-fill');
+      var active = -1;
+      function mark(i) {
+        if (i === active) return;
+        active = i;
+        cards.forEach(function (c, k) { c.classList.toggle('active', k === i); });
+        tabs.forEach(function (t, k) { t.setAttribute('aria-selected', String(k === i)); t.classList.toggle('done', k < i); });
+        arrows[0].disabled = i === 0; arrows[1].disabled = i === cards.length - 1;
+        var a = tabs[0].getBoundingClientRect(), b = tabs[i].getBoundingClientRect();
+        fill.style.width = (b.left - a.left) + 'px';
+      }
+      function go(i) {
+        i = Math.max(0, Math.min(cards.length - 1, i));
+        mark(i);
+        chain.scrollTo({ left: cards[i].offsetLeft - cards[0].offsetLeft, behavior: 'smooth' });
+      }
+      function sync() {
+        var x = chain.scrollLeft, best = 0, bestD = Infinity;
+        cards.forEach(function (c, k) { var d = Math.abs(c.offsetLeft - cards[0].offsetLeft - x); if (d < bestD) { bestD = d; best = k; } });
+        mark(best);
+      }
+      tabs.forEach(function (t, k) { t.addEventListener('click', function () { go(k); }); });
+      arrows.forEach(function (a) { a.addEventListener('click', function () { go(active + Number(a.dataset.dir)); }); });
+      chain.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); go(active + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(active - 1); }
+      });
+      var t; chain.addEventListener('scroll', function () { clearTimeout(t); t = setTimeout(sync, 60); }, { passive: true });
+      window.addEventListener('resize', function () { var i = active; active = -1; mark(i); });
+      mark(0);
+    })();
+  </script>
   <script src="assets/enhance.js?v=16"></script>
 </body>
 </html>
