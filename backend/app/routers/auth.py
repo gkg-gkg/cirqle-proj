@@ -155,7 +155,8 @@ def update_me(
     return _user_out(user)
 
 
-@router.post("/me/password", response_model=TokenOut)
+@router.post("/me/password", response_model=TokenOut,
+             dependencies=[rate_limit("password_change", limit=10, window=3600)])
 def change_password(
     data: PasswordChangeIn,
     user: User = Depends(get_current_user),

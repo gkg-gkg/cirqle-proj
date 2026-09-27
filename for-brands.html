@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#FFFFFF" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
   <title>For Brands — Cirqle</title>
@@ -11,18 +11,128 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=13" />
   <style>
-    /* Six benefits as a mosaic rather than a 3x2 of identical cards. Every
-       tile is placed explicitly — auto-flow can only produce even bands, and
-       the point is that these don't line up: the lead tile is 3 columns wide
-       over 2 rows, the one under it only 2 columns over 2 rows, so the left
-       edge steps. The six areas tile all 24 cells exactly; changing one means
-       re-checking the others or a hole opens. Size carries the hierarchy now,
-       so the lead tile is the tinted one. */
+    /* ── The chain ──
+       The same device how-it-works.html uses for members, with the brand's
+       five steps instead of three. Classes are deliberately named the same as
+       that page's, so the two read as one idea; they're page-scoped styles on
+       both, not shared CSS, so a change here doesn't touch the member page. */
+    .chain { margin: 0 auto; max-width: 860px; }
+    .link-row {
+      display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+      gap: clamp(20px, 4vw, 48px);
+      padding: clamp(22px, 3vw, 30px) clamp(22px, 3vw, 34px);
+    }
+    .link-row.flip .link-stage { order: -1; }
+    .link-stage {
+      position: relative; border-radius: 16px; overflow: hidden; min-height: 262px;
+      background: linear-gradient(160deg, #EEF5FB 0%, #DDEDF8 100%);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    /* Each stage a shade deeper than the last, so the chain reads as travel. */
+    .link-row:nth-of-type(2) .link-stage { background: linear-gradient(160deg, #EBF4FA 0%, #D4E8F6 100%); }
+    .link-row:nth-of-type(3) .link-stage { background: linear-gradient(160deg, #E9F3FA 0%, #CAE4F4 100%); }
+    .link-row:nth-of-type(4) .link-stage { background: linear-gradient(160deg, #E5F1F9 0%, #BDDEF1 100%); }
+    .link-row:nth-of-type(5) .link-stage { background: linear-gradient(160deg, #E2F0F9 0%, #B1D8EF 100%); }
+    .link-n {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 50%; margin-bottom: 12px;
+      font-family: var(--font-display); font-weight: 700; font-size: .9rem; color: #0B1220;
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon));
+      box-shadow: 0 4px 12px rgba(56,182,255,.38);
+    }
+    .link-t { font-family: var(--font-display); font-weight: 700; letter-spacing: -.03em; font-size: clamp(1.4rem, 2.6vw, 1.8rem); margin: 0 0 10px; }
+    .link-d { font-size: .93rem; color: var(--ink-soft); line-height: 1.65; margin: 0; }
+    .link-d b { color: var(--ink); font-weight: 600; }
+    .joint { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 4px 0; }
+    .joint i { display: block; width: 1.5px; height: 26px; background: linear-gradient(180deg, transparent, var(--neon-line)); }
+    .joint i + i { background: linear-gradient(180deg, var(--neon-line), transparent); }
+    .joint span { display: block; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--neon); background: var(--paper); margin: 5px 0; }
+
+    /* ── Portal mock ──
+       A scrap of the merchant portal rather than a phone: what a brand
+       actually looks at is a desktop panel. Bled off the bottom of the stage
+       the same way the member page bleeds its phone. */
+    .pane {
+      width: 244px; border-radius: 13px 13px 0 0; overflow: hidden;
+      background: var(--paper); border: var(--bw) solid var(--line); border-bottom: 0;
+      margin-bottom: -16px; box-shadow: 0 -2px 26px rgba(11,18,32,.14);
+    }
+    .pane-bar { display: flex; gap: 5px; align-items: center; padding: 9px 11px; background: var(--paper-deep); border-bottom: 1px solid var(--line); }
+    .pane-bar i { width: 7px; height: 7px; border-radius: 50%; background: #CBD7E2; display: block; }
+    .pane-bar b { font-family: var(--font-display); font-size: .56rem; color: var(--ink-soft); margin-left: 5px; letter-spacing: .04em; text-transform: uppercase; }
+    .pane-body { padding: 12px 12px 18px; display: flex; flex-direction: column; gap: 8px; }
+    .m-label { font-size: .5rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
+    .m-box { height: 19px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper-deep); }
+    .m-btn { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: .58rem; color: #0B1220; padding: 6px; border-radius: 7px; background: linear-gradient(180deg, var(--neon-soft), var(--neon)); }
+    .m-row { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 7px; min-width: 0; }
+    .m-line { height: 5px; border-radius: 99px; background: #E4EBF2; display: block; flex: 1; }
+    /* Width twice over: flex-basis for the lines sitting in a row, width for
+       the ones stacked down the receipt slip, where a basis would be height. */
+    .m-line.w40 { flex: 0 0 40%; width: 40%; }
+    .m-line.w60 { flex: 0 0 60%; width: 60%; }
+    .m-line.w25 { flex: 0 0 25%; width: 25%; }
+    .m-slip .m-line { flex: 0 0 5px; }
+    .m-chip { font-size: .5rem; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: var(--blue-tint); color: var(--ink); white-space: nowrap; }
+    .m-chip.on { background: var(--neon); color: #0B1220; }
+    .m-amt { margin-left: auto; font-family: var(--font-display); font-size: .58rem; color: var(--ink); white-space: nowrap; }
+    .m-bal { background: linear-gradient(140deg, var(--neon-soft), var(--neon)); border-radius: 9px; padding: 9px 10px; color: #0B1220; }
+    .m-bal span { display: block; font-size: .45rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .75; }
+    .m-bal b { font-family: var(--font-display); font-size: 1rem; letter-spacing: -.02em; }
+    .m-slip { border: 1px dashed var(--line); border-radius: 8px; padding: 9px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--paper-deep); }
+
+    /* Phone mock, for the one step that happens on a shopper's phone. Same
+       markup and image as how-it-works.html and the homepage tiles. */
+    .ph { width: 148px; border-radius: 20px 20px 0 0; background: #0B1220; padding: 7px 7px 0; margin-bottom: -14px; box-shadow: 0 -2px 30px rgba(11,18,32,.22); }
+    .ph-screen { background: #fff; border-radius: 14px 14px 0 0; padding: 9px 8px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 214px; }
+    .ph-notch { width: 40px; height: 4px; border-radius: 99px; background: #33405A; margin: 0 auto 6px; }
+    .ps-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .ps-brand { font-family: var(--font-display); font-weight: 700; font-size: .6rem; color: var(--ink); }
+    .ps-img { width: 100%; border-radius: 8px; object-fit: cover; display: block; height: 92px; }
+    .ps-cap { font-size: .52rem; color: var(--ink-soft); line-height: 1.4; }
+    .ps-cap b { color: var(--blue); }
+    .ps-btn { margin-top: auto; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: .58rem; color: #0B1220; padding: 6px; border-radius: 7px; background: linear-gradient(180deg, var(--neon-soft), var(--neon)); }
+
+    /* ── Optional per-deal settings ── */
+    /* The verification checks. Same card shape as .way, but it stacks on
+       mobile instead of joining the swipe strips — this is the block a brand
+       reads before deciding to trust us with a budget, so every card should
+       be reachable by scrolling rather than found by swiping sideways. */
+    .checks { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(14px, 2vw, 20px); }
+    .check { display: flex; gap: 15px; align-items: flex-start; padding: 22px 24px; }
+    .check-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .check-t { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
+    .check-d { font-size: .87rem; color: var(--ink-soft); line-height: 1.6; margin: 5px 0 0; }
+    .check-tag { display: inline-block; margin-top: 9px; font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+    @media (max-width: 860px) { .checks { grid-template-columns: 1fr; } }
+    /* a { color: inherit } globally, so inline links in these card blocks need
+       what .prose a gets or they read as plain text. */
+    .check-d a, .link-d a {
+      color: var(--blue); font-weight: 500;
+      text-decoration-color: rgba(67,125,158,.35);
+      text-underline-offset: 3px;
+      transition: text-decoration-color .2s;
+    }
+    .check-d a:hover, .link-d a:hover { text-decoration-color: var(--blue); }
+    .ways { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(14px, 2vw, 20px); }
+    .way { display: flex; gap: 15px; align-items: flex-start; padding: 22px 24px; }
+    .way-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .way-t { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: -.02em; }
+    .way-d { font-size: .87rem; color: var(--ink-soft); line-height: 1.6; margin: 5px 0 0; }
+    .way-pay { display: inline-block; margin-top: 9px; font-size: .74rem; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: var(--blue-tint); color: var(--ink); border: 1px solid rgba(56,182,255,.42); }
+
+    /* ── What the portal shows ──
+       Six tiles as a mosaic rather than a 3x2 of identical cards. Every tile is
+       placed explicitly — auto-flow can only produce even bands, and the point
+       is that these don't line up: the lead tile is 3 columns wide over 2 rows,
+       the one under it only 2 columns over 2 rows, so the left edge steps. The
+       six areas tile all 24 cells exactly; changing one means re-checking the
+       others or a hole opens. Size carries the hierarchy, so the lead tile is
+       the tinted one. */
     .why-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       grid-template-rows: repeat(4, minmax(92px, auto));
-      gap: 16px; margin-bottom: 64px;
+      gap: 16px;
     }
     .why-grid > :nth-child(1) { grid-area: 1 / 1 / 3 / 4; }
     .why-grid > :nth-child(2) { grid-area: 1 / 4 / 2 / 7; }
@@ -31,39 +141,23 @@
     .why-grid > :nth-child(5) { grid-area: 3 / 3 / 4 / 7; }
     .why-grid > :nth-child(6) { grid-area: 4 / 3 / 5 / 7; }
     .why-card { padding: 24px; display: flex; flex-direction: column; justify-content: center; }
-        .why-icon { font-size: 1.7rem; display: block; margin-bottom: 10px; }
+    .why-icon { font-size: 1.7rem; display: block; margin-bottom: 10px; }
     .why-title { font-family: var(--font-display); font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
     .why-text { font-size: .83rem; color: var(--ink-soft); line-height: 1.6; }
-    /* a { color: inherit } globally, so inline links inside these card blocks
-       need the same treatment .prose a gets or they read as plain text. */
-    .why-text a, .step-text a {
-      color: var(--blue); font-weight: 500;
-      text-decoration-color: rgba(67,125,158,.35);
-      text-underline-offset: 3px;
-      transition: text-decoration-color .2s;
-    }
-    .why-text a:hover, .step-text a:hover { text-decoration-color: var(--blue); }
-    /* The lead tile has the room for it, and type scale is what stops a
-       bigger box reading as the same card with more padding. */
+    /* The lead tile has the room for it, and type scale is what stops a bigger
+       box reading as the same card with more padding. */
     .why-grid > :nth-child(1) .why-icon { font-size: 2.3rem; margin-bottom: 14px; }
     .why-grid > :nth-child(1) .why-title { font-size: 1.5rem; margin-bottom: 10px; }
     .why-grid > :nth-child(1) .why-text { font-size: .96rem; max-width: 42ch; }
-    /* The two full-height tiles hold far more height than their copy needs,
-       and centring it left an island in the middle. Icon to the top, words to
-       the foot, so the height looks spent rather than left over. (margin-top
-       on the title rather than space-between on the card: the icon, title and
-       text are siblings, so space-between would push the title away from its
-       own paragraph.) */
+    /* The two full-height tiles hold far more height than their copy needs, and
+       centring it left an island in the middle. Icon to the top, words to the
+       foot, so the height looks spent rather than left over. (margin-top on the
+       title rather than space-between on the card: the icon, title and text are
+       siblings, so space-between would push the title away from its own
+       paragraph.) */
     .why-grid > :nth-child(1), .why-grid > :nth-child(4) { justify-content: flex-start; }
     .why-grid > :nth-child(1) .why-title, .why-grid > :nth-child(4) .why-title { margin-top: auto; }
-    .steps-list { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
-    .step-item { display: flex; gap: 14px; align-items: flex-start; padding: 18px; }
-    .step-text { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; padding-top: 8px; }
-    .step-text strong { color: var(--ink); }
-    .stats-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 56px; }
-    .b-stat { text-align: center; padding: 24px 12px; }
-        .b-stat-v { font-family: var(--font-display); font-weight: 800; font-size: 2rem; letter-spacing: -0.03em; }
-    .b-stat-l { font-size: .78rem; font-weight: 700; color: var(--ink-soft); margin-top: 4px; }
+
     .cta-box { text-align: center; padding: 44px 30px; margin-top: 60px; position: relative; overflow: hidden; }
     .cta-box > :not(.cta-ring) { position: relative; z-index: 1; }
     .cta-ring {
@@ -105,10 +199,13 @@
       50% { box-shadow: 0 8px 26px rgba(53,99,127,.34), 0 0 0 7px rgba(67,125,158,.09), inset 0 1px 0 rgba(255,255,255,.18); }
     }
 
-    /* The mosaic is a desktop idea: six columns of card don't survive a
-       narrow screen. Drop the explicit areas (or they'd hold their spans and
-       overflow) and fall back to an even grid. */
-    @media(max-width:760px){
+    @media (max-width: 820px) {
+      .ways { grid-template-columns: 1fr; }
+    }
+    /* The mosaic is a desktop idea: six columns of card don't survive a narrow
+       screen. Drop the explicit areas (or they'd hold their spans and overflow)
+       and fall back to an even grid. */
+    @media (max-width: 760px) {
       .why-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
       .why-grid > :nth-child(n) { grid-area: auto; }
       /* Five cards after the lead leave the last one alone in a column, so it
@@ -116,9 +213,51 @@
       .why-grid > :nth-child(1), .why-grid > :nth-child(6) { grid-column: span 2; }
       .why-grid > :nth-child(1) .why-title { font-size: 1.2rem; }
       .why-grid > :nth-child(1) .why-text { font-size: .88rem; }
-      .steps-list { grid-template-columns: 1fr; } .stats-section { grid-template-columns: 1fr 1fr; }
     }
-    @media(max-width:500px){ .why-grid { grid-template-columns: 1fr; } .why-grid > :nth-child(n) { grid-column: auto; } }
+    @media (max-width: 700px) {
+      /* One column, and the mock goes above its words — a portal panel next to
+         a paragraph at this width leaves both too narrow to read. */
+      .link-row, .link-row.flip { grid-template-columns: 1fr; gap: 18px; padding: 20px; }
+      .link-row .link-stage, .link-row.flip .link-stage { order: -1; min-height: 200px; }
+      /* Stacked, the five steps were five screens of scrolling. As a snapped
+         strip (the homepage's Shop/Share/Earn device) they're a flick apart,
+         and the next card's edge showing says it can be flicked. Full-bleed
+         to both screen edges; .page's 20px gutter comes back as padding so
+         the first card lines up with the heading. The joints are a vertical
+         device and mean nothing sideways. */
+      /* The settings pair and the dashboard tiles use the same strip, so all
+         three sections on this page read and swipe the same way. */
+      .chain, .ways, .why-grid {
+        display: flex; gap: 14px; align-items: stretch;
+        overflow-x: auto; overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        margin-left: -20px; margin-right: -20px;
+        padding: 4px 20px 12px;
+        scroll-padding: 0 20px;
+      }
+      .chain::-webkit-scrollbar, .ways::-webkit-scrollbar, .why-grid::-webkit-scrollbar { display: none; }
+      .chain .joint { display: none; }
+      .chain .link-row {
+        flex: 0 0 84%; min-width: 0; scroll-snap-align: center;
+        align-content: start; margin: 0;
+      }
+      .ways .way { flex: 0 0 84%; min-width: 0; scroll-snap-align: center; }
+      /* Dashboard tiles are short, so narrower: more of the next one shows.
+         The desktop mosaic's spans and type scale are undone here. */
+      .why-grid > .why-card, .why-grid > :nth-child(n) {
+        flex: 0 0 70%; min-width: 0; scroll-snap-align: center;
+        grid-column: auto; justify-content: flex-start;
+      }
+      .why-grid > :nth-child(n) .why-icon { font-size: 1.7rem; margin-bottom: 10px; }
+      .why-grid > :nth-child(n) .why-title { font-size: 1.05rem; margin-top: 0; }
+      .why-grid > :nth-child(n) .why-text { font-size: .86rem; }
+      /* Stacked, full width — the same as the homepage hero. */
+      .hero-btns { flex-direction: column; align-items: stretch; max-width: 360px; margin-left: auto; margin-right: auto; }
+      .hero-btns > .btn { flex: none; width: 100%; }
+    }
+    @media (max-width: 500px) { .why-grid { grid-template-columns: 1fr; } .why-grid > :nth-child(n) { grid-column: auto; } }
   </style>
 </head>
 <body>
@@ -139,78 +278,223 @@
       <span class="hero-blob blob-a" aria-hidden="true"></span>
       <span class="hero-blob blob-b" aria-hidden="true"></span>
       <h1 class="h-display fade-up d1" style="margin-top:20px">Turn your customers into your <span class="hl hl-lime">best marketing</span></h1>
-      <p class="h-sub fade-up d2" style="margin:16px auto 0">Cirqle connects brands with real shoppers who share their purchases authentically. You get organic UGC and new customers. They get paid. Everyone wins.</p>
-      <div class="btn-row fade-up d3" style="margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">You set the cashback. Customers buy from you, share it with their friends — online or in&#8209;person — and claim with their receipt. You only pay for real purchases.</p>
+      <div class="btn-row hero-btns fade-up d3" style="margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
         <a href="contact.html" class="btn btn-lg btn-lime">Get in touch →</a>
         <a href="merchant.html" class="btn btn-lg">Merchant sign in</a>
       </div>
     </div>
 
-    <div class="why-grid">
-      <!-- Order is the mosaic's reading order, so the DOM matches what's on
-           screen. The lead tile is the pay-for-performance one deliberately:
-           it's both the strongest pitch and the one claim here that the
-           product actually delivers today. -->
-      <div class="card card-lime card-hover why-card fade-up d1"><span class="why-icon"><i class="ico ico-cash"></i></span><div class="why-title">Performance-only pricing</div><div class="why-text">You only pay cashback when a verified purchase happens. Zero wasted spend on impressions or clicks.</div></div>
-      <div class="card card-hover why-card fade-up d2"><span class="why-icon"><i class="ico ico-check"></i></span><div class="why-title">Verified purchases only</div><div class="why-text">Every receipt is matched against your own reference receipt and its maths re-added in code. Duplicates, bot accounts and self-referrals are blocked before they cost you. <a href="for-brands-how-it-works.html#verification">See the checks →</a></div></div>
-      <div class="card card-sky card-hover why-card fade-up d3"><span class="why-icon"><i class="ico ico-chart"></i></span><div class="why-title">Full attribution</div><div class="why-text">See exactly which posts drove which purchases. Real-time dashboard with conversion data and ROI.</div></div>
-      <div class="card card-tang card-hover why-card fade-up d4"><span class="why-icon"><i class="ico ico-megaphone"></i></span><div class="why-title">Authentic content at scale</div><div class="why-text">Thousands of genuine shoppers sharing your brand — not paid actors, and not bought accounts. Live in under 48 hours, with no tech work on your side.</div></div>
-      <div class="card card-pink card-hover why-card fade-up d5"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Targeted reach</div><div class="why-text">Choose your audience by category, location, or spend level. Only pay for the shoppers who matter most.</div></div>
-      <div class="card card-hover why-card fade-up d6"><span class="why-icon"><i class="ico ico-users"></i></span><div class="why-title">Dedicated account manager</div><div class="why-text">Every brand partner gets a dedicated account manager. We set you up, then optimise continuously.</div></div>
+    <!-- ══ THE CHAIN ══ -->
+    <div class="prose reveal"><h2>From sign-up to sales</h2></div>
+    <div class="chain" style="margin-top:22px">
+      <div class="card link-row reveal">
+        <div>
+          <span class="link-n">1</span>
+          <h2 class="link-t">You apply</h2>
+          <p class="link-d">Leave your name, email and phone on the <a href="contact.html">application form</a>. <b>A real person reviews it</b>, and if it's a fit we email you an invite to set up your login.</p>
+        </div>
+        <div class="link-stage">
+          <div class="pane">
+            <div class="pane-bar"><i></i><i></i><i></i><b>Partnership form</b></div>
+            <div class="pane-body">
+              <div><div class="m-label">First name</div><div class="m-box"></div></div>
+              <div><div class="m-label">Work email</div><div class="m-box"></div></div>
+              <div class="m-btn">Apply</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
+
+      <div class="card link-row flip reveal">
+        <div>
+          <span class="link-n">2</span>
+          <h2 class="link-t">You set up your account</h2>
+          <p class="link-d">Add your brand details, pick a <b>plan</b> and upload <b>one of your own receipts</b>. We check every claim against it, so fake or edited receipts get caught.</p>
+        </div>
+        <div class="link-stage">
+          <div class="pane">
+            <div class="pane-bar"><i></i><i></i><i></i><b>Reference receipt</b></div>
+            <div class="pane-body">
+              <div class="m-slip">
+                <span class="m-line w60"></span>
+                <span class="m-line"></span>
+                <span class="m-line w40"></span>
+                <span class="m-line w25"></span>
+              </div>
+              <div class="m-row"><span class="m-chip on">Ready</span><span class="m-line"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
+
+      <div class="card link-row reveal">
+        <div>
+          <span class="link-n">3</span>
+          <h2 class="link-t">You publish a deal</h2>
+          <p class="link-d">Choose <b>your cashback rate, minimum spend, end date and terms</b>. Once we've checked it, it goes live on <a href="browse.html">Browse Deals</a>. Run as many as you like.</p>
+        </div>
+        <div class="link-stage">
+          <div class="pane">
+            <div class="pane-bar"><i></i><i></i><i></i><b>Your campaigns</b></div>
+            <div class="pane-body">
+              <div class="m-row"><span class="m-chip">12% back</span><span class="m-line"></span><span class="m-chip on">Live</span></div>
+              <div class="m-row"><span class="m-chip">8% back</span><span class="m-line"></span><span class="m-chip">In review</span></div>
+              <div class="m-row"><span class="m-line w60"></span><span class="m-amt">£0.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
+
+      <div class="card link-row flip reveal">
+        <div>
+          <span class="link-n">4</span>
+          <h2 class="link-t">You fund it up front</h2>
+          <p class="link-d">Top up by card. Cashback only leaves your balance when a claim is approved — <b>no per-click fees, no surprise invoices</b>.</p>
+        </div>
+        <div class="link-stage">
+          <div class="pane">
+            <div class="pane-bar"><i></i><i></i><i></i><b>Billing</b></div>
+            <div class="pane-body">
+              <div class="m-bal"><span>Cashback wallet</span><b>£420.00</b></div>
+              <div class="m-row"><span class="m-line w60"></span><span class="m-amt">£75.00</span></div>
+              <div class="m-row"><span class="m-line w40"></span><span class="m-amt">&minus;£12.60</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="joint" aria-hidden="true"><i></i><span></span><i></i></div>
+
+      <div class="card link-row reveal">
+        <div>
+          <span class="link-n">5</span>
+          <h2 class="link-t">Shoppers buy, share and claim</h2>
+          <p class="link-d">A customer buys from you, <b>shares it with their friends — online or in&#8209;person</b> — and uploads the receipt. <a href="#verification">We check it</a>, and you see every claim, share and receipt.</p>
+        </div>
+        <div class="link-stage">
+          <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle.co.uk</b> <b>@yourbrand</b></div><div class="ps-btn">Share</div></div></div>
+        </div>
+      </div>
     </div>
 
-    <div class="prose reveal"><h2>How it works for brands</h2><p>The short version. <a href="for-brands-how-it-works.html">The full walkthrough</a> covers onboarding, funding, verification and what you actually pay for.</p></div>
-    <div class="steps-list">
-      <div class="card step-item reveal"><span class="coin coin-sky">1</span><p class="step-text"><strong>Set your rate</strong> — choose a cashback % that works for your margins.</p></div>
-      <div class="card step-item reveal reveal-delay-1"><span class="coin coin-pink">2</span><p class="step-text"><strong>Go live</strong> — your deal is listed to 50k+ active Cirqle shoppers.</p></div>
-      <div class="card step-item reveal reveal-delay-2"><span class="coin coin-lime">3</span><p class="step-text"><strong>Shoppers share</strong> — they post it, and we <a href="for-brands-how-it-works.html#verification">verify the receipt and the post</a> before anything is paid.</p></div>
-      <div class="card step-item reveal reveal-delay-3"><span class="coin">4</span><p class="step-text"><strong>Track ROI</strong> — see real conversions, content volume, and payback in your dashboard.</p></div>
+    <!-- ══ VERIFICATION ══
+         Step 5 above says "we check it" in four words. This is what those
+         four words actually mean, because it is the first thing a brand
+         wants nailed down before it funds anything. Same seven checks the
+         shopper side gets on how-it-works.html#verification, angled at the
+         person paying rather than the person earning. -->
+    <div class="prose reveal" style="margin-top:64px" id="verification">
+      <h2>What &ldquo;we check it&rdquo; actually means</h2>
+      <p>You are paying for purchases, so the purchase has to be real. Every claim goes through the same checks, in the same order, and <b>a claim that fails one never reaches your budget</b>. You are not charged for it, and you do not have to spot it yourself.</p>
     </div>
-    <div class="reveal" style="text-align:center; margin-top:26px">
-      <a href="for-brands-how-it-works.html" class="btn btn-lg btn-lime">How it works &rarr;</a>
+    <div class="checks" style="margin-top:22px">
+      <div class="card check reveal">
+        <span class="check-ico"><i class="ico ico-receipt"></i></span>
+        <div>
+          <div class="check-t">The receipt is matched to yours</div>
+          <p class="check-d">Every uploaded receipt is read and compared against the reference receipt you gave us at setup &mdash; <b>store name, address, phone number, VAT number, and the visual format of the receipt itself</b>. A receipt that did not come from one of your tills does not look like one of your receipts.</p>
+          <span class="check-tag">Compared against your own reference receipt</span>
+        </div>
+      </div>
+      <div class="card check reveal reveal-delay-1">
+        <span class="check-ico"><i class="ico ico-check"></i></span>
+        <div>
+          <div class="check-t">The arithmetic is recomputed</div>
+          <p class="check-d">Line items are added against the subtotal, and subtotal plus tax against the total &mdash; <b>in code, not by a model</b>. This is what catches fabricated receipts: generators reproduce how a receipt looks and then routinely get its sums wrong. We also check the purchase fits the deal &mdash; a plausible item, a sane date, and at least your minimum spend.</p>
+          <span class="check-tag">Fails the maths, fails the claim</span>
+        </div>
+      </div>
+      <div class="card check reveal">
+        <span class="check-ico"><i class="ico ico-refresh"></i></span>
+        <div>
+          <div class="check-t">No receipt is paid twice</div>
+          <p class="check-d">A byte-identical upload is rejected at the door. A re-saved, cropped or re-photographed copy is caught too, because we fingerprint <i>what the image looks like</i>, not just the file. The same check runs across accounts, so one receipt cannot quietly fund claims from several profiles.</p>
+          <span class="check-tag">Exact and near-duplicate detection</span>
+        </div>
+      </div>
+      <div class="card check reveal reveal-delay-1">
+        <span class="check-ico"><i class="ico ico-instagram"></i></span>
+        <div>
+          <div class="check-t">The post has to name you</div>
+          <p class="check-d">We read the accounts tagged in the post and check them against the deal being claimed. <b>A post tagging a different Cirqle brand is rejected outright</b> &mdash; you never pay for content that promoted someone else. The post also has to stay up until the claim is checked, so the content you paid for is content that actually ran.</p>
+          <span class="check-tag">Brand tag matched to your deal</span>
+        </div>
+      </div>
+      <div class="card check reveal">
+        <span class="check-ico"><i class="ico ico-ghost"></i></span>
+        <div>
+          <div class="check-t">Bought audiences are scored down</div>
+          <p class="check-d">Accounts are scored on <b>follower-to-following ratio, engagement rate, and consistency across recent posts</b>. Engagement far below what an account that size should draw reads as bought followers; far above it, or near-identical post after post, reads as an engagement pod. You are reaching real people, not a follower count someone bought.</p>
+          <span class="check-tag">Account quality scored on every claim</span>
+        </div>
+      </div>
+      <div class="card check reveal reveal-delay-1">
+        <span class="check-ico"><i class="ico ico-lock"></i></span>
+        <div>
+          <div class="check-t">Referral bonuses cannot be farmed</div>
+          <p class="check-d">A referral bonus needs <b>both</b> people identity-verified through Stripe, and is blocked when two accounts share bank or identity details &mdash; compared as hashed fingerprints, so the details themselves are never held. The referrer&rsquo;s post has to predate the friend&rsquo;s purchase, and it only counts on that friend&rsquo;s first claim for the deal. One person with two accounts earns nothing.</p>
+          <span class="check-tag">Stripe identity verification on both sides</span>
+        </div>
+      </div>
+    </div>
+    <div class="prose reveal" style="margin-top:26px">
+      <p>Behind the automated checks there is a human backstop. The same deal claimed over and over by one member, a claim filed minutes after an account was created, one image appearing across multiple accounts, one post backing claims from several accounts &mdash; all of it is flagged and <b>reviewed by a person before any money moves</b>. Held, not paid.</p>
+      <p>We are straight about the one thing this is not: it is not image forensics. A skilfully edited real receipt whose numbers still add up will read as fine to the automated checks &mdash; which is exactly why the duplicate detection, the tag matching, the account scoring and the human review exist alongside it. No single check carries the weight, and that is the point.</p>
     </div>
 
-    <div class="stats-section">
-      <div class="card b-stat reveal"><div class="b-stat-v">50k+</div><div class="b-stat-l">Active shoppers</div></div>
-      <div class="card card-lime b-stat reveal reveal-delay-1"><div class="b-stat-v">4.2x</div><div class="b-stat-l">Average ROAS</div></div>
-      <div class="card card-pink b-stat reveal reveal-delay-2"><div class="b-stat-v">UK</div><div class="b-stat-l">Household-name brand partners</div></div>
-      <div class="card card-sky b-stat reveal reveal-delay-3"><div class="b-stat-v">48h</div><div class="b-stat-l">Time to go live</div></div>
+    <!-- ══ PER-DEAL SETTINGS ══ -->
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>Two ways to get more from every customer</h2>
+      <p>Both optional, switched on deal by deal.</p>
+    </div>
+    <div class="ways" style="margin-top:22px">
+      <div class="card way reveal">
+        <span class="way-ico"><i class="ico ico-users"></i></span>
+        <div>
+          <div class="way-t">Referral bonuses</div>
+          <p class="way-d">When a friend buys because a customer shared your deal with them, you reward both. You set the amounts, from 50p each, paid only once the friend's purchase is approved.</p>
+          <span class="way-pay">From your referral wallet</span>
+        </div>
+      </div>
+      <div class="card way reveal reveal-delay-1">
+        <span class="way-ico"><i class="ico ico-refresh"></i></span>
+        <div>
+          <div class="way-t">Repeat visits</div>
+          <p class="way-d">Customers who've already claimed can earn again next time they buy, without sharing again. You set the amount, up to your normal cashback.</p>
+          <span class="way-pay">From your cashback wallet</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ THE PORTAL ══ -->
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>What your dashboard shows you</h2>
+      <p>All from real claims and receipts. Nothing estimated.</p>
+    </div>
+    <div class="why-grid" style="margin-top:22px">
+      <div class="card card-lime card-hover why-card reveal"><span class="why-icon"><i class="ico ico-chart"></i></span><div class="why-title">Claims and sales</div><div class="why-text">Views, clicks, claims and what customers really spent on each deal, read straight off their receipts.</div></div>
+      <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-instagram"></i></span><div class="why-title">Every share</div><div class="why-text">Each Instagram post that tags your brand, and who posted it.</div></div>
+      <div class="card card-sky card-hover why-card reveal"><span class="why-icon"><i class="ico ico-cash"></i></span><div class="why-title">Cost against revenue</div><div class="why-text">What you paid out, next to what you made.</div></div>
+      <div class="card card-tang card-hover why-card reveal"><span class="why-icon"><i class="ico ico-users"></i></span><div class="why-title">Your customers</div><div class="why-text">Everyone who bought through your deals. Export it to a spreadsheet anytime.</div></div>
+      <div class="card card-pink card-hover why-card reveal"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Who brought whom</div><div class="why-text">Which customers came from a friend, and whose shares bring in the most.</div></div>
+      <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-refresh"></i></span><div class="why-title">Who comes back</div><div class="why-text">How many customers return, compared with similar brands.</div></div>
     </div>
 
     <div class="card card-ink cta-box reveal">
       <span class="cta-ring" aria-hidden="true"></span>
       <h2 style="color:var(--paper); font-size:clamp(1.6rem,3.4vw,2.2rem)">Ready to grow with <span class="hl hl-lime" style="color:var(--ink)">Cirqle?</span></h2>
-      <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Tell us about your brand and we'll set up a 20-minute call to explore what's possible.</p>
+      <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Tell us about your brand and we'll get back to you.</p>
       <a href="contact.html" class="btn btn-lg btn-lime">Get in touch →</a>
     </div>
   </div>
-  <script>
-    // Count the stat figures up when they scroll into view ("50k+" -> 0..50k+).
-    (function () {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const els = document.querySelectorAll('.b-stat-v');
-      if (!els.length || !('IntersectionObserver' in window)) return;
-      const obs = new IntersectionObserver(entries => {
-        entries.forEach(en => {
-          if (!en.isIntersecting) return;
-          obs.unobserve(en.target);
-          const raw = en.target.textContent.trim();
-          const m = raw.match(/^([\d.]+)(.*)$/);
-          if (!m) return;
-          const target = parseFloat(m[1]), suffix = m[2];
-          const dec = m[1].includes('.') ? 1 : 0;
-          const step = target / (1100 / 16);
-          let cur = 0;
-          const t = setInterval(() => {
-            cur = Math.min(cur + step, target);
-            en.target.textContent = cur.toFixed(dec) + suffix;
-            if (cur >= target) { en.target.textContent = raw; clearInterval(t); }
-          }, 16);
-        });
-      }, { threshold: 0.6 });
-      els.forEach(el => obs.observe(el));
-    })();
-  </script>
+
   <script src="assets/enhance.js?v=13"></script>
 </body>
 </html>

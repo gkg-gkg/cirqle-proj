@@ -26,6 +26,7 @@ from ..instagram import (
 )
 from ..models import (FeedPost, FeedRefreshOut, Mention, PostCampaignsOut,
                       User)
+from ..ratelimit import rate_limit
 from ..security import get_current_user
 from .campaigns import _campaign_out
 
@@ -49,6 +50,7 @@ def _mention_to_post(m: Mention) -> FeedPost:
         ownerFullName=m.owner_full_name,
         likesCount=m.likes_count,
         commentsCount=m.comments_count,
+        taggedHandles=brandtags.decode_handles(m) or [],
     )
 
 
@@ -93,7 +95,9 @@ def post_campaigns(
     )
 
 
-@router.post("/refresh", response_model=FeedRefreshOut)
+# Every call runs a paid Apify scrape, so keep it tight.
+@router.post("/refresh", response_model=FeedRefreshOut,
+             dependencies=[rate_limit("feed_refresh", limit=10, window=3600)])
 def refresh(
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
@@ -131,6 +135,7 @@ def refresh(
         # pointing at a dead image — mirror it into our own storage now, while
         # it's still valid, so the copy we keep never goes stale.
         display_url = mirror_display_image(p.get("displayUrl"))
+        tagged = extract_tagged_handles(p)
         fp = FeedPost(
             id=post_id,
             url=p.get("url"),
@@ -141,6 +146,7 @@ def refresh(
             ownerFullName=p.get("ownerFullName"),
             likesCount=p.get("likesCount"),
             commentsCount=p.get("commentsCount"),
+            taggedHandles=tagged,
         )
         posts.append(fp)
         if post_id:  # need an id to store it (it's the primary key)
@@ -155,9 +161,8 @@ def refresh(
                 owner_full_name=fp.ownerFullName,
                 likes_count=fp.likesCount,
                 comments_count=fp.commentsCount,
-                # Read now, while we still have the raw Apify item — the
-                # stored FeedPost above doesn't carry the tag fields.
-                tagged_handles=json.dumps(extract_tagged_handles(p)),
+                # Read now, while we still have the raw Apify item.
+                tagged_handles=json.dumps(tagged),
                 follower_count_at_scrape=profile_stats.get("followers") if profile_stats else None,
                 following_count_at_scrape=profile_stats.get("following") if profile_stats else None,
                 scraped_at=now,

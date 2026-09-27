@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#FFFFFF" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
   <title>Deal — Cirqle</title>
@@ -18,6 +18,17 @@
     .breadcrumb a:hover { color: var(--pink-deep); }
     .breadcrumb-sep { opacity: .4; }
 
+    /* This deal is a placeholder using a well-known brand's name — the brand
+       has not onboarded. Full width above the layout, so it is read before the
+       rate and the Shop button rather than after them. */
+    .preview-note {
+      display: flex; gap: 11px; align-items: flex-start;
+      padding: 13px 16px; margin-bottom: 22px;
+      border: var(--bw) solid var(--line); border-radius: var(--r-card);
+      background: var(--blue-tint); color: var(--ink);
+      font-size: .86rem; line-height: 1.55;
+    }
+    .preview-note .ico { flex-shrink: 0; margin-top: 2px; }
     .deal-layout { display: grid; grid-template-columns: 1fr 340px; gap: 30px; }
 
     /* Hero card */
@@ -104,6 +115,8 @@
       <span id="bcTitle" style="font-weight:800;color:var(--ink)">Deal</span>
     </div>
 
+    <div class="preview-note fade-up"><i class="ico ico-tag"></i><span><b>Example listing, not a live deal.</b> <span id="pnBrand">This brand</span> has not onboarded with Cirqle &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. It can&rsquo;t be claimed yet. <a href="for-brands.html">Brands can apply here</a>.</span></div>
+
     <div class="deal-layout">
       <div>
         <!-- Hero -->
@@ -111,16 +124,16 @@
           <div class="hero-img" id="heroImg" style="background:var(--sky)">
             <img id="heroImage" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none" onerror="this.style.display='none'" />
             <span id="heroEmoji" aria-hidden="true"><i class="ico ico-bag"></i></span>
-            <button class="hero-arrow hero-arrow-prev" id="heroPrev" type="button" aria-label="Previous image">◀</button>
-            <button class="hero-arrow hero-arrow-next" id="heroNext" type="button" aria-label="Next image">▶</button>
-            <span class="hero-badge sticker sticker-lime" id="heroBadge">13% cashback</span>
-            <span class="hero-chip chip" id="heroChip" style="background:var(--card)">Nike</span>
+            <button class="hero-arrow hero-arrow-prev" id="heroPrev" type="button" aria-label="Previous image" style="display:none">◀</button>
+            <button class="hero-arrow hero-arrow-next" id="heroNext" type="button" aria-label="Next image" style="display:none">▶</button>
+            <span class="hero-badge sticker sticker-lime" id="heroBadge" style="display:none"></span>
+            <span class="hero-chip chip" id="heroChip" style="background:var(--card);display:none"></span>
             <div class="hero-dots" id="heroDots"></div>
           </div>
           <div class="hero-body">
-            <div class="hero-brand" id="heroBrand">Nike</div>
-            <div class="hero-title" id="heroTitle">Nike Summer Sale — up to 13% back</div>
-            <div class="hero-desc" id="heroDesc">Shop the biggest sale of the year and earn cashback on every purchase.</div>
+            <div class="hero-brand" id="heroBrand"></div>
+            <div class="hero-title" id="heroTitle">Loading deal…</div>
+            <div class="hero-desc" id="heroDesc"></div>
           </div>
         </div>
 
@@ -128,7 +141,7 @@
         <div class="card info-card fade-up d2">
           <div class="panel-title">Deal details</div>
           <div class="info-row" id="infoTags"></div>
-          <div class="expiry-note" id="expiry">Offer expires 30 Jun 2026 — don't miss out</div>
+          <div class="expiry-note" id="expiry"></div>
         </div>
 
         <!-- Steps -->
@@ -158,9 +171,9 @@
         <div class="sticky-panel">
           <div class="card action-card fade-up d1">
             <div class="cashback-label">You could earn</div>
-            <div class="cashback-big" id="earnBig">£13.00</div>
-            <div class="cashback-desc" id="earnDesc">on a £100 spend</div>
-            <div class="cashback-total" id="totalPaid">£112,705 paid to members</div>
+            <div class="cashback-big" id="earnBig">—</div>
+            <div class="cashback-desc" id="earnDesc"></div>
+            <div class="cashback-total" id="totalPaid">£0 paid to members</div>
             <button class="btn btn-lg btn-ink shop-big-btn" id="shopBtn" onclick="handleShop()">Shop &amp; Earn</button>
             <button class="btn save-btn" onclick="handleSave()">Save deal</button>
             <div class="action-note">Opens the brand's website in a new tab. Shop as normal, then share to unlock your cashback.</div>
@@ -168,11 +181,11 @@
 
           <div class="stat-mini-row">
             <div class="card card-pink stat-mini fade-up d2">
-              <div class="stat-mini-val" id="rateVal">13%</div>
+              <div class="stat-mini-val" id="rateVal">—</div>
               <div class="stat-mini-label">Cashback rate</div>
             </div>
             <div class="card card-sky stat-mini fade-up d3">
-              <div class="stat-mini-val" id="membersVal">4.2k</div>
+              <div class="stat-mini-val" id="membersVal">0</div>
               <div class="stat-mini-label">Members used this</div>
             </div>
           </div>
@@ -208,7 +221,7 @@
     let slide = 0;
     let dots = [];
 
-    const isUrl = s => /^(https?:)?\/\//.test(s) || String(s).startsWith('/');
+    const ICON_SLIDE = '__icon__';   // the single fallback slide when a deal has no images
 
     // ── Deal-event tracking (Phase 6): count a view on load + a click on Shop.
     // keepalive lets the request survive the page navigating away on click.
@@ -227,7 +240,7 @@
       const heroEmoji = document.getElementById('heroEmoji');
       const heroImage = document.getElementById('heroImage');
       const val = slides[slide];
-      if (isUrl(val)) {
+      if (val !== ICON_SLIDE) {
         heroImage.src = val;
         heroImage.style.display = '';
         heroEmoji.style.display = 'none';
@@ -257,17 +270,23 @@
       document.getElementById('heroImg').style.background = c.bg || 'var(--sky)';
       document.getElementById('heroBadge').textContent = c.rate + '% cashback';
       document.getElementById('heroChip').textContent = c.brand;
+      document.getElementById('heroBadge').style.display = '';
+      document.getElementById('heroChip').style.display = '';
       document.getElementById('heroBrand').textContent = c.brand;
       document.getElementById('tagBrand').textContent = '@' + c.brand.toLowerCase().replace(/\s+/g, '');
       document.getElementById('heroTitle').textContent = c.title;
       document.getElementById('heroDesc').textContent = c.longDesc;
       document.getElementById('bcCategory').textContent = c.category;
       document.getElementById('bcTitle').textContent = c.brand;
+      document.getElementById('pnBrand').textContent = c.brand;
       document.getElementById('earnBig').textContent = c.earn;
       document.getElementById('earnDesc').textContent = c.spendDesc;
-      document.getElementById('totalPaid').textContent = c.totalPaid;
+      // Social proof, straight off the row. A campaign that has never been
+      // claimed stores these empty, and empty has to read as zero rather than
+      // as a blank space the eye fills in with something better.
+      document.getElementById('totalPaid').textContent = c.totalPaid || '£0 paid to members';
       document.getElementById('rateVal').textContent = c.rate + '%';
-      document.getElementById('membersVal').textContent = c.members;
+      document.getElementById('membersVal').textContent = c.members || '0';
       document.getElementById('termsList').innerHTML = sanitizeHtml(c.terms);
       document.getElementById('expiry').textContent = /ongoing/i.test(c.expiry) ? 'Ongoing offer — available now'
         : /members/i.test(c.expiry) ? c.expiry
@@ -277,8 +296,12 @@
 
       // Build the carousel from real images, or a single category-icon slide.
       c._catIcon = cirqleCatIcon(c.category);
-      slides = (c.images && c.images.length) ? c.images : ['__icon__'];
+      slides = (c.images && c.images.length) ? c.images : [ICON_SLIDE];
       slide = 0;
+      // Arrows and dots only mean something with 2+ slides.
+      const multi = slides.length > 1;
+      ['heroPrev', 'heroNext', 'heroDots'].forEach(elId =>
+        document.getElementById(elId).style.display = multi ? '' : 'none');
       const heroDots = document.getElementById('heroDots');
       heroDots.innerHTML = slides
         .map((_, i) => `<button class="hero-dot${i === 0 ? ' active' : ''}" type="button" aria-label="Image ${i + 1}"></button>`)

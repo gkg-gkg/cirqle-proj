@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#FFFFFF" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
   <title>Merchant portal — Cirqle</title>
@@ -935,6 +935,36 @@
   </div>
 
   <!-- Create-campaign modal -->
+  <!-- First sign-in: the short application only took a name, email and phone,
+       so the brand's details are collected here before anything else. No close
+       button on purpose — a deal takes its brand name from this. -->
+  <div class="modal-overlay" id="setupModal" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <div class="card modal">
+      <h2 id="setupTitle">Complete your account</h2>
+      <div class="modal-sub">Tell us about your brand. It takes a minute, and you can change it later in Merchant Profile.</div>
+      <form id="setupForm" novalidate onsubmit="return saveSetup(event)">
+        <div class="field">
+          <label for="sName">Brand name *</label>
+          <input id="sName" required autocomplete="organization" placeholder="e.g. Nova Athletics" />
+        </div>
+        <div class="field">
+          <label for="sWebsite">Website *</label>
+          <input id="sWebsite" required type="url" inputmode="url" placeholder="https://" />
+        </div>
+        <div class="field">
+          <label for="sCat">Category *</label>
+          <select id="sCat" required></select>
+        </div>
+        <div class="field">
+          <label for="sInsta">Instagram handle</label>
+          <input id="sInsta" autocapitalize="none" placeholder="@yourbrand" />
+        </div>
+        <div class="modal-err" id="setupErr"></div>
+        <button class="btn btn-lg btn-lime" style="width:100%" type="submit" id="setupBtn">Save and continue →</button>
+      </form>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="campaignModal">
     <div class="card modal">
       <button class="modal-close" type="button" onclick="closeCampaignModal()" aria-label="Close">✕</button>
@@ -1046,6 +1076,7 @@
     function authHeader() { return { 'Authorization': 'Bearer ' + merchant.token }; }
     function signOut() {
       localStorage.removeItem(SKEY); merchant = null;
+      document.getElementById('setupModal').classList.remove('open');
       loaded.posts = loaded.profile = loaded.billing = false;
       showLogin();
     }
@@ -1128,8 +1159,61 @@
     const fmtInt = n => Number(n || 0).toLocaleString('en-GB');
     const fmtMoney = n => Number(n || 0).toFixed(2);
 
+    // ── First sign-in: complete the account ──
+    let profileComplete = true;   // assume so until the profile says otherwise
+    async function checkSetup() {
+      try {
+        const res = await fetch(`${API}/merchant/profile`, { headers: authHeader() });
+        if (!res.ok) return;
+        const p = await res.json();
+        profileComplete = p.profileComplete !== false;
+        if (profileComplete) return;
+        const sel = document.getElementById('sCat');
+        sel.innerHTML = '<option value="">Select…</option>' +
+          CATEGORIES.map(c => `<option>${escapeHtml(c)}</option>`).join('');
+        document.getElementById('sName').value = p.businessName || '';
+        document.getElementById('sWebsite').value = p.website || '';
+        sel.value = (p.categories || [])[0] || '';
+        document.getElementById('sInsta').value = p.instagram ? '@' + p.instagram : '';
+        document.getElementById('setupModal').classList.add('open');
+        document.getElementById('sName').focus();
+      } catch (_) { /* offline: the server still refuses deals until it's done */ }
+    }
+    async function saveSetup(e) {
+      e.preventDefault();
+      const err = document.getElementById('setupErr'), btn = document.getElementById('setupBtn');
+      let website = document.getElementById('sWebsite').value.trim();
+      if (website && !/^https?:\/\//i.test(website)) website = 'https://' + website;
+      const body = {
+        businessName: document.getElementById('sName').value.trim(),
+        website,
+        categories: [document.getElementById('sCat').value].filter(Boolean),
+        instagram: document.getElementById('sInsta').value.trim(),
+      };
+      if (!body.businessName || !body.website || !body.categories.length) { err.textContent = 'Please fill in the fields marked *.'; return false; }
+      err.textContent = ''; btn.disabled = true;
+      try {
+        const res = await fetch(`${API}/merchant/profile`, {
+          method: 'PATCH', headers: { ...authHeader(), 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+        });
+        if (res.status === 401) { signOut(); return false; }
+        const p = await res.json().catch(() => ({}));
+        if (!res.ok) { err.textContent = p.detail || 'Couldn’t save — try again.'; return false; }
+        profileComplete = p.profileComplete !== false;
+        merchant = { ...merchant, businessName: p.businessName };
+        localStorage.setItem(SKEY, JSON.stringify(merchant));
+        document.getElementById('bizName').textContent = p.businessName;
+        loaded.profile = false;   // Merchant Profile tab re-reads it next time
+        document.getElementById('setupModal').classList.remove('open');
+        cirqleToast('Account complete ✓');
+      } catch (_) { err.textContent = 'Couldn’t reach the server — try again.'; }
+      finally { btn.disabled = false; }
+      return false;
+    }
+
     async function enterDashboard() {
       showDash();
+      checkSetup();
       showTab((location.hash || '').slice(1) || 'overview');
       handleTopupReturn();
       // Load billing up front so the Overview plan prompt is accurate on arrival.
@@ -1558,6 +1642,7 @@
 
     // ── Create campaign (merchant proposes a deal -> admin reviews) ──
     function openCampaignModal() {
+      if (!profileComplete) { checkSetup(); return; }
       if (refReceiptStatus !== 'ready') {
         cirqleToast('Upload a reference receipt before creating a deal ↓');
         showTab('overview');

@@ -10,15 +10,18 @@ which puts them on S3 in prod or backend/media/ locally).
 """
 import json
 import os
+import secrets
 
 from fastapi import (APIRouter, Depends, File, Form, Header, HTTPException,
-                     Response, UploadFile)
+                     Request, Response, UploadFile)
 from sqlmodel import Session, select
 
+from .. import geo
 from ..activity import log_activity
 from ..db import get_session
 from ..models import (Campaign, CampaignIn, CampaignOut, CampaignSubmission,
                       DealEvent, MerchantApplication, Receipt)
+from ..ratelimit import admin_guard
 from ..storage import StorageError, StorageUploadError, delete_image, upload_image
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
@@ -57,9 +60,12 @@ _FIELD_MAP = {
 }
 
 
-def require_admin(x_admin_key: str = Header(default="")):
-    """Gate write endpoints behind the shared admin key (X-Admin-Key header)."""
-    if x_admin_key != ADMIN_KEY:
+def require_admin(request: Request, x_admin_key: str = Header(default="")):
+    """Gate write endpoints behind the shared admin key (X-Admin-Key header).
+    Wrong guesses are rate limited per IP (ratelimit.admin_guard)."""
+    ok = secrets.compare_digest(x_admin_key.encode(), ADMIN_KEY.encode())
+    admin_guard(request, ok)
+    if not ok:
         raise HTTPException(status_code=401, detail="Invalid or missing admin key.")
 
 
@@ -87,6 +93,7 @@ def _campaign_out(c: Campaign) -> CampaignOut:
         bg=c.bg,
         tags=json.loads(c.tags or "[]"),
         images=json.loads(c.images or "[]"),
+        stores=json.loads(c.stores or "[]"),
         cashbackMode=c.cashback_mode,
         baseCashback=c.base_cashback,
         expectedEngagementBaseline=c.expected_engagement_baseline,
@@ -118,6 +125,23 @@ def _apply_in(c: Campaign, data: CampaignIn) -> None:
             setattr(c, column, provided[camel])
     if provided.get("tags") is not None:
         c.tags = json.dumps(data.tags)
+    if data.stores is not None:
+        c.stores = json.dumps(_geocode_stores(data.stores))
+
+
+def _geocode_stores(stores) -> list[dict]:
+    """Resolve each store's postcode to coordinates, or refuse the whole save —
+    a store we can't place would silently never show up as "near" anyone."""
+    out = []
+    for s in stores:
+        try:
+            g = geo.lookup_postcode(s.postcode)
+        except geo.GeoError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
+        except geo.GeoUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        out.append({"name": s.name.strip(), **g})
+    return out
 
 
 def _upload_all(images: list[UploadFile]) -> list[str]:

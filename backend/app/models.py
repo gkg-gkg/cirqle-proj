@@ -145,7 +145,7 @@ class Campaign(SQLModel, table=True):
     rate: float = 0            # cashback %
     earn: str = ""             # e.g. "£13.00"
     spend_desc: str = ""       # deal.html desc, e.g. "on a £100 spend"
-    total_paid: str = ""       # e.g. "£112,705 paid to members"
+    total_paid: str = ""       # e.g. "£0 paid to members" — see scripts/zero_fake_campaign_stats.py
     members: str = ""          # e.g. "1.8k"
     claims: int = 0            # browse "claims" count
     expiry: str = ""           # "30 Jun 2026" / "Ongoing" / "New members only"
@@ -176,6 +176,10 @@ class Campaign(SQLModel, table=True):
     bg: str = "var(--paper-deep)"
     tags: str = "[]"           # JSON-encoded list[str]
     images: str = "[]"         # JSON-encoded list[str] of image URLs
+    # JSON list of {"name", "postcode", "lat", "lng"} — the brand's physical
+    # stores, for "deals near me". Coordinates come from app/geo.py when the
+    # deal is saved, so the browse page can measure distance without a lookup.
+    stores: str = "[]"
     merchant_id: Optional[int] = Field(default=None, foreign_key="merchant.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -195,9 +199,10 @@ class MerchantApplication(SQLModel, table=True):
     """A brand's partnership application, submitted from contact.html.
 
     Public (no user account needed) — merchants aren't Cirqle users. The admin
-    reviews these on admin.html and, on approve, a live `Campaign` is created
-    from the key fields (`campaign_id` links to it). Lifecycle:
-      pending -> approved (deal published)  or  rejected.
+    reviews these on admin.html; approving creates the merchant login and emails
+    the invite. Lifecycle: pending -> approved (login invited) or rejected.
+    `campaign_id` is only set on older applications, which were published as a
+    deal on approval before the form was shortened.
     `goals` holds a JSON-encoded list[str] as TEXT (same trick as Campaign.tags).
     """
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -674,6 +679,7 @@ class FeedPost(BaseModel):
     ownerFullName: Optional[str] = None
     likesCount: Optional[int] = None
     commentsCount: Optional[int] = None
+    taggedHandles: list[str] = []   # accounts tagged besides @cirqle.co.uk (the brand)
 
 
 class FeedRefreshOut(BaseModel):
@@ -682,6 +688,11 @@ class FeedRefreshOut(BaseModel):
 
 
 # ── Campaigns (Phase 3) ──
+class StoreIn(BaseModel):
+    name: str = ""
+    postcode: str
+
+
 class CampaignIn(BaseModel):
     """The text fields the admin form sends (as a JSON payload alongside the
     uploaded image files). Every field is optional so PATCH can send a partial
@@ -706,12 +717,26 @@ class CampaignIn(BaseModel):
     brandUrl: Optional[str] = None
     bg: Optional[str] = None
     tags: Optional[list[str]] = None
+    stores: Optional[list[StoreIn]] = None   # replaces the whole list when sent
     cashbackMode: Optional[str] = None
     baseCashback: Optional[float] = None
     expectedEngagementBaseline: Optional[float] = None
     maxMultiplier: Optional[float] = None
     perPostCap: Optional[float] = None
     budgetTotal: Optional[float] = None   # budgetRemaining is system-managed, never admin-set directly
+
+
+class StoreOut(BaseModel):
+    name: str = ""
+    postcode: str
+    lat: float
+    lng: float
+
+
+class GeoOut(BaseModel):
+    postcode: str
+    lat: float
+    lng: float
 
 
 class CampaignOut(BaseModel):
@@ -736,6 +761,7 @@ class CampaignOut(BaseModel):
     bg: str
     tags: list[str]
     images: list[str]
+    stores: list[StoreOut] = []
     cashbackMode: str = "flat"
     baseCashback: Optional[float] = None
     expectedEngagementBaseline: Optional[float] = None
@@ -918,15 +944,18 @@ class LeaderboardOptIn(BaseModel):
 
 
 class MerchantApplicationIn(BaseModel):
-    """What contact.html's partnership form sends. The key fields needed to
-    publish a deal on approval are required; the rest is optional context."""
-    brand: str
-    website: str
-    category: str
-    cashbackRate: float
+    """What contact.html sends. The application is deliberately short — first
+    name, work email, phone, how they heard — and everything else about the
+    brand is collected in the merchant portal after they're approved (see
+    MerchantProfileOut.profileComplete). The old long-form fields stay
+    accepted so nothing that still sends them breaks."""
     firstName: str
-    lastName: str
     email: EmailStr
+    brand: str = ""
+    website: str = ""
+    category: str = ""
+    cashbackRate: float = 0
+    lastName: str = ""
     markets: str = ""
     phone: str = ""
     role: str = ""
@@ -968,6 +997,8 @@ class MerchantApplicationOut(BaseModel):
     kind: str = "application"
     campaignId: Optional[int] = None
     createdAt: datetime
+    inviteSent: Optional[bool] = None   # set only on the approve response
+    hasLogin: bool = False              # a merchant account exists for this application
 
 
 # ── Merchant portal (Phase 6) ──
@@ -1348,6 +1379,9 @@ class MerchantProfileOut(BaseModel):
     tips: str
     logoUrl: str
     createdAt: datetime
+    # False until the brand name, website and a category are filled in. A new
+    # merchant's application doesn't carry them, so the portal asks first.
+    profileComplete: bool = False
 
 
 class ReferenceReceiptOut(BaseModel):

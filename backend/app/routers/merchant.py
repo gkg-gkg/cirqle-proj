@@ -139,8 +139,15 @@ def _profile_out(m: Merchant) -> MerchantProfileOut:
         categories=_json_list(m.categories), website=m.website,
         instagram=m.instagram, tiktok=m.tiktok, youtube=m.youtube,
         facebook=m.facebook, tips=m.tips, logoUrl=m.logo_url,
-        createdAt=m.created_at,
+        createdAt=m.created_at, profileComplete=_profile_complete(m),
     )
+
+
+def _profile_complete(m: Merchant) -> bool:
+    """Brand name, website and at least one category — the minimum a deal
+    needs (its brand comes from business_name) and what the short application
+    no longer asks for."""
+    return bool(m.business_name.strip() and m.website.strip() and _json_list(m.categories))
 
 
 @router.get("/profile", response_model=MerchantProfileOut)
@@ -983,6 +990,10 @@ def submit_campaign(data: CampaignSubmissionIn,
     against. Not required at signup; uploaded once and reused across every
     campaign this merchant runs (see POST /merchant/reference-receipt).
     """
+    if not _profile_complete(merchant):
+        raise HTTPException(
+            status_code=400,
+            detail="Complete your account (brand name, website and category) before submitting a deal.")
     if merchant.subscription_status != "active":
         raise HTTPException(
             status_code=409,
@@ -1114,7 +1125,13 @@ def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_sessi
     if app.status != "approved":
         raise HTTPException(status_code=400,
                             detail="Approve the application before creating a login.")
+    return create_login_for_application(session, app)
 
+
+def create_login_for_application(session: Session, app: MerchantApplication) -> MerchantCreatedOut:
+    """Create the merchant login for an application and email the invite.
+    Shared by POST /merchant and by approving an application (partners.py),
+    which now does both in one step."""
     email = (app.email or "").lower().strip()
     if not email:
         raise HTTPException(status_code=400, detail="Application has no email.")
@@ -1127,13 +1144,15 @@ def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_sessi
         # Unusable until they set their own via the invite link. Random rather
         # than blank so no crafted input can ever match it.
         password_hash=hash_password(secrets.token_urlsafe(32)),
+        # Usually blank now: the short application doesn't ask for the brand,
+        # and the portal makes them fill it in (see _profile_complete).
         business_name=app.brand, must_set_password=True,
     )
     session.add(merchant)
     session.commit()
     session.refresh(merchant)
 
-    # Attribute the application's published deal to this merchant (for stats).
+    # Older applications were published as a deal on approval; attribute it.
     if app.campaign_id is not None:
         camp = session.get(Campaign, app.campaign_id)
         if camp is not None:
@@ -1142,9 +1161,10 @@ def create_merchant(data: MerchantCreateIn, session: Session = Depends(get_sessi
             session.commit()
 
     raw = tokens.issue(session, "invite", "merchant", merchant.id)
-    delivered = mailer.send_merchant_invite(merchant.email, merchant.business_name, raw)
+    delivered = mailer.send_merchant_invite(
+        merchant.email, merchant.business_name or app.first_name, raw)
 
-    log_activity(session, "Created merchant login", merchant.business_name)
+    log_activity(session, "Created merchant login", merchant.business_name or merchant.email)
     return MerchantCreatedOut(
         merchant=_merchant_out(merchant),
         inviteSent=delivered,

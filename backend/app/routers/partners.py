@@ -1,10 +1,12 @@
 """Merchant partnership applications.
 
-Brands submit the partnership form on contact.html (a public POST — merchants
-aren't Cirqle users). The admin reviews them on admin.html and, on approve, a
-live `Campaign` (deal) is created from the application's key fields, so the
-brand appears on the public Deals page. Reads/approve/reject/delete are
-admin-gated, reusing the campaigns admin key (X-Admin-Key header).
+Brands submit the short partnership form on contact.html (a public POST —
+merchants aren't Cirqle users): first name, work email, phone and how they
+heard about us. The admin reviews them on admin.html; approving creates the
+merchant login and emails the invite in one step. Nothing is published on
+approval any more — the brand fills in its details in the portal and submits
+its own deal for review. Reads/approve/reject/delete are admin-gated, reusing
+the campaigns admin key (X-Admin-Key header).
 """
 import json
 from datetime import datetime
@@ -14,15 +16,16 @@ from sqlmodel import Session, select
 
 from ..activity import log_activity
 from ..db import get_session
-from ..models import (Campaign, MerchantApplication, MerchantApplicationIn,
+from ..models import (Merchant, MerchantApplication, MerchantApplicationIn,
                       MerchantApplicationOut)
 from ..ratelimit import rate_limit
 from .campaigns import require_admin
+from .merchant import create_login_for_application
 
 router = APIRouter(prefix="/partners", tags=["partners"])
 
 
-def _app_out(a: MerchantApplication) -> MerchantApplicationOut:
+def _app_out(a: MerchantApplication, has_login: bool = False) -> MerchantApplicationOut:
     """A stored application row -> the shape the admin page renders."""
     return MerchantApplicationOut(
         id=a.id,
@@ -49,6 +52,7 @@ def _app_out(a: MerchantApplication) -> MerchantApplicationOut:
         kind=a.kind,
         campaignId=a.campaign_id,
         createdAt=a.created_at,
+        hasLogin=has_login,
     )
 
 
@@ -57,6 +61,13 @@ def _app_out(a: MerchantApplication) -> MerchantApplicationOut:
 def submit_application(data: MerchantApplicationIn,
                        session: Session = Depends(get_session)):
     """Public: a brand submits the partnership form. Stored as 'pending'."""
+    enquiry = data.kind == "enquiry"
+    if not data.firstName.strip():
+        raise HTTPException(status_code=422, detail="Please give us your first name.")
+    if enquiry and not data.message.strip():
+        raise HTTPException(status_code=422, detail="Please write your question.")
+    if not enquiry and not data.phone.strip():
+        raise HTTPException(status_code=422, detail="Please give us a phone number.")
     a = MerchantApplication(
         brand=data.brand.strip(),
         website=data.website.strip(),
@@ -79,7 +90,7 @@ def submit_application(data: MerchantApplicationIn,
         tier=data.tier.strip(),
         # A short "just a question" submission lands in the same inbox, tagged
         # so the admin can tell it from a full application.
-        kind="enquiry" if data.kind == "enquiry" else "application",
+        kind="enquiry" if enquiry else "application",
     )
     session.add(a)
     session.commit()
@@ -95,67 +106,38 @@ def list_applications(status: str = Query(default=""),
     stmt = select(MerchantApplication).order_by(MerchantApplication.id.desc())
     if status:
         stmt = stmt.where(MerchantApplication.status == status)
-    return [_app_out(a) for a in session.exec(stmt).all()]
-
-
-def _campaign_from_application(a: MerchantApplication) -> Campaign:
-    """Build a live deal from an approved application's key fields.
-
-    The application always carries brand, category, website and a cashback
-    rate; image/description are left as sensible defaults for the admin to
-    refine later in the campaign editor.
-    """
-    rate = a.cashback_rate
-    # Derive an example "earn" figure from the avg order value, if provided.
-    earn, spend_desc = "", ""
-    try:
-        aov = float(a.aov)
-        if aov > 0:
-            earn = f"£{aov * rate / 100:.2f}"
-            spend_desc = f"on a £{aov:.0f} spend"
-    except (TypeError, ValueError):
-        pass
-    location = f"Online · {a.markets}" if a.markets else "Online"
-    return Campaign(
-        brand=a.brand,
-        title=f"{a.brand} — up to {rate:g}% cashback",
-        card_title=a.brand,
-        card_desc=a.message or f"Earn {rate:g}% cashback when you shop at {a.brand}.",
-        long_desc=a.message,
-        emoji="🛍️",
-        category=a.category,
-        rate=rate,
-        earn=earn,
-        spend_desc=spend_desc,
-        expiry="Ongoing",
-        location=location,
-        brand_url=a.website,
-    )
+    with_login = {mid for mid in session.exec(
+        select(Merchant.application_id).where(Merchant.application_id.is_not(None))).all()}
+    return [_app_out(a, a.id in with_login) for a in session.exec(stmt).all()]
 
 
 @router.post("/{app_id}/approve", response_model=MerchantApplicationOut,
              dependencies=[Depends(require_admin)])
 def approve_application(app_id: int, session: Session = Depends(get_session)):
-    """Admin: approve -> publish a live deal built from the application."""
+    """Admin: approve -> create the merchant login and email the invite."""
     a = session.get(MerchantApplication, app_id)
     if a is None:
         raise HTTPException(status_code=404, detail="Application not found.")
+    if a.kind == "enquiry":
+        raise HTTPException(status_code=400,
+                            detail="That's a question, not an application — reply to them by email.")
     if a.status == "approved":
         raise HTTPException(status_code=400, detail="Already approved.")
 
-    c = _campaign_from_application(a)
-    session.add(c)
-    session.commit()
-    session.refresh(c)
+    # Login first: if it fails (say, the email already has a login) the
+    # application stays pending rather than approved with no way in.
+    created = create_login_for_application(session, a)
 
     a.status = "approved"
-    a.campaign_id = c.id
     a.reviewed_at = datetime.utcnow()
     session.add(a)
     session.commit()
     session.refresh(a)
-    log_activity(session, "Approved merchant application", f"{a.brand} → live deal #{c.id}")
-    return _app_out(a)
+    who = a.brand or f"{a.first_name} ({a.email})"
+    log_activity(session, "Approved merchant application", f"{who} → login invited")
+    out = _app_out(a, has_login=True)
+    out.inviteSent = created.inviteSent
+    return out
 
 
 @router.post("/{app_id}/reject", response_model=MerchantApplicationOut,

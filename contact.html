@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#FFFFFF" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
   <title>Partner with Cirqle</title>
@@ -27,29 +27,12 @@
     .req { color: var(--red); }
     .success-msg { display: none; margin-top: 18px; padding: 16px 18px; border: var(--bw) solid var(--line); border-radius: 14px; background: var(--lime); font-size: .9rem; font-weight: 700; }
     @media(max-width:560px){ .form-row, .form-row-3, .check-grid { grid-template-columns: 1fr; } }
-    /* Membership plans — shown before the application form */
-    .plans-wrap { max-width: 1040px; margin: 0 auto 44px; }
-    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-    .plan-card { padding: 26px 22px; display: flex; flex-direction: column; }
-    .plan-name { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.01em; }
-    .plan-price { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; letter-spacing: -0.03em; line-height: 1; margin: 12px 0 2px; }
-    .plan-per { font-size: .78rem; font-weight: 700; color: var(--ink-soft); }
-    .plan-allow { margin: 16px 0 6px; padding: 12px 14px; border: var(--bw) solid var(--line); border-radius: var(--r-chip); background: var(--paper-deep); font-size: .84rem; font-weight: 600; line-height: 1.5; }
-    .plan-allow strong { font-weight: 800; }
-    .plan-blurb { font-size: .84rem; color: var(--ink-soft); line-height: 1.6; margin-bottom: 18px; flex: 1; }
-    .plan-card .btn { width: 100%; }
-    .plan-card.selected { border-color: var(--lime-deep); box-shadow: 0 0 0 3px var(--lime); }
-    .plans-note { font-size: .84rem; color: var(--ink-soft); text-align: center; margin-top: 16px; line-height: 1.6; }
-    .plans-head { text-align: center; margin-bottom: 22px; }
-    .plans-head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.5rem,3vw,2rem); letter-spacing: -0.02em; }
-    .plans-head p { font-size: .92rem; color: var(--ink-soft); margin-top: 8px; }
-    .chosen-banner { display: none; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 16px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: var(--lime); font-size: .86rem; font-weight: 700; }
-    .chosen-banner.on { display: flex; }
-    .chosen-banner button { margin-left: auto; background: none; border: none; font-weight: 800; cursor: pointer; text-decoration: underline; font-size: .82rem; }
-    /* General enquiry — the short "just a question" route */
-    .enquiry-divider { display: flex; align-items: center; gap: 14px; max-width: 760px; margin: 34px auto 26px; }
-    .enquiry-divider span { font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--ink-soft); white-space: nowrap; }
-    .enquiry-divider i { flex: 1; height: 2px; background: var(--ink); opacity: .12; border-radius: 2px; }
+    /* "Just have a question?" — a button under the application that opens the short enquiry form */
+    .ask-toggle { display: block; margin: 22px auto 0; background: none; border: 0; cursor: pointer;
+      font: 700 .92rem var(--font-body); color: var(--blue-deep); text-decoration: underline; text-underline-offset: 3px; }
+    .ask-toggle[aria-expanded="true"] { text-decoration: none; color: var(--ink-soft); }
+    #askWrap { margin-top: 18px; }
+    .field select { width: 100%; }
   </style>
 </head>
 <body>
@@ -64,157 +47,79 @@
   <div class="page">
     <div class="page-hero">
       <h1 class="h-display fade-up d1">Partner with <span class="hl hl-lime">Cirqle</span></h1>
-      <p class="h-sub fade-up d2" style="margin:16px auto 0">Tell us about your brand and what you want to achieve. The more you share, the faster we can tailor a cashback campaign and get you live.</p>
-    </div>
-
-    <!-- MEMBERSHIP PLANS — pick one, and the application below is tagged with it -->
-    <div class="plans-wrap fade-up d2">
-      <div class="plans-head">
-        <h2>Choose your membership</h2>
-        <p>Every plan includes a monthly allowance of fee-free cashback credit. Pick one to apply — you only pay once we've approved your brand and you're ready to go live.</p>
-      </div>
-      <div class="plans-grid" id="plansGrid">
-        <p class="muted" style="grid-column:1/-1;text-align:center">Loading plans…</p>
-      </div>
-      <p class="plans-note" id="plansNote"></p>
-    </div>
-
-    <div class="enquiry-divider fade-up d2"><i></i><span>Not sure yet?</span><i></i></div>
-    <div class="form-wrap fade-up d2" style="margin-bottom:38px">
-      <div class="card form-card">
-        <div class="form-title">Just have a question?</div>
-        <div class="form-lead">Ask us anything — pricing, how cashback works, whether Cirqle fits your brand. No application needed.</div>
-        <div class="form-row">
-          <div class="field"><label for="qName">Your name <span class="req">*</span></label><input id="qName" type="text" placeholder="Jane Smith" /></div>
-          <div class="field"><label for="qEmail">Email <span class="req">*</span></label><input id="qEmail" type="email" placeholder="jane@brand.com" /></div>
-        </div>
-        <div class="field"><label for="qMessage">Your question <span class="req">*</span></label><textarea id="qMessage" rows="4" placeholder="What would you like to know?"></textarea></div>
-        <button class="btn btn-lg" style="width:100%" id="enquiryBtn" onclick="sendEnquiry()">Send question →</button>
-        <div class="success-msg" id="enquiryMsg">Thanks — we'll come back to you within one business day.</div>
-      </div>
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">Four quick questions. We'll get back to you within one business day.</p>
     </div>
 
     <div class="form-wrap" id="applyForm">
       <div class="card form-card fade-up d2">
-        <div class="chosen-banner" id="chosenBanner">
-          <span id="chosenText"></span>
-          <button type="button" onclick="clearPlan()">Change</button>
-        </div>
         <div class="form-title">Brand partnership application</div>
-        <div class="form-lead">Fields marked <span class="req">*</span> are required. Takes about 3 minutes — our brand team replies within one business day.</div>
-
-        <div class="form-section">About your brand</div>
+        <div class="form-lead">You'll add your brand details once you're in the merchant portal.</div>
         <div class="form-row">
-          <div class="field"><label for="brand">Brand / company name <span class="req">*</span></label><input id="brand" type="text" placeholder="e.g. Nova Athletics" /></div>
-          <div class="field"><label for="website">Website <span class="req">*</span></label><input id="website" type="url" placeholder="https://" /></div>
-        </div>
-
-        <div class="form-section">Who should we talk to</div>
-        <div class="form-row">
-          <div class="field"><label for="fn">First name <span class="req">*</span></label><input id="fn" type="text" placeholder="Jane" /></div>
-          <div class="field"><label for="ln">Last name <span class="req">*</span></label><input id="ln" type="text" placeholder="Smith" /></div>
+          <div class="field"><label for="fn">First name <span class="req">*</span></label><input id="fn" type="text" autocomplete="given-name" placeholder="Jane" /></div>
+          <div class="field"><label for="em">Work email <span class="req">*</span></label><input id="em" type="email" autocomplete="email" placeholder="jane@brand.com" /></div>
         </div>
         <div class="form-row">
-          <div class="field"><label for="em">Work email <span class="req">*</span></label><input id="em" type="email" placeholder="jane@brand.com" /></div>
-          <div class="field"><label for="phone">Phone</label><input id="phone" type="tel" placeholder="+44 …" /></div>
-        </div>
-
-        <div class="form-section">Your business</div>
-        <div class="form-row-3">
+          <div class="field"><label for="phone">Phone <span class="req">*</span></label><input id="phone" type="tel" autocomplete="tel" placeholder="+44 …" /></div>
           <div class="field">
-            <label for="orders">Monthly orders</label>
-            <select id="orders">
+            <label for="heard">How did you hear about us? <span class="req">*</span></label>
+            <select id="heard">
               <option value="">Select…</option>
-              <option>Under 500</option>
-              <option>500–2,000</option>
-              <option>2,000–10,000</option>
-              <option>10,000+</option>
-            </select>
-          </div>
-          <div class="field"><label for="aov">Avg. order value (£)</label><input id="aov" type="number" min="0" placeholder="65" /></div>
-        </div>
-        <div class="form-row-3">
-          <div class="field">
-            <label for="budget">Monthly budget</label>
-            <select id="budget">
-              <option value="">Select…</option>
-              <option>Under £1k</option>
-              <option>£1k–£5k</option>
-              <option>£5k–£20k</option>
-              <option>£20k+</option>
-            </select>
-          </div>
-          <div class="field"><label for="rate">Target cashback rate (%) <span class="req">*</span></label><input id="rate" type="number" min="0" max="100" placeholder="10" /></div>
-          <div class="field">
-            <label for="timeline">Timeline</label>
-            <select id="timeline">
-              <option value="">Select…</option>
-              <option>ASAP</option>
-              <option>Within a month</option>
-              <option>This quarter</option>
-              <option>Just exploring</option>
+              <option>Instagram</option>
+              <option>TikTok</option>
+              <option>LinkedIn</option>
+              <option>Google or another search engine</option>
+              <option>A friend or colleague</option>
+              <option>A Cirqle shopper</option>
+              <option>An event</option>
+              <option>Other</option>
             </select>
           </div>
         </div>
+        <button class="btn btn-lg btn-lime" style="width:100%" id="submitBtn" onclick="handleSubmit()">Apply →</button>
+        <div class="success-msg" id="successMsg">Thanks, your application is in! We'll be in touch within one business day.</div>
+      </div>
 
-        <div class="form-section">Your goals</div>
-        <span class="check-legend">What do you want from a Cirqle partnership? (tick all that apply)</span>
-        <div class="check-grid">
-          <label class="check"><input type="checkbox" name="goal" value="ugc" /> Authentic user-generated content</label>
-          <label class="check"><input type="checkbox" name="goal" value="customers" /> New customer acquisition</label>
-          <label class="check"><input type="checkbox" name="goal" value="sales" /> More sales &amp; repeat orders</label>
-          <label class="check"><input type="checkbox" name="goal" value="awareness" /> Brand awareness</label>
-          <label class="check"><input type="checkbox" name="goal" value="social" /> Social proof &amp; reviews</label>
-          <label class="check"><input type="checkbox" name="goal" value="data" /> Attribution &amp; performance data</label>
+      <button class="ask-toggle" id="askToggle" type="button" aria-expanded="false" aria-controls="askWrap">Just have a question?</button>
+      <div id="askWrap" hidden>
+        <div class="card form-card">
+          <div class="form-title">Just have a question?</div>
+          <div class="form-lead">Ask us anything: pricing, how cashback works, whether Cirqle fits your brand.</div>
+          <div class="form-row">
+            <div class="field"><label for="qName">Your name <span class="req">*</span></label><input id="qName" type="text" autocomplete="name" placeholder="Jane Smith" /></div>
+            <div class="field"><label for="qEmail">Email <span class="req">*</span></label><input id="qEmail" type="email" autocomplete="email" placeholder="jane@brand.com" /></div>
+          </div>
+          <div class="field"><label for="qMessage">Your question <span class="req">*</span></label><textarea id="qMessage" rows="4" placeholder="What would you like to know?"></textarea></div>
+          <button class="btn btn-lg" style="width:100%" id="enquiryBtn" onclick="sendEnquiry()">Send question →</button>
+          <div class="success-msg" id="enquiryMsg">Thanks — we'll come back to you within one business day.</div>
         </div>
-        <div class="field" style="margin-top:20px"><label for="heard">How did you hear about us?</label><input id="heard" type="text" placeholder="e.g. a friend, LinkedIn, search…" /></div>
-
-        <button class="btn btn-lg btn-lime" style="width:100%" id="submitBtn" onclick="handleSubmit()">Submit partnership application →</button>
-        <div class="success-msg" id="successMsg">Thanks — your partnership application is in! Our brand team will be in touch within one business day.</div>
       </div>
     </div>
   </div>
   <script src="assets/api.js?v=13"></script>
   <script>
-    // Submits the application to POST /partners, where it lands in the
-    // admin review queue (approve there publishes it as a live deal).
+    // The short application: POST /partners, into the admin review queue.
+    // Approving it there creates the merchant login and emails the invite;
+    // the brand's details are collected in the portal after that.
     const val = id => document.getElementById(id).value.trim();
 
     async function handleSubmit() {
-      const required = ['brand', 'website', 'fn', 'ln', 'em', 'rate'];
-      const missing = required.filter(id => !val(id));
+      const missing = ['fn', 'em', 'phone', 'heard'].filter(id => !val(id));
       if (missing.length) {
         document.getElementById(missing[0]).focus();
-        cirqleToast('Please fill in the required fields marked *');
+        cirqleToast('Please fill in all four fields');
         return;
       }
-      const rate = parseFloat(val('rate'));
-      if (!(rate > 0) || rate > 100) {
-        document.getElementById('rate').focus();
-        cirqleToast('Enter a cashback rate between 0 and 100');
-        return;
-      }
-
-      const goals = [...document.querySelectorAll('input[name="goal"]:checked')]
-        .map(c => c.closest('label').textContent.trim());
-
-      const payload = {
-        brand: val('brand'), website: val('website'), category: '',
-        cashbackRate: rate, markets: '',
-        firstName: val('fn'), lastName: val('ln'), email: val('em'),
-        phone: val('phone'),
-        orders: val('orders'), aov: val('aov'),
-        budget: val('budget'), timeline: val('timeline'),
-        goals, heard: val('heard'), message: '', tier: chosenPlan,
-      };
-
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
       try {
         const res = await fetch(`${window.CIRQLE_API_BASE}/partners`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          // The empty brand/website/category/rate/lastName keys are only for
+          // an API that predates the short form (it required them). Harmless
+          // after that; remove once the backend deploy is confirmed.
+          body: JSON.stringify({ firstName: val('fn'), email: val('em'), phone: val('phone'), heard: val('heard'),
+                                 brand: '', website: '', category: '', cashbackRate: 0, lastName: '' }),
         });
         if (res.status === 201) {
           document.getElementById('successMsg').style.display = 'block';
@@ -234,52 +139,14 @@
       }
     }
 
-    // ── Membership plans ──────────────────────────────────────────────────
-    // Fetched from the API so the marketing page and the merchant portal can
-    // never disagree about what a plan costs.
-    let chosenPlan = '';
-    const money = n => '£' + Number(n).toLocaleString('en-GB');
-
-    async function loadPlans() {
-      const grid = document.getElementById('plansGrid');
-      try {
-        const res = await fetch(`${window.CIRQLE_API_BASE}/merchant/plans`);
-        if (!res.ok) throw new Error();
-        const plans = await res.json();
-        grid.innerHTML = plans.map(p => `
-          <div class="card plan-card" data-plan="${p.id}">
-            <div class="plan-name">${p.name}</div>
-            <div class="plan-allow">Includes <strong>${money(p.allowance)}</strong> of fee-free cashback credit each month</div>
-            <div class="plan-blurb">${p.blurb}</div>
-            <button type="button" class="btn btn-lime" data-choose="${p.id}">Choose ${p.name}</button>
-          </div>`).join('');
-        const rate = Math.round((plans[0]?.feeRate || 0.1) * 100);
-        document.getElementById('plansNote').textContent =
-          `Top up beyond your monthly allowance and a ${rate}% platform fee is added — you always know the cost before you pay.`;
-        grid.querySelectorAll('[data-choose]').forEach(b =>
-          b.addEventListener('click', () => choosePlan(b.dataset.choose, plans)));
-      } catch (_) {
-        grid.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center">Couldn\'t load plans — you can still apply below and we\'ll talk you through them.</p>';
-      }
-    }
-
-    function choosePlan(id, plans) {
-      chosenPlan = id;
-      const plan = plans.find(p => p.id === id);
-      document.querySelectorAll('.plan-card').forEach(c =>
-        c.classList.toggle('selected', c.dataset.plan === id));
-      document.getElementById('chosenText').textContent =
-        `Applying for ${plan.name}`;
-      document.getElementById('chosenBanner').classList.add('on');
-      document.getElementById('applyForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function clearPlan() {
-      chosenPlan = '';
-      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-      document.getElementById('chosenBanner').classList.remove('on');
-      document.querySelector('.plans-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    const askToggle = document.getElementById('askToggle');
+    const askWrap = document.getElementById('askWrap');
+    askToggle.addEventListener('click', () => {
+      const open = askWrap.hidden;
+      askWrap.hidden = !open;
+      askToggle.setAttribute('aria-expanded', String(open));
+      if (open) { askWrap.scrollIntoView({ behavior: 'smooth', block: 'start' }); document.getElementById('qName').focus({ preventScroll: true }); }
+    });
 
     // ── General enquiry — a short question, not a full application ──
     async function sendEnquiry() {
@@ -294,8 +161,8 @@
         const res = await fetch(`${window.CIRQLE_API_BASE}/partners`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            brand: name, website: '', category: '', cashbackRate: 0,
-            firstName: first, lastName: rest.join(' ') || '-', email,
+            firstName: first, lastName: rest.join(' '), email,
+            brand: '', website: '', category: '', cashbackRate: 0,   // see handleSubmit
             message, kind: 'enquiry',
           }),
         });
@@ -312,7 +179,6 @@
       }
     }
 
-    loadPlans();
   </script>
   <script src="assets/enhance.js?v=13"></script>
 </body>

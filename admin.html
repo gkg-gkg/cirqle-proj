@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#FFFFFF" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
   <title>Admin portal — Cirqle</title>
@@ -602,7 +602,7 @@
         </div>
         <div class="two">
           <div class="field"><label>Spend description</label><input id="f_spendDesc" placeholder="on a £100 spend" /></div>
-          <div class="field"><label>Total paid</label><input id="f_totalPaid" placeholder="£112,705 paid to members" /></div>
+          <div class="field"><label>Total paid</label><input id="f_totalPaid" placeholder="£0 paid to members" /></div>
         </div>
         <div class="two">
           <div class="field"><label>Expiry</label><input id="f_expiry" placeholder="30 Jun 2026 / Ongoing / New members only" /></div>
@@ -610,6 +610,11 @@
         </div>
         <div class="field"><label>Brand URL</label><input id="f_brandUrl" placeholder="https://www.nike.com/gb" /></div>
         <div class="field"><label>Tags (comma-separated)</label><input id="f_tags" placeholder="Fashion & Beauty, Footwear, Sale" /></div>
+        <div class="field">
+          <label>Stores (one per line: <em>Name, Postcode</em> — or just a postcode)</label>
+          <textarea id="f_stores" rows="3" placeholder="Oxford Street, W1D 1BS&#10;Manchester Arndale, M4 3AQ"></textarea>
+          <div class="muted" style="margin:6px 0 0">Powers "deals near me" on Browse. Leave empty for online-only deals. An unknown postcode stops the save.</div>
+        </div>
         <div class="field"><label>Terms (HTML allowed)</label><textarea id="f_terms"></textarea></div>
         <div class="field">
           <label>Images (select up to 5)</label>
@@ -717,6 +722,7 @@
       $('editId').value = '';
       FIELDS.forEach(f => { const el = $('f_' + f); if (el) el.value = ''; });
       $('f_tags').value = '';
+      $('f_stores').value = '';
       $('f_images').value = '';
       $('f_category').value = 'Fashion & Beauty';
       $('formTitle').textContent = 'New campaign';
@@ -752,6 +758,7 @@
       $('editId').value = c.id;
       FIELDS.forEach(f => { const el = $('f_' + f); if (el) el.value = c[f] ?? ''; });
       $('f_tags').value = (c.tags || []).join(', ');
+      $('f_stores').value = (c.stores || []).map(s => s.name ? `${s.name}, ${s.postcode}` : s.postcode).join('\n');
       $('f_images').value = '';
       $('formTitle').textContent = `Edit #${c.id} — ${c.brand}`;
       $('formSub').textContent = 'Changes go live on the public site as soon as you save.';
@@ -816,6 +823,12 @@
       });
       const tags = $('f_tags').value.split(',').map(t => t.trim()).filter(Boolean);
       if (tags.length) payload.tags = tags;
+      // Always sent, so emptying the box really clears a deal's stores. The
+      // postcode is whatever follows the LAST comma (store names can have commas).
+      payload.stores = $('f_stores').value.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+        const i = l.lastIndexOf(',');
+        return i < 0 ? { postcode: l } : { name: l.slice(0, i).trim(), postcode: l.slice(i + 1).trim() };
+      });
 
       const fd = new FormData();
       fd.append('payload', JSON.stringify(payload));
@@ -1036,7 +1049,7 @@
 
     function appDetail(a) {
       const rows = [
-        ['Website', `<a href="${esc(a.website)}" target="_blank" rel="noopener noreferrer">${esc(a.website)}</a>`],
+        ['Website', a.website ? `<a href="${esc(a.website)}" target="_blank" rel="noopener noreferrer">${esc(a.website)}</a>` : ''],
         ['Markets', esc(a.markets)],
         ['Contact', esc(`${a.firstName} ${a.lastName}${a.role ? ' — ' + a.role : ''}`)],
         ['Email', esc(a.email)],
@@ -1069,20 +1082,26 @@
         data.forEach(a => {
           const row = document.createElement('div');
           row.className = 'clist-item';
-          const actions = a.status === 'pending'
+          // Short applications carry no brand until the merchant fills it in
+          // on the portal, so fall back to the person's name.
+          const who = a.brand || `${a.firstName || ''} ${a.lastName || ''}`.trim() || a.email;
+          const isQ = a.kind === 'enquiry';
+          const actions = a.status === 'pending' && !isQ
             ? `<button class="btn mini" data-approve="${a.id}">Approve</button><button class="btn mini btn-pink" data-rejapp="${a.id}">Reject</button>`
             : (a.status === 'approved'
                 ? (a.campaignId ? `<a class="btn mini" href="deal.html?id=${a.campaignId}" target="_blank" rel="noopener">Deal #${a.campaignId}</a>` : '')
-                  + `<button class="btn mini btn-lime" data-mklogin="${a.id}">Create login</button>`
+                  // Approving now creates the login; this only remains for
+                  // applications approved before that, which have none.
+                  + (a.hasLogin ? '<span class="rbadge approved">login invited</span>' : `<button class="btn mini btn-lime" data-mklogin="${a.id}">Create login</button>`)
                 : '');
           row.innerHTML = `
             <div class="clist-thumb"><i class="ico ico-users"></i></div>
             <div class="clist-main">
-              <div class="clist-title">${esc(a.brand)}${a.kind === 'enquiry'
+              <div class="clist-title">${esc(who)}${isQ
               ? ' <span class="rbadge verified">question</span>'
-              : ` — ${esc(a.cashbackRate)}%`} <span class="rbadge ${esc(a.status)}">${esc(a.status)}</span>${
+              : (a.cashbackRate ? ` — ${esc(a.cashbackRate)}%` : '')} <span class="rbadge ${esc(a.status)}">${esc(a.status)}</span>${
               a.tier ? ` <span class="rbadge approved">${esc(a.tier)}</span>` : ''}</div>
-              <div class="clist-sub">${esc(a.category)} · ${esc(a.firstName)} ${esc(a.lastName)} · ${esc(a.email)}</div>
+              <div class="clist-sub">${[a.category, a.email, a.phone, a.heard && 'heard via ' + a.heard].filter(Boolean).map(esc).join(' · ')}</div>
             </div>
             <div class="clist-actions">
               <button class="btn mini" data-detail>Details</button>
@@ -1093,12 +1112,12 @@
           row.querySelector('[data-detail]').addEventListener('click', () =>
             row.querySelector('.app-detail').classList.toggle('open'));
           const ap = row.querySelector('[data-approve]');
-          if (ap) ap.addEventListener('click', () => approveApp(a.id, a.brand));
+          if (ap) ap.addEventListener('click', () => approveApp(a.id, who, a.email));
           const rj = row.querySelector('[data-rejapp]');
           if (rj) rj.addEventListener('click', () => setApp(a.id, 'reject'));
           const ml = row.querySelector('[data-mklogin]');
-          if (ml) ml.addEventListener('click', () => createMerchantLogin(a.id, a.brand));
-          row.querySelector('[data-delapp]').addEventListener('click', () => delApp(a.id, a.brand));
+          if (ml) ml.addEventListener('click', () => createMerchantLogin(a.id, who));
+          row.querySelector('[data-delapp]').addEventListener('click', () => delApp(a.id, who));
           list.appendChild(row);
         });
       } catch (e) {
@@ -1106,16 +1125,18 @@
       }
     }
 
-    async function approveApp(id, brand) {
-      if (!confirm(`Approve ${brand}? This publishes it as a live deal on the site.`)) return;
+    async function approveApp(id, brand, email) {
+      if (!confirm(`Approve ${brand}? This creates their merchant login and emails ${email} an invite to set a password.`)) return;
       const res = await fetch(`${API}/partners/${id}/approve`, {
         method: 'POST', headers: { 'X-Admin-Key': keyInput.value },
       });
       const body = await res.json().catch(() => ({}));
       if (res.ok) {
-        setPMsg(`Approved ${brand} — live as deal #${body.campaignId}. Refine images/copy in the campaign editor above.`, true);
+        setPMsg(body.inviteSent
+          ? `Approved ${brand} — invite emailed to ${email}. They'll add their brand details in the portal.`
+          : `Approved ${brand}, but the invite email failed to send. Check the server logs, then use "Resend invite".`, body.inviteSent);
         loadApps();
-        loadList();   // the new deal appears in the campaign catalog
+        loadThreads();
         loadActivity();
         loadAnalytics();
       } else if (res.status === 401) setPMsg('Invalid admin key.', false);
