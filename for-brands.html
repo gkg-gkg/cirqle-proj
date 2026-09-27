@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=16" />
   <style>
     /* ── The chain ──
        The same device how-it-works.html uses for members, with the brand's
@@ -211,24 +211,12 @@
     }
 
     /* ── subtle life: glow drift, marker-sweep highlight, CTA pulse ── */
-    .page-hero { position: relative; }
-    .hero-blob {
-      position: absolute; border-radius: 50%;
-      background: radial-gradient(circle, var(--blue-glow), transparent 70%);
-      pointer-events: none; z-index: -1;
-    }
-    .blob-a { width: 440px; height: 440px; top: -120px; right: -40px; animation: blobDrift 22s ease-in-out infinite alternate; }
-    .blob-b { width: 360px; height: 360px; bottom: -160px; left: -100px; animation: blobDrift 27s ease-in-out -9s infinite alternate-reverse; }
-    @keyframes blobDrift {
-      from { transform: translate(0, 0) scale(1); }
-      to   { transform: translate(44px, 30px) scale(1.14); }
-    }
-    .page-hero .hl {
+    .fb-hero .hl {
       background: linear-gradient(var(--blue-tint), var(--blue-tint)) no-repeat 0 0 / 0% 100%;
       animation: hlSweep .8s var(--snap) .5s forwards;
     }
     @keyframes hlSweep { to { background-size: 100% 100%; } }
-    .page-hero .btn-lime { animation: ctaPulse 3.4s ease-in-out 1.4s infinite; }
+    .fb-hero .btn-lime { animation: ctaPulse 3.4s ease-in-out 1.4s infinite; }
     @keyframes ctaPulse {
       0%, 100% { box-shadow: var(--shadow-blue), inset 0 1px 0 rgba(255,255,255,.18); }
       50% { box-shadow: 0 8px 26px rgba(53,99,127,.34), 0 0 0 7px rgba(67,125,158,.09), inset 0 1px 0 rgba(255,255,255,.18); }
@@ -288,6 +276,296 @@
       .hero-btns > .btn { flex: none; width: 100%; }
     }
     @media (max-width: 500px) { .why-grid { grid-template-columns: 1fr; } .why-grid > :nth-child(n) { grid-column: auto; } }
+
+    /* ══ Visual layer (2026-09-27) ══════════════════════════════════════
+       The page was all words. Everything below is decoration around the same
+       copy: a customer's post in the hero, a wall of example posts, a receipt
+       being checked, pictures on the two settings, a portal mock-up and a
+       photo mosaic behind the closing box. All photos are licensed — CC0
+       (assets/brands, vetted for third-party logos) and the model portraits
+       in assets/photos — and every figure in the art is labelled illustrative. */
+
+    /* ── Hero ── */
+    .fb-hero {
+      max-width: 1140px; margin: 0 auto; position: relative; z-index: 1;
+      padding: clamp(40px, 6vw, 84px) clamp(20px, 4vw, 44px) clamp(30px, 4vw, 56px);
+      display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(28px, 5vw, 64px); align-items: center;
+    }
+    .fb-eyebrow { display: inline-block; font-size: .74rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--blue-deep); background: var(--blue-tint); padding: 6px 12px; border-radius: 99px; }
+    .fb-hero h1 { margin: 16px 0 0; }
+    .fb-hero .h-sub { margin: 18px 0 0; max-width: 34em; }
+    .fb-hero .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+    .fb-proof { list-style: none; padding: 0; margin: 26px 0 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
+    .fb-proof li { font-size: .86rem; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 7px; }
+    .fb-proof .ico { color: var(--blue); }
+
+    .fb-hero-art { position: relative; height: 580px; }
+    .fb-hero-art::before {   /* soft glow the phone sits in */
+      content: ''; position: absolute; inset: 8% 4%; border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(56,182,255,.30), rgba(56,182,255,0)); z-index: 0;
+    }
+    .fb-snap { position: absolute; width: 190px; background: #fff; padding: 8px 8px 30px; border-radius: 14px;
+      box-shadow: 0 18px 40px rgba(11,18,32,.16); z-index: 1; }
+    .fb-snap img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 9px; }
+    .fb-snap span { position: absolute; left: 12px; bottom: 8px; font-size: .72rem; font-weight: 700; color: var(--ink-soft); }
+    .fb-snap-a { left: 0; top: 40px; transform: rotate(-8deg); }
+    .fb-snap-b { right: 0; bottom: 96px; transform: rotate(7deg); }
+
+    .fb-phone { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
+      width: 250px; background: #fff; border: 9px solid #0B1220; border-radius: 38px; overflow: hidden;
+      box-shadow: 0 30px 70px rgba(11,18,32,.28); padding-bottom: 8px; }
+    .fb-phone-notch { width: 84px; height: 18px; background: #0B1220; border-radius: 0 0 12px 12px; margin: 0 auto 8px; }
+    .fb-ig-head { display: flex; align-items: center; gap: 8px; padding: 0 12px 8px; font-size: .74rem; }
+    .fb-ig-head img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--neon); }
+    .fb-ig-head span { margin-left: auto; color: var(--ink-soft); letter-spacing: 1px; }
+    .fb-ig-img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+    .fb-ig-likes { margin: 0 0 3px; padding: 0 12px; font-size: .7rem; color: var(--ink); }
+    .fb-home-bar { width: 86px; height: 4px; border-radius: 4px; background: #0B1220; margin: 14px auto 0; opacity: .85; }
+    .fb-ig-actions { display: flex; gap: 12px; padding: 9px 12px 4px; color: var(--ink); }
+    .fb-ig-cap { margin: 0; padding: 0 12px; font-size: .72rem; line-height: 1.45; color: var(--ink); }
+    .fb-ig-cap span { color: var(--blue-deep); font-weight: 700; }
+
+    .fb-float { position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 7px;
+      background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 9px 14px;
+      font-size: .8rem; font-weight: 700; color: var(--ink); box-shadow: 0 12px 30px rgba(11,18,32,.14);
+      animation: fbBob 5s ease-in-out infinite; }
+    .fb-float .ico { color: var(--blue); }
+    .fb-f1 { right: 2%; top: 64px; }
+    .fb-f2 { left: 0; bottom: 14px; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: transparent; animation-delay: -1.6s; }
+    .fb-f2 b { font-size: 1rem; }
+    .fb-f2 .ico { color: #0B1220; }
+    .fb-f3 { right: 4%; bottom: 60px; animation-delay: -3.2s; }
+    @keyframes fbBob { 50% { transform: translateY(-7px); } }
+
+    /* ── Post wall ── */
+    .fb-wall { position: relative; z-index: 1; padding: clamp(24px, 4vw, 48px) 0 clamp(8px, 2vw, 20px); overflow: hidden; }
+    .fb-wall-head { max-width: 880px; margin: 0 auto 26px; padding: 0 clamp(20px, 4vw, 44px); text-align: center; }
+    .fb-wall-head h2 { font-family: var(--font-display); font-weight: 800; letter-spacing: -.03em; font-size: clamp(1.6rem, 3.4vw, 2.3rem); margin: 0; }
+    .fb-wall-head p { color: var(--ink-soft); margin: 10px 0 0; }
+    .fb-note-inline { font-size: .86em; opacity: .8; white-space: nowrap; }
+    .fb-marquee { overflow: hidden; padding: 6px 0 14px;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+              mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+    .fb-track { display: flex; gap: 16px; width: max-content; animation: fbScroll 60s linear infinite; }
+    @keyframes fbScroll { to { transform: translateX(-50%); } }
+    .fb-post { margin: 0; width: 220px; flex: none; background: #fff; border: 1px solid var(--line); border-radius: 16px;
+      overflow: hidden; box-shadow: var(--shadow-sm); }
+    .fb-post header { display: flex; align-items: center; gap: 8px; padding: 9px 11px; font-size: .74rem; }
+    .fb-av { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+    .fb-ph { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+    .fb-post figcaption { padding: 9px 11px 11px; font-size: .74rem; line-height: 1.5; color: var(--ink); }
+    .fb-tag { color: var(--blue-deep); font-weight: 700; }
+
+    /* ── Receipt being checked ── */
+    .fb-check { display: flex; align-items: center; justify-content: center; gap: clamp(24px, 5vw, 56px);
+      margin: 26px auto 0; padding: clamp(22px, 3vw, 32px); border-radius: var(--r-card);
+      background: linear-gradient(160deg, #EEF6FC 0%, #DCEDF9 100%); }
+    .fb-receipt { position: relative; width: 210px; background: #fff; padding: 16px 16px 20px; overflow: hidden;
+      font-family: ui-monospace, Menlo, monospace; font-size: .66rem; color: #334155;
+      box-shadow: 0 16px 34px rgba(11,18,32,.14); transform: rotate(-3deg);
+      -webkit-mask: radial-gradient(6px at 50% 100%, #0000 98%, #000) 50% / 14px 100% repeat-x; }
+    .fb-rc-shop { font-weight: 800; font-size: .8rem; text-align: center; letter-spacing: .08em; color: #0B1220; }
+    .fb-rc-sub { text-align: center; margin: 3px 0 10px; opacity: .7; }
+    .fb-rc-line { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #D5DEE7; }
+    .fb-rc-tot { font-weight: 800; color: #0B1220; border-bottom: 0; padding-top: 6px; }
+    .fb-rc-bar { height: 22px; margin-top: 10px;
+      background: repeating-linear-gradient(90deg, #0B1220 0 2px, transparent 2px 4px, #0B1220 4px 5px, transparent 5px 8px); opacity: .8; }
+    .fb-scan { position: absolute; left: 0; right: 0; height: 26px; top: -26px;
+      background: linear-gradient(180deg, rgba(56,182,255,0), rgba(56,182,255,.45)); border-bottom: 2px solid var(--neon);
+      animation: fbScan 3.2s ease-in-out infinite; }
+    @keyframes fbScan { 0% { top: -26px; } 70%, 100% { top: 100%; } }
+    .fb-ticks { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .fb-ticks li { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: .92rem; color: var(--ink); }
+    .fb-ticks .ico { width: 22px; height: 22px; padding: 4px; border-radius: 50%; background: var(--blue); color: #fff; box-sizing: border-box; }
+
+    /* ── Pictures on the two settings ── */
+    .tile-art { position: relative; height: 128px; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(160deg, #EEF6FC 0%, #D7EAF7 100%); border-bottom: 1px solid var(--line); }
+    .fb-pair { display: flex; }
+    .fb-pair img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 10px 24px rgba(11,18,32,.16); }
+    .fb-pair img + img { margin-left: -16px; }
+    .fb-bub { position: absolute; font-weight: 800; font-size: .82rem; padding: 6px 11px; border-radius: 99px; color: #0B1220;
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon)); box-shadow: 0 8px 20px rgba(56,182,255,.35); }
+    .fb-b1 { left: calc(50% - 118px); top: 22px; }
+    .fb-b2 { left: calc(50% + 50px); bottom: 20px; background: #fff; border: 1px solid var(--line); box-shadow: 0 8px 20px rgba(11,18,32,.1); }
+    .fb-visits { display: flex; align-items: center; gap: 8px; }
+    .fb-visits span { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: .72rem; font-weight: 700;
+      color: var(--ink-soft); background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+    .fb-visits span .ico { font-size: 1.2rem; color: var(--blue); }
+    .fb-visits span.on { color: #0B1220; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: transparent; }
+    .fb-visits span.on .ico { color: #0B1220; }
+    .fb-visits em { font-style: normal; color: var(--ink-soft); font-weight: 800; }
+
+    /* ── Portal mock-up ── */
+    .fb-dash { margin: 26px 0 0; border-radius: 16px; overflow: hidden; background: #fff; border: 1px solid var(--line);
+      box-shadow: 0 30px 70px rgba(11,18,32,.14); }
+    .fb-dash-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--paper-deep); border-bottom: 1px solid var(--line); }
+    .fb-dash-bar i { width: 9px; height: 9px; border-radius: 50%; background: #CBD7E2; }
+    .fb-dash-bar span { margin-left: 8px; font-size: .72rem; font-weight: 700; color: var(--ink-soft); }
+    .fb-dash-body { display: grid; grid-template-columns: 150px 1fr; min-height: 300px; }
+    .fb-dash-side { display: flex; flex-direction: column; gap: 4px; padding: 14px 10px; border-right: 1px solid var(--line); background: #FAFCFE; }
+    .fb-dash-side b { font-size: .78rem; font-weight: 600; color: var(--ink-soft); padding: 7px 10px; border-radius: 8px; }
+    .fb-dash-side b.on { background: var(--blue-pale); color: var(--blue-deep); font-weight: 700; }
+    .fb-dash-main { padding: 16px; display: grid; gap: 14px; }
+    .fb-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .fb-kpis div { border: 1px solid var(--line); border-radius: 11px; padding: 10px 12px; }
+    .fb-kpis span { display: block; font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+    .fb-kpis b { font-family: var(--font-display); font-size: 1.3rem; letter-spacing: -.02em; }
+    .fb-chart { height: 110px; display: flex; align-items: flex-end; gap: 7px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 11px;
+      background: repeating-linear-gradient(180deg, transparent 0 26px, #EEF3F8 26px 27px); }
+    .fb-chart i { flex: 1; border-radius: 5px 5px 0 0; background: linear-gradient(180deg, var(--neon), var(--blue)); }
+    .fb-dash-posts span { font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+    .fb-dash-posts div { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+    .fb-dash-posts figure { margin: 0; min-width: 0; }
+    .fb-dash-posts figure > img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 9px; display: block; }
+    .fb-dash-posts figcaption { display: flex; align-items: center; gap: 5px; margin-top: 6px; min-width: 0; }
+    .fb-dash-posts figcaption img { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; flex: none; }
+    .fb-dash-posts figcaption b { font-size: .66rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fb-dash figcaption { font-size: .72rem; color: var(--ink-soft); text-align: right; padding: 0 14px 10px; }
+
+    /* ── Photo mosaic behind the closing box ── */
+    /* ".cta-box > :not(.cta-ring)" makes every child position:relative, so
+       this needs the child combinator too to stay a full-cover background. */
+    .cta-box > .fb-mosaic { position: absolute; inset: 0; z-index: 0; display: grid;
+      grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); opacity: .45; }
+    .fb-mosaic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cta-box::after { content: ''; position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(70% 90% at 50% 50%, rgba(11,18,32,.72), rgba(11,18,32,.92)); }
+    .cta-box > .cta-ring { z-index: 1; }
+
+    @media (max-width: 900px) {
+      .fb-hero { grid-template-columns: 1fr; text-align: center; }
+      .fb-hero .h-sub { margin-left: auto; margin-right: auto; }
+      .fb-hero .hero-btns, .fb-proof { justify-content: center; }
+      .fb-hero-art { height: 440px; max-width: 460px; width: 100%; margin: 0 auto; }
+    }
+    @media (max-width: 700px) {
+      .fb-hero-art { height: 470px; }
+      .fb-phone { width: 210px; border-width: 8px; border-radius: 30px; }
+      .fb-snap { width: 140px; }
+      .fb-snap-a { left: -4px; top: 30px; } .fb-snap-b { right: -4px; bottom: 70px; }
+      .fb-float { font-size: .72rem; padding: 7px 11px; }
+      .fb-f1 { right: 0; top: 18px; } .fb-f2 { left: 0; bottom: 0; } .fb-f3 { right: 0; bottom: 40px; }
+      .fb-post { width: 180px; }
+      .fb-check { flex-direction: column; gap: 22px; }
+      .fb-dash-body { grid-template-columns: 1fr; min-height: 0; }
+      .fb-dash-side { display: none; }
+      .fb-kpis { grid-template-columns: repeat(2, 1fr); }
+      .fb-dash-posts div { grid-template-columns: repeat(4, 1fr); }
+      .fb-dash-posts figure:nth-child(5) { display: none; }
+      .cta-box > .fb-mosaic { grid-template-columns: repeat(2, 1fr); }
+      .fb-mosaic img:nth-child(n+5) { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fb-track { animation: none; } .fb-marquee { overflow-x: auto; }
+      .fb-float, .fb-scan { animation: none; } .fb-scan { display: none; }
+    }
+
+    /* ── Steps carousel ──
+       One card at a time, each exactly the size the stacked cards were
+       (792x324 on desktop, 294x495 on phones — the chain's own width, so
+       flex-basis 100% reproduces it). Click through with the step bar or the
+       arrows, or swipe; scroll-snap does the settling. */
+    .chain {
+      display: flex; gap: 20px; align-items: stretch; overflow-x: auto; overflow-y: hidden;
+      scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none;
+      padding: 6px 0 20px; outline: none;
+    }
+    .chain::-webkit-scrollbar { display: none; }
+    .chain .joint { display: none; }
+    .chain .link-row { flex: 0 0 100%; min-width: 0; margin: 0; scroll-snap-align: start;
+      transition: box-shadow .3s, border-color .3s; }
+    .chain .link-stage > * { transition: transform .55s var(--snap), opacity .55s; }
+    .chain .link-row:not(.active) .link-stage > * { transform: translateY(18px) scale(.96); opacity: .55; }
+
+    .steps-nav { display: flex; align-items: center; gap: 16px; max-width: 860px; margin: 22px auto 0; }
+    .steps-bar { position: relative; flex: 1; display: flex; justify-content: space-between; list-style: none; margin: 0; padding: 0; }
+    .steps-bar::before, .steps-fill { content: ''; position: absolute; left: 17px; right: 17px; top: 17px; height: 3px; border-radius: 3px; background: var(--line); z-index: 0; }
+    .steps-fill { right: auto; width: 0; background: linear-gradient(90deg, var(--neon), var(--blue)); transition: width .45s var(--snap); }
+    .steps-bar li { position: relative; z-index: 1; }
+    .steps-bar button { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; font: inherit; }
+    .steps-bar b { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: .9rem; color: var(--ink-soft); background: #fff; border: 2px solid var(--line);
+      transition: background .3s, color .3s, border-color .3s, transform .3s; }
+    .steps-bar span { font-size: .78rem; font-weight: 700; color: var(--ink-soft); transition: color .3s; }
+    .steps-bar button.done b { border-color: var(--blue); color: var(--blue-deep); }
+    .steps-bar button[aria-selected="true"] b { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; border-color: transparent; transform: scale(1.12);
+      box-shadow: 0 6px 16px rgba(56,182,255,.4); }
+    .steps-bar button[aria-selected="true"] span { color: var(--ink); }
+    .steps-bar button:hover b { border-color: var(--blue); }
+    .steps-bar button:focus-visible b { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .steps-arrows { display: flex; gap: 8px; }
+    .steps-arrow { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: #fff; cursor: pointer;
+      font-size: 1.05rem; font-weight: 800; color: var(--ink); box-shadow: var(--shadow-sm); transition: background .2s, color .2s, opacity .2s; }
+    .steps-arrow:hover:not(:disabled) { background: var(--blue); color: #fff; border-color: transparent; }
+    .steps-arrow:disabled { opacity: .35; cursor: default; }
+    @media (max-width: 700px) {
+      .steps-nav { gap: 10px; }
+      .steps-bar span { font-size: .68rem; }
+      .steps-arrows { display: none; }   /* swipe on phones; the step bar still jumps */
+      /* Keep the phone strip exactly as it was (84% cards, next one peeking);
+         the carousel rules above come later in the file and would win. */
+      .chain { padding: 4px 20px 12px; }
+      .chain .link-row { flex: 0 0 84%; scroll-snap-align: center; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .chain { scroll-behavior: auto; }
+      .chain .link-stage > * { transition: none; transform: none !important; opacity: 1 !important; }
+    }
+
+    /* ── Dashboard tiles, compact ──
+       The portal mock-up above carries the picture now, so the six tiles are
+       a tight 3x2 index rather than a mosaic: icon beside the title, less
+       padding, no lead tile. ":nth-child(n)" matches the mosaic rules'
+       specificity so these win without !important. */
+    .why-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: none; gap: 12px; }
+    .why-grid > :nth-child(n) { grid-area: auto; grid-column: auto; }
+    .why-grid > .why-card { padding: 14px 16px; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-content: start; }
+    .why-grid > :nth-child(n) .why-icon { font-size: 1.15rem; margin: 2px 0 0; grid-row: span 2; }
+    .why-grid > :nth-child(n) .why-title { font-size: .95rem; margin: 0 0 3px; }
+    .why-grid > :nth-child(n) .why-text { font-size: .8rem; line-height: 1.5; max-width: none; }
+    @media (max-width: 900px) { .why-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 700px) { .why-grid > :nth-child(n) { flex-basis: 64%; } }
+
+    /* ── In-person row ── a conversation, not a post: two friends, the line
+       that sold it, and the handle entered at claim time (the real mechanic —
+       there is no referral link or code). */
+    .fb-track { align-items: center; }
+    .fb-track-rev { animation-direction: reverse; animation-duration: 66s; }
+    .fb-inp { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; font-size: .66rem; font-weight: 800;
+      letter-spacing: .08em; text-transform: uppercase; color: var(--blue-deep); background: var(--blue-tint); padding: 4px 9px; border-radius: 99px; }
+    .fb-inp .ico { color: var(--blue); }
+    .fb-talk { margin: 0; width: 300px; flex: none; background: linear-gradient(160deg, #FFFFFF 0%, #F1F8FD 100%);
+      border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: var(--shadow-sm);
+      display: flex; flex-direction: column; gap: 10px; }
+    .fb-chat { display: flex; flex-direction: column; gap: 7px; }
+    .fb-msg { display: flex; align-items: flex-end; gap: 7px; }
+    .fb-msg img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(11,18,32,.12); }
+    .fb-msg p { margin: 0; padding: 8px 11px; font-size: .78rem; font-weight: 600; line-height: 1.4; max-width: 80%; }
+    .fb-msg.me p { background: #fff; border: 1px solid var(--line); border-radius: 14px 14px 14px 4px; color: var(--ink); }
+    .fb-msg.you { justify-content: flex-end; }
+    .fb-msg.you p { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-radius: 14px 14px 4px 14px; color: #0B1220; }
+    .fb-talk figcaption { font-size: .72rem; line-height: 1.5; color: var(--ink-soft); border-top: 1px dashed var(--line); padding-top: 9px; }
+    .fb-talk figcaption b { color: var(--ink); }
+    .fb-talk-pay { display: flex; gap: 6px; margin-top: 6px; }
+    .fb-talk-pay em { font-style: normal; font-weight: 800; font-size: .7rem; padding: 3px 9px; border-radius: 99px; color: #0B1220;
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon)); }
+    .fb-talk-pay em + em { background: #fff; border: 1px solid var(--line); }
+    @media (max-width: 700px) { .fb-talk { width: 262px; } }
+
+    /* ── One gap between every section ──
+       Each block used to bring its own padding and inline margin, so the gaps
+       ran 64–164px. --gap is the space from the end of one section's content
+       to the next section's title (measured from each block's outer edge,
+       shadow padding included). */
+    .page { --gap: 72px; padding-top: 0; }
+    .fb-hero { padding-bottom: 0; }
+    .fb-wall { --gap: 72px; padding: var(--gap) 0 0; }
+    .page > .prose { margin-top: var(--gap); }
+    .page > .cta-box { margin-top: var(--gap); }
+    @media (max-width: 700px) { .page, .fb-wall { --gap: 56px; } }
   </style>
 </head>
 <body>
@@ -303,21 +581,114 @@
     </div>
   </nav>
 
-  <div class="page">
-    <div class="page-hero">
-      <span class="hero-blob blob-a" aria-hidden="true"></span>
-      <span class="hero-blob blob-b" aria-hidden="true"></span>
-      <h1 class="h-display fade-up d1" style="margin-top:20px">Turn your customers into your <span class="hl hl-lime">best marketing</span></h1>
-      <p class="h-sub fade-up d2" style="margin:16px auto 0">You set the cashback. Customers buy from you, share it with their friends — on social media or in&#8209;person — and claim with their receipt. You only pay for real purchases.</p>
-      <div class="btn-row hero-btns fade-up d3" style="margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+  <!-- ══ HERO ══ Copy left, a customer's post right: the product in one picture.
+       Everything in the art is illustrative (licensed CC0 photos + model portraits). -->
+  <section class="fb-hero">
+    <div class="fb-hero-copy">
+      <span class="fb-eyebrow fade-up">For brands</span>
+      <h1 class="h-display fade-up d1">Turn your customers into your <span class="hl hl-lime">best marketing</span></h1>
+      <p class="h-sub fade-up d2">Your customers market your brand for you, telling their friends about you on social media and in&#8209;person. You only pay when there&rsquo;s a real sale.</p>
+      <div class="btn-row hero-btns fade-up d3">
         <a href="contact" class="btn btn-lg btn-lime">Get in touch →</a>
         <a href="merchant" class="btn btn-lg">Merchant sign in</a>
+      </div>
+      <ul class="fb-proof fade-up d3">
+        <li><i class="ico ico-check"></i> Marketing, done by your customers</li>
+      </ul>
+    </div>
+    <div class="fb-hero-art fade-up d2" aria-hidden="true">
+      <div class="fb-snap fb-snap-a"><img src="assets/brands/latte.jpg" alt=""><span>@mia.eats</span></div>
+      <div class="fb-snap fb-snap-b"><img src="assets/brands/rail.jpg" alt=""><span>@ollie.style</span></div>
+      <div class="fb-phone">
+        <div class="fb-phone-notch"></div>
+        <div class="fb-ig-head"><img src="assets/photos/p4.jpg" alt=""><b>emma.walks</b><span>•••</span></div>
+        <img class="fb-ig-img" src="assets/brands/jackets.jpg" alt="">
+        <div class="fb-ig-actions"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></svg></div>
+        <p class="fb-ig-likes">Liked by <b>mia.eats</b> and 48 others</p>
+        <p class="fb-ig-cap"><b>emma.walks</b> New jackets for the weekend away <span>@yourbrand</span> <span>@cirqle.co.uk</span></p>
+        <div class="fb-home-bar"></div>
+      </div>
+      <span class="fb-float fb-f1"><i class="ico ico-check"></i> Receipt verified</span>
+      <span class="fb-float fb-f2"><i class="ico ico-bag"></i> New sale <b>£96.00</b></span>
+      <span class="fb-float fb-f3"><i class="ico ico-users"></i> 6 friends bought too</span>
+    </div>
+  </section>
+
+  <!-- ══ POST WALL ══ What a brand actually gets. Illustrative, and says so. -->
+  <section class="fb-wall">
+    <div class="fb-wall-head reveal">
+      <h2>Make your customers market your brand for you</h2>
+      <p>Your customers share what they love about your brand, with their followers on social media or with their friends through word of mouth <span class="fb-note-inline">(examples shown are illustrative)</span>.</p>
+    </div>
+    <div class="fb-marquee" aria-hidden="true"><div class="fb-track"><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p1.jpg" alt="" loading="lazy"><b>@emma.walks</b></header><img class="fb-ph" src="assets/brands/trainers.jpg" alt="" loading="lazy"><figcaption>Fresh pair for the weekend <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p4.jpg" alt="" loading="lazy"><b>@mia.eats</b></header><img class="fb-ph" src="assets/brands/latte.jpg" alt="" loading="lazy"><figcaption>Monday fuel <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-talk"><span class="fb-inp"><i class="ico ico-users"></i> In person</span><div class="fb-chat"><div class="fb-msg me"><img src="assets/photos/p2.jpg" alt=""><p>These trainers are the comfiest I&rsquo;ve ever owned.</p></div><div class="fb-msg you"><p>Ooh, where are they from?</p><img src="assets/photos/p6.jpg" alt=""></div><div class="fb-msg me"><img src="assets/photos/p2.jpg" alt=""><p>Add my handle when you claim, we both get a bonus.</p></div></div><figcaption><b>Maya bought</b> and entered <span class="fb-tag">@emma.walks</span> when claiming<span class="fb-talk-pay"><em>+£1.00 sharer</em><em>+£0.50 friend</em></span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p7.jpg" alt="" loading="lazy"><b>@ollie.style</b></header><img class="fb-ph" src="assets/brands/rail.jpg" alt="" loading="lazy"><figcaption>Wardrobe refresh done <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p2.jpg" alt="" loading="lazy"><b>@sam.bites</b></header><img class="fb-ph" src="assets/brands/burger.jpg" alt="" loading="lazy"><figcaption>Best lunch this week <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-talk"><span class="fb-inp"><i class="ico ico-users"></i> In person</span><div class="fb-chat"><div class="fb-msg me"><img src="assets/photos/p9.jpg" alt=""><p>Best coffee on the high street, honestly.</p></div><div class="fb-msg you"><p>Is it far from you?</p><img src="assets/photos/p1.jpg" alt=""></div><div class="fb-msg me"><img src="assets/photos/p9.jpg" alt=""><p>Round the corner. Pop my handle in when you claim.</p></div></div><figcaption><b>Tom bought</b> and entered <span class="fb-tag">@mia.eats</span> when claiming<span class="fb-talk-pay"><em>+£1.00 sharer</em><em>+£0.50 friend</em></span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p9.jpg" alt="" loading="lazy"><b>@the.parkers</b></header><img class="fb-ph" src="assets/brands/teddy.jpg" alt="" loading="lazy"><figcaption>Birthday sorted <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p5.jpg" alt="" loading="lazy"><b>@dan.and.biscuit</b></header><img class="fb-ph" src="assets/brands/puppy.jpg" alt="" loading="lazy"><figcaption>New toys day <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-talk"><span class="fb-inp"><i class="ico ico-users"></i> In person</span><div class="fb-chat"><div class="fb-msg me"><img src="assets/photos/p5.jpg" alt=""><p>I love that jacket!</p></div><div class="fb-msg you"><p>Thanks, got it last week.</p><img src="assets/photos/p12.jpg" alt=""></div><div class="fb-msg me"><img src="assets/photos/p5.jpg" alt=""><p>Put my handle in if you buy one.</p></div></div><figcaption><b>Priya bought</b> and entered <span class="fb-tag">@ollie.style</span> when claiming<span class="fb-talk-pay"><em>+£1.00 sharer</em><em>+£0.50 friend</em></span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p11.jpg" alt="" loading="lazy"><b>@aisha.glow</b></header><img class="fb-ph" src="assets/brands/brushes.jpg" alt="" loading="lazy"><figcaption>Restocked everything <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-talk"><span class="fb-inp"><i class="ico ico-users"></i> In person</span><div class="fb-chat"><div class="fb-msg me"><img src="assets/photos/p11.jpg" alt=""><p>You&rsquo;d love the place we stayed.</p></div><div class="fb-msg you"><p>Send me the name!</p><img src="assets/photos/p3.jpg" alt=""></div><div class="fb-msg me"><img src="assets/photos/p11.jpg" alt=""><p>Done. Add my handle when you book and claim.</p></div></div><figcaption><b>Leo bought</b> and entered <span class="fb-tag">@freya.away</span> when claiming<span class="fb-talk-pay"><em>+£1.00 sharer</em><em>+£0.50 friend</em></span></figcaption></figure></div></div>
+    <div class="fb-marquee" aria-hidden="true"><div class="fb-track fb-track-rev"><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p3.jpg" alt="" loading="lazy"><b>@freya.away</b></header><img class="fb-ph" src="assets/brands/pool.jpg" alt="" loading="lazy"><figcaption>Holiday mode on <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p8.jpg" alt="" loading="lazy"><b>@jay.listens</b></header><img class="fb-ph" src="assets/brands/headphones.jpg" alt="" loading="lazy"><figcaption>Finally upgraded <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-talk"><span class="fb-inp"><i class="ico ico-users"></i> In person</span><div class="fb-chat"><div class="fb-msg me"><img src="assets/photos/p7.jpg" alt=""><p>Their bath bombs are my whole weekend now.</p></div><div class="fb-msg you"><p>Okay, I&rsquo;m sold.</p><img src="assets/photos/p10.jpg" alt=""></div><div class="fb-msg me"><img src="assets/photos/p7.jpg" alt=""><p>Use my handle when you claim.</p></div></div><figcaption><b>Zara bought</b> and entered <span class="fb-tag">@nina.unwinds</span> when claiming<span class="fb-talk-pay"><em>+£1.00 sharer</em><em>+£0.50 friend</em></span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p12.jpg" alt="" loading="lazy"><b>@leo.slice</b></header><img class="fb-ph" src="assets/brands/pizza.jpg" alt="" loading="lazy"><figcaption>Friday night <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p6.jpg" alt="" loading="lazy"><b>@nina.unwinds</b></header><img class="fb-ph" src="assets/brands/bathbombs.jpg" alt="" loading="lazy"><figcaption>Self-care Sunday <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-talk"><span class="fb-inp"><i class="ico ico-users"></i> In person</span><div class="fb-chat"><div class="fb-msg me"><img src="assets/photos/p4.jpg" alt=""><p>Our dog won&rsquo;t eat anything else now.</p></div><div class="fb-msg you"><p>Might try it for Rocky.</p><img src="assets/photos/p8.jpg" alt=""></div><div class="fb-msg me"><img src="assets/photos/p4.jpg" alt=""><p>Do it, and add my handle when you claim.</p></div></div><figcaption><b>Sam bought</b> and entered <span class="fb-tag">@max.and.ruby</span> when claiming<span class="fb-talk-pay"><em>+£1.00 sharer</em><em>+£0.50 friend</em></span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p10.jpg" alt="" loading="lazy"><b>@chloe.layers</b></header><img class="fb-ph" src="assets/brands/knitwear.jpg" alt="" loading="lazy"><figcaption>Autumn edit <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p1.jpg" alt="" loading="lazy"><b>@max.and.ruby</b></header><img class="fb-ph" src="assets/brands/dog.jpg" alt="" loading="lazy"><figcaption>Spoilt again <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure><figure class="fb-talk"><span class="fb-inp"><i class="ico ico-users"></i> In person</span><div class="fb-chat"><div class="fb-msg me"><img src="assets/photos/p12.jpg" alt=""><p>These headphones sound unreal.</p></div><div class="fb-msg you"><p>Worth the money?</p><img src="assets/photos/p5.jpg" alt=""></div><div class="fb-msg me"><img src="assets/photos/p12.jpg" alt=""><p>Totally. Put my handle in when you claim.</p></div></div><figcaption><b>Aisha bought</b> and entered <span class="fb-tag">@jay.listens</span> when claiming<span class="fb-talk-pay"><em>+£1.00 sharer</em><em>+£0.50 friend</em></span></figcaption></figure><figure class="fb-post"><header><img class="fb-av" src="assets/photos/p4.jpg" alt="" loading="lazy"><b>@priya.watches</b></header><img class="fb-ph" src="assets/brands/cinema.jpg" alt="" loading="lazy"><figcaption>Date night <span class="fb-tag">@yourbrand</span> <span class="fb-tag">@cirqle.co.uk</span></figcaption></figure></div></div>
+  </section>
+
+  <div class="page">
+    <!-- ══ PER-DEAL SETTINGS ══ -->
+    <div class="prose reveal">
+      <h2>Marketing that brings customers in, and back</h2>
+      <p>Two boosts you can switch on for any deal, whenever you like.</p>
+    </div>
+    <div class="tiles" style="margin-top:22px">
+      <div class="card tile reveal">
+        <div class="tile-art" aria-hidden="true">
+          <div class="fb-pair"><img src="assets/photos/p2.jpg" alt=""><img src="assets/photos/p8.jpg" alt=""></div>
+          <span class="fb-bub fb-b1">+£1.00</span><span class="fb-bub fb-b2">+£0.50</span>
+        </div>
+        <button class="tile-head" type="button" aria-expanded="false" aria-controls="way-referral">
+          <span class="tile-ico"><i class="ico ico-users"></i></span>
+          <span class="tile-head-txt">
+            <span class="tile-t">New customers</span>
+            <span class="tile-lead">Happy customers bring their friends. Reward them both when a friend buys.</span>
+          </span>
+          <span class="tile-chev" aria-hidden="true">&#9660;</span>
+        </button>
+        <div class="tile-body" id="way-referral"><div class="tile-body-inner">
+          <p class="tile-d">Your best customers become your sales team. When a friend buys because a customer told them about you, both get a bonus you choose (from 50p each), and it&rsquo;s only paid once the friend&rsquo;s purchase is approved.</p>
+          <span class="tile-tag">From your referral wallet</span>
+        </div></div>
+      </div>
+      <div class="card tile reveal reveal-delay-1">
+        <div class="tile-art" aria-hidden="true">
+          <div class="fb-visits">
+            <span><i class="ico ico-receipt"></i>Visit 1</span><em>→</em>
+            <span><i class="ico ico-receipt"></i>Visit 2</span><em>→</em>
+            <span class="on"><i class="ico ico-receipt"></i>Visit 3</span>
+          </div>
+        </div>
+        <button class="tile-head" type="button" aria-expanded="false" aria-controls="way-repeat">
+          <span class="tile-ico"><i class="ico ico-refresh"></i></span>
+          <span class="tile-head-txt">
+            <span class="tile-t">Repeat customers</span>
+            <span class="tile-lead">Customers earn again every time they come back and buy.</span>
+          </span>
+          <span class="tile-chev" aria-hidden="true">&#9660;</span>
+        </button>
+        <div class="tile-body" id="way-repeat"><div class="tile-body-inner">
+          <p class="tile-d">Turn one-off buyers into regulars. Customers who&rsquo;ve claimed once can earn on every return visit, with no new post needed. You set the amount, up to your normal cashback.</p>
+          <span class="tile-tag">From your cashback wallet</span>
+        </div></div>
       </div>
     </div>
 
     <!-- ══ THE CHAIN ══ -->
     <div class="prose reveal"><h2>From sign-up to sales</h2></div>
-    <div class="chain" style="margin-top:22px">
+    <div class="steps-nav reveal">
+      <ol class="steps-bar" role="tablist" aria-label="Steps">
+        <li><button type="button" role="tab" data-i="0" aria-selected="true"><b>1</b><span>Apply</span></button></li>
+        <li><button type="button" role="tab" data-i="1" aria-selected="false"><b>2</b><span>Set up</span></button></li>
+        <li><button type="button" role="tab" data-i="2" aria-selected="false"><b>3</b><span>Publish</span></button></li>
+        <li><button type="button" role="tab" data-i="3" aria-selected="false"><b>4</b><span>Fund</span></button></li>
+        <li><button type="button" role="tab" data-i="4" aria-selected="false"><b>5</b><span>Share</span></button></li>
+        <span class="steps-fill" aria-hidden="true"></span>
+      </ol>
+      <div class="steps-arrows">
+        <button type="button" class="steps-arrow" data-dir="-1" aria-label="Previous step" disabled>&larr;</button>
+        <button type="button" class="steps-arrow" data-dir="1" aria-label="Next step">&rarr;</button>
+      </div>
+    </div>
+    <div class="chain" style="margin-top:16px" tabindex="0" aria-label="Steps from sign-up to sales, one at a time">
       <div class="card link-row reveal">
         <div>
           <span class="link-n">1</span>
@@ -414,148 +785,28 @@
       </div>
     </div>
 
-    <!-- ══ VERIFICATION ══
-         Step 5 above says "we check it" in four words. These are what those
-         four words mean, because it is the first thing a brand wants nailed
-         down before it funds anything. Tiles rather than six open cards: a
-         brand should be able to take the shape of this in one look and then
-         choose what to read. The full detail, the human backstop and the
-         honest caveat all live on for-brands-verification.html. -->
-    <div class="prose reveal" style="margin-top:64px" id="verification">
-      <h2>Every claim is checked</h2>
-      <p>You are paying for purchases, so the purchase has to be real. Every claim goes through the same checks, in the same order, and <b>a claim that fails one never reaches your budget</b>. You are not charged for it, and you do not have to spot it yourself. Tap any of them for the detail.</p>
-    </div>
-    <div class="tiles" style="margin-top:22px">
-      <div class="card tile reveal">
-        <button class="tile-head" type="button" aria-expanded="false" aria-controls="chk-receipt">
-          <span class="tile-ico"><i class="ico ico-receipt"></i></span>
-          <span class="tile-head-txt">
-            <span class="tile-t">The receipt is matched to yours</span>
-            <span class="tile-lead">Compared against the reference receipt you gave us at setup.</span>
-          </span>
-          <span class="tile-chev" aria-hidden="true">&#9660;</span>
-        </button>
-        <div class="tile-body" id="chk-receipt"><div class="tile-body-inner">
-          <p class="tile-d">Every uploaded receipt is read and compared against the reference receipt you gave us at setup &mdash; <b>store name, address, phone number, VAT number, and the visual format of the receipt itself</b>. A receipt that did not come from one of your tills does not look like one of your receipts.</p>
-          <span class="tile-tag">Compared against your own reference receipt</span>
-        </div></div>
-      </div>
-      <div class="card tile reveal reveal-delay-1">
-        <button class="tile-head" type="button" aria-expanded="false" aria-controls="chk-maths">
-          <span class="tile-ico"><i class="ico ico-check"></i></span>
-          <span class="tile-head-txt">
-            <span class="tile-t">The arithmetic is recomputed</span>
-            <span class="tile-lead">Line items, subtotal and tax re-added in code, not by a model.</span>
-          </span>
-          <span class="tile-chev" aria-hidden="true">&#9660;</span>
-        </button>
-        <div class="tile-body" id="chk-maths"><div class="tile-body-inner">
-          <p class="tile-d">Line items are added against the subtotal, and subtotal plus tax against the total &mdash; <b>in code, not by a model</b>. This is what catches fabricated receipts: generators reproduce how a receipt looks and then routinely get its sums wrong. We also check the purchase fits the deal &mdash; a plausible item, a sane date, and at least your minimum spend.</p>
-          <span class="tile-tag">Fails the maths, fails the claim</span>
-        </div></div>
-      </div>
-      <div class="card tile reveal">
-        <button class="tile-head" type="button" aria-expanded="false" aria-controls="chk-dupes">
-          <span class="tile-ico"><i class="ico ico-refresh"></i></span>
-          <span class="tile-head-txt">
-            <span class="tile-t">No receipt is paid twice</span>
-            <span class="tile-lead">Exact and near-duplicate images caught, across every account.</span>
-          </span>
-          <span class="tile-chev" aria-hidden="true">&#9660;</span>
-        </button>
-        <div class="tile-body" id="chk-dupes"><div class="tile-body-inner">
-          <p class="tile-d">A byte-identical upload is rejected at the door. A re-saved, cropped or re-photographed copy is caught too, because we fingerprint <i>what the image looks like</i>, not just the file. The same check runs across accounts, so one receipt cannot quietly fund claims from several profiles.</p>
-          <span class="tile-tag">Exact and near-duplicate detection</span>
-        </div></div>
-      </div>
-      <div class="card tile reveal reveal-delay-1">
-        <button class="tile-head" type="button" aria-expanded="false" aria-controls="chk-post">
-          <span class="tile-ico"><i class="ico ico-instagram"></i></span>
-          <span class="tile-head-txt">
-            <span class="tile-t">The post has to name you</span>
-            <span class="tile-lead">A post tagging a different Cirqle brand is rejected outright.</span>
-          </span>
-          <span class="tile-chev" aria-hidden="true">&#9660;</span>
-        </button>
-        <div class="tile-body" id="chk-post"><div class="tile-body-inner">
-          <p class="tile-d">We read the accounts tagged in the post and check them against the deal being claimed. <b>A post tagging a different Cirqle brand is rejected outright</b> &mdash; you never pay for content that promoted someone else. The post also has to stay up until the claim is checked, so the content you paid for is content that actually ran.</p>
-          <span class="tile-tag">Brand tag matched to your deal</span>
-        </div></div>
-      </div>
-      <div class="card tile reveal">
-        <button class="tile-head" type="button" aria-expanded="false" aria-controls="chk-bots">
-          <span class="tile-ico"><i class="ico ico-ghost"></i></span>
-          <span class="tile-head-txt">
-            <span class="tile-t">Bought audiences are scored down</span>
-            <span class="tile-lead">Ratio, engagement rate and consistency, scored on every claim.</span>
-          </span>
-          <span class="tile-chev" aria-hidden="true">&#9660;</span>
-        </button>
-        <div class="tile-body" id="chk-bots"><div class="tile-body-inner">
-          <p class="tile-d">Accounts are scored on <b>follower-to-following ratio, engagement rate, and consistency across recent posts</b>. Engagement far below what an account that size should draw reads as bought followers; far above it, or near-identical post after post, reads as an engagement pod. You are reaching real people, not a follower count someone bought.</p>
-          <span class="tile-tag">Account quality scored on every claim</span>
-        </div></div>
-      </div>
-      <div class="card tile reveal reveal-delay-1">
-        <button class="tile-head" type="button" aria-expanded="false" aria-controls="chk-referral">
-          <span class="tile-ico"><i class="ico ico-lock"></i></span>
-          <span class="tile-head-txt">
-            <span class="tile-t">Referral bonuses cannot be farmed</span>
-            <span class="tile-lead">Stripe identity verification on both sides, shared details blocked.</span>
-          </span>
-          <span class="tile-chev" aria-hidden="true">&#9660;</span>
-        </button>
-        <div class="tile-body" id="chk-referral"><div class="tile-body-inner">
-          <p class="tile-d">A referral bonus needs <b>both</b> people identity-verified through Stripe, and is blocked when two accounts share bank or identity details &mdash; compared as hashed fingerprints, so the details themselves are never held. The referrer&rsquo;s post has to predate the friend&rsquo;s purchase, and it only counts on that friend&rsquo;s first claim for the deal. One person with two accounts earns nothing.</p>
-          <span class="tile-tag">Stripe identity verification on both sides</span>
-        </div></div>
-      </div>
-    </div>
-    <div class="tiles-more reveal">
-      <a href="for-brands-verification" class="btn btn-lg btn-lime">How it works &rarr;</a>
-    </div>
-
-    <!-- ══ PER-DEAL SETTINGS ══ -->
-    <div class="prose reveal" style="margin-top:64px">
-      <h2>Two ways to get more from every customer</h2>
-      <p>Both optional, switched on deal by deal.</p>
-    </div>
-    <div class="tiles" style="margin-top:22px">
-      <div class="card tile reveal">
-        <button class="tile-head" type="button" aria-expanded="false" aria-controls="way-referral">
-          <span class="tile-ico"><i class="ico ico-users"></i></span>
-          <span class="tile-head-txt">
-            <span class="tile-t">Referral bonuses</span>
-            <span class="tile-lead">Reward both sides when a friend buys because a customer shared.</span>
-          </span>
-          <span class="tile-chev" aria-hidden="true">&#9660;</span>
-        </button>
-        <div class="tile-body" id="way-referral"><div class="tile-body-inner">
-          <p class="tile-d">When a friend buys because a customer shared your deal with them, you reward both. You set the amounts, from 50p each, paid only once the friend's purchase is approved.</p>
-          <span class="tile-tag">From your referral wallet</span>
-        </div></div>
-      </div>
-      <div class="card tile reveal reveal-delay-1">
-        <button class="tile-head" type="button" aria-expanded="false" aria-controls="way-repeat">
-          <span class="tile-ico"><i class="ico ico-refresh"></i></span>
-          <span class="tile-head-txt">
-            <span class="tile-t">Repeat visits</span>
-            <span class="tile-lead">Customers who already claimed can earn again, without sharing again.</span>
-          </span>
-          <span class="tile-chev" aria-hidden="true">&#9660;</span>
-        </button>
-        <div class="tile-body" id="way-repeat"><div class="tile-body-inner">
-          <p class="tile-d">Customers who've already claimed can earn again next time they buy, without sharing again. You set the amount, up to your normal cashback.</p>
-          <span class="tile-tag">From your cashback wallet</span>
-        </div></div>
-      </div>
-    </div>
-
     <!-- ══ THE PORTAL ══ -->
-    <div class="prose reveal" style="margin-top:64px">
+    <div class="prose reveal">
       <h2>What your dashboard shows you</h2>
       <p>All from real claims and receipts. Nothing estimated.</p>
     </div>
+    <figure class="fb-dash reveal" aria-hidden="true">
+      <div class="fb-dash-bar"><i></i><i></i><i></i><span>Merchant portal · Overview</span></div>
+      <div class="fb-dash-body">
+        <aside class="fb-dash-side"><b class="on">Overview</b><b>Customers</b><b>Posts</b><b>Referrals</b><b>Billing</b></aside>
+        <div class="fb-dash-main">
+          <div class="fb-kpis">
+            <div><span>Claims</span><b>148</b></div>
+            <div><span>Revenue</span><b>£9,620</b></div>
+            <div><span>Cost</span><b>£742</b></div>
+            <div><span>Posts</span><b>131</b></div>
+          </div>
+          <div class="fb-chart"><i style="height:28%"></i><i style="height:34%"></i><i style="height:31%"></i><i style="height:45%"></i><i style="height:40%"></i><i style="height:52%"></i><i style="height:49%"></i><i style="height:61%"></i><i style="height:58%"></i><i style="height:70%"></i><i style="height:66%"></i><i style="height:82%"></i></div>
+          <div class="fb-dash-posts"><span>Customers who shared you on social media</span><div><figure><img src="assets/brands/trainers.jpg" alt=""><figcaption><img src="assets/photos/p4.jpg" alt=""><b>@emma.walks</b></figcaption></figure><figure><img src="assets/brands/latte.jpg" alt=""><figcaption><img src="assets/photos/p1.jpg" alt=""><b>@mia.eats</b></figcaption></figure><figure><img src="assets/brands/rail.jpg" alt=""><figcaption><img src="assets/photos/p7.jpg" alt=""><b>@ollie.style</b></figcaption></figure><figure><img src="assets/brands/burger.jpg" alt=""><figcaption><img src="assets/photos/p2.jpg" alt=""><b>@sam.bites</b></figcaption></figure><figure><img src="assets/brands/brushes.jpg" alt=""><figcaption><img src="assets/photos/p11.jpg" alt=""><b>@aisha.glow</b></figcaption></figure></div></div>
+        </div>
+      </div>
+      <figcaption>Illustration with example figures.</figcaption>
+    </figure>
     <div class="why-grid" style="margin-top:22px">
       <div class="card card-lime card-hover why-card reveal"><span class="why-icon"><i class="ico ico-chart"></i></span><div class="why-title">Claims and sales</div><div class="why-text">Views, clicks, claims and what customers really spent on each deal, read straight off their receipts.</div></div>
       <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-instagram"></i></span><div class="why-title">Every share</div><div class="why-text">Each Instagram post that tags your brand, and who posted it.</div></div>
@@ -565,7 +816,41 @@
       <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-refresh"></i></span><div class="why-title">Who comes back</div><div class="why-text">How many customers return, compared with similar brands.</div></div>
     </div>
 
+    <!-- ══ VERIFICATION ══
+         Step 5 above says "we check it" in four words. These are what those
+         four words mean, because it is the first thing a brand wants nailed
+         down before it funds anything. Tiles rather than six open cards: a
+         brand should be able to take the shape of this in one look and then
+         choose what to read. The full detail, the human backstop and the
+         honest caveat all live on for-brands-verification.html. -->
+    <div class="prose reveal" id="verification">
+      <h2>Every purchase is verified</h2>
+      <p>You&rsquo;re paying for real purchases, so every claim is checked before it touches your budget. <b>A claim that fails a check costs you nothing</b>, and you never have to spot it yourself.</p>
+    </div>
+    <div class="fb-check reveal" aria-hidden="true">
+      <div class="fb-receipt">
+        <div class="fb-rc-shop">YOUR BRAND</div>
+        <div class="fb-rc-sub">12 High Street · VAT 123 4567 89</div>
+        <div class="fb-rc-line"><span>Running shoes</span><span>£64.99</span></div>
+        <div class="fb-rc-line"><span>Sports socks</span><span>£8.00</span></div>
+        <div class="fb-rc-line fb-rc-tot"><span>Total</span><span>£72.99</span></div>
+        <div class="fb-rc-bar"></div>
+        <span class="fb-scan"></span>
+      </div>
+      <ul class="fb-ticks">
+        <li><i class="ico ico-check"></i> AI receipt checks</li>
+        <li><i class="ico ico-check"></i> Fraud screening</li>
+        <li><i class="ico ico-check"></i> Duplicate detection</li>
+        <li><i class="ico ico-check"></i> Fake account screening</li>
+        <li><i class="ico ico-check"></i> Human review if anything looks off</li>
+      </ul>
+    </div>
+    <div class="tiles-more reveal">
+      <a href="for-brands-verification" class="btn btn-lg btn-lime">Find out more &rarr;</a>
+    </div>
+
     <div class="card card-ink cta-box reveal">
+      <div class="fb-mosaic" aria-hidden="true"><img src="assets/brands/pool.jpg" alt=""><img src="assets/brands/teddy.jpg" alt=""><img src="assets/brands/pizza.jpg" alt=""><img src="assets/brands/knitwear.jpg" alt=""><img src="assets/brands/puppy.jpg" alt=""><img src="assets/brands/headphones.jpg" alt=""><img src="assets/brands/cinema.jpg" alt=""><img src="assets/brands/bathbombs.jpg" alt=""></div>
       <span class="cta-ring" aria-hidden="true"></span>
       <h2 style="color:var(--paper); font-size:clamp(1.6rem,3.4vw,2.2rem)">Ready to grow with <span class="hl hl-lime" style="color:var(--ink)">Cirqle?</span></h2>
       <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Tell us about your brand and we'll get back to you.</p>
@@ -580,6 +865,50 @@
     // pattern elsewhere on the site skips it; it should not).
     // Tiles open independently: closing one when another opens would fight
     // anyone comparing two checks side by side.
+    document.querySelectorAll('.fb-track').forEach(function (t) { t.innerHTML += t.innerHTML; });
+
+    // Steps carousel: the step bar, arrows and keyboard all move the chain;
+    // scrolling (or swiping) moves the step bar. Active = the card nearest the
+    // chain's left edge.
+    (function () {
+      var chain = document.querySelector('.chain');
+      var cards = [].slice.call(chain.querySelectorAll('.link-row'));
+      var tabs = [].slice.call(document.querySelectorAll('.steps-bar button'));
+      var arrows = document.querySelectorAll('.steps-arrow');
+      var fill = document.querySelector('.steps-fill');
+      var bar = document.querySelector('.steps-bar');
+      var active = -1;
+      function go(i) {
+        i = Math.max(0, Math.min(cards.length - 1, i));
+        mark(i);   // light the step now; a long smooth scroll takes a second to land
+        chain.scrollTo({ left: cards[i].offsetLeft - cards[0].offsetLeft, behavior: 'smooth' });
+      }
+      function mark(i) {
+        if (i === active) return;
+        active = i;
+        cards.forEach(function (c, k) { c.classList.toggle('active', k === i); });
+        tabs.forEach(function (t, k) { t.setAttribute('aria-selected', String(k === i)); t.classList.toggle('done', k < i); });
+        arrows[0].disabled = i === 0; arrows[1].disabled = i === cards.length - 1;
+        var a = tabs[0].getBoundingClientRect(), b = tabs[i].getBoundingClientRect();
+        fill.style.width = (b.left - a.left) + 'px';
+      }
+      function sync() {
+        var x = chain.scrollLeft, best = 0, bestD = Infinity;
+        cards.forEach(function (c, k) { var d = Math.abs(c.offsetLeft - cards[0].offsetLeft - x); if (d < bestD) { bestD = d; best = k; } });
+        mark(best);
+      }
+      tabs.forEach(function (t, k) { t.addEventListener('click', function () { go(k); }); });
+      arrows.forEach(function (a) { a.addEventListener('click', function () { go(active + Number(a.dataset.dir)); }); });
+      chain.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); go(active + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(active - 1); }
+      });
+      var t; chain.addEventListener('scroll', function () { clearTimeout(t); t = setTimeout(sync, 60); }, { passive: true });
+      window.addEventListener('resize', function () { var i = active; active = -1; mark(i); });
+      mark(0);
+    })();
+
+
     document.querySelectorAll('.tile-head').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var open = btn.getAttribute('aria-expanded') === 'true';
@@ -588,6 +917,6 @@
       });
     });
   </script>
-  <script src="assets/enhance.js?v=15"></script>
+  <script src="assets/enhance.js?v=16"></script>
 </body>
 </html>
