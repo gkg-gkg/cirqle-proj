@@ -38,7 +38,7 @@
   <div class="page">
     <div class="page-hero">
       <h1 class="h-display fade-up d1" style="margin-top:20px">Privacy <span class="hl hl-lime">Policy</span></h1>
-      <p class="updated fade-up d2">Last updated: 26 September 2026</p>
+      <p class="updated fade-up d2">Last updated: 27 September 2026</p>
     </div>
 
     <div class="toc fade-up d2">
@@ -68,12 +68,15 @@
       <section id="what-we-collect">
         <h2>2. What data we collect</h2>
         <ul>
-          <li><strong>Account data:</strong> your first and last name, email address, password (stored only as a secure bcrypt hash — never in plain text), your Instagram handle, and the date you signed up.</li>
+          <li><strong>Account data:</strong> your first and last name, email address, password (stored only as a secure bcrypt hash — never in plain text), your Instagram handle, and the date you signed up. Before a new account goes live, you confirm your email address and a member of our team reviews the account.</li>
+          <li><strong>Referrals:</strong> if a friend recommended a purchase to you, the Instagram handle you enter for them on your claim; and, if you are the one who recommended it, the fact that a friend named you. We use this to pay both of you the referral bonus and to stop people referring themselves.</li>
+          <li><strong>Withdrawals:</strong> to withdraw, you verify your identity and add a bank account on Stripe&rsquo;s own secure form. Stripe collects and keeps those details; we never see your bank details or ID documents. We keep only your Stripe account reference, whether it is ready for payouts, and a record of each withdrawal.</li>
           <li><strong>Cashback claims:</strong> photos of receipts you upload (stored privately), the deal you claimed against, the Instagram post linked to the claim (if any — a repeat visit can be logged without one), and the cashback amount and its status (pending, confirmed, paid, or rejected).</li>
           <li><strong>What your receipt says:</strong> we read each receipt automatically to check the claim. From that reading we keep the shop's name, the total, the currency, the purchase date and the order or transaction number. We do this to confirm the purchase is genuine and not a duplicate, and to tell the brand what their deals earned. The automatic reading is done by AI, which receives the receipt image itself — see section 5. This is not used to train any AI model. We also keep the ability to read a receipt using Amazon Textract inside our own AWS account, used when a claim needs a manual re-check.</li>
           <li><strong>Instagram post data:</strong> where you provide an Instagram handle and refresh your feed, we collect public posts that tag our brand account — see section 4.</li>
-          <li><strong>Technical data:</strong> our website is hosted on GitHub Pages and our API on Amazon Web Services (AWS). As part of normal operation and security, those providers process standard request data such as your IP address, the time of the request, and your browser type. We do not run our own advertising or analytics tracking.</li>
-          <li><strong>Brand / partnership data:</strong> if you apply to partner with us as a brand, we collect the business and contact details you submit in that form.</li>
+          <li><strong>Technical data:</strong> our website is hosted on GitHub Pages and our API on Amazon Web Services (AWS). As part of normal operation and security, those providers process standard request data such as your IP address, the time of the request, and your browser type. Our API also holds your IP address in memory for a few minutes to limit abuse (for example, repeated failed sign-ins); it is never written to our database. We do not run our own advertising or analytics tracking.</li>
+          <li><strong>Deal views and clicks:</strong> when a deal page is opened, or its &ldquo;Shop&rdquo; link is followed, we count it so the brand can see how the deal performs. The count is anonymous: it records the deal, whether it was a view or a click, and the time. Nothing that identifies you is attached.</li>
+          <li><strong>Brand / partnership data:</strong> if you apply to partner with us as a brand, we collect your first name, work email, phone number and how you heard about us. Once approved, you add your business details in the merchant portal. Top-ups to a brand&rsquo;s balance are paid on Stripe&rsquo;s own checkout page, so card details never reach us.</li>
         </ul>
         <p>We do <strong>not</strong> collect payment card numbers, and we do not buy personal data or track you across other websites.</p>
       </section>
@@ -87,7 +90,7 @@
           <tr><td>Verify claims and prevent fraud, abuse, and duplicate accounts</td><td>Our legitimate interests</td></tr>
           <tr><td>Show a brand your activity with that brand, so they can see what the cashback they funded achieved (section 5)</td><td>Performance of our contract, and our legitimate interests</td></tr>
           <tr><td>Keep the service secure, working, and debugged</td><td>Our legitimate interests</td></tr>
-          <tr><td>Send service emails (claim received/confirmed/paid, sign-in codes, password resets)</td><td>Performance of our contract</td></tr>
+          <tr><td>Send service emails (claim received/confirmed/paid, email confirmation links, password resets)</td><td>Performance of our contract</td></tr>
           <tr><td>Send marketing emails, if you opt in</td><td>Your consent (you can withdraw it any time)</td></tr>
           <tr><td>Keep financial and tax records</td><td>Compliance with a legal obligation</td></tr>
         </table>
@@ -105,14 +108,14 @@
         <p>We do <strong>not</strong> sell your personal data. We share it only with service providers ("processors") who act on our instructions, and where the law requires:</p>
         <ul>
           <li><strong>Amazon Web Services (AWS)</strong> — hosting, database, private receipt storage, and email delivery. Your data is stored in AWS's UK (London) region. AWS's Amazon Textract service is also used to read a receipt when a claim needs a manual re-check.</li>
-          <li><strong>An AI provider</strong> — reads your receipt image automatically to check a claim, as described in section 2. Does not train its models on this data.</li>
+          <li><strong>Anthropic (Claude)</strong> — our AI provider. Reads your receipt image automatically to check a claim, as described in section 2. Does not train its models on this data.</li>
           <li><strong>Apify</strong> — retrieves the public Instagram post data described in section 4.</li>
           <li><strong>postcodes.io</strong> — if you search for deals near a postcode, our server sends that postcode (not your IP address or anything else about you) to postcodes.io to find its map location. We don't store the postcode. If you tap "use my location" instead, your browser asks your permission and the location never leaves your device: distances are worked out on the page itself.</li>
           <li><strong>GitHub (GitHub Pages)</strong> — serves our website.</li>
           <li><strong>Google Fonts</strong> — serves the fonts our pages use; this may involve your browser's IP address being seen by Google.</li>
           <li><strong>Brand partners:</strong> a brand you have claimed cashback from can see your activity <em>with that brand</em>, in their partner dashboard. This is set out in full below.</li>
           <li><strong>Other Cirqle members</strong> — only if you choose to join the referral leaderboard, which is off unless you turn it on. This is set out in full below.</li>
-          <li><strong>A payment provider</strong> — when cashback withdrawals go live, to pay out your balance (not active yet).</li>
+          <li><strong>Stripe</strong> — pays out member withdrawals (Stripe checks your identity and holds your bank details directly), and processes brands&rsquo; balance top-ups.</li>
           <li><strong>Authorities or advisers</strong> — where we are legally required to disclose, or to protect our rights.</li>
         </ul>
 
@@ -158,7 +161,7 @@
 
       <section id="transfers">
         <h2>6. International transfers</h2>
-        <p>Your account and cashback data is stored in the UK (AWS London region). Some of our providers (for example our AI provider, Apify, Google, and GitHub) may process limited data outside the UK. Where they do, we rely on appropriate safeguards — such as UK "adequacy" decisions or the International Data Transfer Agreement — to keep your data protected to UK standards.</p>
+        <p>Your account and cashback data is stored in the UK (AWS London region). Some of our providers (for example Anthropic, Stripe, Apify, Google, and GitHub) may process limited data outside the UK. Where they do, we rely on appropriate safeguards — such as UK "adequacy" decisions or the International Data Transfer Agreement — to keep your data protected to UK standards.</p>
       </section>
 
       <section id="retention">
@@ -166,7 +169,9 @@
         <ul>
           <li><strong>Account data</strong> — while your account is open, and for a short period after closure to handle any final queries.</li>
           <li><strong>Cashback and financial records</strong> — up to 6 years, to meet UK tax and accounting requirements.</li>
-          <li><strong>Sign-in codes and password-reset links</strong> — minutes only (they expire quickly by design).</li>
+          <li><strong>Email confirmation and password-reset links</strong> — they expire quickly by design.</li>
+          <li><strong>IP addresses used to limit abuse</strong> — minutes, in memory only.</li>
+          <li><strong>Anonymous deal view and click counts</strong> — kept, as they contain nothing about you.</li>
           <li><strong>Cached Instagram posts</strong> — until you refresh them or close your account.</li>
         </ul>
         <p>You can ask us to delete your account and associated data at any time (subject to records we must keep by law).</p>
