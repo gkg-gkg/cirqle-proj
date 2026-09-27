@@ -76,6 +76,14 @@
        so each breakpoint below hides the columns its track count can't hold. */
     .hw-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; height: 100%; padding: 0 8px; }
     .hw-col { display: flex; flex-direction: column; gap: 12px; }
+    /* Tilted and drifting, like the phone strip. The grid is scaled up so the
+       rotated corners and the ±24px drift never show the band's edge. The drift
+       uses the separate `translate` property so it stacks on the per-column
+       offsets below instead of replacing them. */
+    .hw-grid { transform: rotate(-6deg) scale(1.25); transform-origin: 50% 50%; }
+    .hw-col { animation: hwDriftD 18s ease-in-out infinite alternate; }
+    .hw-col:nth-child(even) { animation-direction: alternate-reverse; }
+    @keyframes hwDriftD { from { translate: 0 24px; } to { translate: 0 -24px; } }
     .hw-col:nth-child(2n) { transform: translateY(-7%); }
     .hw-col:nth-child(3n) { transform: translateY(4%); }
     /* object-position nudged above center: shifts which part of each source
@@ -740,7 +748,7 @@
        gradient band above; later in the file, same specificity. */
     @media (max-width: 600px) {
       .hero-band { background: var(--paper); border-bottom: 0; }
-      .hero-wall { display: block; bottom: auto; height: 380px; overflow: hidden; }
+      .hero-wall { display: block; bottom: auto; height: 340px; overflow: hidden; }
       .hero-wall .hw-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; height: auto;
         transform: rotate(-6deg) scale(1.2); transform-origin: 50% 20%; }
       .hero-wall .hw-col:nth-child(n+4) { display: none; }
@@ -749,9 +757,9 @@
       .hero-wall .hw-col img { flex: none; height: auto; aspect-ratio: 3 / 4; border-radius: 10px; }
       /* Clear photography down to ~60% of the strip, then a short fade that is
          white by the time the headline starts, so the type stays on white. */
-      .hero-scrim { display: block; bottom: auto; height: 382px;
-        background: linear-gradient(180deg, rgba(255,255,255,0) 60%, rgba(255,255,255,.85) 80%, var(--paper) 88%); }
-      .hero { padding-top: 300px; }
+      .hero-scrim { display: block; bottom: auto; height: 342px;
+        background: linear-gradient(180deg, rgba(255,255,255,0) 55%, rgba(255,255,255,.88) 76%, var(--paper) 86%); }
+      .hero { padding-top: 255px; }
       /* Smaller sub, and tighter gaps: headline → sub → buttons. */
       .hero-h { margin-bottom: 14px; }
       .hero-sub { font-size: .88rem; line-height: 1.6; margin-bottom: 18px; }
