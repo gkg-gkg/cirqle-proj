@@ -206,7 +206,7 @@
           ? [['dashboard', 'My account'], ['feed', 'Dashboard'], ['account', 'Account details']]
           : [['signup', 'Sign up'], ['signin', 'Sign in']]) +
       '</div><div class="footer-bottom">' +
-        '<p>&copy; ' + new Date().getFullYear() + ' Cirqle Ltd. All rights reserved. Made in London.</p>' +
+        '<p>&copy; ' + new Date().getFullYear() + ' Cirqle. All rights reserved. Made in London.</p>' +
         '<div class="footer-legal"><a href="privacy">Privacy</a><a href="terms">Terms</a><a href="cookies">Cookies</a></div>' +
       '</div></div>';
   }
