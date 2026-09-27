@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%23437D9E' stroke-width='12'/%3E%3C/svg%3E" />
+  <title>How we verify a claim &mdash; Cirqle</title>
+  <meta name="description" content="Every check a Cirqle claim goes through before a brand is charged: receipt matching, recomputed arithmetic, duplicate detection, brand tags, account quality and referral identity." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <style>
+    /* The detail behind the tiles on for-brands.html. That page is the pitch
+       and has to stay skimmable; this one is for the reader who wants the
+       whole thing, so nothing here collapses. Each check states what it
+       catches AND what it does not, because a list of only strengths is the
+       kind of thing a technical reader stops believing halfway down. */
+    .vchecks { display: grid; gap: 18px; }
+    .vcheck { padding: 26px 28px; }
+    .vcheck-head { display: flex; gap: 14px; align-items: flex-start; }
+    .vcheck-ico { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
+    .vcheck-t { font-family: var(--font-display); font-size: 1.12rem; font-weight: 700; letter-spacing: -.02em; }
+    .vcheck-d { font-size: .9rem; color: var(--ink-soft); line-height: 1.7; margin: 8px 0 0; }
+    .vcheck-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0 0 52px; }
+    .vc-box { padding: 13px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper-deep); }
+    .vc-box.yes { border-color: rgba(56,182,255,.38); background: var(--blue-pale); }
+    .vc-label { font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+    .vc-text { font-size: .83rem; color: var(--ink-soft); line-height: 1.55; margin-top: 5px; }
+    @media (max-width: 700px) {
+      .vcheck-split { grid-template-columns: 1fr; margin-left: 0; }
+      .vcheck { padding: 22px 20px; }
+    }
+
+    /* Same closing slab as for-brands.html, whose rules are page-local.
+       @keyframes spin does come from cirqle.css. */
+    .cta-box { text-align: center; padding: 44px 30px; margin-top: 60px; position: relative; overflow: hidden; }
+    .cta-box > :not(.cta-ring) { position: relative; z-index: 1; }
+    .cta-ring {
+      position: absolute; width: 520px; height: 520px;
+      top: 50%; left: 50%; margin: -260px 0 0 -260px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(255,255,255,.13);
+      animation: spin 70s linear infinite;
+      pointer-events: none;
+    }
+    .cta-ring::before {
+      content: ''; position: absolute; inset: 64px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(255,255,255,.09);
+      animation: spin 50s linear infinite reverse;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="logo">cirqle</a>
+    <ul class="nav-links">
+      <li><a href="browse.html">Browse Deals</a></li>
+      <li><a href="/">For customers</a></li>
+      <li><a href="for-brands.html">For brands</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="contact.html" class="btn btn-sm btn-lime">Get in touch</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-hero">
+      <h1 class="h-display fade-up d1" style="margin-top:20px">How we <span class="hl">verify a claim</span></h1>
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">Every check a claim passes before a penny leaves your wallet &mdash; what each one catches, and what it does not. This is the long version of the tiles on <a href="for-brands.html#verification">the brands page</a>.</p>
+    </div>
+
+    <div class="prose reveal" style="margin-top:56px">
+      <h2>The six checks</h2>
+      <p>They run in order, and a claim that fails one does not continue to the next. Nothing here depends on you spotting anything.</p>
+    </div>
+    <div class="vchecks" style="margin-top:22px">
+
+      <div class="card vcheck reveal">
+        <div class="vcheck-head">
+          <span class="vcheck-ico"><i class="ico ico-receipt"></i></span>
+          <div>
+            <div class="vcheck-t">The receipt is matched to yours</div>
+            <p class="vcheck-d">Every brand gives us one clean reference receipt from its own till at setup. Every receipt a member uploads against your deals is read and compared to it &mdash; <b>store name, address, phone number, VAT number, and the visual format of the receipt itself</b>. Receipts from a given chain share a shape: the same header block, the same column positions, the same footer. A receipt from somewhere else does not have that shape, and a receipt from nowhere at all rarely gets it right.</p>
+          </div>
+        </div>
+        <div class="vcheck-split">
+          <div class="vc-box yes">
+            <div class="vc-label">What it catches</div>
+            <div class="vc-text">Receipts from a different shop, and generated receipts that do not reproduce your format.</div>
+          </div>
+          <div class="vc-box">
+            <div class="vc-label">What it does not</div>
+            <div class="vc-text">A receipt from one of your own tills that was never actually paid for. That is what the next two checks are for.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card vcheck reveal">
+        <div class="vcheck-head">
+          <span class="vcheck-ico"><i class="ico ico-check"></i></span>
+          <div>
+            <div class="vcheck-t">The arithmetic is recomputed</div>
+            <p class="vcheck-d">Line items are added against the subtotal, and subtotal plus tax against the total. This happens <b>in code, not by a model</b> &mdash; the numbers are extracted, then arithmetic is done on them. It is deliberately the dullest check in the list and one of the most effective, because fake receipt generators reproduce how a receipt <i>looks</i> and routinely get its sums wrong. The same pass checks the purchase fits the deal: a plausible item, a sane date, and at least your minimum spend.</p>
+          </div>
+        </div>
+        <div class="vcheck-split">
+          <div class="vc-box yes">
+            <div class="vc-label">What it catches</div>
+            <div class="vc-text">Fabricated receipts whose totals do not reconcile, plus wrong-date and under-minimum claims.</div>
+          </div>
+          <div class="vc-box">
+            <div class="vc-label">What it does not</div>
+            <div class="vc-text">A real receipt for a real purchase whose numbers are correct &mdash; because they are.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card vcheck reveal">
+        <div class="vcheck-head">
+          <span class="vcheck-ico"><i class="ico ico-refresh"></i></span>
+          <div>
+            <div class="vcheck-t">No receipt is paid twice</div>
+            <p class="vcheck-d">A byte-identical re-upload is rejected outright before it is ever scored. The harder case is the same receipt saved again, cropped, or re-photographed off a screen &mdash; a different file, the same purchase. For those we compare a perceptual fingerprint of the image, so near-identical pictures are caught even when no two bytes match. Both checks run <b>across every account</b>, not just within one, so the same receipt cannot fund claims from several profiles.</p>
+          </div>
+        </div>
+        <div class="vcheck-split">
+          <div class="vc-box yes">
+            <div class="vc-label">What it catches</div>
+            <div class="vc-text">The same purchase claimed twice, by one person or by several people working together.</div>
+          </div>
+          <div class="vc-box">
+            <div class="vc-label">What it does not</div>
+            <div class="vc-text">Two genuinely different purchases that happen to look alike. Those are flagged rather than refused, and a person decides.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card vcheck reveal">
+        <div class="vcheck-head">
+          <span class="vcheck-ico"><i class="ico ico-instagram"></i></span>
+          <div>
+            <div class="vcheck-t">The post has to name you</div>
+            <p class="vcheck-d">We read the accounts tagged in the post and check them against the deal being claimed. A post that tags no brand cannot be matched to your deal. <b>A post tagging a different Cirqle brand is rejected outright</b> &mdash; you never pay for content that promoted a competitor. The post also has to stay up until the claim is checked; content taken down before we see it is content you did not get.</p>
+          </div>
+        </div>
+        <div class="vcheck-split">
+          <div class="vc-box yes">
+            <div class="vc-label">What it catches</div>
+            <div class="vc-text">Claims against the wrong brand, claims with no post behind them, and posts deleted before review.</div>
+          </div>
+          <div class="vc-box">
+            <div class="vc-label">What it does not</div>
+            <div class="vc-text">A post whose tags we were never able to read. Unknown stays unknown, and never counts against the member.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card vcheck reveal">
+        <div class="vcheck-head">
+          <span class="vcheck-ico"><i class="ico ico-ghost"></i></span>
+          <div>
+            <div class="vcheck-t">Bought audiences are scored down</div>
+            <p class="vcheck-d">Accounts are scored on <b>follower-to-following ratio, engagement rate, and consistency across recent posts</b>. Each signal is weak alone and telling together. Following far more accounts than follow back is the follow-farm signature. Engagement far below what an account that size should draw suggests the followers were bought; far above it, or near-identical post after post, suggests an engagement pod. A real account with three hundred real followers scores better than a bought one with thirty thousand.</p>
+          </div>
+        </div>
+        <div class="vcheck-split">
+          <div class="vc-box yes">
+            <div class="vc-label">What it catches</div>
+            <div class="vc-text">Bought followers, follow-farms and engagement pods.</div>
+          </div>
+          <div class="vc-box">
+            <div class="vc-label">What it does not</div>
+            <div class="vc-text">A small genuine account. Size is not what is being scored &mdash; the relationship between the numbers is.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card vcheck reveal">
+        <div class="vcheck-head">
+          <span class="vcheck-ico"><i class="ico ico-lock"></i></span>
+          <div>
+            <div class="vcheck-t">Referral bonuses cannot be farmed</div>
+            <p class="vcheck-d">A referral bonus needs <b>both</b> people identity-verified through Stripe before either is paid, and is blocked when two accounts share bank or identity details. Those are compared as hashed fingerprints, so the underlying details are never held in a form we could read. On top of that, the referrer&rsquo;s post has to predate the friend&rsquo;s purchase &mdash; you cannot claim to have influenced a decision already made &mdash; and it only counts on that friend&rsquo;s first claim for the deal.</p>
+          </div>
+        </div>
+        <div class="vcheck-split">
+          <div class="vc-box yes">
+            <div class="vc-label">What it catches</div>
+            <div class="vc-text">One person referring themselves from a second account, and bonus-stacking on repeat claims.</div>
+          </div>
+          <div class="vc-box">
+            <div class="vc-label">What it does not</div>
+            <div class="vc-text">Two people in one household with genuinely separate identities and bank accounts. The checks fail closed, so an unclear case is held rather than paid.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>The human backstop</h2>
+      <p>Automated checks are good at the cases they were built for and blind to the ones nobody has thought of yet. So a set of patterns is surfaced for review regardless of whether the checks above passed:</p>
+      <ul>
+        <li>The same deal claimed over and over by one member.</li>
+        <li>A claim filed minutes after the account was created.</li>
+        <li>One receipt image appearing across more than one account.</li>
+        <li>One post backing claims from several different accounts.</li>
+      </ul>
+      <p>Every one of those has an innocent explanation, which is exactly why they are flags and not rejections. They are <b>reviewed by a person before any money moves</b> &mdash; held, rather than paid first and questioned later.</p>
+    </div>
+
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>What this is not</h2>
+      <p>It is not image forensics. We do not claim to detect that a real receipt has been edited &mdash; <b>a skilfully altered receipt whose numbers still reconcile will read as fine to the automated checks</b>. Anyone telling you they catch that reliably from a phone photo is overselling.</p>
+      <p>That limitation is the reason the list above is a list. The duplicate fingerprinting, the brand-tag matching, the account scoring and the human review all exist because no single check can carry the weight. An edited receipt still has to survive being a plausible purchase, being unique across every account, having a real post behind it that tags you, and coming from an account that does not look bought. That is a far harder thing to do than editing a number.</p>
+    </div>
+
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>What a failed claim costs you</h2>
+      <p>Nothing. A claim that fails verification never reaches your wallet &mdash; it is not deducted and then refunded, not held against your balance, and not reconciled later. Your funded balance is your ceiling, and only approved claims draw against it.</p>
+      <p>You can see every claim and its state in your portal, including the ones that did not pass. You do not have to act on any of them.</p>
+    </div>
+
+    <div class="prose reveal" style="margin-top:64px">
+      <h2>Questions brands ask</h2>
+    </div>
+    <div style="margin-top:20px">
+      <div class="faq-item">
+        <button class="faq-q">What stops someone claiming on a receipt from a different shop? <span class="faq-chevron">&#9660;</span></button>
+        <div class="faq-a"><div class="faq-a-inner">The reference receipt you upload at setup. Every claimed receipt is compared against it &mdash; store details, VAT number and the receipt&rsquo;s own layout &mdash; and the arithmetic is recomputed on top of that. A receipt from elsewhere does not match your format, and a fabricated one usually does not add up.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Do I pay for claims that turn out to be fake? <span class="faq-chevron">&#9660;</span></button>
+        <div class="faq-a"><div class="faq-a-inner">No. A failed claim never reaches your wallet, and anything ambiguous is held for human review before money moves rather than paid and clawed back afterwards.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can one person farm this with several accounts? <span class="faq-chevron">&#9660;</span></button>
+        <div class="faq-a"><div class="faq-a-inner">Referral bonuses need both people identity-verified through Stripe, and are blocked when two accounts share bank or identity details. Receipt fingerprints are compared across all accounts, so one purchase cannot back two claims. And one post backing claims from several accounts is flagged for review automatically.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What happens to a claim you are not sure about? <span class="faq-chevron">&#9660;</span></button>
+        <div class="faq-a"><div class="faq-a-inner">It is held and reviewed by a person. The checks fail closed: an unclear case waits for a human rather than being waved through, so the default outcome of uncertainty is that you are not charged.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Do you use my customers&rsquo; data for anything else? <span class="faq-chevron">&#9660;</span></button>
+        <div class="faq-a"><div class="faq-a-inner">Receipts are read to verify the claim, and are not used to train any AI model. Bank and identity details for payouts are held by Stripe rather than by us; the only thing compared is a hashed fingerprint. Full detail in our <a href="privacy.html">privacy policy</a>.</div></div>
+      </div>
+    </div>
+
+    <div class="card card-ink cta-box reveal">
+      <span class="cta-ring" aria-hidden="true"></span>
+      <h2 style="color:var(--paper); font-size:clamp(1.6rem,3.4vw,2.2rem)">Ready to grow with <span class="hl hl-lime" style="color:var(--ink)">Cirqle?</span></h2>
+      <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Tell us about your brand and we&rsquo;ll get back to you.</p>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+        <a href="contact.html" class="btn btn-lg btn-lime">Get in touch &rarr;</a>
+        <a href="merchant.html" class="btn btn-lg">Merchant sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // FAQ toggle is not shared anywhere — help.html and pricing.html each
+    // carry their own copy, so this page carries one too.
+    document.querySelectorAll('.faq-q').forEach(function (q) {
+      q.addEventListener('click', function () { q.parentElement.classList.toggle('open'); });
+    });
+  </script>
+  <script src="assets/enhance.js?v=14"></script>
+</body>
+</html>
