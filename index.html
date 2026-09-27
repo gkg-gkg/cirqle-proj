@@ -84,6 +84,8 @@
     .hw-col { animation: hwDriftD 18s ease-in-out infinite alternate; }
     .hw-col:nth-child(even) { animation-direction: alternate-reverse; }
     @keyframes hwDriftD { from { translate: 0 24px; } to { translate: 0 -24px; } }
+    /* Desktop only: a touch more colour in the photos (phones keep the base). */
+    @media (min-width: 601px) { .hw-col img { filter: saturate(1.65) contrast(1.08); } }
     .hw-col:nth-child(2n) { transform: translateY(-7%); }
     .hw-col:nth-child(3n) { transform: translateY(4%); }
     /* object-position nudged above center: shifts which part of each source

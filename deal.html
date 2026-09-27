@@ -11,81 +11,92 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=19" />
   <style>
-    .deal-page { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: clamp(28px,4vw,44px) clamp(20px,4vw,44px) 90px; }
+    :root { --tint-a: #F1F8FD; --tint-b: #E2F0FA; }
+    /* 2026-09-28 rework: cashback and the friend bonus are the two ways to earn
+       on every deal, so they sit side by side at equal weight (same tints as
+       the Browse tiles), and the page is one compact summary + a short how-to. */
+    .deal-page { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: clamp(20px,3vw,32px) clamp(16px,4vw,40px) 80px; }
 
-    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .8rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 28px; flex-wrap: wrap; }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: .78rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 16px; flex-wrap: wrap; }
     .breadcrumb a { color: var(--ink-soft); text-decoration: none; }
-    .breadcrumb a:hover { color: var(--pink-deep); }
+    .breadcrumb a:hover { color: var(--blue-deep); }
     .breadcrumb-sep { opacity: .4; }
+    /* The brand hasn't onboarded; read before the numbers and the Shop button. */
+    .preview-note { margin-bottom: 18px; }
 
-    /* This deal is a placeholder using a well-known brand's name — the brand
-       has not onboarded. Full width above the layout, so it is read before the
-       rate and the Shop button rather than after them. */
-    .preview-note { margin-bottom: 22px; }
-    .deal-layout { display: grid; grid-template-columns: 1fr 340px; gap: 30px; }
-
-    /* Hero card */
-    .hero-card { overflow: hidden; padding: 0; margin-bottom: 24px; }
-    .hero-img { height: 240px; border-bottom: var(--bw) solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 5.5rem; position: relative; }
-    .hero-badge { position: absolute; top: 16px; left: 16px; }
-    .hero-chip { position: absolute; top: 16px; right: 16px; }
+    /* ── Top: photo + summary ── */
+    .deal-top { display: grid; grid-template-columns: 1.05fr 1fr; gap: 22px; align-items: start; }
+    .hero-img { position: relative; aspect-ratio: 4 / 3; border-radius: var(--r-card); overflow: hidden; border: var(--bw) solid var(--line);
+      display: flex; align-items: center; justify-content: center; font-size: 5rem; background: var(--paper-deep); }
     .hero-arrow {
       position: absolute; top: 50%; transform: translateY(-50%);
-      width: 42px; height: 42px; border-radius: 50%;
+      width: 38px; height: 38px; border-radius: 50%;
       border: var(--bw) solid var(--line); background: var(--card);
       box-shadow: var(--shadow-sm); cursor: pointer; z-index: 2;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .85rem; color: var(--ink);
-      transition: transform .15s var(--snap), box-shadow .15s var(--snap);
+      display: flex; align-items: center; justify-content: center; font-size: .8rem; color: var(--ink);
     }
-    .hero-arrow:hover { transform: translateY(-50%) scale(1.08); box-shadow: var(--shadow); }
-    .hero-arrow:active { transform: translateY(-50%) scale(.95); }
-    .hero-arrow-prev { left: 14px; }
-    .hero-arrow-next { right: 14px; }
-    .hero-dots { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; z-index: 2; }
-    .hero-dot { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 2px solid var(--ink); background: var(--card); cursor: pointer; transition: background .15s, transform .15s; }
-    .hero-dot.active { background: var(--ink); transform: scale(1.18); }
-    .hero-body { padding: 26px 28px; }
-    .hero-brand { font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--pink-deep); margin-bottom: 6px; }
-    .hero-title { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.02em; margin-bottom: 10px; }
-    .hero-desc { font-size: .9rem; color: var(--ink-soft); line-height: 1.7; }
+    .hero-arrow-prev { left: 12px; }
+    .hero-arrow-next { right: 12px; }
+    .hero-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; z-index: 2; }
+    .hero-dot { width: 8px; height: 8px; padding: 0; border-radius: 50%; border: 0; background: rgba(255,255,255,.6); box-shadow: 0 0 0 1px rgba(15,23,42,.15); cursor: pointer; }
+    .hero-dot.active { background: #fff; transform: scale(1.25); }
 
-    .panel-title { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; margin-bottom: 16px; }
-    .info-card { margin-bottom: 22px; }
-    .info-row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .expiry-note { font-size: .82rem; font-weight: 700; margin-top: 14px; }
+    .summary { padding: 22px; display: grid; gap: 16px; }
+    .sum-brand { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.6px; color: var(--blue-deep); }
+    .sum-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.35rem, 2.4vw, 1.7rem); letter-spacing: -0.02em; line-height: 1.15; margin: 4px 0 0; text-wrap: balance; }
+    .sum-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: .8rem; font-weight: 600; color: var(--ink-soft); }
+    .sum-meta span { display: inline-flex; align-items: center; gap: 5px; }
+    .sum-meta .ico { color: var(--ink-soft); }
 
-    /* Steps */
-    .how-step { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
-    .how-step:last-child { margin-bottom: 0; }
-    .how-text { font-size: .88rem; color: var(--ink-soft); line-height: 1.6; padding-top: 8px; }
-    .how-text strong { color: var(--ink); }
+    /* The two ways to earn: equal boxes, two soft tints of the same blue. */
+    .earn-pair { display: grid; grid-template-columns: 1fr 1fr; border-radius: 12px; overflow: hidden; border: 1px solid rgba(56,182,255,.28); }
+    .way { padding: 14px 14px 13px; display: grid; gap: 2px; align-content: start; text-align: center; background: var(--tint-a); }
+    .way + .way { background: var(--tint-b); border-left: 1px solid rgba(56,182,255,.28); }
+    .way-val { font-family: var(--font-display); font-weight: 800; font-size: 1.9rem; letter-spacing: -0.03em; line-height: 1.05; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .way-lbl { font-size: .64rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--ink); }
+    .way-how { font-size: .76rem; color: var(--ink-soft); line-height: 1.45; margin-top: 6px; }
+    .way-how b { color: var(--ink); font-weight: 700; }
+    .way.off .way-val { color: var(--ink-soft); }
 
-    /* Action panel */
-    .sticky-panel { position: sticky; top: 90px; }
-    .action-card { background: var(--lime); padding: 26px; margin-bottom: 20px; }
-    .cashback-label { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.4px; }
-    .cashback-big { font-family: var(--font-display); font-weight: 800; font-size: 2.9rem; letter-spacing: -0.04em; line-height: 1.05; margin: 2px 0; }
-    .cashback-desc { font-size: .82rem; font-weight: 700; color: rgba(31,27,19,.72); }
-    .cashback-total { font-size: .72rem; font-weight: 600; color: rgba(31,27,19,.55); margin: 6px 0 20px; }
-    .shop-big-btn { width: 100%; margin-bottom: 12px; font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; }
-    .save-btn { width: 100%; }
-    .save-btn.saved { background: var(--pink); }
-    .action-note { font-size: .72rem; font-weight: 600; color: rgba(31,27,19,.6); text-align: center; margin-top: 14px; line-height: 1.6; }
+    .actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+    .shop-big-btn { font-weight: 800; }
+    .save-btn { padding-left: 18px; padding-right: 18px; }
+    .save-btn.saved { background: var(--blue-tint); border-color: rgba(56,182,255,.42); }
+    .action-note { font-size: .74rem; color: var(--ink-soft); line-height: 1.5; margin: -6px 0 0; }
 
-    .stat-mini-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-    .stat-mini { text-align: center; padding: 16px 10px; }
-            .stat-mini-val { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; }
-    .stat-mini-label { font-size: .68rem; font-weight: 700; color: var(--ink-soft); margin-top: 3px; }
+    /* ── How it works: four short steps covering both ways to earn ── */
+    .sec-title { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em; margin: 30px 0 12px; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .step { padding: 14px 14px 15px; display: grid; gap: 5px; align-content: start; }
+    .step-n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .74rem; font-weight: 800; background: var(--blue-tint); color: var(--blue-deep); }
+    .step b { font-size: .9rem; }
+    .step p { margin: 0; font-size: .8rem; color: var(--ink-soft); line-height: 1.5; }
+    .step p strong { color: var(--ink); }
 
-    .terms-card { font-size: .8rem; }
-    .terms-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-    .terms-list { color: var(--ink-soft); line-height: 2; font-weight: 500; }
-    .terms-list a { color: var(--pink-deep); font-weight: 700; text-decoration: none; }
+    /* ── About + terms, side by side ── */
+    .details { display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px; }
+    .details .card { padding: 18px 20px; }
+    .card-h { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .about-desc { font-size: .86rem; color: var(--ink-soft); line-height: 1.65; margin: 0 0 12px; }
+    .info-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .terms-list { font-size: .8rem; color: var(--ink-soft); line-height: 1.9; }
+    .terms-list a { color: var(--blue-deep); font-weight: 700; text-decoration: none; }
 
     @media (max-width: 840px) {
-      .deal-layout { grid-template-columns: 1fr; }
-      .sticky-panel { position: static; }
+      .deal-top { grid-template-columns: 1fr; gap: 14px; }
+      .hero-img { aspect-ratio: 16 / 10; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .details { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .summary { padding: 16px; gap: 14px; }
+      .way { padding: 12px 10px 11px; }
+      .way-val { font-size: 1.6rem; }
+      .way-how { font-size: .72rem; }
+      .sec-title { margin-top: 24px; }
+      .step { padding: 12px; }
+      .step b { font-size: .84rem; }
+      .step p { font-size: .76rem; }
     }
   </style>
 </head>
@@ -104,90 +115,70 @@
     <div class="breadcrumb fade-up">
       <a href="/">Home</a><span class="breadcrumb-sep">›</span>
       <a href="browse">Browse</a><span class="breadcrumb-sep">›</span>
-      <span id="bcCategory">Fashion</span><span class="breadcrumb-sep">›</span>
+      <span id="bcCategory">Deals</span><span class="breadcrumb-sep">›</span>
       <span id="bcTitle" style="font-weight:800;color:var(--ink)">Deal</span>
     </div>
 
     <div class="preview-note fade-up"><button class="preview-note-head" type="button" aria-expanded="false" aria-controls="previewNoteBody"><i class="ico ico-tag"></i><span>This is just an example deal.</span><span class="preview-note-chev" aria-hidden="true">&#9660;</span></button><div class="preview-note-body" id="previewNoteBody"><div><p><span id="pnBrand">This brand</span> has not onboarded with Cirqle &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. It can&rsquo;t be claimed yet. <a href="for-brands">Brands can apply here</a>.</p></div></div></div>
 
-    <div class="deal-layout">
-      <div>
-        <!-- Hero -->
-        <div class="card hero-card fade-up d1">
-          <div class="hero-img" id="heroImg" style="background:var(--sky)">
-            <img id="heroImage" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none" onerror="this.style.display='none'" />
-            <span id="heroEmoji" aria-hidden="true"><i class="ico ico-bag"></i></span>
-            <button class="hero-arrow hero-arrow-prev" id="heroPrev" type="button" aria-label="Previous image" style="display:none">◀</button>
-            <button class="hero-arrow hero-arrow-next" id="heroNext" type="button" aria-label="Next image" style="display:none">▶</button>
-            <span class="hero-badge sticker sticker-lime" id="heroBadge" style="display:none"></span>
-            <span class="hero-chip chip" id="heroChip" style="background:var(--card);display:none"></span>
-            <div class="hero-dots" id="heroDots"></div>
-          </div>
-          <div class="hero-body">
-            <div class="hero-brand" id="heroBrand"></div>
-            <div class="hero-title" id="heroTitle">Loading deal…</div>
-            <div class="hero-desc" id="heroDesc"></div>
-          </div>
-        </div>
-
-        <!-- Tags -->
-        <div class="card info-card fade-up d2">
-          <div class="panel-title">Deal details</div>
-          <div class="info-row" id="infoTags"></div>
-          <div class="expiry-note" id="expiry"></div>
-        </div>
-
-        <!-- Steps -->
-        <div class="card fade-up d3">
-          <div class="panel-title">How to earn cashback</div>
-          <div class="how-step">
-            <span class="coin coin-sky">1</span>
-            <p class="how-text" id="step1Text"><strong>Sign up or sign in</strong> to your Cirqle account — it's free and takes 30 seconds.</p>
-          </div>
-          <div class="how-step">
-            <span class="coin coin-pink">2</span>
-            <p class="how-text"><strong>Click "Shop &amp; Earn"</strong> to open the brand's website in a new tab for online purchases. Prefer to shop in person? Just visit the store as you normally would.</p>
-          </div>
-          <div class="how-step">
-            <span class="coin coin-lime">3</span>
-            <p class="how-text"><strong>Shop online or in store.</strong> If you're buying online, don't clear your cookies or apply another discount code — either can stop us matching your purchase.</p>
-          </div>
-          <div class="how-step">
-            <span class="coin">4</span>
-            <p class="how-text"><strong>Share it with your friends, on social media or in-person</strong> — on social media, that means following <strong>@cirqle.co.uk</strong> on Instagram, then posting and tagging both us and <strong id="tagBrand">the brand</strong>. Did a friend share it with you? Enter their Instagram handle when you upload your receipt, so you both earn a reward.</p>
-          </div>
-        </div>
+    <!-- Photo + summary -->
+    <div class="deal-top">
+      <div class="hero-img fade-up d1" id="heroImg">
+        <img id="heroImage" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none" onerror="this.style.display='none'" />
+        <span id="heroEmoji" aria-hidden="true"><i class="ico ico-bag"></i></span>
+        <button class="hero-arrow hero-arrow-prev" id="heroPrev" type="button" aria-label="Previous image" style="display:none">◀</button>
+        <button class="hero-arrow hero-arrow-next" id="heroNext" type="button" aria-label="Next image" style="display:none">▶</button>
+        <div class="hero-dots" id="heroDots"></div>
       </div>
 
-      <!-- Right panel -->
-      <div>
-        <div class="sticky-panel">
-          <div class="card action-card fade-up d1">
-            <div class="cashback-label">You could earn</div>
-            <div class="cashback-big" id="earnBig">—</div>
-            <div class="cashback-desc" id="earnDesc"></div>
-            <div class="cashback-total" id="totalPaid">£0 paid to members</div>
-            <button class="btn btn-lg btn-ink shop-big-btn" id="shopBtn" onclick="handleShop()">Shop &amp; Earn</button>
-            <button class="btn save-btn" onclick="handleSave()">Save deal</button>
-            <div class="action-note">Opens the brand's website in a new tab. Shop as normal, then share to unlock your cashback.</div>
-          </div>
+      <div class="card summary fade-up d2">
+        <div>
+          <div class="sum-brand" id="heroBrand"></div>
+          <h1 class="sum-title" id="heroTitle">Loading deal…</h1>
+          <div class="sum-meta"><span id="metaLoc"></span><span id="expiry"></span></div>
+        </div>
 
-          <div class="stat-mini-row">
-            <div class="card card-pink stat-mini fade-up d2">
-              <div class="stat-mini-val" id="rateVal">—</div>
-              <div class="stat-mini-label">Cashback rate</div>
-            </div>
-            <div class="card card-sky stat-mini fade-up d3">
-              <div class="stat-mini-val" id="membersVal">0</div>
-              <div class="stat-mini-label">Members used this</div>
-            </div>
+        <div class="earn-pair">
+          <div class="way">
+            <div class="way-val" id="rateVal">—</div>
+            <div class="way-lbl">Cashback</div>
+            <div class="way-how" id="earnDesc">When you buy and share it on social media</div>
           </div>
-
-          <div class="card terms-card fade-up d4">
-            <div class="terms-title">Terms</div>
-            <div class="terms-list" id="termsList"></div>
+          <div class="way" id="friendWay">
+            <div class="way-val" id="friendVal">—</div>
+            <div class="way-lbl" id="friendLbl">Per friend</div>
+            <div class="way-how" id="friendDesc">When a friend buys after you tell them</div>
           </div>
         </div>
+
+        <div class="actions">
+          <button class="btn btn-lg btn-lime shop-big-btn" id="shopBtn" onclick="handleShop()">Shop &amp; earn</button>
+          <button class="btn btn-lg save-btn" onclick="handleSave()">Save</button>
+        </div>
+        <p class="action-note">Opens the brand&rsquo;s site in a new tab. Shop as normal, then share to unlock your cashback.</p>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <h2 class="sec-title fade-up">How you earn on this deal</h2>
+    <div class="steps">
+      <div class="card step fade-up"><span class="step-n">1</span><b>Shop</b><p id="step1Text">Buy online or in store as normal. Online, don&rsquo;t clear cookies or use another discount code.</p></div>
+      <div class="card step fade-up"><span class="step-n">2</span><b>Share</b><p>Follow <strong>@cirqle.co.uk</strong>, then post tagging us and <strong id="tagBrand">the brand</strong>. Or tell a friend in&#8209;person.</p></div>
+      <div class="card step fade-up"><span class="step-n">3</span><b>Upload</b><p>Upload your receipt. If a friend told you about it, enter <strong>their handle</strong> so you both earn.</p></div>
+      <div class="card step fade-up"><span class="step-n">4</span><b>Get paid</b><p>Cashback and friend bonuses land in your wallet after a <strong>3&#8209;day hold</strong>.</p></div>
+    </div>
+
+    <!-- About + terms -->
+    <h2 class="sec-title fade-up">Details</h2>
+    <div class="details">
+      <div class="card fade-up">
+        <div class="card-h">About this deal</div>
+        <p class="about-desc" id="heroDesc"></p>
+        <div class="info-row" id="infoTags"></div>
+      </div>
+      <div class="card fade-up">
+        <div class="card-h">Terms</div>
+        <div class="terms-list" id="termsList"></div>
       </div>
     </div>
   </div>
@@ -205,10 +196,6 @@
 
     // Step 1 of "How to earn cashback" only makes sense to someone not yet
     // signed in — swap it for a confirmation instead of asking again.
-    document.getElementById('step1Text').innerHTML = session
-      ? "<strong>You're already signed in!</strong> Head straight to step 2 and start shopping."
-      : "<strong>Sign up or sign in</strong> to your Cirqle account — it's free and takes 30 seconds.";
-
     let d = null;      // the loaded campaign
     let slides = [];   // carousel slides: image URLs, or [emoji] as a fallback
     let slide = 0;
@@ -260,32 +247,37 @@
     function populate(c) {
       d = c;
       document.title = `${c.brand} — Cirqle`;
-      document.getElementById('heroImg').style.background = c.bg || 'var(--sky)';
-      document.getElementById('heroBadge').textContent = c.rate + '% cashback';
-      document.getElementById('heroChip').textContent = c.brand;
-      document.getElementById('heroBadge').style.display = '';
-      document.getElementById('heroChip').style.display = '';
+      if (c.bg) document.getElementById('heroImg').style.background = c.bg;
       document.getElementById('heroBrand').textContent = c.brand;
       document.getElementById('tagBrand').textContent = '@' + c.brand.toLowerCase().replace(/\s+/g, '');
-      document.getElementById('heroTitle').textContent = c.title;
+      document.getElementById('heroTitle').textContent = c.cardTitle || c.title;
       document.getElementById('heroDesc').textContent = c.longDesc;
       document.getElementById('bcCategory').textContent = c.category;
       document.getElementById('bcTitle').textContent = c.brand;
       document.getElementById('pnBrand').textContent = c.brand;
-      document.getElementById('earnBig').textContent = c.earn;
-      document.getElementById('earnDesc').textContent = c.spendDesc;
-      // Social proof, straight off the row. A campaign that has never been
-      // claimed stores these empty, and empty has to read as zero rather than
-      // as a blank space the eye fills in with something better.
-      document.getElementById('totalPaid').textContent = c.totalPaid || '£0 paid to members';
+      document.getElementById('metaLoc').innerHTML = c.location ? `<i class="ico ico-pin"></i>${esc(c.location)}` : '';
+      document.getElementById('expiry').innerHTML = `<i class="ico ico-clock"></i>` + esc(
+        /ongoing/i.test(c.expiry) ? 'Ongoing' : /members/i.test(c.expiry) ? c.expiry : `Ends ${c.expiry}`);
+
+      // The two ways to earn, at equal weight.
       document.getElementById('rateVal').textContent = c.rate + '%';
-      document.getElementById('membersVal').textContent = c.members || '0';
+      document.getElementById('earnDesc').innerHTML = c.earn && c.spendDesc
+        ? `<b>${esc(c.earn)}</b> ${esc(c.spendDesc)}, when you share it on social media`
+        : 'When you buy and share it on social media';
+      const money = v => '£' + Number(v).toFixed(2).replace(/\.00$/, '');
+      if (c.referralsEnabled) {
+        document.getElementById('friendVal').textContent = money(c.referralRewardReferrer || 1);
+        document.getElementById('friendDesc').innerHTML =
+          `When a friend buys after you tell them. <b>They get ${money(c.referralRewardReferee || 0.5)}</b> too`;
+      } else {
+        document.getElementById('friendWay').classList.add('off');
+        document.getElementById('friendVal').textContent = '–';
+        document.getElementById('friendLbl').textContent = 'No friend bonus';
+        document.getElementById('friendDesc').textContent = 'This deal pays cashback only';
+      }
+
       document.getElementById('termsList').innerHTML = sanitizeHtml(c.terms);
-      document.getElementById('expiry').textContent = /ongoing/i.test(c.expiry) ? 'Ongoing offer — available now'
-        : /members/i.test(c.expiry) ? c.expiry
-        : `Offer expires ${c.expiry} — don't miss out`;
-      document.getElementById('infoTags').innerHTML =
-        `<span class="chip">${esc(c.location || '')}</span>` + (c.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('');
+      document.getElementById('infoTags').innerHTML = (c.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('');
 
       // Build the carousel from real images, or a single category-icon slide.
       c._catIcon = cirqleCatIcon(c.category);

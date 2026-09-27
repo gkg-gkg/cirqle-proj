@@ -117,13 +117,12 @@
 
     /* Split footer: cashback and the friend bonus in two equal halves, same
        size, same ink, each centred in its box. */
-    .card-footer { display: grid; grid-template-columns: 1fr 1fr; }
+    .card-footer { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(56,182,255,.22); }
     .earn { padding: 10px 8px 11px; text-align: center; }
-    /* Two blues: cashback on the bright brand blue with ink type, the friend
-       bonus on the deeper blue with white type (ink fails on it). */
-    .earn:first-child { background: var(--neon); }
-    .earn + .earn { background: var(--blue); }
-    .earn + .earn .earn-val, .earn + .earn .earn-label { color: #fff; }
+    /* Two soft tints of the same blue, ink type on both (same pair as the
+       deal page's two ways to earn). */
+    .earn:first-child { background: #F1F8FD; }
+    .earn + .earn { background: #E2F0FA; border-left: 1px solid rgba(56,182,255,.22); }
     .earn-val { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; color: var(--ink); line-height: 1.05; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
     .earn-label { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--ink); margin-top: 3px; white-space: nowrap; }
 
@@ -250,7 +249,9 @@
       .is-list .card-body { padding: 0; }
       /* List rows: the same pair, stacked on the right, still equal. */
       .is-list .card-footer { grid-template-columns: auto; gap: 5px; }
+      .is-list .card-footer { border-top: 0; }
       .is-list .earn { padding: 4px 8px 5px; border-radius: 8px; min-width: 74px; }
+      .is-list .earn + .earn { border-left: 0; }
       .is-list .earn-val { font-size: .98rem; }
     }
   </style>
