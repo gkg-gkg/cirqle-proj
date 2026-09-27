@@ -310,7 +310,6 @@
     .fb-snap img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 9px; }
     .fb-snap span { position: absolute; left: 12px; bottom: 8px; font-size: .72rem; font-weight: 700; color: var(--ink-soft); }
     .fb-snap-a { left: 0; top: 40px; transform: rotate(-8deg); }
-    .fb-snap-b { right: 0; bottom: 96px; transform: rotate(7deg); }
 
     .fb-phone { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
       width: 250px; background: #fff; border: 9px solid #0B1220; border-radius: 38px; overflow: hidden;
@@ -336,7 +335,21 @@
     .fb-f2 { left: 0; bottom: 14px; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: transparent; animation-delay: -1.6s; }
     .fb-f2 b { font-size: 1rem; }
     .fb-f2 .ico { color: #0B1220; }
-    .fb-f3 { right: 4%; bottom: 60px; animation-delay: -3.2s; }
+    /* Referral tracking: the in-person side of the hero. A friend's claim that
+       names the sharer's handle, and what each of them is paid. */
+    .fb-ref { position: absolute; right: -8px; top: 44%; z-index: 3; width: 196px; text-align: left;
+      background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 11px 12px 12px;
+      box-shadow: 0 18px 40px rgba(11,18,32,.16); transform: rotate(4deg); }
+    .fb-ref-top { display: flex; align-items: center; gap: 6px; font-size: .64rem; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--blue-deep); }
+    .fb-ref-row { display: flex; align-items: center; gap: 9px; margin: 9px 0; }
+    .fb-ref-row img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none; }
+    .fb-ref-row span { display: flex; flex-direction: column; font-size: .76rem; line-height: 1.3; color: var(--ink); min-width: 0; }
+    .fb-ref-row em { font-style: normal; font-weight: 700; color: var(--blue-deep); font-size: .72rem; }
+    .fb-ref-pay { display: flex; gap: 5px; }
+    .fb-ref-pay em { font-style: normal; font-weight: 800; font-size: .66rem; padding: 3px 8px; border-radius: 99px; color: #0B1220;
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon)); white-space: nowrap; }
+    .fb-ref-pay em + em { background: #fff; border: 1px solid var(--line); }
     @keyframes fbBob { 50% { transform: translateY(-7px); } }
 
     /* ── Post wall ── */
@@ -445,9 +458,11 @@
       .fb-hero-art { height: 470px; }
       .fb-phone { width: 210px; border-width: 8px; border-radius: 30px; }
       .fb-snap { width: 140px; }
-      .fb-snap-a { left: -4px; top: 30px; } .fb-snap-b { right: -4px; bottom: 70px; }
+      .fb-snap-a { left: -4px; top: 30px; }
+      .fb-ref { width: 164px; right: 6px; top: 46%; padding: 9px 10px 10px; }
+      .fb-ref-row img { width: 26px; height: 26px; }
       .fb-float { font-size: .72rem; padding: 7px 11px; }
-      .fb-f1 { right: 0; top: 18px; } .fb-f2 { left: 0; bottom: 0; } .fb-f3 { right: 0; bottom: 40px; }
+      .fb-f1 { right: 0; top: 18px; } .fb-f2 { left: 0; bottom: 0; }
       .fb-post { width: 180px; }
       .fb-check { flex-direction: column; gap: 22px; }
       .fb-dash-body { grid-template-columns: 1fr; min-height: 0; }
@@ -565,7 +580,17 @@
     .fb-wall { --gap: 72px; padding: var(--gap) 0 0; }
     .page > .prose { margin-top: var(--gap); }
     .page > .cta-box { margin-top: var(--gap); }
-    @media (max-width: 700px) { .page, .fb-wall { --gap: 56px; } }
+    .page:has(+ .fb-band) { padding-bottom: 0; }
+    .fb-band { --gap: 72px; margin-top: var(--gap); padding: var(--gap) 0;
+      background: linear-gradient(180deg, #F9FCFE 0%, #F0F7FC 50%, #F9FCFE 100%);
+      border-top: 1px solid rgba(56,182,255,.16); border-bottom: 1px solid rgba(56,182,255,.16); }
+    .fb-band > .page { padding-bottom: 0; }
+    /* Desktop: don't clip the mock-up's shadow into a box. Phones keep the clip,
+       which the swipeable tile strip below relies on. */
+    @media (min-width: 701px) { .fb-band > .page { overflow-x: visible; } }
+    .fb-band > .page > .prose:first-child { margin-top: 0; }
+    .fb-band > .page > .prose:first-child h2 { margin-top: 0; }
+    @media (max-width: 700px) { .page, .fb-wall, .fb-band { --gap: 56px; } }
   </style>
 </head>
 <body>
@@ -598,7 +623,6 @@
     </div>
     <div class="fb-hero-art fade-up d2" aria-hidden="true">
       <div class="fb-snap fb-snap-a"><img src="assets/brands/latte.jpg" alt=""><span>@mia.eats</span></div>
-      <div class="fb-snap fb-snap-b"><img src="assets/brands/rail.jpg" alt=""><span>@ollie.style</span></div>
       <div class="fb-phone">
         <div class="fb-phone-notch"></div>
         <div class="fb-ig-head"><img src="assets/photos/p4.jpg" alt=""><b>emma.walks</b><span>•••</span></div>
@@ -610,7 +634,11 @@
       </div>
       <span class="fb-float fb-f1"><i class="ico ico-check"></i> Receipt verified</span>
       <span class="fb-float fb-f2"><i class="ico ico-bag"></i> New sale <b>+£23</b></span>
-      <span class="fb-float fb-f3"><i class="ico ico-users"></i> 6 friends bought too</span>
+      <div class="fb-ref">
+        <div class="fb-ref-top"><i class="ico ico-target"></i> Referral tracked</div>
+        <div class="fb-ref-row"><img src="assets/photos/p10.jpg" alt=""><span><b>Zara bought</b><em>entered @emma.walks</em></span></div>
+        <div class="fb-ref-pay"><em>+£1.00 Emma</em><em>+£0.50 Zara</em></div>
+      </div>
     </div>
   </section>
 
@@ -785,7 +813,12 @@
       </div>
     </div>
 
-    <!-- ══ THE PORTAL ══ -->
+  </div>
+
+  <!-- ══ THE PORTAL ══ Full-width light-blue band, the same tint as the
+       homepage review wall (.band-soft there). -->
+  <section class="fb-band">
+  <div class="page">
     <div class="prose reveal">
       <h2>What your dashboard shows you</h2>
       <p>All from real claims and receipts. Nothing estimated.</p>
@@ -815,6 +848,10 @@
       <div class="card card-pink card-hover why-card reveal"><span class="why-icon"><i class="ico ico-target"></i></span><div class="why-title">Who brought whom</div><div class="why-text">Which customers came from a friend, and whose shares bring in the most.</div></div>
       <div class="card card-hover why-card reveal"><span class="why-icon"><i class="ico ico-refresh"></i></span><div class="why-title">Who comes back</div><div class="why-text">How many customers return, compared with similar brands.</div></div>
     </div>
+  </div>
+  </section>
+
+  <div class="page">
 
     <!-- ══ VERIFICATION ══
          Step 5 above says "we check it" in four words. These are what those
