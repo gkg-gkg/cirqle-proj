@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=19" />
   <style>
-    :root { --tint-a: #F1F8FD; --tint-b: #E2F0FA; }
+    :root { --tint-a: #EAF5FC; --tint-b: #D9ECF8; }
     /* 2026-09-28 rework: cashback and the friend bonus are the two ways to earn
        on every deal, so they sit side by side at equal weight (same tints as
        the Browse tiles), and the page is one compact summary + a short how-to. */
@@ -58,20 +58,33 @@
     .way-how b { color: var(--ink); font-weight: 700; }
     .way.off .way-val { color: var(--ink-soft); }
 
-    .actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
-    .shop-big-btn { font-weight: 800; }
-    .save-btn { padding-left: 18px; padding-right: 18px; }
-    .save-btn.saved { background: var(--blue-tint); border-color: rgba(56,182,255,.42); }
+    .summary { position: relative; }
+    .shop-big-btn { width: 100%; font-weight: 800; }
+    /* Save lives in the card's top corner as a bookmark, off the Shop row. */
+    .save-btn { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; padding: 0; border-radius: 50%;
+      display: grid; place-items: center; border: 1px solid var(--line); background: var(--card); cursor: pointer; font-size: 1.05rem; color: var(--ink-soft); }
+    .save-btn:hover { border-color: rgba(56,182,255,.5); color: var(--blue-deep); }
+    .save-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .save-btn.saved { background: var(--blue-tint); border-color: rgba(56,182,255,.5); color: var(--blue-deep); }
+    .sum-head { padding-right: 48px; }
     .action-note { font-size: .74rem; color: var(--ink-soft); line-height: 1.5; margin: -6px 0 0; }
 
     /* ── How it works: four short steps covering both ways to earn ── */
     .sec-title { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; letter-spacing: -0.01em; margin: 30px 0 12px; }
-    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .step { padding: 14px 14px 15px; display: grid; gap: 5px; align-content: start; }
-    .step-n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .74rem; font-weight: 800; background: var(--blue-tint); color: var(--blue-deep); }
-    .step b { font-size: .9rem; }
-    .step p { margin: 0; font-size: .8rem; color: var(--ink-soft); line-height: 1.5; }
-    .step p strong { color: var(--ink); }
+    /* One card, four stops on a line: icon, step name, one sentence. The line
+       runs through the icon centres (horizontal on desktop, vertical on phones). */
+    .journey { list-style: none; margin: 0; padding: 22px 20px 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
+    .journey::before { content: ''; position: absolute; top: 44px; left: 12.5%; right: 12.5%; height: 2px;
+      background: repeating-linear-gradient(90deg, rgba(56,182,255,.55) 0 6px, transparent 6px 11px); }
+    .stop { position: relative; display: grid; justify-items: center; text-align: center; gap: 6px; }
+    .stop-ico { position: relative; z-index: 1; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem;
+      background: #EAF5FC; border: 1px solid rgba(56,182,255,.4); color: var(--blue-deep); box-shadow: 0 0 0 5px var(--card); }
+    .stop:last-child .stop-ico { background: linear-gradient(150deg, var(--neon-soft), var(--neon)); border-color: transparent; color: #0B1220; }
+    .stop-ico .ico { color: inherit; }
+    .stop b { font-size: .92rem; margin-top: 2px; }
+    .stop b small { display: block; font-size: .62rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--blue-deep); margin-bottom: 1px; }
+    .stop p { margin: 0; font-size: .8rem; color: var(--ink-soft); line-height: 1.5; max-width: 22ch; }
+    .stop p strong { color: var(--ink); }
 
     /* ── About + terms, side by side ── */
     .details { display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px; }
@@ -85,7 +98,13 @@
     @media (max-width: 840px) {
       .deal-top { grid-template-columns: 1fr; gap: 14px; }
       .hero-img { aspect-ratio: 16 / 10; }
-      .steps { grid-template-columns: 1fr 1fr; }
+      .journey { grid-template-columns: 1fr; gap: 14px; padding: 18px 16px; }
+      .journey::before { top: 40px; bottom: 62px; left: 38px; right: auto; width: 2px; height: auto;
+        background: repeating-linear-gradient(180deg, rgba(56,182,255,.55) 0 6px, transparent 6px 11px); }
+      .stop { grid-template-columns: 46px 1fr; justify-items: start; text-align: left; column-gap: 14px; row-gap: 2px; }
+      .stop-ico { grid-row: span 2; }
+      .stop b { margin-top: 3px; }
+      .stop p { max-width: none; }
       .details { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
@@ -94,9 +113,7 @@
       .way-val { font-size: 1.6rem; }
       .way-how { font-size: .72rem; }
       .sec-title { margin-top: 24px; }
-      .step { padding: 12px; }
-      .step b { font-size: .84rem; }
-      .step p { font-size: .76rem; }
+      .stop p { font-size: .78rem; }
     }
   </style>
 </head>
@@ -132,7 +149,8 @@
       </div>
 
       <div class="card summary fade-up d2">
-        <div>
+        <button class="save-btn" type="button" onclick="handleSave()" aria-pressed="false" aria-label="Save deal" title="Save deal"><i class="ico ico-bookmark"></i></button>
+        <div class="sum-head">
           <div class="sum-brand" id="heroBrand"></div>
           <h1 class="sum-title" id="heroTitle">Loading deal…</h1>
           <div class="sum-meta"><span id="metaLoc"></span><span id="expiry"></span></div>
@@ -151,22 +169,19 @@
           </div>
         </div>
 
-        <div class="actions">
-          <button class="btn btn-lg btn-lime shop-big-btn" id="shopBtn" onclick="handleShop()">Shop &amp; earn</button>
-          <button class="btn btn-lg save-btn" onclick="handleSave()">Save</button>
-        </div>
+        <button class="btn btn-lg btn-lime shop-big-btn" id="shopBtn" onclick="handleShop()">Shop &amp; earn</button>
         <p class="action-note">Opens the brand&rsquo;s site in a new tab. Shop as normal, then share to unlock your cashback.</p>
       </div>
     </div>
 
     <!-- How it works -->
     <h2 class="sec-title fade-up">How you earn on this deal</h2>
-    <div class="steps">
-      <div class="card step fade-up"><span class="step-n">1</span><b>Shop</b><p id="step1Text">Buy online or in store as normal. Online, don&rsquo;t clear cookies or use another discount code.</p></div>
-      <div class="card step fade-up"><span class="step-n">2</span><b>Share</b><p>Follow <strong>@cirqle.co.uk</strong>, then post tagging us and <strong id="tagBrand">the brand</strong>. Or tell a friend in&#8209;person.</p></div>
-      <div class="card step fade-up"><span class="step-n">3</span><b>Upload</b><p>Upload your receipt. If a friend told you about it, enter <strong>their handle</strong> so you both earn.</p></div>
-      <div class="card step fade-up"><span class="step-n">4</span><b>Get paid</b><p>Cashback and friend bonuses land in your wallet after a <strong>3&#8209;day hold</strong>.</p></div>
-    </div>
+    <ol class="card journey fade-up">
+      <li class="stop"><span class="stop-ico"><i class="ico ico-bag"></i></span><b><small>Step 1</small>Shop</b><p>Buy online or in store as normal. Online, don&rsquo;t clear cookies or use another code.</p></li>
+      <li class="stop"><span class="stop-ico"><i class="ico ico-instagram"></i></span><b><small>Step 2</small>Share</b><p>Post tagging <strong>@cirqle.co.uk</strong> and <strong id="tagBrand">the brand</strong>, or tell a friend in&#8209;person.</p></li>
+      <li class="stop"><span class="stop-ico"><i class="ico ico-receipt"></i></span><b><small>Step 3</small>Upload</b><p>Add your receipt. A friend told you? Enter <strong>their handle</strong> so you both earn.</p></li>
+      <li class="stop"><span class="stop-ico"><i class="ico ico-cash"></i></span><b><small>Step 4</small>Get paid</b><p>Cashback and friend bonuses land in your wallet after <strong>3 days</strong>.</p></li>
+    </ol>
 
     <!-- About + terms -->
     <h2 class="sec-title fade-up">Details</h2>
@@ -339,8 +354,10 @@
     function updateSaveBtn(isSaved) {
       const btn = document.querySelector('.save-btn');
       if (!btn) return;
-      btn.textContent = isSaved ? 'Saved to your list' : 'Save deal';
       btn.classList.toggle('saved', isSaved);
+      btn.setAttribute('aria-pressed', String(isSaved));
+      btn.setAttribute('aria-label', isSaved ? 'Saved to your list' : 'Save deal');
+      btn.title = isSaved ? 'Saved to your list' : 'Save deal';
     }
 
     // ── Load the campaign by id ──
