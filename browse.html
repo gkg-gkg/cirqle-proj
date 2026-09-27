@@ -70,7 +70,12 @@
        name — none of them has onboarded. The note sits above the grid, not under
        it, because the grid is the thing being qualified. */
     .preview-note { margin-bottom: 18px; }
-    .results-count { font-size: .85rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 18px; }
+    .results-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .results-count { font-size: .85rem; font-weight: 600; color: var(--ink-soft); margin: 0; }
+    .view-toggle { display: none; gap: 2px; padding: 3px; border-radius: 10px; background: var(--paper-deep); border: 1px solid var(--line); }
+    .view-toggle button { font: inherit; font-size: .78rem; font-weight: 700; color: var(--ink-soft); background: none; border: 0; border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+    .view-toggle button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); }
+    .view-toggle button:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
     .results-count span { font-family: var(--font-display); font-weight: 800; color: var(--ink); font-size: 1rem; }
     .deals-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 
@@ -230,6 +235,20 @@
       .earn-label { font-size: .54rem; }
       .earn-val { font-size: 1rem; }
       .card-footer .shop-btn { font-size: .7rem; padding: 4px 12px; min-height: 30px; }
+
+      /* List view: one row per deal — square photo, title and chips, rate on
+         the right. The whole row is the link, so the Shop button goes. */
+      .view-toggle { display: inline-flex; }
+      .results-bar { margin-bottom: 12px; }
+      .deals-grid.is-list { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+      .is-list .deal-card:not(.hidden) { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; }
+      .is-list .card-image { width: 76px; height: 76px; border: 0; border-radius: 10px; font-size: 1.8rem; }
+      .is-list .ending-badge { top: 4px; right: 4px; left: 4px; justify-content: center; font-size: .52rem; padding: 2px 4px; white-space: nowrap; overflow: hidden; }
+      .is-list .card-body { padding: 0; }
+      .is-list .card-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+      .is-list .card-footer { border: 0; background: none; padding: 0; text-align: right; }
+      .is-list .earn-val { font-size: 1.15rem; }
+      .is-list .card-footer .shop-btn { display: none; }
     }
   </style>
 </head>
@@ -324,7 +343,14 @@
       <!-- Deals -->
       <div>
         <div class="preview-note"><button class="preview-note-head" type="button" aria-expanded="false" aria-controls="previewNoteBody"><i class="ico ico-tag"></i><span>These are just example deals.</span><span class="preview-note-chev" aria-hidden="true">&#9660;</span></button><div class="preview-note-body" id="previewNoteBody"><div><p>Cirqle has not onboarded any of the brands shown &mdash; they stand in to show how a listing will look, at a rate the brand itself would set. Nothing here can be claimed yet. <a href="for-brands">Brands can apply here</a>.</p></div></div></div>
-        <p class="results-count"><span id="countNum">12</span> example deals</p>
+        <div class="results-bar">
+          <p class="results-count"><span id="countNum">12</span> example deals</p>
+          <!-- Phones only: tiles (default) or a compact list. Same cards, restyled. -->
+          <div class="view-toggle" role="group" aria-label="Show deals as">
+            <button type="button" data-view="grid" aria-pressed="true">Tiles</button>
+            <button type="button" data-view="list" aria-pressed="false">List</button>
+          </div>
+        </div>
 
         <div class="deals-grid" id="dealsGrid">
 
@@ -349,6 +375,15 @@
     // attributes the filter/sort/postcode logic below relies on, then run it.
     const API = window.CIRQLE_API_BASE;
     const grid = document.getElementById('dealsGrid');
+    // Tiles / List switch (phones). Starts on tiles every visit.
+    document.querySelectorAll('.view-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const list = btn.dataset.view === 'list';
+        grid.classList.toggle('is-list', list);
+        document.querySelectorAll('.view-toggle button').forEach(b =>
+          b.setAttribute('aria-pressed', String(b === btn)));
+      });
+    });
     const emptyState = document.getElementById('emptyState');
     const countNum = document.getElementById('countNum');
     const catBtn = document.getElementById('catBtn');

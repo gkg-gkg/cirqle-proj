@@ -732,7 +732,28 @@
          with the carousel for the same budget. */
       .hero-actions .btn-lime { animation: none; }
     }
+    /* ── Phones: the photo wall comes back, as a strip across the top ──
+       2026-09-28, Garv's pick. Three tilted columns drift slowly and fade into
+       white, and the copy sits on plain white below them — so the text keeps
+       the contrast the gradient band gave it (the reason the wall was hidden
+       here before), and the page still opens on photography. Overrides the
+       gradient band above; later in the file, same specificity. */
+    @media (max-width: 600px) {
+      .hero-band { background: var(--paper); border-bottom: 0; }
+      .hero-wall { display: block; bottom: auto; height: 340px; overflow: hidden; }
+      .hero-wall .hw-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; height: auto;
+        transform: rotate(-6deg) scale(1.2); transform-origin: 50% 20%; }
+      .hero-wall .hw-col:nth-child(n+4) { display: none; }
+      .hero-wall .hw-col { gap: 8px; transform: none; animation: hwDrift 16s ease-in-out infinite alternate; }
+      .hero-wall .hw-col:nth-child(2) { margin-top: -48px; animation-direction: alternate-reverse; }
+      .hero-wall .hw-col img { flex: none; height: auto; aspect-ratio: 3 / 4; border-radius: 10px; }
+      .hero-scrim { display: block; bottom: auto; height: 342px;
+        background: linear-gradient(180deg, rgba(255,255,255,0) 38%, rgba(255,255,255,.82) 74%, var(--paper) 100%); }
+      .hero { padding-top: 250px; }
+    }
+    @keyframes hwDrift { to { transform: translateY(-40px); } }
     @media (prefers-reduced-motion: reduce) {
+      .hero-wall .hw-col { animation: none !important; }
       /* Reduced motion gets the swipe strip too — handled by the script, which
          reads the same preference. Wrapping the rows into a grid, as this used
          to, just clipped them inside the fixed-height box. */
