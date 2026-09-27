@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=16" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=17" />
   <style>
     main {
       position: relative; z-index: 1;
@@ -65,7 +65,10 @@
     .signin-link a:hover { text-decoration: underline; }
 
     @media (max-width: 880px) {
-      main { flex-direction: column; }
+      /* Stacked: keep the form card close under the subtitle. */
+      main { flex-direction: column; gap: 18px; }
+      .auth-left { flex: none; }
+      .auth-sub { margin-bottom: 0; }
       .auth-left { max-width: 100%; }
       .perks-list { display: none; }
       .auth-card { max-width: 100%; }
@@ -203,7 +206,7 @@
     </div>
   </main>
 
-  <script src="assets/api.js?v=16"></script>
+  <script src="assets/api.js?v=17"></script>
   <script>
     // ── If already signed in, go to dashboard ──
     if (localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session')) {
@@ -355,6 +358,6 @@
     });
 
   </script>
-  <script src="assets/enhance.js?v=16"></script>
+  <script src="assets/enhance.js?v=17"></script>
 </body>
 </html>

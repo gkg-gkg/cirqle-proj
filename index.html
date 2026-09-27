@@ -14,7 +14,7 @@
     if (/\/index\.html$/.test(location.pathname))
       history.replaceState(null, '', location.pathname.replace(/index\.html$/, '') + location.search + location.hash);
   </script>
-  <link rel="stylesheet" href="assets/cirqle.css?v=16" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=17" />
   <style>
     /* ── HERO ── */
     .hero {
@@ -792,7 +792,7 @@
     <div class="section-inner">
       <div class="section-head center">
         <h2 class="h-display reveal reveal-delay-1">From share to <span class="hl">paid.</span></h2>
-        <p class="h-sub reveal reveal-delay-2" id="flowSub">Example listings, not live partnerships. This is how a deal will look once a brand joins &mdash; the brands shown are not onboarded with Cirqle yet.</p>
+        <div id="flowSub" style="max-width:560px;margin:16px auto 0" class="preview-note reveal reveal-delay-2"><button class="preview-note-head" type="button" aria-expanded="false" aria-controls="flowNoteBody"><i class="ico ico-tag"></i><span>These are example listings, not live deals.</span><span class="preview-note-chev" aria-hidden="true">&#9660;</span></button><div class="preview-note-body" id="flowNoteBody"><div><p>This is how a deal will look once a brand joins &mdash; the brands shown are not onboarded with Cirqle yet. <a href="for-brands">Brands can apply here</a>.</p></div></div></div>
       </div>
     </div>
     <div class="hcar reveal" id="flowCar">
@@ -978,8 +978,8 @@
     </div>
   </footer>
 
-  <script src="assets/api.js?v=16"></script>
-  <script src="assets/escape.js?v=16"></script>
+  <script src="assets/api.js?v=17"></script>
+  <script src="assets/escape.js?v=17"></script>
   <script>
   (function () {
     'use strict';
@@ -1431,6 +1431,6 @@
     });
   })();
   </script>
-  <script src="assets/enhance.js?v=16"></script>
+  <script src="assets/enhance.js?v=17"></script>
 </body>
 </html>

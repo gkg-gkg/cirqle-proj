@@ -9,17 +9,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=16" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=17" />
   <style>
     .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 64px; }
     .stat-c { text-align: center; padding: 26px 16px; }
     .stat-v { font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; letter-spacing: -0.03em; }
     .stat-l { font-size: .82rem; font-weight: 700; color: var(--ink-soft); margin-top: 6px; }
-    .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
-    .value-card { padding: 22px; }
-    .value-icon { font-size: 1.6rem; margin-bottom: 10px; display: block; }
-    .value-title { font-family: var(--font-display); font-weight: 800; font-size: 1rem; margin-bottom: 6px; }
-    .value-text { font-size: .84rem; color: var(--ink-soft); line-height: 1.6; }
+    /* Story: three short beats instead of three paragraphs. */
+    .story { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; }
+    .beat { padding: 20px; }
+    .beat-k { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--blue-deep); }
+    .beat-t { font-family: var(--font-display); font-weight: 800; font-size: 1rem; margin: 6px 0 4px; }
+    .beat-d { font-size: .84rem; color: var(--ink-soft); line-height: 1.55; }
+    /* Values: one card, a compact 2x2 list — icon, title, one line. */
+    .values { display: grid; grid-template-columns: 1fr 1fr; padding: 6px 22px; margin-top: 22px; }
+    .value { display: flex; gap: 13px; align-items: flex-start; padding: 16px 0; border-top: 1px solid var(--line-soft); }
+    .value:nth-child(-n+2) { border-top: 0; }
+    .value:nth-child(odd) { padding-right: 22px; }
+    .value-ico { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--blue-tint); font-size: .95rem; }
+    .value-title { font-family: var(--font-display); font-weight: 800; font-size: .95rem; }
+    .value-text { font-size: .82rem; color: var(--ink-soft); line-height: 1.5; margin-top: 2px; }
     .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; }
     .team-card { text-align: center; padding: 24px 16px; }
     .team-av { width: 62px; height: 62px; border-radius: 50%; border: var(--bw) solid var(--line); box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 12px; }
@@ -38,7 +47,14 @@
       mask-image: radial-gradient(circle at center, #000 25%, transparent 70%);
       pointer-events: none;
     }
-    @media(max-width:700px){ .values-grid { grid-template-columns: 1fr; } }
+    @media(max-width:700px){
+      .story { grid-template-columns: 1fr; gap: 10px; }
+      .beat { padding: 16px 18px; }
+      .values { grid-template-columns: 1fr; padding: 4px 18px; }
+      .value:nth-child(2) { border-top: 1px solid var(--line-soft); }
+      .value:nth-child(odd) { padding-right: 0; }
+      .value { padding: 13px 0; }
+    }
     /* Phones: these three carry a word and a short label each, so stacking them
        turned about a line of text into three full-height slabs. Keep them in a
        row and shrink the type to match. Same for the team cards. */
@@ -69,7 +85,7 @@
   <div class="page">
     <div class="page-hero" style="position:relative">
       <h1 class="h-display fade-up d1" style="margin-top:20px">Shop. Share. <span class="hl hl-lime">Earn.</span><br>That's the whole idea.</h1>
-      <p class="h-sub fade-up d2" style="margin:16px auto 0">We built Cirqle to give shoppers real value back — not loyalty points, not vouchers, but actual money. Shop at your favourite brands, share it with your friends, on social media or in-person, and watch cashback land in your wallet.</p>
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">Real money back — not points or vouchers — for sharing what you buy with your friends, on social media or in-person.</p>
     </div>
 
     <div class="stats-row">
@@ -80,24 +96,26 @@
 
     <div class="prose reveal">
       <h2>Our story</h2>
-      <p>Cirqle was founded in 2024 with a simple observation: brands spend billions on influencer marketing, yet everyday shoppers who organically share their purchases see nothing in return.</p>
-      <p>We flipped that. Cirqle connects brands with real customers who genuinely love their products — and pays those customers cashback for sharing. Everyone wins: brands get authentic content, shoppers get money back.</p>
-      <p>We are building in the UK, across fashion, beauty, food, tech, travel and fitness, and onboarding our first brands now. The deals on the site today are examples showing how a listing will work — the brands on them have not joined yet, and we say so on every page they appear.</p>
+    </div>
+    <div class="story">
+      <div class="card beat reveal"><div class="beat-k">The gap</div><div class="beat-t">Sharing earned nothing</div><div class="beat-d">Brands spend billions on influencers, while shoppers who share what they buy get nothing back.</div></div>
+      <div class="card beat reveal reveal-delay-1"><div class="beat-k">The flip</div><div class="beat-t">So we pay you for it</div><div class="beat-d">Founded in 2024, Cirqle pays customers cashback for sharing. Brands get real word of mouth.</div></div>
+      <div class="card beat reveal reveal-delay-2"><div class="beat-k">Today</div><div class="beat-t">Onboarding our first brands</div><div class="beat-d">Built in the UK. Deals on the site now are examples, not live — and we label them wherever they appear.</div></div>
     </div>
 
     <div class="prose reveal" style="margin-top:48px">
       <h2>Our values</h2>
     </div>
-    <div class="values-grid">
-      <div class="card card-hover value-card reveal"><span class="value-icon"><i class="ico ico-cash"></i></span><div class="value-title">Real money, always</div><div class="value-text">No points, no vouchers. Every penny of cashback is withdrawable to your bank account.</div></div>
-      <div class="card card-hover value-card card-lime reveal reveal-delay-1"><span class="value-icon"><i class="ico ico-lock"></i></span><div class="value-title">Privacy first</div><div class="value-text">We never sell your data. Your shopping habits are yours — we only use what's needed to track cashback.</div></div>
-      <div class="card card-hover value-card card-pink reveal reveal-delay-2"><span class="value-icon"><i class="ico ico-users"></i></span><div class="value-title">Radical transparency</div><div class="value-text">Every cashback rate is published upfront. No hidden terms, no surprises after you've shopped.</div></div>
-      <div class="card card-hover value-card card-sky reveal reveal-delay-3"><span class="value-icon"><i class="ico ico-rocket"></i></span><div class="value-title">Built for everyone</div><div class="value-text">Whether you spend £10 or £1,000, Cirqle works for you. No tiers, no minimum earnings to withdraw.</div></div>
+    <div class="card values reveal">
+      <div class="value"><span class="value-ico"><i class="ico ico-cash"></i></span><div><div class="value-title">Real money, always</div><div class="value-text">No points or vouchers. Cashback goes to your bank.</div></div></div>
+      <div class="value"><span class="value-ico"><i class="ico ico-lock"></i></span><div><div class="value-title">Privacy first</div><div class="value-text">We never sell your data, and only use what tracks cashback.</div></div></div>
+      <div class="value"><span class="value-ico"><i class="ico ico-users"></i></span><div><div class="value-title">Radical transparency</div><div class="value-text">Rates shown upfront. No hidden terms after you shop.</div></div></div>
+      <div class="value"><span class="value-ico"><i class="ico ico-rocket"></i></span><div><div class="value-title">Built for everyone</div><div class="value-text">Spend £10 or £1,000. No tiers, no minimum to withdraw.</div></div></div>
     </div>
 
     <div class="prose reveal" style="margin-top:48px">
       <h2>The team</h2>
-      <p>Three co-founders based in London, obsessed with making cashback the simplest, most rewarding thing you do online.</p>
+      <p>Three co-founders, based in London.</p>
     </div>
     <div class="team-grid">
       <div class="card card-hover team-card reveal"><div class="team-av" style="background:var(--lime)"><i class="ico ico-briefcase ico-deep"></i></div><div class="team-name">Garv Gupta</div><div class="team-role">Co-founder &amp; CEO</div><div class="team-study">Student at UCL</div></div>
@@ -112,6 +130,6 @@
       <a href="signup" class="btn btn-lg btn-lime">Create a free account →</a>
     </div>
   </div>
-  <script src="assets/enhance.js?v=16"></script>
+  <script src="assets/enhance.js?v=17"></script>
 </body>
 </html>

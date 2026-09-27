@@ -123,10 +123,13 @@
     var menu = document.createElement('div');
     menu.className = 'nav-menu';
     menu.id = 'navMenu';
+    // Two groups, split by a divider: where to go, then about us.
     var links = [
       ['browse', 'Browse Deals'],
       ['/', 'For customers'],
       ['for-brands', 'For brands'],
+    ];
+    var infoLinks = [
       ['about', 'About'],
       ['help', 'Help centre'],
     ];
@@ -135,6 +138,8 @@
       : [['signin', 'Sign in'], ['signup', 'Sign up']];
     menu.innerHTML =
       links.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
+      '<div class="nav-menu-divider"></div>' +
+      infoLinks.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
       '<div class="nav-menu-divider"></div>' +
       authLinks.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
       (session ? '<a href="#" id="menuSignOut">Sign out</a>' : '');
@@ -175,6 +180,15 @@
       if (e.key === 'Escape') closeMenu();
     });
   }
+
+  // ── "Example listings" warnings: tap the headline to show the detail ──
+  document.querySelectorAll('.preview-note-head').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.closest('.preview-note').classList.toggle('open', !open);
+    });
+  });
 
   // ── Scroll reveal ──
   var revealEls = document.querySelectorAll('.reveal');

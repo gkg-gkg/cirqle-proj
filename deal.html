@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=16" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=17" />
   <style>
     .deal-page { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: clamp(28px,4vw,44px) clamp(20px,4vw,44px) 90px; }
 
@@ -21,14 +21,7 @@
     /* This deal is a placeholder using a well-known brand's name — the brand
        has not onboarded. Full width above the layout, so it is read before the
        rate and the Shop button rather than after them. */
-    .preview-note {
-      display: flex; gap: 11px; align-items: flex-start;
-      padding: 13px 16px; margin-bottom: 22px;
-      border: var(--bw) solid var(--line); border-radius: var(--r-card);
-      background: var(--blue-tint); color: var(--ink);
-      font-size: .86rem; line-height: 1.55;
-    }
-    .preview-note .ico { flex-shrink: 0; margin-top: 2px; }
+    .preview-note { margin-bottom: 22px; }
     .deal-layout { display: grid; grid-template-columns: 1fr 340px; gap: 30px; }
 
     /* Hero card */
@@ -115,7 +108,7 @@
       <span id="bcTitle" style="font-weight:800;color:var(--ink)">Deal</span>
     </div>
 
-    <div class="preview-note fade-up"><i class="ico ico-tag"></i><span><b>Example listing, not a live deal.</b> <span id="pnBrand">This brand</span> has not onboarded with Cirqle &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. It can&rsquo;t be claimed yet. <a href="for-brands">Brands can apply here</a>.</span></div>
+    <div class="preview-note fade-up"><button class="preview-note-head" type="button" aria-expanded="false" aria-controls="previewNoteBody"><i class="ico ico-tag"></i><span>This is an example listing, not a live deal.</span><span class="preview-note-chev" aria-hidden="true">&#9660;</span></button><div class="preview-note-body" id="previewNoteBody"><div><p><span id="pnBrand">This brand</span> has not onboarded with Cirqle &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. It can&rsquo;t be claimed yet. <a href="for-brands">Brands can apply here</a>.</p></div></div></div>
 
     <div class="deal-layout">
       <div>
@@ -199,8 +192,8 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=16"></script>
-  <script src="assets/escape.js?v=16"></script>
+  <script src="assets/api.js?v=17"></script>
+  <script src="assets/escape.js?v=17"></script>
   <script>
     // This deal is now loaded from the backend catalog (Phase 3) by its id,
     // instead of a hardcoded `deals` map. The hero carousel shows real uploaded
@@ -372,6 +365,6 @@
       }
     })();
   </script>
-  <script src="assets/enhance.js?v=16"></script>
+  <script src="assets/enhance.js?v=17"></script>
 </body>
 </html>
