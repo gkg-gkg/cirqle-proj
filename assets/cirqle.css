@@ -667,8 +667,8 @@ html::before {
 .footer-inner { max-width: 1140px; margin: 0 auto; position: relative; z-index: 1; }
 .footer-top {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 44px;
+  grid-template-columns: 1.6fr repeat(4, 1fr);
+  gap: 36px;
   margin-bottom: 48px;
 }
 .footer-logo {
@@ -690,6 +690,7 @@ html::before {
   transition: background .2s, color .2s, border-color .2s, transform .2s var(--snap);
 }
 .social-link:hover { background: #fff; color: var(--ink); border-color: #fff; transform: translateY(-2px); }
+.social-link .ico { color: inherit; }
 .footer-col h4 {
   font-family: var(--font-body);
   font-size: .76rem; font-weight: 600;
@@ -834,6 +835,7 @@ html::before {
      higher specificity, which kept the links showing next to the burger. */
   .nav-links, .nav-links:has(> li:nth-child(3):last-child) { display: none; }
   .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .footer-top > :first-child { grid-column: 1 / -1; }
   .orbit { display: none; }
 }
 @media (max-width: 560px) {
@@ -845,7 +847,7 @@ html::before {
   .page-hero h1.h-display,
   .browse-head > h1:first-child,
   h1.auth-h { margin-top: 0 !important; }
-  .footer-top { grid-template-columns: 1fr; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
   .footer-bottom { flex-direction: column; text-align: center; }
   .back-top { right: 16px; bottom: 16px; }
 }

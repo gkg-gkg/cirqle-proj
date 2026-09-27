@@ -181,6 +181,37 @@
     });
   }
 
+  // ── Site footer: one structure on every page, built here like the nav ──
+  // Grouped by who it's for (shoppers / brands), then the company, then the
+  // account; legal sits in the bottom bar. Portal, admin and one-off email-link
+  // pages keep a bare layout. Blog and Status are left out: both are still
+  // placeholder content (see the fabricated-content audit).
+  var NO_FOOTER = { 'admin': 1, 'merchant': 1, 'merchant-set-password': 1, 'reset-password': 1, 'verify-email': 1 };
+  if (!NO_FOOTER[here]) {
+    var footer = document.querySelector('footer.footer');
+    if (!footer) { footer = document.createElement('footer'); footer.className = 'footer'; document.body.appendChild(footer); }
+    var col = function (title, items) {
+      return '<div class="footer-col"><h4>' + title + '</h4><ul class="footer-links">' +
+        items.map(function (l) { return '<li><a href="' + l[0] + '">' + l[1] + '</a></li>'; }).join('') +
+        '</ul></div>';
+    };
+    footer.innerHTML =
+      '<div class="footer-inner"><div class="footer-top">' +
+        '<div><a href="/" class="footer-logo">cirqle</a>' +
+        '<p class="footer-desc">Cashback for sharing what you buy with your friends, on social media or in&#8209;person.</p>' +
+        '<div class="footer-social"><a class="social-link" href="https://www.instagram.com/cirqle.co.uk/" target="_blank" rel="noopener" aria-label="Cirqle on Instagram"><i class="ico ico-instagram"></i></a></div></div>' +
+        col('For shoppers', [['how-it-works', 'How it works'], ['browse', 'Browse deals'], ['receipt', 'Claim cashback'], ['affiliates', 'Referrals'], ['leaderboard', 'Leaderboard']]) +
+        col('For brands', [['for-brands', 'Cirqle for brands'], ['for-brands-verification', 'How we verify claims'], ['contact', 'Apply to partner'], ['merchant', 'Merchant sign in']]) +
+        col('Company', [['about', 'About us'], ['help', 'Help centre &amp; FAQ'], ['mailto:hello@cirqle.co.uk', 'Contact us']]) +
+        col('Your account', session
+          ? [['dashboard', 'My account'], ['feed', 'Dashboard'], ['account', 'Account details']]
+          : [['signup', 'Sign up'], ['signin', 'Sign in']]) +
+      '</div><div class="footer-bottom">' +
+        '<p>&copy; ' + new Date().getFullYear() + ' Cirqle Ltd. All rights reserved. Made in London.</p>' +
+        '<div class="footer-legal"><a href="privacy">Privacy</a><a href="terms">Terms</a><a href="cookies">Cookies</a></div>' +
+      '</div></div>';
+  }
+
   // ── "Example listings" warnings: tap the headline to show the detail ──
   document.querySelectorAll('.preview-note-head').forEach(function (btn) {
     btn.addEventListener('click', function () {
