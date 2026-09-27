@@ -184,8 +184,7 @@
   // ── Site footer: one structure on every page, built here like the nav ──
   // Grouped by who it's for (shoppers / brands), then the company, then the
   // account; legal sits in the bottom bar. Portal, admin and one-off email-link
-  // pages keep a bare layout. Blog and Status are left out: both are still
-  // placeholder content (see the fabricated-content audit).
+  // pages keep a bare layout.
   var NO_FOOTER = { 'admin': 1, 'merchant': 1, 'merchant-set-password': 1, 'reset-password': 1, 'verify-email': 1 };
   if (!NO_FOOTER[here]) {
     var footer = document.querySelector('footer.footer');
