@@ -14,7 +14,7 @@
     if (/\/index\.html$/.test(location.pathname))
       history.replaceState(null, '', location.pathname.replace(/index\.html$/, '') + location.search + location.hash);
   </script>
-  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=16" />
   <style>
     /* ── HERO ── */
     .hero {
@@ -41,7 +41,7 @@
          pool has to travel with the copy or near-black type drifts off it
          onto darker photography, so the radial below is re-centred whenever
          this number moves, and the contrast re-measured. */
-      padding: clamp(36px, calc(10vw - 36px), 94px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh - 44px);
+      padding: calc(clamp(36px, calc(10vw - 36px), 94px) + 16px) clamp(20px, 4vw, 44px) calc(clamp(186px, 16.5vw, 252px) + 8vh - 60px);
       text-align: center;
     }
     .hero > div { position: relative; z-index: 3; }
@@ -93,7 +93,7 @@
            fade underneath can never reach the page colour. Without this the join
            to the section below steps by ~29 levels — a visible seam. */
         linear-gradient(180deg, rgba(255,255,255,0) 94%, rgba(255,255,255,.92) 99%, #FFFFFF 100%),
-        radial-gradient(105% 64% at 50% 51%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.78) 40%, rgba(255,255,255,.22) 68%, rgba(18,28,42,.12) 100%),
+        radial-gradient(105% 64% at 50% 53%, rgba(255,255,255,.90) 0%, rgba(255,255,255,.78) 40%, rgba(255,255,255,.22) 68%, rgba(18,28,42,.12) 100%),
         linear-gradient(180deg, rgba(18,28,42,.10) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.16) 88%, rgba(255,255,255,.86) 98%, #FFFFFF 100%),
         /* The phone band's neon bloom brought over the photography. Last in the
            stack, so it sits directly on the wall and the white vignette above it
@@ -654,7 +654,7 @@
          buttons and only 22px over the next heading. */
       .hero { padding-top: 52px; padding-bottom: 70px; padding-left: 12px; padding-right: 12px; }
       /* Stacked, full width: Browse Deals on top, Sign up under it. The
-         closing CTA gets the same treatment — side by side, "How it works →"
+         closing CTA gets the same treatment — side by side, "Find out more →"
          was squeezed to half a slab and clipped. flex:none undoes .btn-row's
          equal-width flex:1 1 0 from cirqle.css. */
       .hero-actions, #cta .btn-row { flex-direction: column; align-items: stretch; width: 100%; max-width: 360px; margin: 0 auto; }
@@ -780,7 +780,7 @@
              for the same "learn how it works" link the signed-in bottom CTA
              uses instead. -->
         <a href="signup" class="btn btn-lg" data-auth="out">Sign up</a>
-        <a href="how-it-works" class="btn btn-lg" data-auth="in" style="display:none">How it works</a>
+        <a href="how-it-works" class="btn btn-lg" data-auth="in" style="display:none">Find out more</a>
       </div>
     </div>
 
@@ -835,7 +835,7 @@
         </div>
       </div>
       <div class="steps-more reveal reveal-delay-3">
-        <a href="how-it-works" class="btn btn-xl btn-lime">How it works &rarr;</a>
+        <a href="how-it-works" class="btn btn-xl btn-lime">Find out more &rarr;</a>
       </div>
     </div>
   </section>
@@ -906,7 +906,7 @@
           <p class="calc-note" style="margin-top:8px">&pound;1 of cashback per referral, paid once their first claim is approved.</p>
         </div>
         <div class="calc-more">
-          <a href="how-it-works" class="btn btn-lg btn-lime">How it works &rarr;</a>
+          <a href="how-it-works" class="btn btn-lg btn-lime">Find out more &rarr;</a>
         </div>
       </div>
     </div>
@@ -924,10 +924,10 @@
              with Sign up. -->
         <p class="cta-sub" data-auth="out">Signing up takes about a minute, and it's free.</p>
         <div class="btn-row" style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap">
-          <a href="how-it-works" class="btn btn-xl btn-lime" data-auth="out">How it works →</a>
+          <a href="how-it-works" class="btn btn-xl btn-lime" data-auth="out">Find out more →</a>
           <a href="signup" class="btn btn-lg" data-auth="out">Sign up</a>
           <a href="browse" class="btn btn-lg btn-lime" data-auth="in" style="display:none">Browse Deals</a>
-          <a href="how-it-works" class="btn btn-lg" data-auth="in" style="display:none">How it works</a>
+          <a href="how-it-works" class="btn btn-lg" data-auth="in" style="display:none">Find out more</a>
         </div>
       </div>
     </div>
@@ -978,8 +978,8 @@
     </div>
   </footer>
 
-  <script src="assets/api.js?v=15"></script>
-  <script src="assets/escape.js?v=15"></script>
+  <script src="assets/api.js?v=16"></script>
+  <script src="assets/escape.js?v=16"></script>
   <script>
   (function () {
     'use strict';
@@ -1431,6 +1431,6 @@
     });
   })();
   </script>
-  <script src="assets/enhance.js?v=15"></script>
+  <script src="assets/enhance.js?v=16"></script>
 </body>
 </html>

@@ -202,6 +202,12 @@ html::before {
   font-size: .92rem; font-weight: 500;
   position: absolute; left: 50%; transform: translateX(-50%);
 }
+/* Three links (Browse Deals · For customers · For brands): centre the MIDDLE
+   one, not the group. Equal 1fr side columns cancel out the labels' different
+   widths, which left "For customers" 10px right of centre. */
+.nav-links:has(> li:nth-child(3):last-child) { display: grid; grid-template-columns: 1fr auto 1fr; }
+.nav-links:has(> li:nth-child(3):last-child) > li:first-child { justify-self: end; }
+.nav-links:has(> li:nth-child(3):last-child) > li:last-child { justify-self: start; }
 .nav-links a {
   position: relative;
   text-decoration: none; color: var(--ink-soft);
