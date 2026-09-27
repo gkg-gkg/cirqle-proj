@@ -34,6 +34,9 @@
 
   // ── Current page + session ──
   var here = location.pathname.split('/').pop() || 'index.html';
+  // Links to the home page are "/" (so the address bar shows cirqle.co.uk,
+  // not /index.html); compare them as index.html like the path above.
+  var pageOf = function (href) { var h = (href || '').split(/[?#]/)[0]; return (h === '/' || h === '') ? 'index.html' : h; };
   var session = null;
   try {
     session = JSON.parse(
@@ -65,7 +68,7 @@
     }
     navLinks.innerHTML =
       '<li><a href="browse.html">Browse Deals</a></li>' +
-      '<li><a href="index.html">For customers</a></li>' +
+      '<li><a href="/">For customers</a></li>' +
       '<li><a href="for-brands.html">For brands</a></li>';
 
     var cta = nav.querySelector('.nav-cta');
@@ -89,7 +92,7 @@
 
   // ── Mark the current page's centre link ──
   document.querySelectorAll('.nav-links a').forEach(function (a) {
-    if ((a.getAttribute('href') || '').split(/[?#]/)[0] === here) a.setAttribute('aria-current', 'page');
+    if (pageOf(a.getAttribute('href')) === here) a.setAttribute('aria-current', 'page');
   });
 
   // ── Auth-aware nav (for pages keeping their own data-auth chips) ──
@@ -118,7 +121,7 @@
     menu.id = 'navMenu';
     var links = [
       ['browse.html', 'Browse Deals'],
-      ['index.html', 'For customers'],
+      ['/', 'For customers'],
       ['for-brands.html', 'For brands'],
       ['about.html', 'About'],
       ['help.html', 'Help centre'],
@@ -139,13 +142,13 @@
         e.preventDefault();
         localStorage.removeItem('cirqle_session');
         sessionStorage.removeItem('cirqle_session');
-        window.location.href = 'index.html';
+        window.location.href = '/';
       });
     }
 
     // mark the current page in the menu
     menu.querySelectorAll('a').forEach(function (a) {
-      if ((a.getAttribute('href') || '').split(/[?#]/)[0] === here) {
+      if (pageOf(a.getAttribute('href')) === here) {
         a.setAttribute('aria-current', 'page');
       }
     });

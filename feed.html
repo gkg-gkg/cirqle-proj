@@ -194,7 +194,7 @@
 <body>
 
   <nav class="nav">
-    <a href="index.html" class="logo">cirqle</a>
+    <a href="/" class="logo">cirqle</a>
     <div class="nav-cta">
       <div class="nav-user">
         <span class="nav-avatar" id="navAvatar">?</span>
@@ -712,7 +712,7 @@
     function signOut() {
       localStorage.removeItem('cirqle_session');
       sessionStorage.removeItem('cirqle_session');
-      window.location.href = 'index.html';
+      window.location.href = '/';
     }
 
     document.getElementById('refreshBtn').addEventListener('click', refresh);

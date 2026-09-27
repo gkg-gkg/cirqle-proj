@@ -9,6 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Playfair+Display:wght@800&display=swap" rel="stylesheet" />
+  <script>
+    // Old links and bookmarks still say /index.html; show the bare cirqle.co.uk.
+    if (/\/index\.html$/.test(location.pathname))
+      history.replaceState(null, '', location.pathname.replace(/index\.html$/, '') + location.search + location.hash);
+  </script>
   <link rel="stylesheet" href="assets/cirqle.css?v=13" />
   <style>
     /* ── HERO ── */
@@ -752,10 +757,10 @@
 
   <!-- ══ NAV ══ -->
   <nav class="nav">
-    <a href="index.html" class="logo">cirqle</a>
+    <a href="/" class="logo">cirqle</a>
     <ul class="nav-links">
       <li><a href="browse.html">Browse Deals</a></li>
-      <li><a href="index.html">For customers</a></li>
+      <li><a href="/">For customers</a></li>
       <li><a href="for-brands.html">For brands</a></li>
     </ul>
     <div class="nav-cta">
@@ -830,7 +835,7 @@
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle.co.uk</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
           </div>
           <h3 class="cyc-t">Share</h3>
-          <p class="cyc-d">Share with your friends, on social media or in-person. Follow @cirqle.co.uk on Instagram, then post it tagging us and the brand, or tell a friend and have them enter your handle. However you share, you both earn.</p>
+          <p class="cyc-d">Share with your friends, on social media or in&#8209;person. On social media, follow @cirqle.co.uk on Instagram and post what you bought, tagging us and the brand. In person, recommend the brand to a friend and have them enter your Instagram handle when they claim. However you share, you both earn.</p>
         </div>
         <div class="cyc reveal reveal-delay-3">
           <div class="cyc-stage">
@@ -838,7 +843,7 @@
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-bal"><span>Wallet</span><b>£47.80</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w50"></span><b class="ps-amt">+£3.50</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w40"></span><b class="ps-amt">+£2.10</b></div><div class="ps-btn">Withdraw</div></div></div>
           </div>
           <h3 class="cyc-t">Earn</h3>
-          <p class="cyc-d">Once approved your cashback clears in about three days, then goes to your bank.</p>
+          <p class="cyc-d">Once your claim is approved, your cashback clears in about three days. Then it&rsquo;s yours to send straight to your bank.</p>
         </div>
       </div>
       <div class="steps-more reveal reveal-delay-3">
@@ -984,7 +989,7 @@
     <div class="footer-inner">
       <div class="footer-top">
         <div>
-          <a href="index.html" class="footer-logo">cirqle</a>
+          <a href="/" class="footer-logo">cirqle</a>
           <p class="footer-desc">The smarter way to shop. Earn real cashback when you buy from brands you already love, then share them with your friends.</p>
         </div>
         <div class="footer-col">
