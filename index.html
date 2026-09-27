@@ -780,7 +780,7 @@
   <header class="hero">
     <div>
       <h1 class="hero-h fade-up d1">Shop. Share.<br>Get <span class="hl">Paid</span>.</h1>
-      <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, online or in-person, and earn <span class="cash-script">real cash</span>, straight to your wallet. <a href="#calculator" class="hero-jump">Find out how much you could earn</a></p>
+      <p class="hero-sub fade-up d2">Shop from brands you love, share with your friends, on social media or in-person, and earn <span class="cash-script">real cash</span>, straight to your wallet. <a href="#calculator" class="hero-jump">Find out how much you could earn</a></p>
       <div class="hero-actions btn-row fade-up d3">
         <a href="browse.html" class="btn btn-lg btn-lime">Browse Deals</a>
         <!-- Signing up is dead weight once you're already a member — swap it
@@ -830,7 +830,7 @@
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle.co.uk</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
           </div>
           <h3 class="cyc-t">Share</h3>
-          <p class="cyc-d">Share with your friends, online or in-person. Follow @cirqle.co.uk on Instagram, then post it tagging us and the brand, or tell a friend and have them enter your handle. However you share, you both earn.</p>
+          <p class="cyc-d">Share with your friends, on social media or in-person. Follow @cirqle.co.uk on Instagram, then post it tagging us and the brand, or tell a friend and have them enter your handle. However you share, you both earn.</p>
         </div>
         <div class="cyc reveal reveal-delay-3">
           <div class="cyc-stage">
@@ -939,7 +939,7 @@
           <input type="range" class="calc-range" id="calcSpend" min="10" max="400" step="10" value="80" aria-label="Spend at brands in the chosen category a month, in pounds">
         </div>
         <div class="calc-row">
-          <div class="calc-label"><span>How often you share a purchase <em>online</em></span></div>
+          <div class="calc-label"><span>How often you share a purchase <em>on social media</em></span></div>
           <div class="calc-cats" id="calcPost">
             <button type="button" class="calc-cat" data-post="0" aria-pressed="false">Never</button>
             <button type="button" class="calc-cat" data-post="0.5" aria-pressed="true">Now and then</button>
@@ -1430,15 +1430,15 @@
         out.textContent = (lo === hi) ? ('£' + lo) : ('£' + lo + '–£' + hi);
         // The line under the total says, in words, where that figure comes
         // from: cashback on the share of this category's spending you share
-        // online, plus the referral bonus. Numbers alone read as noise.
+        // on social media, plus the referral bonus. Numbers alone read as noise.
         var catWord = active === 'Pets' ? 'pet' : active.toLowerCase();
         spendCat.textContent = catWord;
         var money = function (a, b) { a = Math.round(a); b = Math.round(b); return a === b ? '£' + b : '£' + a + '–£' + b; };
         var shareWord = postRate >= 0.8 ? 'most' : postRate >= 0.5 ? 'half' : 'none';
         var cash = postRate
           ? money(eligible * s.rate.lo / 100, eligible * s.rate.hi / 100) + ' cashback from sharing ' + shareWord +
-            ' of your ' + catWord + ' buys online'
-          : 'No cashback until you share a purchase online';
+            ' of your ' + catWord + ' buys on social media'
+          : 'No cashback until you share a purchase on social media';
         var friends = '';
         if (n && !s.ref.hi) {
           // Every deal here has referrals switched off, so the slider genuinely
