@@ -732,18 +732,6 @@
          with the carousel for the same budget. */
       .hero-actions .btn-lime { animation: none; }
     }
-    /* ══ TRUST STRIP — the short version of how-it-works.html#verification.
-       Four flat cards, deliberately plainer than the category mosaic above
-       it so it reads as a statement of fact rather than another thing to
-       click through. ══ */
-    .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .trust-card { text-align: center; padding: 24px 16px; }
-    .trust-ico { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); color: #0B1220; }
-    .trust-t { font-family: var(--font-display); font-weight: 700; font-size: .98rem; letter-spacing: -.02em; }
-    .trust-d { font-size: .81rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.5; }
-    .trust-more { text-align: center; margin-top: 26px; }
-    @media (max-width: 760px) { .trust-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 420px) { .trust-grid { grid-template-columns: 1fr; } }
     @media (prefers-reduced-motion: reduce) {
       /* Reduced motion gets the swipe strip too — handled by the script, which
          reads the same preference. Wrapping the rows into a grid, as this used
@@ -880,45 +868,6 @@
         <div class="pw-col k3" id="pwCol3"></div>
       </div>
       <p class="disclaim">Illustrative examples, not verified customer reviews. Photography is licensed stock — the people shown are models, not Cirqle members, and are not endorsing Cirqle.</p>
-    </div>
-  </section>
-
-  <!-- ══ TRUST STRIP ══
-       Sits before the calculator on purpose: the calculator is the page's
-       biggest promise, so the "and here's why those numbers are real" beat
-       belongs immediately in front of it. Full version lives on
-       how-it-works.html#verification. -->
-  <section class="section" id="trust">
-    <div class="section-inner">
-      <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Every claim is <span class="hl">checked.</span></h2>
-        <p class="h-sub reveal reveal-delay-2">Cashback comes out of a pot the brand funds. Anyone gaming it is taking money from the people who actually shopped &mdash; so nothing gets through on trust alone.</p>
-      </div>
-      <div class="trust-grid reveal reveal-delay-3">
-        <div class="card trust-card">
-          <span class="trust-ico"><i class="ico ico-receipt"></i></span>
-          <div class="trust-t">Receipts are matched</div>
-          <div class="trust-d">Every receipt is compared against the brand's own reference receipt, and its maths re-added in code.</div>
-        </div>
-        <div class="card trust-card">
-          <span class="trust-ico"><i class="ico ico-refresh"></i></span>
-          <div class="trust-t">Duplicates are blocked</div>
-          <div class="trust-d">One receipt, one claim. Re-saved and re-photographed copies are caught too, across every account.</div>
-        </div>
-        <div class="card trust-card">
-          <span class="trust-ico"><i class="ico ico-instagram"></i></span>
-          <div class="trust-t">Posts are verified</div>
-          <div class="trust-d">The post has to tag the brand you claimed, and has to stay up until the claim is checked.</div>
-        </div>
-        <div class="card trust-card">
-          <span class="trust-ico"><i class="ico ico-ghost"></i></span>
-          <div class="trust-t">Bot accounts are scored</div>
-          <div class="trust-d">Bought followers and engagement pods score badly. Real accounts, however small, don't.</div>
-        </div>
-      </div>
-      <div class="trust-more reveal">
-        <a href="how-it-works.html#verification" class="btn btn-lg">See exactly what we check &rarr;</a>
-      </div>
     </div>
   </section>
 
