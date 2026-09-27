@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     /* categorical series colors — validated colorblind-safe (dataviz skill) */
     :root { --s-views:#2a78d6; --s-clicks:#1baf7a; --s-claims:#eda100; }
@@ -466,7 +466,7 @@
         </div>
         <div id="mForgotNote" style="display:none;text-align:center;margin-top:10px;font-size:.8rem;color:var(--ink-soft);line-height:1.5"></div>
       </form>
-      <div class="login-note">Don't have a login yet? Your account is created once your partnership application is approved — we'll send you the details. Want to partner with us? <a href="contact.html">Apply here →</a></div>
+      <div class="login-note">Don't have a login yet? Your account is created once your partnership application is approved — we'll send you the details. Want to partner with us? <a href="contact">Apply here →</a></div>
     </div>
   </div>
 
@@ -1047,8 +1047,8 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
-  <script src="assets/escape.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
+  <script src="assets/escape.js?v=15"></script>
   <script>
     const API = window.CIRQLE_API_BASE;
     const SKEY = 'cirqle_merchant';
@@ -1733,7 +1733,7 @@
         const reason = (s.status === 'rejected' && s.rejectionReason)
           ? `<div class="sub-reason">Reason: ${escapeHtml(s.rejectionReason)}</div>` : '';
         const live = (s.status === 'approved' && s.campaignId)
-          ? ` · <a href="deal.html?id=${s.campaignId}" target="_blank" rel="noopener" style="color:var(--blue-deep);font-weight:700">view live deal →</a>` : '';
+          ? ` · <a href="deal?id=${s.campaignId}" target="_blank" rel="noopener" style="color:var(--blue-deep);font-weight:700">view live deal →</a>` : '';
         return `<div class="sub-item">
              <div class="sub-main">
                <div class="sub-title">${escapeHtml(s.cardTitle)}</div>
@@ -2610,6 +2610,6 @@
     // ── Boot ──
     if (merchant && merchant.token) { enterDashboard(); } else { showLogin(); }
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>

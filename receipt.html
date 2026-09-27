@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     /* Logged-in nav (matches feed.html) */
     .nav-user { display: flex; align-items: center; gap: 10px; }
@@ -67,14 +67,14 @@
         <span class="nav-avatar" id="navAvatar">?</span>
         <span class="nav-name" id="navName">Loading…</span>
       </div>
-      <a href="feed.html" class="btn btn-sm btn-ink">Dashboard</a>
-      <a href="browse.html" class="btn btn-sm">Browse deals</a>
-      <a href="dashboard.html" class="btn btn-sm">My Account</a>
+      <a href="feed" class="btn btn-sm btn-ink">Dashboard</a>
+      <a href="browse" class="btn btn-sm">Browse deals</a>
+      <a href="dashboard" class="btn btn-sm">My Account</a>
     </div>
   </nav>
 
   <div class="page">
-    <a href="feed.html" class="back-link fade-up d1">← Back to dashboard</a>
+    <a href="feed" class="back-link fade-up d1">← Back to dashboard</a>
     <h1 class="up-title fade-up d1">Upload your receipt</h1>
     <p class="up-sub fade-up d2">Attach a photo of your receipt so we can verify your purchase. Once verified, your cashback is released automatically after the 3‑day hold.</p>
 
@@ -107,16 +107,16 @@
       <div class="result-badge">Receipt received ✓</div>
       <p class="result-note">Your receipt was uploaded and saved to your account. Cashback lands once we verify it and the 3‑day hold clears.</p>
       <p class="result-note referral-note" id="referralNote" hidden></p>
-      <a href="feed.html" class="btn btn-ink">Back to dashboard</a>
+      <a href="feed" class="btn btn-ink">Back to dashboard</a>
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
+  <script src="assets/enhance.js?v=15"></script>
   <script>
     // ── Auth guard (matches feed.html) ──
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
-    if (!session) { window.location.href = 'signin.html'; }
+    if (!session) { window.location.href = 'signin'; }
     else {
       document.getElementById('navName').textContent = session.firstName + ' ' + session.lastName;
       document.getElementById('navAvatar').textContent = session.firstName[0].toUpperCase();

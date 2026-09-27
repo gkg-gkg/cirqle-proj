@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     .hidden { display: none !important; }
 
@@ -630,8 +630,8 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
-  <script src="assets/escape.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
+  <script src="assets/escape.js?v=15"></script>
   <script>
     const API = window.CIRQLE_API_BASE;
     const $ = id => document.getElementById(id);
@@ -1089,7 +1089,7 @@
           const actions = a.status === 'pending' && !isQ
             ? `<button class="btn mini" data-approve="${a.id}">Approve</button><button class="btn mini btn-pink" data-rejapp="${a.id}">Reject</button>`
             : (a.status === 'approved'
-                ? (a.campaignId ? `<a class="btn mini" href="deal.html?id=${a.campaignId}" target="_blank" rel="noopener">Deal #${a.campaignId}</a>` : '')
+                ? (a.campaignId ? `<a class="btn mini" href="deal?id=${a.campaignId}" target="_blank" rel="noopener">Deal #${a.campaignId}</a>` : '')
                   // Approving now creates the login; this only remains for
                   // applications approved before that, which have none.
                   + (a.hasLogin ? '<span class="rbadge approved">login invited</span>' : `<button class="btn mini btn-lime" data-mklogin="${a.id}">Create login</button>`)
@@ -1236,7 +1236,7 @@
           const actions = s.status === 'pending'
             ? `<button class="btn mini" data-sapprove="${s.id}">Approve</button><button class="btn mini btn-pink" data-sreject="${s.id}">Deny</button>`
             : (s.status === 'approved' && s.campaignId
-                ? `<a class="btn mini" href="deal.html?id=${s.campaignId}" target="_blank" rel="noopener">Deal #${s.campaignId}</a>` : '');
+                ? `<a class="btn mini" href="deal?id=${s.campaignId}" target="_blank" rel="noopener">Deal #${s.campaignId}</a>` : '');
           row.innerHTML = `
             <div class="clist-thumb"><i class="ico ico-tag"></i></div>
             <div class="clist-main">
@@ -1851,7 +1851,7 @@
       const body = $('topBody');
       if (!deals || !deals.length) { body.innerHTML = '<tr><td colspan="4" class="muted">No deals yet.</td></tr>'; return; }
       body.innerHTML = deals.map(d => `<tr>
-          <td><a href="deal.html?id=${d.campaignId}" target="_blank" rel="noopener" style="color:var(--blue-deep);font-weight:800">${esc(d.title || d.brand)}</a>
+          <td><a href="deal?id=${d.campaignId}" target="_blank" rel="noopener" style="color:var(--blue-deep);font-weight:800">${esc(d.title || d.brand)}</a>
             <div class="co-email">${esc(d.company || 'In-house')}</div></td>
           <td class="num">${fmtInt(d.views)}</td>
           <td class="num">${fmtInt(d.claims)}</td>

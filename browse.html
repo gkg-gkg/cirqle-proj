@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     /* ── Page header ── */
     .browse-head { max-width: 1140px; margin: 0 auto; padding: clamp(36px,5vw,60px) clamp(20px,4vw,44px) 24px; position: relative; z-index: 1; }
@@ -246,14 +246,14 @@
   <nav class="nav">
     <a href="/" class="logo">cirqle</a>
     <ul class="nav-links">
-      <li><a href="browse.html">Browse Deals</a></li>
+      <li><a href="browse">Browse Deals</a></li>
       <li><a href="/">For customers</a></li>
-      <li><a href="for-brands.html">For brands</a></li>
+      <li><a href="for-brands">For brands</a></li>
     </ul>
     <div class="nav-cta">
-      <a href="signup.html" class="btn btn-sm btn-lime" data-auth="out">Sign up</a>
-      <a href="dashboard.html" class="btn btn-sm btn-ink" data-auth="in" style="display:none">My Account</a>
-      <a href="feed.html" class="btn btn-sm btn-ink" data-auth="in" style="display:none">Dashboard</a>
+      <a href="signup" class="btn btn-sm btn-lime" data-auth="out">Sign up</a>
+      <a href="dashboard" class="btn btn-sm btn-ink" data-auth="in" style="display:none">My Account</a>
+      <a href="feed" class="btn btn-sm btn-ink" data-auth="in" style="display:none">Dashboard</a>
     </div>
   </nav>
 
@@ -330,7 +330,7 @@
 
       <!-- Deals -->
       <div>
-        <div class="preview-note"><i class="ico ico-tag"></i><span><b>These are example listings, not live deals.</b> Cirqle has not onboarded any of the brands shown &mdash; they stand in to show how a listing will look, at a rate the brand itself would set. Nothing here can be claimed yet. <a href="for-brands.html">Brands can apply here</a>.</span></div>
+        <div class="preview-note"><i class="ico ico-tag"></i><span><b>These are example listings, not live deals.</b> Cirqle has not onboarded any of the brands shown &mdash; they stand in to show how a listing will look, at a rate the brand itself would set. Nothing here can be claimed yet. <a href="for-brands">Brands can apply here</a>.</span></div>
         <p class="results-count"><span id="countNum">12</span> example deals</p>
 
         <div class="deals-grid" id="dealsGrid">
@@ -348,8 +348,8 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
-  <script src="assets/escape.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
+  <script src="assets/escape.js?v=15"></script>
   <script>
     // Deals are now loaded from the backend catalog (Phase 3) instead of being
     // hardcoded. We fetch GET /campaigns, build the same card markup + data-*
@@ -447,11 +447,11 @@
         </div>
         <div class="card-footer">
           <div><div class="earn-val">${esc(c.rate)}%</div><div class="earn-label">cashback</div></div>
-          <a href="deal.html?id=${c.id}" class="btn btn-lime shop-btn">Shop →</a>
+          <a href="deal?id=${c.id}" class="btn btn-lime shop-btn">Shop →</a>
         </div>`;
       el.addEventListener('click', e => {
         if (e.target.closest('a')) return;   // let the Shop button handle its own click
-        window.location.href = `deal.html?id=${c.id}`;
+        window.location.href = `deal?id=${c.id}`;
       });
       return el;
     }
@@ -601,6 +601,6 @@
       }
     })();
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>

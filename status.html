@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     .status-badge {
       display: inline-flex; align-items: center; gap: 10px;
@@ -58,9 +58,9 @@
   <nav class="nav">
     <a href="/" class="logo">cirqle</a>
     <div class="nav-cta">
-      <a href="signup.html" class="btn btn-sm btn-lime" data-auth="out">Sign up</a>
-      <a href="dashboard.html" class="btn btn-sm btn-ink" data-auth="in" style="display:none">My Account</a>
-      <a href="feed.html" class="btn btn-sm btn-ink" data-auth="in" style="display:none">Dashboard</a>
+      <a href="signup" class="btn btn-sm btn-lime" data-auth="out">Sign up</a>
+      <a href="dashboard" class="btn btn-sm btn-ink" data-auth="in" style="display:none">My Account</a>
+      <a href="feed" class="btn btn-sm btn-ink" data-auth="in" style="display:none">Dashboard</a>
     </div>
   </nav>
 
@@ -97,7 +97,7 @@
       <div class="card card-lime incident-empty">No incidents in the last 30 days.</div>
     </div>
 
-    <p class="updated-footer reveal">Auto-refreshes every 60 seconds · <a href="contact.html">Report an issue</a></p>
+    <p class="updated-footer reveal">Auto-refreshes every 60 seconds · <a href="contact">Report an issue</a></p>
   </div>
 
   <script>
@@ -117,6 +117,6 @@
     document.getElementById('lastUpdated').textContent =
       `Last updated: ${now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})} · ${now.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`;
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>

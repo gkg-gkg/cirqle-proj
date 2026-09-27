@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     .nav-user { display: flex; align-items: center; gap: 10px; }
     .nav-avatar {
@@ -92,12 +92,12 @@
   <nav class="nav">
     <a href="/" class="logo">cirqle</a>
     <div class="nav-cta">
-      <a href="account.html" class="nav-user nav-user-link" title="Account details">
+      <a href="account" class="nav-user nav-user-link" title="Account details">
         <span class="nav-avatar" id="navAvatar">?</span>
         <span class="nav-name" id="navName">Loading…</span>
       </a>
-      <a href="dashboard.html" class="btn btn-sm btn-ink">My account</a>
-      <a href="browse.html" class="btn btn-sm">Browse deals</a>
+      <a href="dashboard" class="btn btn-sm btn-ink">My account</a>
+      <a href="browse" class="btn btn-sm">Browse deals</a>
     </div>
   </nav>
 
@@ -137,12 +137,12 @@
 
   </div>
 
-  <script src="assets/api.js?v=14"></script>
-  <script src="assets/escape.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
+  <script src="assets/escape.js?v=15"></script>
   <script>
     // ── Auth check ──
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
-    if (!session) { window.location.href = 'signin.html'; }
+    if (!session) { window.location.href = 'signin'; }
     else {
       document.getElementById('navName').textContent = session.firstName + ' ' + session.lastName;
       document.getElementById('navAvatar').textContent = session.firstName[0].toUpperCase();
@@ -178,7 +178,7 @@
         if (res.status === 401 || res.status === 403) {
           localStorage.removeItem('cirqle_session');
           sessionStorage.removeItem('cirqle_session');
-          window.location.href = 'signin.html';
+          window.location.href = 'signin';
           return;
         }
         if (!res.ok) throw new Error('bad status');

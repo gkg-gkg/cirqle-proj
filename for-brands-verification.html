@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     /* The detail behind the tiles on for-brands.html. That page is the pitch
        and has to stay skimmable; this one is for the reader who wants the
@@ -57,19 +57,19 @@
   <nav class="nav">
     <a href="/" class="logo">cirqle</a>
     <ul class="nav-links">
-      <li><a href="browse.html">Browse Deals</a></li>
+      <li><a href="browse">Browse Deals</a></li>
       <li><a href="/">For customers</a></li>
-      <li><a href="for-brands.html">For brands</a></li>
+      <li><a href="for-brands">For brands</a></li>
     </ul>
     <div class="nav-cta">
-      <a href="contact.html" class="btn btn-sm btn-lime">Get in touch</a>
+      <a href="contact" class="btn btn-sm btn-lime">Get in touch</a>
     </div>
   </nav>
 
   <div class="page">
     <div class="page-hero">
       <h1 class="h-display fade-up d1" style="margin-top:20px">How we <span class="hl">verify a claim</span></h1>
-      <p class="h-sub fade-up d2" style="margin:16px auto 0">Every check a claim passes before a penny leaves your wallet &mdash; what each one catches, and what it does not. This is the long version of the tiles on <a href="for-brands.html#verification">the brands page</a>.</p>
+      <p class="h-sub fade-up d2" style="margin:16px auto 0">Every check a claim passes before a penny leaves your wallet &mdash; what each one catches, and what it does not. This is the long version of the tiles on <a href="for-brands#verification">the brands page</a>.</p>
     </div>
 
     <div class="prose reveal" style="margin-top:56px">
@@ -246,7 +246,7 @@
       </div>
       <div class="faq-item">
         <button class="faq-q">Do you use my customers&rsquo; data for anything else? <span class="faq-chevron">&#9660;</span></button>
-        <div class="faq-a"><div class="faq-a-inner">Receipts are read to verify the claim, and are not used to train any AI model. Bank and identity details for payouts are held by Stripe rather than by us; the only thing compared is a hashed fingerprint. Full detail in our <a href="privacy.html">privacy policy</a>.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Receipts are read to verify the claim, and are not used to train any AI model. Bank and identity details for payouts are held by Stripe rather than by us; the only thing compared is a hashed fingerprint. Full detail in our <a href="privacy">privacy policy</a>.</div></div>
       </div>
     </div>
 
@@ -255,8 +255,8 @@
       <h2 style="color:var(--paper); font-size:clamp(1.6rem,3.4vw,2.2rem)">Ready to grow with <span class="hl hl-lime" style="color:var(--ink)">Cirqle?</span></h2>
       <p style="color:rgba(255,255,255,.66); margin:12px 0 26px">Tell us about your brand and we&rsquo;ll get back to you.</p>
       <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
-        <a href="contact.html" class="btn btn-lg btn-lime">Get in touch &rarr;</a>
-        <a href="merchant.html" class="btn btn-lg">Merchant sign in</a>
+        <a href="contact" class="btn btn-lg btn-lime">Get in touch &rarr;</a>
+        <a href="merchant" class="btn btn-lg">Merchant sign in</a>
       </div>
     </div>
   </div>
@@ -268,6 +268,6 @@
       q.addEventListener('click', function () { q.parentElement.classList.toggle('open'); });
     });
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>

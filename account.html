@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     .nav-user { display: flex; align-items: center; gap: 10px; }
     .nav-avatar {
@@ -70,8 +70,8 @@
         <span class="nav-avatar" id="navAvatar">?</span>
         <span class="nav-name" id="navName">Loading…</span>
       </div>
-      <a href="dashboard.html" class="btn btn-sm btn-ink">My Account</a>
-      <a href="browse.html" class="btn btn-sm">Browse deals</a>
+      <a href="dashboard" class="btn btn-sm btn-ink">My Account</a>
+      <a href="browse" class="btn btn-sm">Browse deals</a>
     </div>
   </nav>
 
@@ -106,7 +106,7 @@
     <!-- INSTAGRAM -->
     <div class="card acct-card fade-up d3">
       <div class="section-label"><i class="ico ico-camera ico-soft"></i> Instagram</div>
-      <div class="section-note">This is how we find the posts where you tagged <strong>@cirqle.co.uk</strong> and the brand you bought from. It's also the handle friends enter to <a href="affiliates.html">credit you for a referral</a>.</div>
+      <div class="section-note">This is how we find the posts where you tagged <strong>@cirqle.co.uk</strong> and the brand you bought from. It's also the handle friends enter to <a href="affiliates">credit you for a referral</a>.</div>
       <div class="ig-now">Connected as <span class="at muted" id="igNow">not set</span></div>
       <div class="field"><label for="igInput">Instagram username</label><input id="igInput" placeholder="yourhandle" autocomplete="off" /></div>
       <div class="save-row">
@@ -140,7 +140,7 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
   <script>
     const API = window.CIRQLE_API_BASE;
     const $ = id => document.getElementById(id);
@@ -149,7 +149,7 @@
     const store = localStorage.getItem('cirqle_session') ? localStorage
       : sessionStorage.getItem('cirqle_session') ? sessionStorage : null;
     const session = store ? JSON.parse(store.getItem('cirqle_session')) : null;
-    if (!session) { window.location.href = 'signin.html'; }
+    if (!session) { window.location.href = 'signin'; }
 
     function saveSession() { if (store) store.setItem('cirqle_session', JSON.stringify(session)); }
     function initial(s) { return (s || '?').trim().charAt(0).toUpperCase() || '?'; }
@@ -316,6 +316,6 @@
     }
     $('signOutBtn').addEventListener('click', signOut);
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>

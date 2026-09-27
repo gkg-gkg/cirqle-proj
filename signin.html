@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     main {
       position: relative; z-index: 1;
@@ -97,7 +97,7 @@
 
   <nav class="nav">
     <a href="/" class="logo">cirqle</a>
-    <a href="signup.html" class="btn btn-sm btn-lime">New here? Create an account</a>
+    <a href="signup" class="btn btn-sm btn-lime">New here? Create an account</a>
   </nav>
 
   <main>
@@ -152,7 +152,7 @@
       </form>
 
       <div class="signup-link">
-        Don't have an account? <a href="signup.html">Sign up</a>
+        Don't have an account? <a href="signup">Sign up</a>
       </div>
     </div>
   </main>
@@ -181,11 +181,11 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
   <script>
     // ── If already signed in, go to dashboard ──
     if (localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session')) {
-      window.location.href = 'dashboard.html';
+      window.location.href = 'dashboard';
     }
 
     // ── Password toggle ──
@@ -309,7 +309,7 @@
 
       btn.classList.add('success');
       document.getElementById('submitText').textContent = `Welcome back, ${data.user.firstName}!`;
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1400);
+      setTimeout(() => { window.location.href = 'dashboard'; }, 1400);
     });
 
     // ── Clear errors on input ──
@@ -368,6 +368,6 @@
     });
 
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>

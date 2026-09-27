@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     .deal-page { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: clamp(28px,4vw,44px) clamp(20px,4vw,44px) 90px; }
 
@@ -101,21 +101,21 @@
   <nav class="nav">
     <a href="/" class="logo">cirqle</a>
     <div class="nav-cta">
-      <a href="dashboard.html" class="btn btn-sm btn-ink" data-auth="in" style="display:none">My Account</a>
-      <a href="feed.html" class="btn btn-sm btn-ink" data-auth="in" style="display:none">Dashboard</a>
-      <a href="signup.html" class="btn btn-sm btn-lime" data-auth="out">Sign up</a>
+      <a href="dashboard" class="btn btn-sm btn-ink" data-auth="in" style="display:none">My Account</a>
+      <a href="feed" class="btn btn-sm btn-ink" data-auth="in" style="display:none">Dashboard</a>
+      <a href="signup" class="btn btn-sm btn-lime" data-auth="out">Sign up</a>
     </div>
   </nav>
 
   <div class="deal-page">
     <div class="breadcrumb fade-up">
       <a href="/">Home</a><span class="breadcrumb-sep">›</span>
-      <a href="browse.html">Browse</a><span class="breadcrumb-sep">›</span>
+      <a href="browse">Browse</a><span class="breadcrumb-sep">›</span>
       <span id="bcCategory">Fashion</span><span class="breadcrumb-sep">›</span>
       <span id="bcTitle" style="font-weight:800;color:var(--ink)">Deal</span>
     </div>
 
-    <div class="preview-note fade-up"><i class="ico ico-tag"></i><span><b>Example listing, not a live deal.</b> <span id="pnBrand">This brand</span> has not onboarded with Cirqle &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. It can&rsquo;t be claimed yet. <a href="for-brands.html">Brands can apply here</a>.</span></div>
+    <div class="preview-note fade-up"><i class="ico ico-tag"></i><span><b>Example listing, not a live deal.</b> <span id="pnBrand">This brand</span> has not onboarded with Cirqle &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. It can&rsquo;t be claimed yet. <a href="for-brands">Brands can apply here</a>.</span></div>
 
     <div class="deal-layout">
       <div>
@@ -199,8 +199,8 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
-  <script src="assets/escape.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
+  <script src="assets/escape.js?v=15"></script>
   <script>
     // This deal is now loaded from the backend catalog (Phase 3) by its id,
     // instead of a hardcoded `deals` map. The hero carousel shows real uploaded
@@ -318,7 +318,7 @@
     function handleShop() {
       if (!session) {
         cirqleToast('Please sign in to earn cashback');
-        setTimeout(() => window.location.href = 'signin.html', 1500);
+        setTimeout(() => window.location.href = 'signin', 1500);
         return;
       }
       if (!d) return;
@@ -333,7 +333,7 @@
     function handleSave() {
       if (!session) {
         cirqleToast('Please sign in to save deals');
-        setTimeout(() => window.location.href = 'signin.html', 1500);
+        setTimeout(() => window.location.href = 'signin', 1500);
         return;
       }
       if (!d) return;
@@ -372,6 +372,6 @@
       }
     })();
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>

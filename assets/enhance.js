@@ -33,10 +33,14 @@
   }
 
   // ── Current page + session ──
-  var here = location.pathname.split('/').pop() || 'index.html';
-  // Links to the home page are "/" (so the address bar shows cirqle.co.uk,
-  // not /index.html); compare them as index.html like the path above.
-  var pageOf = function (href) { var h = (href || '').split(/[?#]/)[0]; return (h === '/' || h === '') ? 'index.html' : h; };
+  // Pages are addressed without .html (GitHub Pages serves /browse from
+  // browse.html), and an old .html link still arrives here — so strip it.
+  var here = (location.pathname.split('/').pop() || 'index').replace(/\.html$/, '');
+  if (/\.html$/.test(location.pathname) && history.replaceState) {
+    history.replaceState(null, '', location.pathname.replace(/(index)?\.html$/, '') + location.search + location.hash);
+  }
+  // Links to the home page are "/"; compare every link by bare page name.
+  var pageOf = function (href) { var h = (href || '').split(/[?#]/)[0].replace(/^\//, '').replace(/\.html$/, ''); return h || 'index'; };
   var session = null;
   try {
     session = JSON.parse(
@@ -56,7 +60,7 @@
   // The chip for the page you're on is hidden, and there's no sign-out chip
   // (sign-out lives on the account page). Skipped on the auth pages + merchant
   // portal, which keep their own navs.
-  var SPECIAL_NAV = { 'signin.html': 1, 'signup.html': 1, 'merchant.html': 1, 'reset-password.html': 1 };
+  var SPECIAL_NAV = { 'signin': 1, 'signup': 1, 'merchant': 1, 'reset-password': 1 };
   if (nav && !SPECIAL_NAV[here]) {
     var navLinks = nav.querySelector('.nav-links');
     if (!navLinks) {
@@ -67,9 +71,9 @@
       else nav.insertBefore(navLinks, nav.firstChild);
     }
     navLinks.innerHTML =
-      '<li><a href="browse.html">Browse Deals</a></li>' +
+      '<li><a href="browse">Browse Deals</a></li>' +
       '<li><a href="/">For customers</a></li>' +
-      '<li><a href="for-brands.html">For brands</a></li>';
+      '<li><a href="for-brands">For brands</a></li>';
 
     var cta = nav.querySelector('.nav-cta');
     if (!cta) { cta = document.createElement('div'); cta.className = 'nav-cta'; nav.appendChild(cta); }
@@ -78,14 +82,14 @@
     if (!cta.querySelector('.nav-user')) {
       if (session) {
         var chips = '';
-        if (here !== 'dashboard.html') chips += '<a href="dashboard.html" class="btn btn-sm">My Account</a>';
-        if (here !== 'feed.html')      chips += '<a href="feed.html" class="btn btn-sm btn-ink">Dashboard</a>';
+        if (here !== 'dashboard') chips += '<a href="dashboard" class="btn btn-sm">My Account</a>';
+        if (here !== 'feed')      chips += '<a href="feed" class="btn btn-sm btn-ink">Dashboard</a>';
         cta.innerHTML = chips;
       } else {
         // Signed out: neither chip has anywhere real to go (both just bounce
         // to sign-in), so showing "My Account" / "Dashboard" was promising
         // pages that don't exist yet for this visitor. One honest button.
-        cta.innerHTML = '<a href="signin.html" class="btn btn-sm">Sign In</a>';
+        cta.innerHTML = '<a href="signin" class="btn btn-sm">Sign In</a>';
       }
     }
   }
@@ -120,15 +124,15 @@
     menu.className = 'nav-menu';
     menu.id = 'navMenu';
     var links = [
-      ['browse.html', 'Browse Deals'],
+      ['browse', 'Browse Deals'],
       ['/', 'For customers'],
-      ['for-brands.html', 'For brands'],
-      ['about.html', 'About'],
-      ['help.html', 'Help centre'],
+      ['for-brands', 'For brands'],
+      ['about', 'About'],
+      ['help', 'Help centre'],
     ];
     var authLinks = session
-      ? [['dashboard.html', 'My Account'], ['feed.html', 'Dashboard'], ['account.html', 'Account details']]
-      : [['signin.html', 'Sign in'], ['signup.html', 'Sign up']];
+      ? [['dashboard', 'My Account'], ['feed', 'Dashboard'], ['account', 'Account details']]
+      : [['signin', 'Sign in'], ['signup', 'Sign up']];
     menu.innerHTML =
       links.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
       '<div class="nav-menu-divider"></div>' +

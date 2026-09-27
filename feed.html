@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     /* Receipt lifecycle accents (chips carry a coloured status dot) */
     :root { --st-review: #E6892B; --st-done: #2E9E5A; }
@@ -200,8 +200,8 @@
         <span class="nav-avatar" id="navAvatar">?</span>
         <span class="nav-name" id="navName">Loading…</span>
       </div>
-      <a href="dashboard.html" class="btn btn-sm">My Account</a>
-      <a href="browse.html" class="btn btn-sm">Browse deals</a>
+      <a href="dashboard" class="btn btn-sm">My Account</a>
+      <a href="browse" class="btn btn-sm">Browse deals</a>
     </div>
   </nav>
 
@@ -228,7 +228,7 @@
            any time — it's got its own 3-day clock and never waits on an
            earlier claim to clear. It's also the only way we ever learn a
            customer is a regular. -->
-      <a class="btn btn-sm btn-ink" href="receipt.html">Log a repeat visit</a>
+      <a class="btn btn-sm btn-ink" href="receipt">Log a repeat visit</a>
     </div>
 
     <!-- Everything above is common to both; the tabs are where they diverge. -->
@@ -266,7 +266,7 @@
             <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
             <div class="progress-note" id="seasonNote">Refer someone to get on the board.</div>
             <div style="text-align:center; margin-top:16px">
-              <a href="leaderboard.html" style="font-size:.82rem; font-weight:800; color:var(--pink-deep); text-decoration:none">View leaderboard &rarr;</a>
+              <a href="leaderboard" style="font-size:.82rem; font-weight:800; color:var(--pink-deep); text-decoration:none">View leaderboard &rarr;</a>
             </div>
           </div>
           <div class="card streak-card">
@@ -281,13 +281,13 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
-  <script src="assets/escape.js?v=14"></script>
-  <script src="assets/ig-account.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
+  <script src="assets/escape.js?v=15"></script>
+  <script src="assets/ig-account.js?v=15"></script>
   <script>
     // ── Auth guard ──
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
-    if (!session) { window.location.href = 'signin.html'; }
+    if (!session) { window.location.href = 'signin'; }
     else {
       document.getElementById('navName').textContent = session.firstName + ' ' + session.lastName;
       document.getElementById('navAvatar').textContent = session.firstName[0].toUpperCase();
@@ -398,7 +398,7 @@
         //   pending    -> Under review (replace allowed)
         //   confirmed/paid -> Verified (View Receipt appears)
         //   rejected   -> Not eligible (re-upload allowed)
-        const uploadHref = 'receipt.html?id=' + encodeURIComponent(p.id || '');
+        const uploadHref = 'receipt?id=' + encodeURIComponent(p.id || '');
         let status, actions;
         if (!r) {
           status = '<span class="tile-status">Awaiting receipt</span>';
@@ -614,7 +614,7 @@
       const handle = session.instagramHandle;
       if (!handle) {
         cirqleToast('Add your Instagram handle in your account first');
-        setTimeout(() => window.location.href = 'account.html', 1400);
+        setTimeout(() => window.location.href = 'account', 1400);
         return;
       }
       try {
@@ -719,6 +719,6 @@
     if (session) loadReceipts().then(loadMentions);
     showShareTab(location.hash === '#person' ? 'person' : 'online');
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>

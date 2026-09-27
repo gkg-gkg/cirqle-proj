@@ -19,7 +19,7 @@ const esc = escapeHtml;
 // not text — only call it where the caller actually needs the markup to
 // render (deal.html's terms list), never as a general-purpose escape.
 const ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'P', 'BR', 'UL', 'OL', 'LI', 'SPAN', 'A']);
-// Resolves relative links (e.g. terms' own "terms.html") against the current
+// Resolves relative links (e.g. terms' own "terms") against the current
 // page before checking the scheme, so a same-site relative href survives
 // while "javascript:"/"data:" etc. (which resolve to their own protocol
 // regardless of base) don't.

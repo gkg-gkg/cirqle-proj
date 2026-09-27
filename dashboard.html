@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=14" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=15" />
   <style>
     .nav-user { display: flex; align-items: center; gap: 10px; }
     .nav-avatar {
@@ -113,12 +113,12 @@
   <nav class="nav">
     <a href="/" class="logo">cirqle</a>
     <div class="nav-cta">
-      <a href="account.html" class="nav-user nav-user-link" title="Account details">
+      <a href="account" class="nav-user nav-user-link" title="Account details">
         <span class="nav-avatar" id="navAvatar">?</span>
         <span class="nav-name" id="navName">Loading…</span>
       </a>
-      <a href="feed.html" class="btn btn-sm btn-ink">Dashboard</a>
-      <a href="browse.html" class="btn btn-sm">Browse deals</a>
+      <a href="feed" class="btn btn-sm btn-ink">Dashboard</a>
+      <a href="browse" class="btn btn-sm">Browse deals</a>
     </div>
   </nav>
 
@@ -138,7 +138,7 @@
       <div class="wallet-referrals" id="walletReferrals" hidden></div>
       <div class="wallet-actions">
         <button class="btn btn-ink" id="withdrawBtn" onclick="withdraw()">Withdraw</button>
-        <a href="browse.html" class="btn">Find deals</a>
+        <a href="browse" class="btn">Find deals</a>
         <button class="btn" onclick="copyHandle()">Refer a friend</button>
       </div>
     </div>
@@ -193,7 +193,7 @@
           <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
           <div class="progress-note" id="seasonNote">Refer someone to get on the board.</div>
           <div style="text-align:center; margin-top:16px">
-            <a href="leaderboard.html" style="font-size:.82rem; font-weight:800; color:var(--pink-deep); text-decoration:none">View leaderboard &rarr;</a>
+            <a href="leaderboard" style="font-size:.82rem; font-weight:800; color:var(--pink-deep); text-decoration:none">View leaderboard &rarr;</a>
           </div>
         </div>
 
@@ -211,7 +211,7 @@
           <div class="panel-title">Active deals for you</div>
           <div id="activeDealsList"></div>
           <div style="text-align:center; margin-top:16px">
-            <a href="browse.html" style="font-size:.82rem; font-weight:800; color:var(--pink-deep); text-decoration:none">View all deals →</a>
+            <a href="browse" style="font-size:.82rem; font-weight:800; color:var(--pink-deep); text-decoration:none">View all deals →</a>
           </div>
         </div>
 
@@ -230,17 +230,17 @@
           <div class="account-cta-title">Account details</div>
           <div class="account-cta-sub">Edit your profile, email and Instagram handle, change your password, or sign out.</div>
         </div>
-        <a href="account.html" class="btn btn-ink">Account details →</a>
+        <a href="account" class="btn btn-ink">Account details →</a>
       </div>
     </div>
   </div>
 
-  <script src="assets/api.js?v=14"></script>
-  <script src="assets/escape.js?v=14"></script>
+  <script src="assets/api.js?v=15"></script>
+  <script src="assets/escape.js?v=15"></script>
   <script>
     // ── Auth check ──
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
-    if (!session) { window.location.href = 'signin.html'; }
+    if (!session) { window.location.href = 'signin'; }
     else {
       document.getElementById('navName').textContent = session.firstName + ' ' + session.lastName;
       document.getElementById('navAvatar').textContent = session.firstName[0].toUpperCase();
@@ -302,7 +302,7 @@
       const handle = session.instagramHandle;
       if (!handle) {
         cirqleToast('Add your Instagram handle in your account first');
-        setTimeout(() => window.location.href = 'account.html', 1400);
+        setTimeout(() => window.location.href = 'account', 1400);
         return;
       }
       try {
@@ -498,7 +498,7 @@
             '<span class="coin coin-sky" style="font-size:1rem">' + cirqleIcon(cirqleCatIcon(c.category)) + '</span>' +
             '<div><div class="mini-deal-name">' + c.brand + '</div>' +
             '<div class="mini-deal-cb">' + c.rate + '% cashback</div></div>' +
-            '<a href="deal.html?id=' + c.id + '" class="btn btn-sm btn-lime mini-deal-btn">Shop →</a>' +
+            '<a href="deal?id=' + c.id + '" class="btn btn-sm btn-lime mini-deal-btn">Shop →</a>' +
           '</div>'
         ).join('');
       } catch (e) {
@@ -514,7 +514,7 @@
       const saved = JSON.parse(localStorage.getItem('cirqle_saved') || '[]');
       if (!saved.length) {
         list.innerHTML = '<div style="font-size:.82rem;font-weight:600;color:var(--ink-soft);padding:4px 0">No saved deals yet. Tap “Save deal” on any offer to keep it here.</div>' +
-          '<div style="text-align:center;margin-top:12px"><a href="browse.html" style="font-size:.82rem;font-weight:800;color:var(--pink-deep);text-decoration:none">Browse deals →</a></div>';
+          '<div style="text-align:center;margin-top:12px"><a href="browse" style="font-size:.82rem;font-weight:800;color:var(--pink-deep);text-decoration:none">Browse deals →</a></div>';
         return;
       }
       list.innerHTML = saved.map(s =>
@@ -522,7 +522,7 @@
           '<span class="coin coin-lime" style="font-size:1rem">' + cirqleIcon('bookmark') + '</span>' +
           '<div><div class="mini-deal-name">' + s.brand + '</div>' +
           '<div class="mini-deal-cb">' + s.rate + '% cashback</div></div>' +
-          '<a href="deal.html?id=' + s.id + '" class="btn btn-sm mini-deal-btn">View →</a>' +
+          '<a href="deal?id=' + s.id + '" class="btn btn-sm mini-deal-btn">View →</a>' +
         '</div>'
       ).join('');
     })();
@@ -534,6 +534,6 @@
       window.location.href = '/';
     }
   </script>
-  <script src="assets/enhance.js?v=14"></script>
+  <script src="assets/enhance.js?v=15"></script>
 </body>
 </html>
