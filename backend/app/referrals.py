@@ -130,9 +130,9 @@ def check(receipt: Receipt, session: Session) -> tuple[bool, str]:
     have been approved, or rejected.
     """
     if receipt.referred_by_user_id is None:
-        return False, "No referral on this claim."
+        return False, "No referral on this receipt."
     if receipt.campaign_id is None:
-        return False, "This claim isn't linked to a deal."
+        return False, "This receipt isn't linked to a deal."
 
     referrer = session.get(User, receipt.referred_by_user_id)
     if referrer is None:
@@ -145,7 +145,7 @@ def check(receipt: Receipt, session: Session) -> tuple[bool, str]:
         return False, "This deal doesn't offer a referral bonus."
 
     if not _cleared(receipt, session):
-        return False, "The claim hasn't cleared yet."
+        return False, "The receipt hasn't cleared yet."
 
     # The referrer must have promoted this same deal themselves, and their own
     # claim must have been approved — one still in the queue earns nothing yet.
@@ -157,7 +157,7 @@ def check(receipt: Receipt, session: Session) -> tuple[bool, str]:
     ).all()
     approved = [c for c in own_claims if c.status in APPROVED_STATUSES]
     if not approved:
-        return False, "The referrer's own claim for this deal hasn't been approved."
+        return False, "The referrer's own receipt for this deal hasn't been approved."
 
     # You can't have referred someone to a deal you posted about afterwards.
     if _moment(approved[0], session) > _moment(receipt, session):
@@ -174,7 +174,7 @@ def check(receipt: Receipt, session: Session) -> tuple[bool, str]:
         ).order_by(Receipt.uploaded_at)
     ).first()
     if first is not None and first.id != receipt.id:
-        return False, "They had already claimed this deal before this one."
+        return False, "They had already uploaded a receipt for this deal before this one."
 
     referee = session.get(User, receipt.user_id)
     if referee is None:

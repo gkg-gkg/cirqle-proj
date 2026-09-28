@@ -273,13 +273,20 @@
        The phones are drawn in CSS rather than screenshotted, so they stay sharp
        and restyle with the palette. */
     .cycle { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(18px, 2.6vw, 28px); }
-    .cyc { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 18px 24px; box-shadow: var(--shadow); }
+    /* Tiles are columns and the picture takes up any spare height, so no tile
+       carries empty space under its text. Share has the most to say, so only
+       its picture may shrink (to 170px) — the row settles where all three
+       come out the same height. */
+    .cyc { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 18px 24px; box-shadow: var(--shadow);
+      display: flex; flex-direction: column; }
     .cyc-stage {
-      position: relative; height: 250px; border-radius: 14px; overflow: hidden;
+      position: relative; flex: 1 0 250px; border-radius: 14px; overflow: hidden;
       background: linear-gradient(160deg, #EEF5FB 0%, #DDEDF8 100%);
       display: flex; align-items: flex-end; justify-content: center;
     }
-    .cyc:nth-child(2) .cyc-stage { background: linear-gradient(160deg, #E9F3FA 0%, #CAE4F4 100%); }
+    /* The shorter Share picture carries a smaller phone so its top isn't cut. */
+    .cyc:nth-child(2) .ph { transform: scale(.8); transform-origin: 50% 100%; }
+    .cyc:nth-child(2) .cyc-stage { flex-basis: 170px; background: linear-gradient(160deg, #E9F3FA 0%, #CAE4F4 100%); }
     .cyc:nth-child(3) .cyc-stage { background: linear-gradient(160deg, #E2F0F9 0%, #B1D8EF 100%); }
     .cyc-n {
       position: absolute; top: 12px; left: 12px; z-index: 2; width: 30px; height: 30px; border-radius: 50%;
@@ -472,6 +479,10 @@
       @media (max-width: 600px) { .cycle { margin: 0 -18px; padding-left: 18px; padding-right: 18px; } }
       /* Not 100%: the sliver of the next card is the affordance. */
       .cyc { flex: 0 0 84%; min-width: 0; scroll-snap-align: center; }
+      /* The Share text runs longest on a narrow card; a smaller Share picture
+         keeps Shop and Earn from turning into tall, empty panels. */
+      .cyc:nth-child(2) .cyc-stage { flex-basis: 128px; }
+      .cyc:nth-child(2) .ph { transform: scale(.62); }
     }
 
     /* ── Review wall — small avatar, quote, rating ── */
@@ -827,12 +838,17 @@
     #steps { padding-bottom: clamp(40px, 5.3vw, 72px); }
     #share-ways { padding-top: clamp(40px, 5.3vw, 72px); }
     .sw-dots { display: none; }
-    /* Phones: the two cards sit side by side and you flick between them. */
+    /* Phones: a two-card deck. Flick the front card sideways and it tucks in
+       behind the other one, which comes forward. Driven by the script below;
+       the deck's height is set there from the taller card. */
     @media (max-width: 760px) {
-      .sw { display: flex; gap: 14px; max-width: none; overflow-x: auto; scroll-snap-type: x mandatory;
-        margin-inline: -18px; padding: 4px 18px 14px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-      .sw::-webkit-scrollbar { display: none; }
-      .sw-card { flex: 0 0 86%; scroll-snap-align: center; }
+      .sw { display: block; position: relative; max-width: 420px; margin: 0 auto; touch-action: pan-y; }
+      .sw-card { position: absolute; left: 0; right: 0; top: 0; user-select: none; -webkit-user-select: none;
+        transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s, filter .45s; will-change: transform; }
+      .sw-card.is-front { z-index: 2; transform: none; cursor: grab; }
+      .sw-card.is-back { z-index: 1; transform: translateY(18px) scale(.93) rotate(2.5deg); filter: brightness(.97); box-shadow: var(--shadow-sm); }
+      .sw-card.dragging { transition: none; cursor: grabbing; }
+      .sw-card.reveal { transition-delay: 0s; }
       .sw-or { display: none; }
       .sw-scene { height: 372px; }
       .sw-thread { width: 84%; }
@@ -935,7 +951,7 @@
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle.co.uk</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
           </div>
           <h3 class="cyc-t">Share</h3>
-          <p class="cyc-d">Share it with your friends, on social media or in&#8209;person. However you share it, you earn.</p>
+          <p class="cyc-d">Share with your friends, on social media or in&#8209;person. On social media, follow @cirqle.co.uk on Instagram and post what you bought, tagging us and the brand. In person, recommend the brand to a friend and have them enter your Instagram handle when they upload their receipt. However you share, you both earn.</p>
         </div>
         <div class="cyc reveal reveal-delay-3">
           <div class="cyc-stage">
@@ -943,7 +959,7 @@
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-bal"><span>Wallet</span><b>£47.80</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w50"></span><b class="ps-amt">+£3.50</b></div><div class="ps-row"><span class="ps-dot"></span><span class="ps-line w40"></span><b class="ps-amt">+£2.10</b></div><div class="ps-btn">Withdraw</div></div></div>
           </div>
           <h3 class="cyc-t">Earn</h3>
-          <p class="cyc-d">Once your claim is approved, your cashback clears in about three days. Then it&rsquo;s yours to send straight to your bank.</p>
+          <p class="cyc-d">Once your receipt is approved, your cashback clears in about three days. Then it&rsquo;s yours to send straight to your bank.</p>
         </div>
       </div>
       <div class="steps-more reveal reveal-delay-3">
@@ -986,19 +1002,19 @@
             <div class="sw-thread sw-thread-a">
               <header><img src="assets/photos/p10.jpg" alt=""><b>Priya</b></header>
               <p class="in">Where did you get those trainers?</p>
-              <p class="out">Cirqle deal! Put my handle in when you claim</p>
+              <p class="out">Cirqle deal! Add my handle when you upload your receipt</p>
             </div>
             <div class="sw-thread sw-thread-b">
               <header><img src="assets/photos/p12.jpg" alt=""><b>Sam</b></header>
               <p class="in">Is that pizza place any good?</p>
-              <p class="out">Best in town. Add my handle to your claim</p>
+              <p class="out">Best in town. Put my handle in with your receipt</p>
               <p class="in">Booked for Friday!</p>
             </div>
           </div>
           <div class="sw-copy">
             <span class="sw-tag"><i class="ico ico-chat"></i> With your friends</span>
             <h3>Text it or say it</h3>
-            <p>Tell a friend by message or face to face. When they buy and type your handle into their claim, you both get a bonus.</p>
+            <p>Tell a friend by message or face to face. When they buy and type your handle in as they upload their receipt, you both get a bonus.</p>
           </div>
         </article>
       </div>
@@ -1009,20 +1025,63 @@
     </div>
   </section>
   <script>
-    // Share-how-you-want: on phones the two cards swipe; the dots follow and jump.
+    // Share-how-you-want on phones: a two-card deck. Drag the front card
+    // sideways past a threshold (or tap a dot) and it flies out, then tucks in
+    // behind the other card, which comes to the front.
     (function () {
-      var row = document.querySelector('#share-ways .sw');
-      var cards = row.querySelectorAll('.sw-card');
+      var deck = document.querySelector('#share-ways .sw');
+      var cards = [].slice.call(deck.querySelectorAll('.sw-card'));
       var dots = document.querySelectorAll('#share-ways .sw-dots button');
-      function mark() {
-        var mid = row.scrollLeft + row.clientWidth / 2, best = 0, bestD = Infinity;
-        cards.forEach(function (c, i) { var d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid); if (d < bestD) { bestD = d; best = i; } });
-        dots.forEach(function (d, i) { d.setAttribute('aria-current', String(i === best)); });
+      var mq = window.matchMedia('(max-width: 760px)');
+      var front = 0, startX = 0, dx = 0, dragging = false;
+
+      function layout() {
+        if (!mq.matches) { deck.style.height = ''; cards.forEach(function (c) { c.classList.remove('is-front', 'is-back'); c.style.transform = ''; }); return; }
+        cards.forEach(function (c, i) { c.classList.toggle('is-front', i === front); c.classList.toggle('is-back', i !== front); });
+        var h = Math.max.apply(null, cards.map(function (c) { return c.offsetHeight; }));
+        deck.style.height = (h + 26) + 'px';
+        dots.forEach(function (d, i) { d.setAttribute('aria-current', String(i === front)); });
       }
-      row.addEventListener('scroll', function () { window.requestAnimationFrame(mark); }, { passive: true });
-      dots.forEach(function (d, i) { d.addEventListener('click', function () {
-        row.scrollTo({ left: cards[i].offsetLeft - (row.clientWidth - cards[i].offsetWidth) / 2, behavior: 'smooth' });
-      }); });
+      function swap(dir) {
+        var out = cards[front];
+        out.classList.remove('dragging');
+        out.style.transform = 'translateX(' + (dir * 115) + '%) rotate(' + (dir * 12) + 'deg)';
+        setTimeout(function () {
+          front = 1 - front;
+          out.style.transform = '';
+          layout();   // the old front slides from off-screen to its place behind
+        }, 220);
+      }
+      function down(e) {
+        if (!mq.matches || e.target.closest('a,button')) return;
+        if (!e.touches) e.preventDefault();   // stop the browser dragging the photo instead
+        dragging = true; dx = 0; startX = (e.touches ? e.touches[0] : e).clientX;
+        cards[front].classList.add('dragging');
+      }
+      function move(e) {
+        if (!dragging) return;
+        dx = (e.touches ? e.touches[0] : e).clientX - startX;
+        cards[front].style.transform = 'translateX(' + dx + 'px) rotate(' + (dx / 18) + 'deg)';
+      }
+      function up(e) {
+        if (!dragging) return;
+        dragging = false;
+        // Measure from where the finger lifted, not the last move event.
+        if (e && e.changedTouches && e.changedTouches[0]) dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 70) swap(dx > 0 ? 1 : -1);
+        else { cards[front].classList.remove('dragging'); cards[front].style.transform = ''; }
+      }
+      deck.addEventListener('touchstart', down, { passive: true });
+      deck.addEventListener('touchmove', move, { passive: true });
+      deck.addEventListener('touchend', up);
+      deck.addEventListener('mousedown', down);
+      deck.addEventListener('dragstart', function (e) { e.preventDefault(); });
+      window.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', up);
+      dots.forEach(function (d, i) { d.addEventListener('click', function () { if (i !== front) swap(-1); }); });
+      window.addEventListener('resize', layout);
+      window.addEventListener('load', layout);
+      layout();
     })();
   </script>
 
@@ -1089,7 +1148,7 @@
         <div class="calc-row" style="margin-bottom:0">
           <div class="calc-label"><span>Friends you've referred <em>a month</em></span><b id="calcRefsLabel">3</b></div>
           <input type="range" class="calc-range" id="calcRefs" min="0" max="100" step="1" value="3" aria-label="Friends you've referred a month">
-          <p class="calc-note" style="margin-top:8px">&pound;1 of cashback per referral, paid once their first claim is approved.</p>
+          <p class="calc-note" style="margin-top:8px">&pound;1 of cashback per referral, paid once their first receipt is approved.</p>
         </div>
         <div class="calc-more">
           <a href="how-it-works" class="btn btn-lg btn-lime">Find out more &rarr;</a>

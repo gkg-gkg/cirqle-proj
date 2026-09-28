@@ -199,8 +199,8 @@
         '<div><a href="/" class="footer-logo">cirqle</a>' +
         '<p class="footer-desc">Cashback for sharing what you buy with your friends, on social media or in&#8209;person.</p>' +
         '<div class="footer-social"><a class="social-link" href="https://www.instagram.com/cirqle.co.uk/" target="_blank" rel="noopener" aria-label="Cirqle on Instagram"><i class="ico ico-instagram"></i></a></div></div>' +
-        col('For shoppers', [['how-it-works', 'How it works'], ['browse', 'Browse deals'], ['receipt', 'Claim cashback'], ['affiliates', 'Referrals'], ['leaderboard', 'Leaderboard']]) +
-        col('For brands', [['for-brands', 'Cirqle for brands'], ['for-brands-verification', 'How we verify claims'], ['contact', 'Apply to partner'], ['merchant', 'Merchant sign in']]) +
+        col('For shoppers', [['how-it-works', 'How it works'], ['browse', 'Browse deals'], ['receipt', 'Upload a receipt'], ['affiliates', 'Referrals'], ['leaderboard', 'Leaderboard']]) +
+        col('For brands', [['for-brands', 'Cirqle for brands'], ['for-brands-verification', 'How we check receipts'], ['contact', 'Apply to partner'], ['merchant', 'Merchant sign in']]) +
         col('Company', [['about', 'About us'], ['help', 'Help centre &amp; FAQ'], ['mailto:hello@cirqle.co.uk', 'Contact us']]) +
         col('Your account', session
           ? [['dashboard', 'My account'], ['feed', 'Dashboard'], ['account', 'Account details']]

@@ -69,10 +69,10 @@
         <h2>2. What data we collect</h2>
         <ul>
           <li><strong>Account data:</strong> your first and last name, email address, password (stored only as a secure bcrypt hash — never in plain text), your Instagram handle, and the date you signed up. Before a new account goes live, you confirm your email address and a member of our team reviews the account.</li>
-          <li><strong>Referrals:</strong> if a friend recommended a purchase to you, the Instagram handle you enter for them on your claim; and, if you are the one who recommended it, the fact that a friend named you. We use this to pay both of you the referral bonus and to stop people referring themselves.</li>
+          <li><strong>Referrals:</strong> if a friend recommended a purchase to you, the Instagram handle you enter for them when you upload your receipt; and, if you are the one who recommended it, the fact that a friend named you. We use this to pay both of you the referral bonus and to stop people referring themselves.</li>
           <li><strong>Withdrawals:</strong> to withdraw, you verify your identity and add a bank account on Stripe&rsquo;s own secure form. Stripe collects and keeps those details; we never see your bank details or ID documents. We keep only your Stripe account reference, whether it is ready for payouts, and a record of each withdrawal.</li>
-          <li><strong>Cashback claims:</strong> photos of receipts you upload (stored privately), the deal you claimed against, the Instagram post linked to the claim (if any — a repeat visit can be logged without one), and the cashback amount and its status (pending, confirmed, paid, or rejected).</li>
-          <li><strong>What your receipt says:</strong> we read each receipt automatically to check the claim. From that reading we keep the shop's name, the total, the currency, the purchase date and the order or transaction number. We do this to confirm the purchase is genuine and not a duplicate, and to tell the brand what their deals earned. The automatic reading is done by AI, which receives the receipt image itself — see section 5. This is not used to train any AI model. We also keep the ability to read a receipt using Amazon Textract inside our own AWS account, used when a claim needs a manual re-check.</li>
+          <li><strong>Receipts you upload:</strong> photos of receipts you upload (stored privately), the deal it is for, the Instagram post linked to it (if any — a repeat visit can be logged without one), and the cashback amount and its status (pending, confirmed, paid, or rejected).</li>
+          <li><strong>What your receipt says:</strong> we read each receipt automatically to check it. From that reading we keep the shop's name, the total, the currency, the purchase date and the order or transaction number. We do this to confirm the purchase is genuine and not a duplicate, and to tell the brand what their deals earned. The automatic reading is done by AI, which receives the receipt image itself — see section 5. This is not used to train any AI model. We also keep the ability to read a receipt using Amazon Textract inside our own AWS account, used when a receipt needs a manual re-check.</li>
           <li><strong>Instagram post data:</strong> where you provide an Instagram handle and refresh your feed, we collect public posts that tag our brand account — see section 4.</li>
           <li><strong>Technical data:</strong> our website is hosted on GitHub Pages and our API on Amazon Web Services (AWS). As part of normal operation and security, those providers process standard request data such as your IP address, the time of the request, and your browser type. Our API also holds your IP address in memory for a few minutes to limit abuse (for example, repeated failed sign-ins); it is never written to our database. We do not run our own advertising or analytics tracking.</li>
           <li><strong>Deal views and clicks:</strong> when a deal page is opened, or its &ldquo;Shop&rdquo; link is followed, we count it so the brand can see how the deal performs. The count is anonymous: it records the deal, whether it was a view or a click, and the time. Nothing that identifies you is attached.</li>
@@ -87,10 +87,10 @@
         <table>
           <tr><th>What we do</th><th>Lawful basis</th></tr>
           <tr><td>Create and run your account and provide the cashback service</td><td>Performance of our contract with you</td></tr>
-          <tr><td>Verify claims and prevent fraud, abuse, and duplicate accounts</td><td>Our legitimate interests</td></tr>
+          <tr><td>Check receipts and prevent fraud, abuse, and duplicate accounts</td><td>Our legitimate interests</td></tr>
           <tr><td>Show a brand your activity with that brand, so they can see what the cashback they funded achieved (section 5)</td><td>Performance of our contract, and our legitimate interests</td></tr>
           <tr><td>Keep the service secure, working, and debugged</td><td>Our legitimate interests</td></tr>
-          <tr><td>Send service emails (claim received/confirmed/paid, email confirmation links, password resets)</td><td>Performance of our contract</td></tr>
+          <tr><td>Send service emails (receipt received/confirmed/paid, email confirmation links, password resets)</td><td>Performance of our contract</td></tr>
           <tr><td>Send marketing emails, if you opt in</td><td>Your consent (you can withdraw it any time)</td></tr>
           <tr><td>Keep financial and tax records</td><td>Compliance with a legal obligation</td></tr>
         </table>
@@ -99,32 +99,32 @@
 
       <section id="instagram">
         <h2>4. Instagram data</h2>
-        <p>Cirqle's cashback model asks you to post about a purchase on Instagram and tag our account. (Once you have claimed a deal, some brands also let you log a repeat visit from just the receipt, with no post — that route involves no Instagram data at all.) To check that a qualifying post exists, we retrieve <strong>public</strong> Instagram posts that tag our brand account and match them to the Instagram handle on your account. For those posts we may process the post's URL, caption, timestamp, the posting account's username and display name, and public like/comment counts.</p>
-        <p>We use this only to verify your cashback claim. You control which handle is on your account, and you can remove or change it at any time. This retrieval is performed for us by a third-party provider (see section 5). We are reviewing this mechanism and may change how post verification works in future; we will update this policy if we do.</p>
+        <p>Cirqle's cashback model asks you to post about a purchase on Instagram and tag our account. (Once you have uploaded a receipt for a deal, some brands also let you log a repeat visit from just the receipt, with no post — that route involves no Instagram data at all.) To check that a qualifying post exists, we retrieve <strong>public</strong> Instagram posts that tag our brand account and match them to the Instagram handle on your account. For those posts we may process the post's URL, caption, timestamp, the posting account's username and display name, and public like/comment counts.</p>
+        <p>We use this only to check the receipts you upload. You control which handle is on your account, and you can remove or change it at any time. This retrieval is performed for us by a third-party provider (see section 5). We are reviewing this mechanism and may change how post verification works in future; we will update this policy if we do.</p>
       </section>
 
       <section id="sharing">
         <h2>5. Who we share it with</h2>
         <p>We do <strong>not</strong> sell your personal data. We share it only with service providers ("processors") who act on our instructions, and where the law requires:</p>
         <ul>
-          <li><strong>Amazon Web Services (AWS)</strong> — hosting, database, private receipt storage, and email delivery. Your data is stored in AWS's UK (London) region. AWS's Amazon Textract service is also used to read a receipt when a claim needs a manual re-check.</li>
-          <li><strong>An AI provider</strong> — reads your receipt image automatically to check a claim, as described in section 2. Does not train its models on this data.</li>
+          <li><strong>Amazon Web Services (AWS)</strong> — hosting, database, private receipt storage, and email delivery. Your data is stored in AWS's UK (London) region. AWS's Amazon Textract service is also used to read a receipt when a receipt needs a manual re-check.</li>
+          <li><strong>An AI provider</strong> — reads your receipt image automatically to check it, as described in section 2. Does not train its models on this data.</li>
           <li><strong>Apify</strong> — retrieves the public Instagram post data described in section 4.</li>
           <li><strong>postcodes.io</strong> — if you search for deals near a postcode, our server sends that postcode (not your IP address or anything else about you) to postcodes.io to find its map location. We don't store the postcode. If you tap "use my location" instead, your browser asks your permission and the location never leaves your device: distances are worked out on the page itself.</li>
           <li><strong>GitHub (GitHub Pages)</strong> — serves our website.</li>
           <li><strong>Google Fonts</strong> — serves the fonts our pages use; this may involve your browser's IP address being seen by Google.</li>
-          <li><strong>Brand partners:</strong> a brand you have claimed cashback from can see your activity <em>with that brand</em>, in their partner dashboard. This is set out in full below.</li>
+          <li><strong>Brand partners:</strong> a brand you have earned cashback from can see your activity <em>with that brand</em>, in their partner dashboard. This is set out in full below.</li>
           <li><strong>Other Cirqle members</strong> — only if you choose to join the referral leaderboard, which is off unless you turn it on. This is set out in full below.</li>
           <li><strong>Stripe</strong> — pays out member withdrawals (Stripe checks your identity and holds your bank details directly), and processes brands&rsquo; balance top-ups.</li>
           <li><strong>Authorities or advisers</strong> — where we are legally required to disclose, or to protect our rights.</li>
         </ul>
 
         <h3>What a brand can see about you</h3>
-        <p>When you claim cashback from a brand, that brand pays for it, and they get a dashboard showing how their deals performed. Because a claim is something you did with them, your activity appears in it. We think you should know exactly what that means, so here it is in full.</p>
-        <p><strong>A brand you have claimed from can see, about you:</strong></p>
+        <p>When you earn cashback from a brand, that brand pays for it, and they get a dashboard showing how their deals performed. Because a receipt is something you did with them, your activity appears in it. We think you should know exactly what that means, so here it is in full.</p>
+        <p><strong>A brand you have uploaded receipts for can see, about you:</strong></p>
         <ul>
           <li>Your Instagram handle, and the public post you tagged them in — its image, caption, and public like and comment counts.</li>
-          <li>How many times you have claimed with them, and the dates of your first and most recent claim.</li>
+          <li>How many receipts you have uploaded for them, and the dates of your first and most recent one.</li>
           <li>The total printed on the receipts you uploaded to them, and the cashback they paid you.</li>
           <li>Whether someone referred you to them and that person's Instagram handle — and, if you referred anyone to that same brand, their handles too.</li>
         </ul>
@@ -137,7 +137,7 @@
         </ul>
         <p>Where a brand's dashboard shows grouped statistics — for example the share of their customers who returned in a given month — we withhold any group containing fewer than five people, so that a figure can never be traced back to one person.</p>
         <p>We share this because it is <strong>necessary for the contract</strong> between us: the brand funds your cashback, and cannot reasonably be asked to pay for purchases they are shown nothing about. It is also our <strong>legitimate interest</strong> in running a marketplace that brands will fund. Brands act as separate data controllers for what they see, and our partner agreement forbids them from using it to identify you beyond your handle, from combining it with data from elsewhere to do so, or from contacting you outside Cirqle.</p>
-        <p>If you would rather a brand did not see this, do not claim cashback from them. You can also ask us to delete your account at any time (section 8), which removes your claims from every brand dashboard.</p>
+        <p>If you would rather a brand did not see this, do not upload receipts for them. You can also ask us to delete your account at any time (section 8), which removes your receipts from every brand dashboard.</p>
 
         <h3>What other members can see about you</h3>
         <p>We run a referral leaderboard: a table of members ranked by how many people they have referred to Cirqle. <strong>You are not on it unless you choose to be.</strong> It is off for every account by default, and joining is a decision you make on the leaderboard page.</p>

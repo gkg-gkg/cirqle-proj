@@ -817,7 +817,7 @@ def stats(merchant: Merchant = Depends(get_current_merchant),
 
 
 # ── Merchant <-> admin messages ──
-_POST_CAVEAT = ("Every claim needs an Instagram post, so a customer who returns "
+_POST_CAVEAT = ("Every receipt needs an Instagram post, so a customer who returns "
                 "without posting isn't counted here. Treat these as a floor.")
 
 

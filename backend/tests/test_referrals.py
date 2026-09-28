@@ -90,7 +90,7 @@ def test_referrer_who_never_claimed_the_deal_is_refused(client, session):
     res = upload(client, buyer, camp.id, referred_by="@alice")
 
     assert res.status_code == 422
-    assert "hasn't claimed this deal" in res.json()["detail"]
+    assert "hasn't uploaded a receipt for this deal" in res.json()["detail"]
     assert session.exec(select(Receipt).where(Receipt.user_id == buyer.id)).first() is None
 
 
@@ -104,7 +104,7 @@ def test_referrer_who_claimed_a_different_deal_is_refused(client, session):
     res = upload(client, buyer, mine.id, referred_by="@alice")
 
     assert res.status_code == 422
-    assert "hasn't claimed this deal" in res.json()["detail"]
+    assert "hasn't uploaded a receipt for this deal" in res.json()["detail"]
 
 
 def test_referrer_whose_claim_was_rejected_is_refused(client, session):
@@ -116,7 +116,7 @@ def test_referrer_whose_claim_was_rejected_is_refused(client, session):
     res = upload(client, buyer, camp.id, referred_by="@alice")
 
     assert res.status_code == 422
-    assert "hasn't claimed this deal" in res.json()["detail"]
+    assert "hasn't uploaded a receipt for this deal" in res.json()["detail"]
 
 
 def test_referrer_with_an_unapproved_claim_is_accepted_but_flagged_pending(client, session):

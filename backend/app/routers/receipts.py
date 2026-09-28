@@ -103,7 +103,7 @@ def _resolve_referral(raw_handle: str, campaign_id: Optional[int], user: User,
     if not claims:
         raise HTTPException(
             status_code=422,
-            detail=f"@{normalized} hasn't claimed this deal, so they can't have "
+            detail=f"@{normalized} hasn't uploaded a receipt for this deal, so they can't have "
                    f"referred you to it.")
 
     status = ("verified" if any(c.status in APPROVED_STATUSES for c in claims)
@@ -196,7 +196,7 @@ def create_receipt(
             # bonus for a customer the merchant already had.
             raise HTTPException(
                 status_code=422,
-                detail="You can only name who referred you on your first claim "
+                detail="You can only name who referred you on your first receipt "
                        "for a deal, when you post about it.")
         referrer_id, referral_handle, referral_status = _resolve_referral(
             referred_by_handle, campaign_id, user, session)

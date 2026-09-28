@@ -213,7 +213,7 @@ def test_a_visit_cannot_name_a_referrer(session, client):
     res = _upload(client, bob, c, seed="bob", referred="member1")
 
     assert res.status_code == 422
-    assert "first claim" in res.json()["detail"]
+    assert "first receipt" in res.json()["detail"]
 
 
 def test_a_visit_claim_does_not_make_someone_a_valid_referrer(session, client):
@@ -227,7 +227,7 @@ def test_a_visit_claim_does_not_make_someone_a_valid_referrer(session, client):
     res = _upload(client, bob, c, post_id="ig-b", seed="bob", referred="member1")
 
     assert res.status_code == 422
-    assert "hasn't claimed this deal" in res.json()["detail"]
+    assert "hasn't uploaded a receipt for this deal" in res.json()["detail"]
 
 
 # ── Duplicate protection carries more weight now ─────────────────────────────

@@ -424,11 +424,11 @@
       <div class="login-badge"><i class="ico ico-briefcase"></i></div>
       <div class="login-eyebrow">Merchant portal</div>
       <h1 class="login-title">Your deals,<br>performing live.</h1>
-      <p class="login-sub">Sign in to see real views, clicks and claims across your Cirqle deals — and talk directly to our team.</p>
+      <p class="login-sub">Sign in to see real views, clicks and receipts across your Cirqle deals — and talk directly to our team.</p>
       <div class="login-points">
         <div class="login-point">
           <span class="coin coin-sky"><i class="ico ico-chart"></i></span>
-          <div><div class="point-title">Live deal analytics</div><div class="point-desc">Views, clicks and cashback claims for every deal, day by day.</div></div>
+          <div><div class="point-title">Live deal analytics</div><div class="point-desc">Views, clicks and receipts for every deal, day by day.</div></div>
         </div>
         <div class="login-point">
           <span class="coin coin-lime"><i class="ico ico-cash"></i></span>
@@ -498,7 +498,7 @@
     <div class="plan-prompt hidden" id="refPrompt">
       <div>
         <div class="plan-prompt-title" id="refPromptTitle">Upload a reference receipt</div>
-        <div class="plan-prompt-sub" id="refPromptSub">Every shopper's claim gets checked against it — you can't submit a new deal until you've uploaded one.</div>
+        <div class="plan-prompt-sub" id="refPromptSub">Every shopper's receipt gets checked against it — you can't submit a new deal until you've uploaded one.</div>
       </div>
       <input type="file" id="refReceiptInput" accept="image/*" style="display:none" onchange="uploadReferenceReceipt()" />
       <button type="button" class="btn btn-ink mini" onclick="document.getElementById('refReceiptInput').click()">Upload receipt →</button>
@@ -518,7 +518,7 @@
         <div class="stat-note" id="sReturnNote"></div>
       </div>
       <div class="card card-tang stat-card fade-up">
-        <div class="stat-label">Claims</div>
+        <div class="stat-label">Receipts</div>
         <div class="stat-val" id="sClaims">0</div>
         <div class="stat-note" id="sBasket"></div>
       </div>
@@ -547,10 +547,10 @@
             <th><span class="th-info">Deal <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">The deal shoppers see on Browse Deals — its title or brand name.</span></span></th>
             <th class="num"><span class="th-info">Views <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many times shoppers have opened this deal's page.</span></span></th>
             <th class="num"><span class="th-info">Clicks <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many times shoppers have clicked through to the brand's site.</span></span></th>
-            <th class="num"><span class="th-info">Claims <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many shoppers have submitted a receipt claiming cashback on this deal.</span></span></th>
-            <th class="num"><span class="th-info">Revenue <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Total amount spent on receipts claimed against this deal.</span></span></th>
+            <th class="num"><span class="th-info">Receipts <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many shoppers have uploaded a receipt for this deal.</span></span></th>
+            <th class="num"><span class="th-info">Revenue <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Total amount spent on receipts uploaded for this deal.</span></span></th>
             <th class="num"><span class="th-info">Cashback <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Total cashback you've paid shoppers on this deal.</span></span></th>
-            <th class="num"><span class="th-info">Referrals <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Pays a bonus to a shopper who refers a friend, and to the friend, once the friend's claim is approved. Off by default — you choose the amounts when you turn it on.</span></span></th>
+            <th class="num"><span class="th-info">Referrals <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Pays a bonus to a shopper who refers a friend, and to the friend, once the friend's receipt is approved. Off by default — you choose the amounts when you turn it on.</span></span></th>
             <th class="num"><span class="th-info">Repeat visits <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">Lets a shopper log a return visit without posting again, paid at an amount you choose. Off by default.</span></span></th>
           </tr></thead>
           <tbody id="dealsBody"></tbody>
@@ -561,13 +561,13 @@
     <div class="dash-grid">
       <div class="card chart-card fade-up">
         <div class="panel-title">Last 30 days</div>
-        <div class="panel-sub">Views, clicks &amp; claims per day. <span id="convNote"></span></div>
+        <div class="panel-sub">Views, clicks &amp; receipts per day. <span id="convNote"></span></div>
         <div class="legend" id="legend"></div>
         <div class="chart-box" id="chartBox"></div>
       </div>
       <div class="card funnel-card fade-up">
         <div class="panel-title">Conversion funnel</div>
-        <div class="panel-sub">How views turn into clicks and claims.</div>
+        <div class="panel-sub">How views turn into clicks and receipts.</div>
         <div id="funnel"></div>
       </div>
     </div>
@@ -598,7 +598,7 @@
     <div class="pane hidden" id="panePosts">
       <div class="pane-head">
         <div class="panel-title">Posts tagging your brand</div>
-        <div class="panel-sub">The posts shoppers shared when they claimed cashback on your deals — with their engagement counts.</div>
+        <div class="panel-sub">The posts shoppers shared with their receipts for your deals — with their engagement counts.</div>
       </div>
       <div class="posts-grid" id="postsGrid">
         <div class="posts-empty">Loading posts…</div>
@@ -679,7 +679,7 @@
     <div class="pane hidden" id="paneReferrals">
       <div class="pane-head">
         <div class="panel-title">Referrals</div>
-        <div class="panel-sub">Members whose posts led other members to buy and claim cashback. Where a deal has referral bonuses switched on, each of these pays £1 to the poster and 50p to the buyer from your referral wallet — see the Referrals column on your campaigns table.</div>
+        <div class="panel-sub">Members whose posts led other members to buy and upload a receipt. Where a deal has referral bonuses switched on, each of these pays £1 to the poster and 50p to the buyer from your referral wallet — see the Referrals column on your campaigns table.</div>
       </div>
 
       <div class="stats-row headline">
@@ -913,7 +913,7 @@
     <div class="card modal" style="max-width:400px">
       <button class="modal-close" type="button" onclick="closeRewardModal()" aria-label="Close">✕</button>
       <h2 id="rewardTitle">Turn on referral bonuses</h2>
-      <div class="modal-sub" id="rewardSub">Set what each side gets paid when a referral leads to an approved claim.</div>
+      <div class="modal-sub" id="rewardSub">Set what each side gets paid when a referral leads to an approved receipt.</div>
       <div id="rewardFieldsWrap">
         <div class="field">
           <label for="rewardReferrer" id="rewardReferrerLabel">Referrer reward (£)</label>
@@ -1252,7 +1252,7 @@
       document.getElementById('sCashback').textContent = fmtMoney(s.cashbackGiven);
       document.getElementById('sPending').textContent = fmtMoney(s.pendingCashback);
       document.getElementById('convNote').textContent =
-        s.views ? `View→claim conversion: ${s.conversion}%.` : '';
+        s.views ? `View→receipt conversion: ${s.conversion}%.` : '';
 
       renderMoney(s);
 
@@ -1271,7 +1271,7 @@
       document.getElementById('sCost').textContent = fmtMoney(s.programmeCost);
 
       document.getElementById('sCoverage').textContent = s.revenue
-        ? `Read from ${s.revenueCoverage}% of approved claims`
+        ? `Read from ${s.revenueCoverage}% of approved receipts`
         : 'No receipt totals read yet';
 
       // Return is meaningless until they've actually spent something.
@@ -1335,7 +1335,7 @@
 
       const totalActivity = chartData.reduce((a, p) => a + p.views + p.clicks + p.claims, 0);
       if (!n || totalActivity === 0) {
-        box.innerHTML = '<div class="chart-empty">No activity yet. As people view and claim your deals, their daily counts will appear here.</div>';
+        box.innerHTML = '<div class="chart-empty">No activity yet. As people view your deals and upload receipts, their daily counts will appear here.</div>';
         return;
       }
 
@@ -1365,7 +1365,7 @@
         `<circle class="hover-dot" data-key="${se.key}" r="4.5" fill="${se.color}" stroke="#fff" stroke-width="2" />`).join('');
 
       box.innerHTML =
-        `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Daily views, clicks and claims over the last 30 days">
+        `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Daily views, clicks and receipts over the last 30 days">
            ${grid}${xlabels}${lines}
            <line class="crosshair" id="crosshair" y1="${PAD.t}" y2="${PAD.t + PLOT_H}" />
            ${dots}
@@ -1447,7 +1447,7 @@
              <button type="button" class="ref-toggle${d.visitsEnabled ? ' on' : ''}"
                      data-deal="${d.campaignId}" data-on="${d.visitsEnabled ? '1' : '0'}"
                      data-earn="${d.visitEarn}"
-                     title="${d.visitsEnabled ? `Shoppers can log a repeat visit without posting — £${fmtMoney(d.visitEarn)} each` : 'Shoppers must post to claim this deal'}">
+                     title="${d.visitsEnabled ? `Shoppers can log a repeat visit without posting — £${fmtMoney(d.visitEarn)} each` : 'Shoppers must post to earn on this deal'}">
                ${d.visitsEnabled ? 'On' : 'Off'}
              </button>
              ${d.visitsEnabled ? `<div class="ref-paid">£${fmtMoney(d.visitEarn)} · ${fmtInt(d.visitClaims)} logged</div>` : ''}
@@ -1480,7 +1480,7 @@
         document.getElementById('rewardTitle').textContent =
           turningOn ? 'Turn on referral bonuses' : 'Turn off referral bonuses?';
         document.getElementById('rewardSub').textContent = turningOn
-          ? 'Set what each side gets paid when a referral leads to an approved claim. Minimum 50p each.'
+          ? 'Set what each side gets paid when a referral leads to an approved receipt. Minimum 50p each.'
           : "Shoppers won't earn new referral bonuses on this deal. The amounts you've set are kept for next time.";
         document.getElementById('rewardReferrerLabel').textContent = 'Referrer reward (£)';
         referrerInput.min = '0.5';
@@ -1933,7 +1933,7 @@
     function renderCustomerTable(rows) {
       const body = document.getElementById('customersBody');
       if (!rows.length) {
-        body.innerHTML = '<tr><td colspan="7" style="color:var(--ink-soft)">No customers yet. They appear here once a claim is approved.</td></tr>';
+        body.innerHTML = '<tr><td colspan="7" style="color:var(--ink-soft)">No customers yet. They appear here once a receipt is approved.</td></tr>';
         return;
       }
       body.innerHTML = rows.map(c => {
@@ -2070,7 +2070,7 @@
       badge.textContent = posts.length;
       badge.classList.toggle('hidden', posts.length === 0);
       if (!posts.length) {
-        grid.innerHTML = '<div class="posts-empty">No tagged posts yet. When shoppers post about your deals and claim cashback, their posts appear here.</div>';
+        grid.innerHTML = '<div class="posts-empty">No tagged posts yet. When shoppers post about your deals and upload receipts, their posts appear here.</div>';
         return;
       }
       const stat = (val, label, icon) =>
@@ -2116,7 +2116,7 @@
       badge.textContent = rows.length;
       badge.classList.toggle('hidden', rows.length === 0);
       if (!rows.length) {
-        grid.innerHTML = '<div class="posts-empty">No referred claims yet. When a member\'s post leads someone else to buy and claim cashback, it shows up here.</div>';
+        grid.innerHTML = '<div class="posts-empty">No referred receipts yet. When a member\'s post leads someone else to buy and upload a receipt, it shows up here.</div>';
         return;
       }
       const stat = (val, label, icon) =>
@@ -2130,7 +2130,7 @@
         return `<div class="post-tile card">
              <div class="pt-img">${img}</div>
              <div class="pt-stats">
-               ${stat(fmtInt(r.claims), 'Referred claims', 'ico-eye')}
+               ${stat(fmtInt(r.claims), 'Referred receipts', 'ico-eye')}
                ${stat('£' + fmtMoney(r.referredCashback), 'Cashback paid', 'ico-star')}
              </div>
              <div class="pt-body">
@@ -2213,7 +2213,7 @@
         ? "That receipt wasn't clear enough" : 'Upload a reference receipt';
       document.getElementById('refPromptSub').textContent = bad
         ? 'Try a sharper, well-lit photo of the full receipt.'
-        : "Every shopper's claim gets checked against it — you can't submit a new deal until you've uploaded one.";
+        : "Every shopper's receipt gets checked against it — you can't submit a new deal until you've uploaded one.";
     }
 
     async function uploadReferenceReceipt() {
