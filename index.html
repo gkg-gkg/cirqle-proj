@@ -774,9 +774,9 @@
     @keyframes hwDrift { to { transform: translateY(-40px); } }
 
     /* ══ Share how you want ══ */
-    .sw { display: grid; grid-template-columns: 1fr auto 1fr; gap: clamp(14px, 2.4vw, 28px); align-items: center; max-width: 980px; margin: 0 auto; }
+    .sw { display: grid; grid-template-columns: 1fr auto 1fr; gap: clamp(14px, 2.4vw, 28px); align-items: stretch; max-width: 980px; margin: 0 auto; }
     .sw-card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; box-shadow: var(--shadow); }
-    .sw-scene { position: relative; height: 320px; overflow: hidden; }
+    .sw-scene { position: relative; height: 340px; overflow: hidden; }
     .sw-scene-social { background: radial-gradient(120% 90% at 20% 10%, #FFE9F1 0%, #F3E8FF 45%, #E6F3FC 100%); }
     .sw-scene-friend { background: radial-gradient(120% 90% at 80% 10%, #E3F4FF 0%, #EAF5FC 50%, #F4F9FD 100%); }
     .sw-copy { padding: 18px 22px 22px; display: grid; gap: 6px; }
@@ -786,7 +786,7 @@
     .sw-tag { justify-self: start; display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
       color: var(--blue-deep); background: var(--blue-tint); padding: 5px 10px; border-radius: 99px; }
     .sw-tag .ico { color: inherit; }
-    .sw-or { display: grid; place-items: center; }
+    .sw-or { display: grid; place-items: center; align-self: center; }
     .sw-or span { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.05rem; color: #0B1220;
       background: linear-gradient(150deg, var(--neon-soft), var(--neon)); box-shadow: 0 10px 26px rgba(56,182,255,.4); }
 
@@ -808,30 +808,41 @@
       font-size: .78rem; font-weight: 800; color: #0B1220; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); box-shadow: 0 10px 24px rgba(56,182,255,.38);
       animation: swFloat 4.6s ease-in-out infinite; }
     .sw-sticker .ico { color: inherit; }
-    .sw-st-a { right: 10%; bottom: 30px; transform: rotate(4deg); }
-    .sw-st-b { left: 50%; bottom: 16px; translate: -50% 0; white-space: nowrap; animation-delay: -2s; }
+    .sw-st-a { right: 7%; top: 26px; transform: rotate(4deg); }
     @keyframes swFloat { 50% { margin-top: -7px; } }
 
-    /* Friend scene: a message thread, and two friends talking face to face */
-    .sw-chat { position: absolute; left: 18px; right: 18px; top: 20px; display: grid; gap: 7px; }
-    .sw-msg { display: flex; align-items: flex-end; gap: 7px; }
-    .sw-msg img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex: none; }
-    .sw-msg p { margin: 0; padding: 8px 12px; font-size: .76rem; font-weight: 600; line-height: 1.35; max-width: 78%; }
-    .sw-msg.in p { background: #fff; color: var(--ink); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 6px rgba(15,23,42,.08); }
-    .sw-msg.out { justify-content: flex-end; }
-    .sw-msg.out p { background: var(--blue); color: #fff; border-radius: 16px 16px 4px 16px; }
-    .sw-irl { position: absolute; left: 50%; bottom: 62px; translate: -50% 0; display: flex; align-items: center; gap: 8px; }
-    .sw-irl img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 6px 14px rgba(15,23,42,.14); }
-    .sw-say { position: relative; font-size: .72rem; font-weight: 700; color: var(--ink); background: #fff; padding: 6px 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,.1); white-space: nowrap; }
-    .sw-say::after { content: '"'; position: absolute; left: -6px; top: -10px; font-size: 1.6rem; font-weight: 800; color: var(--neon); }
+    /* Friend scene: two separate conversations, as floating chat tiles */
+    .sw-thread { position: absolute; width: 70%; display: grid; gap: 5px; padding: 9px 10px 10px; background: #fff; border-radius: 16px;
+      box-shadow: 0 16px 34px rgba(15,23,42,.14); animation: swFloat 5.2s ease-in-out infinite; }
+    .sw-thread-a { left: 5%; top: 14px; rotate: -3deg; }
+    .sw-thread-b { right: 5%; bottom: 14px; rotate: 3deg; animation-delay: -2.4s; }
+    .sw-thread header { display: flex; align-items: center; gap: 7px; font-size: .74rem; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
+    .sw-thread header img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+    .sw-thread p { margin: 0; padding: 6px 10px; font-size: .71rem; font-weight: 600; line-height: 1.35; max-width: 86%; }
+    .sw-thread .in { justify-self: start; background: var(--paper-deep); color: var(--ink); border-radius: 14px 14px 14px 4px; }
+    .sw-thread .out { justify-self: end; background: var(--blue); color: #fff; border-radius: 14px 14px 4px 14px; }
 
+    /* The band's top line sits halfway between "Find out more" and this
+       heading: the same gap above and below it. */
+    #steps { padding-bottom: clamp(40px, 5.3vw, 72px); }
+    #share-ways { padding-top: clamp(40px, 5.3vw, 72px); }
+    .sw-dots { display: none; }
+    /* Phones: the two cards sit side by side and you flick between them. */
     @media (max-width: 760px) {
-      .sw { grid-template-columns: 1fr; max-width: 420px; }
-      .sw-or { margin: -6px 0; }
-      .sw-or span { width: 48px; height: 48px; font-size: .95rem; }
-      .sw-scene { height: 320px; }
+      .sw { display: flex; gap: 14px; max-width: none; overflow-x: auto; scroll-snap-type: x mandatory;
+        margin-inline: -18px; padding: 4px 18px 14px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+      .sw::-webkit-scrollbar { display: none; }
+      .sw-card { flex: 0 0 86%; scroll-snap-align: center; }
+      .sw-or { display: none; }
+      .sw-scene { height: 372px; }
+      .sw-thread { width: 84%; }
+      .sw-thread-a { left: 4%; }
+      .sw-thread-b { right: 4%; }
+      .sw-dots { display: flex; justify-content: center; gap: 7px; margin-top: 4px; }
+      .sw-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 99px; background: #C9D6E2; cursor: pointer; transition: width .25s, background .25s; }
+      .sw-dots button[aria-current="true"] { width: 22px; background: var(--neon); }
     }
-    @media (prefers-reduced-motion: reduce) { .sw-heart, .sw-sticker { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .sw-heart, .sw-sticker, .sw-thread { animation: none; } }
     @media (prefers-reduced-motion: reduce) {
       .hero-wall .hw-col { animation: none !important; }
       /* Reduced motion gets the swipe strip too — handled by the script, which
@@ -863,7 +874,7 @@
     <div class="hero-wall" aria-hidden="true">
       <div class="hw-grid">
         <div class="hw-col"><img src="assets/wall-hd/h1.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h7.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h13.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall-hd/h2.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h8.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h14.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall-hd/h2.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h19.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h14.jpg" alt="" decoding="async" fetchpriority="low"></div>
         <div class="hw-col"><img src="assets/wall-hd/h3.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h9.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h15.jpg" alt="" decoding="async" fetchpriority="low"></div>
         <div class="hw-col"><img src="assets/wall-hd/h4.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h10.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h16.jpg" alt="" decoding="async" fetchpriority="low"></div>
         <div class="hw-col"><img src="assets/wall-hd/h5.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h11.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h17.jpg" alt="" decoding="async" fetchpriority="low"></div>
@@ -924,7 +935,7 @@
             <div class="ph"><div class="ph-screen"><div class="ph-notch"></div><div class="ps-top"><span class="ps-brand">New post</span></div><img class="ps-img tall" src="assets/steps/post.jpg" alt="" loading="lazy" decoding="async"><div class="ps-cap">Great haul today <b>@cirqle.co.uk</b> <b>@nike</b></div><div class="ps-btn">Share</div></div></div>
           </div>
           <h3 class="cyc-t">Share</h3>
-          <p class="cyc-d">Share with your friends, on social media or in&#8209;person. On social media, follow @cirqle.co.uk on Instagram and post what you bought, tagging us and the brand. In person, recommend the brand to a friend and have them enter your Instagram handle when they claim. However you share, you both earn.</p>
+          <p class="cyc-d">Share it with your friends, on social media or in&#8209;person. However you share it, you earn.</p>
         </div>
         <div class="cyc reveal reveal-delay-3">
           <div class="cyc-stage">
@@ -946,7 +957,7 @@
   <section class="section band-soft" id="share-ways">
     <div class="section-inner">
       <div class="section-head center">
-        <h2 class="h-display reveal reveal-delay-1">Share how <span class="hl">you</span> want.</h2>
+        <h2 class="h-display reveal reveal-delay-1">Share how <span class="hl">YOU</span> want.</h2>
         <p class="h-sub reveal reveal-delay-2">Post it, text it, or just say it. Every way counts.</p>
       </div>
       <div class="sw">
@@ -954,9 +965,9 @@
           <div class="sw-scene sw-scene-social" aria-hidden="true">
             <figure class="sw-post">
               <header><img src="assets/photos/p4.jpg" alt=""><b>emma.walks</b><span>&bull;&bull;&bull;</span></header>
-              <img class="sw-post-img" src="assets/brands/trainers.jpg" alt="" loading="lazy" decoding="async">
+              <img class="sw-post-img" src="assets/brands/latte.jpg" alt="" loading="lazy" decoding="async">
               <div class="sw-post-acts"><i>&#9829;</i><i>&#9711;</i><i>&#10148;</i></div>
-              <figcaption><b>emma.walks</b> New favourites <span>@yourbrand</span> <span>@cirqle.co.uk</span></figcaption>
+              <figcaption><b>emma.walks</b> Best flat white in town <span>@yourbrand</span> <span>@cirqle.co.uk</span></figcaption>
             </figure>
             <span class="sw-sticker sw-st-a"><i class="ico ico-cash"></i> Cashback earned</span>
             <span class="sw-heart sw-h1">&#9829;</span><span class="sw-heart sw-h2">&#9829;</span><span class="sw-heart sw-h3">&#9829;</span>
@@ -972,15 +983,17 @@
 
         <article class="sw-card reveal reveal-delay-3">
           <div class="sw-scene sw-scene-friend" aria-hidden="true">
-            <div class="sw-chat">
-              <div class="sw-msg in"><img src="assets/photos/p10.jpg" alt=""><p>Where did you get those trainers?</p></div>
-              <div class="sw-msg out"><p>Cirqle deal! Put my Instagram handle in when you claim</p></div>
-              <div class="sw-msg in"><img src="assets/photos/p10.jpg" alt=""><p>Done, just bought them!</p></div>
+            <div class="sw-thread sw-thread-a">
+              <header><img src="assets/photos/p10.jpg" alt=""><b>Priya</b></header>
+              <p class="in">Where did you get those trainers?</p>
+              <p class="out">Cirqle deal! Put my handle in when you claim</p>
             </div>
-            <div class="sw-irl">
-              <img src="assets/photos/p7.jpg" alt=""><span class="sw-say">You have to try these</span><img src="assets/photos/p12.jpg" alt="">
+            <div class="sw-thread sw-thread-b">
+              <header><img src="assets/photos/p12.jpg" alt=""><b>Sam</b></header>
+              <p class="in">Is that pizza place any good?</p>
+              <p class="out">Best in town. Add my handle to your claim</p>
+              <p class="in">Booked for Friday!</p>
             </div>
-            <span class="sw-sticker sw-st-b"><i class="ico ico-users"></i> +&pound;1 you &middot; +50p them</span>
           </div>
           <div class="sw-copy">
             <span class="sw-tag"><i class="ico ico-chat"></i> With your friends</span>
@@ -989,8 +1002,29 @@
           </div>
         </article>
       </div>
+      <div class="sw-dots" role="group" aria-label="Choose a way to share">
+        <button type="button" aria-label="On social media" aria-current="true"></button>
+        <button type="button" aria-label="With your friends" aria-current="false"></button>
+      </div>
     </div>
   </section>
+  <script>
+    // Share-how-you-want: on phones the two cards swipe; the dots follow and jump.
+    (function () {
+      var row = document.querySelector('#share-ways .sw');
+      var cards = row.querySelectorAll('.sw-card');
+      var dots = document.querySelectorAll('#share-ways .sw-dots button');
+      function mark() {
+        var mid = row.scrollLeft + row.clientWidth / 2, best = 0, bestD = Infinity;
+        cards.forEach(function (c, i) { var d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid); if (d < bestD) { bestD = d; best = i; } });
+        dots.forEach(function (d, i) { d.setAttribute('aria-current', String(i === best)); });
+      }
+      row.addEventListener('scroll', function () { window.requestAnimationFrame(mark); }, { passive: true });
+      dots.forEach(function (d, i) { d.addEventListener('click', function () {
+        row.scrollTo({ left: cards[i].offsetLeft - (row.clientWidth - cards[i].offsetWidth) / 2, behavior: 'smooth' });
+      }); });
+    })();
+  </script>
 
   <!-- ══ SHOP BY CATEGORY — the nine categories with the most example deals,
        built from the same catalogue fetch as the carousel/calculator below. ══ -->
