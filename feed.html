@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=19" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=20" />
   <style>
     /* Receipt lifecycle accents (chips carry a coloured status dot) */
     :root { --st-review: #E6892B; --st-done: #2E9E5A; }
@@ -281,9 +281,9 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=19"></script>
-  <script src="assets/escape.js?v=19"></script>
-  <script src="assets/ig-account.js?v=19"></script>
+  <script src="assets/api.js?v=20"></script>
+  <script src="assets/escape.js?v=20"></script>
+  <script src="assets/ig-account.js?v=20"></script>
   <script>
     // ── Auth guard ──
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');
@@ -719,6 +719,6 @@
     if (session) loadReceipts().then(loadMentions);
     showShareTab(location.hash === '#person' ? 'person' : 'online');
   </script>
-  <script src="assets/enhance.js?v=19"></script>
+  <script src="assets/enhance.js?v=20"></script>
 </body>
 </html>

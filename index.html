@@ -14,7 +14,7 @@
     if (/\/index\.html$/.test(location.pathname))
       history.replaceState(null, '', location.pathname.replace(/index\.html$/, '') + location.search + location.hash);
   </script>
-  <link rel="stylesheet" href="assets/cirqle.css?v=19" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=20" />
   <style>
     /* ── HERO ── */
     .hero {
@@ -85,13 +85,13 @@
     .hw-col:nth-child(even) { animation-direction: alternate-reverse; }
     @keyframes hwDriftD { from { translate: 0 24px; } to { translate: 0 -24px; } }
     /* Desktop only: a touch more colour in the photos (phones keep the base). */
-    @media (min-width: 601px) { .hw-col img { filter: saturate(1.65) contrast(1.08); } }
+    @media (min-width: 601px) { .hw-col img { filter: saturate(1.8) contrast(1.1); } }
     .hw-col:nth-child(2n) { transform: translateY(-7%); }
     .hw-col:nth-child(3n) { transform: translateY(4%); }
     /* object-position nudged above center: shifts which part of each source
        photo shows through the fixed-height crop, pushing the wall's imagery
        up slightly without changing the band's height or the wall's length. */
-    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; object-position: 50% 35%; border-radius: 12px; display: block; filter: saturate(1.45) contrast(1.05); }
+    .hw-col img { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; object-position: 50% 35%; border-radius: 12px; display: block; filter: saturate(1.6) contrast(1.07); }
     .hero-scrim {
       z-index: 1;
       /* A real vignette: a bright pool behind the copy falling off to a dark
@@ -753,9 +753,11 @@
       .hero-wall { display: block; bottom: auto; height: 560px; overflow: hidden; }
       .hero-wall .hw-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; height: auto;
         transform: rotate(-6deg) scale(1.2); transform-origin: 50% 20%; }
-      .hero-wall .hw-col:nth-child(n+4) { display: none; }
+      /* The same six columns as desktop: 4–6 wrap under 1–3, so each phone
+         column is one desktop column with the next one below it. Columns that
+         stack move together, so the stagger rides on `translate`. */
       .hero-wall .hw-col { gap: 8px; transform: none; animation: hwDrift 16s ease-in-out infinite alternate; }
-      .hero-wall .hw-col:nth-child(2) { margin-top: -48px; animation-direction: alternate-reverse; }
+      .hero-wall .hw-col:nth-child(3n+2) { translate: 0 -48px; animation-direction: alternate-reverse; }
       .hero-wall .hw-col img { flex: none; height: auto; aspect-ratio: 3 / 4; border-radius: 10px; }
       /* Clear photography down to ~60% of the strip, then a short fade that is
          white by the time the headline starts, so the type stays on white. */
@@ -770,6 +772,66 @@
       .hero-sub { font-size: .88rem; line-height: 1.6; margin-bottom: 18px; }
     }
     @keyframes hwDrift { to { transform: translateY(-40px); } }
+
+    /* ══ Share how you want ══ */
+    .sw { display: grid; grid-template-columns: 1fr auto 1fr; gap: clamp(14px, 2.4vw, 28px); align-items: center; max-width: 980px; margin: 0 auto; }
+    .sw-card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; box-shadow: var(--shadow); }
+    .sw-scene { position: relative; height: 320px; overflow: hidden; }
+    .sw-scene-social { background: radial-gradient(120% 90% at 20% 10%, #FFE9F1 0%, #F3E8FF 45%, #E6F3FC 100%); }
+    .sw-scene-friend { background: radial-gradient(120% 90% at 80% 10%, #E3F4FF 0%, #EAF5FC 50%, #F4F9FD 100%); }
+    .sw-copy { padding: 18px 22px 22px; display: grid; gap: 6px; }
+    .sw-copy h3 { margin: 4px 0 0; font-family: var(--font-display); font-size: 1.3rem; letter-spacing: -.02em; }
+    .sw-copy p { margin: 0; font-size: .92rem; color: var(--ink-soft); line-height: 1.6; }
+    .sw-copy p b { color: var(--ink); }
+    .sw-tag { justify-self: start; display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--blue-deep); background: var(--blue-tint); padding: 5px 10px; border-radius: 99px; }
+    .sw-tag .ico { color: inherit; }
+    .sw-or { display: grid; place-items: center; }
+    .sw-or span { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.05rem; color: #0B1220;
+      background: linear-gradient(150deg, var(--neon-soft), var(--neon)); box-shadow: 0 10px 26px rgba(56,182,255,.4); }
+
+    /* Social scene: a tilted post, floating hearts, a cashback sticker */
+    .sw-post { position: absolute; left: 50%; top: 16px; width: 172px; margin: 0; transform: translateX(-50%) rotate(-5deg);
+      background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 22px 44px rgba(15,23,42,.18); }
+    .sw-post header { display: flex; align-items: center; gap: 7px; padding: 8px 10px; font-size: .72rem; }
+    .sw-post header img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #E1306C; }
+    .sw-post header span { margin-left: auto; color: var(--ink-soft); font-size: .6rem; }
+    .sw-post-img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+    .sw-post-acts { display: flex; gap: 10px; padding: 7px 10px 2px; font-size: .85rem; color: var(--ink); }
+    .sw-post-acts i { font-style: normal; }
+    .sw-post-acts i:first-child { color: #E1306C; }
+    .sw-post figcaption { padding: 2px 10px 10px; font-size: .68rem; line-height: 1.45; color: var(--ink); }
+    .sw-post figcaption span { color: var(--blue); font-weight: 700; }
+    .sw-heart { position: absolute; color: #E1306C; font-size: 1.4rem; opacity: .85; animation: swFloat 5s ease-in-out infinite; }
+    .sw-h1 { left: 12%; top: 58%; } .sw-h2 { right: 14%; top: 20%; font-size: 1rem; animation-delay: -1.7s; } .sw-h3 { right: 20%; bottom: 14%; font-size: 1.8rem; animation-delay: -3.2s; }
+    .sw-sticker { position: absolute; z-index: 2; display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 99px;
+      font-size: .78rem; font-weight: 800; color: #0B1220; background: linear-gradient(150deg, var(--neon-soft), var(--neon)); box-shadow: 0 10px 24px rgba(56,182,255,.38);
+      animation: swFloat 4.6s ease-in-out infinite; }
+    .sw-sticker .ico { color: inherit; }
+    .sw-st-a { right: 10%; bottom: 30px; transform: rotate(4deg); }
+    .sw-st-b { left: 50%; bottom: 16px; translate: -50% 0; white-space: nowrap; animation-delay: -2s; }
+    @keyframes swFloat { 50% { margin-top: -7px; } }
+
+    /* Friend scene: a message thread, and two friends talking face to face */
+    .sw-chat { position: absolute; left: 18px; right: 18px; top: 20px; display: grid; gap: 7px; }
+    .sw-msg { display: flex; align-items: flex-end; gap: 7px; }
+    .sw-msg img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex: none; }
+    .sw-msg p { margin: 0; padding: 8px 12px; font-size: .76rem; font-weight: 600; line-height: 1.35; max-width: 78%; }
+    .sw-msg.in p { background: #fff; color: var(--ink); border-radius: 16px 16px 16px 4px; box-shadow: 0 2px 6px rgba(15,23,42,.08); }
+    .sw-msg.out { justify-content: flex-end; }
+    .sw-msg.out p { background: var(--blue); color: #fff; border-radius: 16px 16px 4px 16px; }
+    .sw-irl { position: absolute; left: 50%; bottom: 62px; translate: -50% 0; display: flex; align-items: center; gap: 8px; }
+    .sw-irl img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 6px 14px rgba(15,23,42,.14); }
+    .sw-say { position: relative; font-size: .72rem; font-weight: 700; color: var(--ink); background: #fff; padding: 6px 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,.1); white-space: nowrap; }
+    .sw-say::after { content: '"'; position: absolute; left: -6px; top: -10px; font-size: 1.6rem; font-weight: 800; color: var(--neon); }
+
+    @media (max-width: 760px) {
+      .sw { grid-template-columns: 1fr; max-width: 420px; }
+      .sw-or { margin: -6px 0; }
+      .sw-or span { width: 48px; height: 48px; font-size: .95rem; }
+      .sw-scene { height: 320px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .sw-heart, .sw-sticker { animation: none; } }
     @media (prefers-reduced-motion: reduce) {
       .hero-wall .hw-col { animation: none !important; }
       /* Reduced motion gets the swipe strip too — handled by the script, which
@@ -800,12 +862,12 @@
   <div class="hero-band">
     <div class="hero-wall" aria-hidden="true">
       <div class="hw-grid">
-        <div class="hw-col"><img src="assets/wall/w1.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w7.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w13.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w2.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w8.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w14.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w3.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w9.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w15.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w4.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w10.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w16.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w5.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w11.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w17.jpg" alt="" decoding="async" fetchpriority="low"></div>
-        <div class="hw-col"><img src="assets/wall/w6.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w12.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall/w18.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall-hd/h1.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h7.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h13.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall-hd/h2.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h8.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h14.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall-hd/h3.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h9.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h15.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall-hd/h4.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h10.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h16.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall-hd/h5.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h11.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h17.jpg" alt="" decoding="async" fetchpriority="low"></div>
+        <div class="hw-col"><img src="assets/wall-hd/h6.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h12.jpg" alt="" decoding="async" fetchpriority="low"><img src="assets/wall-hd/h18.jpg" alt="" decoding="async" fetchpriority="low"></div>
       </div>
     </div>
     <div class="hero-scrim" aria-hidden="true"></div>
@@ -875,6 +937,57 @@
       </div>
       <div class="steps-more reveal reveal-delay-3">
         <a href="how-it-works" class="btn btn-xl btn-lime">Find out more &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SHARE HOW YOU WANT ══ The two ways to share, drawn rather than listed:
+       a post on social media, and a friend told by text or face to face. -->
+  <section class="section band-soft" id="share-ways">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">Share how <span class="hl">you</span> want.</h2>
+        <p class="h-sub reveal reveal-delay-2">Post it, text it, or just say it. Every way counts.</p>
+      </div>
+      <div class="sw">
+        <article class="sw-card reveal reveal-delay-1">
+          <div class="sw-scene sw-scene-social" aria-hidden="true">
+            <figure class="sw-post">
+              <header><img src="assets/photos/p4.jpg" alt=""><b>emma.walks</b><span>&bull;&bull;&bull;</span></header>
+              <img class="sw-post-img" src="assets/brands/trainers.jpg" alt="" loading="lazy" decoding="async">
+              <div class="sw-post-acts"><i>&#9829;</i><i>&#9711;</i><i>&#10148;</i></div>
+              <figcaption><b>emma.walks</b> New favourites <span>@yourbrand</span> <span>@cirqle.co.uk</span></figcaption>
+            </figure>
+            <span class="sw-sticker sw-st-a"><i class="ico ico-cash"></i> Cashback earned</span>
+            <span class="sw-heart sw-h1">&#9829;</span><span class="sw-heart sw-h2">&#9829;</span><span class="sw-heart sw-h3">&#9829;</span>
+          </div>
+          <div class="sw-copy">
+            <span class="sw-tag"><i class="ico ico-instagram"></i> On social media</span>
+            <h3>Post it</h3>
+            <p>Follow <b>@cirqle.co.uk</b>, then post what you bought and tag us and the brand. You earn the deal&rsquo;s cashback.</p>
+          </div>
+        </article>
+
+        <div class="sw-or reveal reveal-delay-2" aria-hidden="true"><span>or</span></div>
+
+        <article class="sw-card reveal reveal-delay-3">
+          <div class="sw-scene sw-scene-friend" aria-hidden="true">
+            <div class="sw-chat">
+              <div class="sw-msg in"><img src="assets/photos/p10.jpg" alt=""><p>Where did you get those trainers?</p></div>
+              <div class="sw-msg out"><p>Cirqle deal! Put my Instagram handle in when you claim</p></div>
+              <div class="sw-msg in"><img src="assets/photos/p10.jpg" alt=""><p>Done, just bought them!</p></div>
+            </div>
+            <div class="sw-irl">
+              <img src="assets/photos/p7.jpg" alt=""><span class="sw-say">You have to try these</span><img src="assets/photos/p12.jpg" alt="">
+            </div>
+            <span class="sw-sticker sw-st-b"><i class="ico ico-users"></i> +&pound;1 you &middot; +50p them</span>
+          </div>
+          <div class="sw-copy">
+            <span class="sw-tag"><i class="ico ico-chat"></i> With your friends</span>
+            <h3>Text it or say it</h3>
+            <p>Tell a friend by message or face to face. When they buy and type your handle into their claim, you both get a bonus.</p>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -974,8 +1087,8 @@
 
   <!-- ══ FOOTER ══ -->
 
-  <script src="assets/api.js?v=19"></script>
-  <script src="assets/escape.js?v=19"></script>
+  <script src="assets/api.js?v=20"></script>
+  <script src="assets/escape.js?v=20"></script>
   <script>
   (function () {
     'use strict';
@@ -1427,6 +1540,6 @@
     });
   })();
   </script>
-  <script src="assets/enhance.js?v=19"></script>
+  <script src="assets/enhance.js?v=20"></script>
 </body>
 </html>

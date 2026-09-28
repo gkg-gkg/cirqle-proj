@@ -18,7 +18,7 @@ from ..security import (approval_error, create_token, get_current_user,
 # real. Saying "no such account" would let anyone test which emails are members.
 SENT_MESSAGE = ("If that email address has a Cirqle account, we've sent a link "
                 "to it. Check your inbox.")
-HANDLE_TAKEN = "That Instagram username is already linked to another account."
+HANDLE_TAKEN = "That username is already taken. Try another one."
 VERIFY_MESSAGE = ("Check your inbox — we've sent a link to confirm your email "
                   "address. Once confirmed, we'll review your account.")
 
@@ -58,6 +58,7 @@ def signup(data: SignupIn, session: Session = Depends(get_session)):
         email=email,
         password_hash=hash_password(data.password),
         instagram_handle=handle,
+        has_instagram=not data.noInstagram,
     )
     session.add(user)
     session.commit()

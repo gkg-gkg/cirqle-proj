@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=19" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=20" />
   <style>
     /* ── The chain ──
        The same device how-it-works.html uses for members, with the brand's
@@ -340,12 +340,18 @@
     .fb-ref { position: absolute; right: -8px; top: 44%; z-index: 3; width: 196px; text-align: left;
       background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 11px 12px 12px;
       box-shadow: 0 18px 40px rgba(11,18,32,.16); transform: rotate(4deg); }
-    .fb-ref-top { display: flex; align-items: center; gap: 6px; font-size: .64rem; font-weight: 800; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--blue-deep); }
-    .fb-ref-row { display: flex; align-items: center; gap: 9px; margin: 9px 0; }
-    .fb-ref-row img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none; }
-    .fb-ref-row span { display: flex; flex-direction: column; font-size: .76rem; line-height: 1.3; color: var(--ink); min-width: 0; }
-    .fb-ref-row em { font-style: normal; font-weight: 700; color: var(--blue-deep); font-size: .72rem; }
+    .fb-ref-top { font-size: .86rem; font-weight: 800; letter-spacing: -.01em; color: var(--ink); }
+    /* Person A → person B: two faces with an arrow, so "referral" reads as
+       one friend bringing in another without needing the word. */
+    .fb-ref-pair { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin: 9px 0 6px; }
+    .fb-ref-pair span { display: grid; justify-items: center; gap: 3px; font-size: .68rem; font-weight: 700; color: var(--ink); }
+    .fb-ref-pair img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--neon); }
+    .fb-ref-arrow { flex: 1; position: relative; text-align: center; font-style: normal; font-size: .6rem; font-weight: 800; color: var(--blue-deep);
+      letter-spacing: .06em; text-transform: uppercase; padding-bottom: 12px; margin-bottom: 14px; }
+    .fb-ref-arrow::after { content: ''; position: absolute; left: 4px; right: 8px; bottom: 4px; height: 2px;
+      background: repeating-linear-gradient(90deg, var(--neon) 0 5px, transparent 5px 9px); }
+    .fb-ref-arrow::before { content: ''; position: absolute; right: 3px; bottom: 0; border: 5px solid transparent; border-left-color: var(--neon); border-right: 0; }
+    .fb-ref-line { margin: 0 0 8px; font-size: .7rem; line-height: 1.4; color: var(--ink-soft); }
     .fb-ref-pay { display: flex; gap: 5px; }
     .fb-ref-pay em { font-style: normal; font-weight: 800; font-size: .66rem; padding: 3px 8px; border-radius: 99px; color: #0B1220;
       background: linear-gradient(150deg, var(--neon-soft), var(--neon)); white-space: nowrap; }
@@ -460,7 +466,9 @@
       .fb-snap { width: 140px; }
       .fb-snap-a { left: -4px; top: 30px; }
       .fb-ref { width: 164px; right: 6px; top: 46%; padding: 9px 10px 10px; }
-      .fb-ref-row img { width: 26px; height: 26px; }
+      .fb-ref-pair img { width: 28px; height: 28px; }
+      .fb-ref-top { font-size: .78rem; }
+      .fb-ref-pay em { font-size: .6rem; padding: 3px 6px; }
       .fb-float { font-size: .72rem; padding: 7px 11px; }
       .fb-f1 { right: 0; top: 18px; } .fb-f2 { left: 0; bottom: 0; }
       .fb-post { width: 180px; }
@@ -635,8 +643,9 @@
       <span class="fb-float fb-f1"><i class="ico ico-check"></i> Receipt verified</span>
       <span class="fb-float fb-f2"><i class="ico ico-bag"></i> New sale <b>+£23</b></span>
       <div class="fb-ref">
-        <div class="fb-ref-top"><i class="ico ico-target"></i> Referral tracked</div>
-        <div class="fb-ref-row"><img src="assets/photos/p10.jpg" alt=""><span><b>Zara bought</b><em>entered @emma.walks</em></span></div>
+        <div class="fb-ref-top">Emma referred Zara</div>
+        <div class="fb-ref-pair"><span><img src="assets/photos/p4.jpg" alt="">Emma</span><i class="fb-ref-arrow">told</i><span><img src="assets/photos/p10.jpg" alt="">Zara</span></div>
+        <p class="fb-ref-line">Emma told Zara about it. Zara bought.</p>
         <div class="fb-ref-pay"><em>+£1.00 Emma</em><em>+£0.50 Zara</em></div>
       </div>
     </div>
@@ -954,6 +963,6 @@
       });
     });
   </script>
-  <script src="assets/enhance.js?v=19"></script>
+  <script src="assets/enhance.js?v=20"></script>
 </body>
 </html>

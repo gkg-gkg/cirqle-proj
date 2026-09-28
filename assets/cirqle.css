@@ -297,7 +297,7 @@ html::before {
   font-size: .9rem;
   padding: 10px 20px;
   border: 1px solid var(--line);
-  border-radius: var(--r-chip);
+  border-radius: 12px;   /* a touch rounder than chips (--r-chip, 10px) */
   background: var(--card);
   color: var(--ink);
   cursor: pointer;
@@ -333,13 +333,13 @@ html::before {
   transition: left .5s ease;
 }
 .btn-lime:hover::after, .btn-ink:hover::after { left: 135%; }
-.btn-lg { font-size: 1rem; padding: 14px 28px; border-radius: 14px; }
+.btn-lg { font-size: 1rem; padding: 14px 28px; border-radius: 16px; }
 /* One step above .btn-lg, for a standalone CTA that has to carry a section on
    its own — the "How it works" button under the homepage cycle, and the one in
    the closing slab. Big enough to be the thing you look at, not so big it
    reads as a banner. Only use it where the button stands alone: in a .btn-row
    pair an oversized sibling just looks like a mistake. */
-.btn-xl { font-size: 1.12rem; padding: 18px 40px; border-radius: 16px; font-weight: 700; }
+.btn-xl { font-size: 1.12rem; padding: 18px 40px; border-radius: 18px; font-weight: 700; }
 .btn-sm { font-size: .82rem; padding: 8px 15px; }
 .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn.success { background: var(--blue); color: #fff; border-color: transparent; }
@@ -847,6 +847,13 @@ html::before {
   .page-hero h1.h-display,
   .browse-head > h1:first-child,
   h1.auth-h { margin-top: 0 !important; }
+  /* Same ~24px under the nav on every page. These containers are page-local
+     with their own clamp() top padding, so "body" lifts the specificity over
+     them. The auth and email-link pages centred a short card in a full-height
+     <main>, which left a big empty band above it on a phone — drop the height
+     so the card starts at the top like everything else. */
+  body .dash, body .feed-wrap, body .acct, body .board, body .fb-hero { padding-top: 24px; }
+  body > main { min-height: 0; padding-top: 24px; }
   .footer-top { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
   .footer-bottom { flex-direction: column; text-align: center; }
   .back-top { right: 16px; bottom: 16px; }

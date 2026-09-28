@@ -34,7 +34,11 @@ router = APIRouter(prefix="/feed", tags=["feed"])
 
 
 def _user_handle(user: User) -> str:
-    """This user's normalised Instagram handle, or '' if none set."""
+    """This user's normalised Instagram handle, or '' if none set. A member
+    without Instagram has a Cirqle username in that column instead, which must
+    never be matched to real Instagram posts — so they get '' here too."""
+    if not user.has_instagram:
+        return ""
     return normalize_handle(user.instagram_handle or "")
 
 

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=19" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=20" />
   <style>
     main {
       position: relative; z-index: 1;
@@ -22,8 +22,6 @@
     .auth-left { flex: 1; max-width: 420px; }
     .auth-h { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 4vw, 3.1rem); letter-spacing: -0.03em; line-height: 1.02; margin: 20px 0 16px; }
     .auth-sub { font-size: .95rem; color: var(--ink-soft); line-height: 1.7; margin-bottom: 32px; max-width: 340px; }
-    .perk { display: flex; align-items: center; gap: 13px; font-size: .89rem; font-weight: 500; color: var(--ink-soft); margin-bottom: 14px; }
-    .perk strong { color: var(--ink); }
 
     .auth-card { width: 100%; max-width: 460px; padding: 36px; }
     .card-title { font-family: var(--font-display); font-weight: 800; font-size: 1.45rem; letter-spacing: -0.02em; margin-bottom: 4px; }
@@ -38,6 +36,11 @@
     .strength-seg.fair   { background: var(--tang); }
     .strength-seg.good   { background: var(--sky); }
     .strength-seg.strong { background: var(--lime); }
+    /* "I don't have Instagram": a small text button beside the field label. */
+    .label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .no-ig { background: none; border: 0; padding: 0; font: inherit; font-size: .76rem; font-weight: 700; color: var(--blue-deep); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+    .no-ig:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 3px; }
+    .field-hint { font-size: .76rem; color: var(--ink-soft); margin-top: 6px; line-height: 1.5; }
     .strength-label { font-size: .7rem; font-weight: 800; margin-top: 5px; text-transform: uppercase; letter-spacing: .6px; }
 
     .terms-check { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0; }
@@ -70,7 +73,6 @@
       .auth-left { flex: none; }
       .auth-sub { margin-bottom: 0; }
       .auth-left { max-width: 100%; }
-      .perks-list { display: none; }
       .auth-card { max-width: 100%; }
     }
     @media (max-width: 560px) { main { padding-top: 24px; } }
@@ -92,18 +94,12 @@
     <div class="auth-left fade-up">
       <h1 class="auth-h">Start earning <span class="hl hl-pink">real cash</span> today.</h1>
       <p class="auth-sub">Earn real money back on the shopping you already do. No gimmicks, no fees.</p>
-      <div class="perks-list">
-        <div class="perk"><span class="coin coin-lime" style="font-size:.95rem"><i class="ico ico-cash"></i></span><span><strong>Real money</strong> — withdrawn to your bank anytime</span></div>
-        <div class="perk"><span class="coin coin-sky" style="font-size:.95rem"><i class="ico ico-bolt"></i></span><span><strong>Instant verification</strong> — cashback confirmed in seconds</span></div>
-        <div class="perk"><span class="coin coin-pink" style="font-size:.95rem"><i class="ico ico-bag"></i></span><span><strong>Share your way</strong> — with friends, on social media or in-person</span></div>
-        <div class="perk"><span class="coin" style="font-size:.95rem"><i class="ico ico-lock"></i></span><span><strong>Secure &amp; free</strong> — no credit card required</span></div>
-      </div>
     </div>
 
     <!-- RIGHT: form -->
     <div class="card auth-card fade-up d2">
       <div class="card-title">Create your account</div>
-      <div class="card-sub">Takes less than 60 seconds. New accounts are reviewed by our team before they go live.</div>
+      <div class="card-sub">Enter your name, email, username and password below.</div>
 
       <form id="signupForm" novalidate>
         <div class="form-row">
@@ -135,11 +131,15 @@
         </div>
 
         <div class="field">
-          <label for="instagram">Instagram username</label>
-          <div class="field-wrap">
-            <span class="field-icon"><i class="ico ico-camera ico-soft"></i></span>
-            <input type="text" id="instagram" placeholder="yourhandle" autocomplete="off" />
+          <div class="label-row">
+            <label for="instagram" id="handleLabel">Instagram username</label>
+            <button type="button" class="no-ig" id="noIgBtn" aria-pressed="false">I don&rsquo;t have Instagram</button>
           </div>
+          <div class="field-wrap">
+            <span class="field-icon"><i class="ico ico-camera ico-soft" id="handleIcon"></i></span>
+            <input type="text" id="instagram" placeholder="yourhandle" autocomplete="off" autocapitalize="off" spellcheck="false" />
+          </div>
+          <div class="field-hint" id="handleHint" hidden>Pick a username. Friends type it in when they claim, so it has to be unique.</div>
           <div class="field-error" id="instagramErr">Please enter your Instagram username.</div>
         </div>
 
@@ -206,7 +206,7 @@
     </div>
   </main>
 
-  <script src="assets/api.js?v=19"></script>
+  <script src="assets/api.js?v=20"></script>
   <script>
     // ── If already signed in, go to dashboard ──
     if (localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session')) {
@@ -251,6 +251,24 @@
     });
 
     // ── Form validation ──
+    // "I don't have Instagram": the same field becomes a Cirqle username.
+    // It's stored in the same place, so it has to be unique across everyone,
+    // and the server marks it as not an Instagram account.
+    let noInstagram = false;
+    document.getElementById('noIgBtn').addEventListener('click', () => {
+      noInstagram = !noInstagram;
+      const btn = document.getElementById('noIgBtn');
+      btn.setAttribute('aria-pressed', String(noInstagram));
+      btn.textContent = noInstagram ? 'I have Instagram' : 'I don\u2019t have Instagram';
+      document.getElementById('handleLabel').textContent = noInstagram ? 'Choose a username' : 'Instagram username';
+      document.getElementById('handleIcon').className = 'ico ' + (noInstagram ? 'ico-user' : 'ico-camera') + ' ico-soft';
+      document.getElementById('instagram').placeholder = noInstagram ? 'pick.a.username' : 'yourhandle';
+      document.getElementById('handleHint').hidden = !noInstagram;
+      document.getElementById('instagram').classList.remove('error');
+      document.getElementById('instagramErr').classList.remove('visible');
+      document.getElementById('instagram').focus();
+    });
+
     function showErr(id, errId, condition) {
       const el = document.getElementById(id);
       const err = document.getElementById(errId);
@@ -264,6 +282,11 @@
       const ln = document.getElementById('lastName').value.trim();
       const em = document.getElementById('email').value.trim();
       const ig = document.getElementById('instagram').value.trim().replace(/^@+/, '').toLowerCase();
+      // A chosen username follows Instagram's own rules, so it reads like a
+      // handle wherever it shows (letters, numbers, full stops, underscores).
+      const badName = noInstagram && ig && !/^[a-z0-9._]{3,30}$/.test(ig);
+      if (badName) document.getElementById('instagramErr').textContent = 'Use 3 to 30 letters, numbers, full stops or underscores.';
+      else document.getElementById('instagramErr').textContent = noInstagram ? 'Please choose a username.' : 'Please enter your Instagram username.';
       const pw = document.getElementById('password').value;
       const cp = document.getElementById('confirmPassword').value;
       const tc = document.getElementById('terms').checked;
@@ -272,7 +295,7 @@
       const v1 = showErr('firstName',       'firstNameErr', !fn);
       const v2 = showErr('lastName',        'lastNameErr',  !ln);
       const v3 = showErr('email',           'emailErr',     !em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em));
-      const vig = showErr('instagram',      'instagramErr', !ig);
+      const vig = showErr('instagram',      'instagramErr', !ig || badName);
       const v4 = showErr('password',        'passwordErr',  pw.length < 10);
       const v5 = showErr('confirmPassword', 'confirmErr',   pw !== cp);
       termsErr.classList.toggle('visible', !tc);
@@ -289,7 +312,7 @@
         const res = await fetch(`${window.CIRQLE_API_BASE}/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firstName: fn, lastName: ln, email: em, password: pw, instagramHandle: ig }),
+          body: JSON.stringify({ firstName: fn, lastName: ln, email: em, password: pw, instagramHandle: ig, noInstagram }),
         });
 
         if (res.status === 409) {
@@ -299,7 +322,7 @@
           txt.textContent = 'Create free account →';
           let detail = '';
           try { const e = await res.json(); detail = (e && e.detail) || ''; } catch (_) {}
-          const isHandle = /instagram/i.test(detail);
+          const isHandle = /username|instagram/i.test(detail);
           const field = isHandle ? 'instagram' : 'email';
           const errEl = document.getElementById(isHandle ? 'instagramErr' : 'emailErr');
           document.getElementById(field).classList.add('error');
@@ -358,6 +381,6 @@
     });
 
   </script>
-  <script src="assets/enhance.js?v=19"></script>
+  <script src="assets/enhance.js?v=20"></script>
 </body>
 </html>

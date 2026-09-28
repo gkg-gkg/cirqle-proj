@@ -25,6 +25,10 @@ class User(SQLModel, table=True):
     # index in the referral-attribution migration, not expressible as a plain
     # SQLModel Field(unique=True) since blank ("" = no handle set) must repeat.
     instagram_handle: str = ""
+    # False when the member doesn't use Instagram and picked a Cirqle username
+    # instead. The name still has to be unique (friends type it into a referral
+    # claim), but it must never be matched to real Instagram posts.
+    has_instagram: bool = True
     status: str = "unverified"                       # unverified -> pending -> approved / rejected
     # Null until they click the link we email at signup. An account only joins
     # the admin's approval queue once this is set, so the admin never reviews
@@ -591,6 +595,8 @@ class SignupIn(BaseModel):
     email: EmailStr
     password: str
     instagramHandle: str
+    # True when instagramHandle is a Cirqle username, not an Instagram account.
+    noInstagram: bool = False
 
 
 class SigninIn(BaseModel):
