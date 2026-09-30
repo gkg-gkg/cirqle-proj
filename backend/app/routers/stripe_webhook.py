@@ -164,6 +164,15 @@ def _sync_subscription(sub: dict, session: Session, deleted: bool = False) -> No
     status = "canceled" if deleted else (sub.get("status") or "none")
     # Stripe's trialing/active both mean "can use the service".
     merchant.subscription_status = "active" if status in ("active", "trialing") else status
+    # ...but they don't mean the same thing about money, and the portal has to
+    # say "first charge" rather than "renews" while the trial runs. Kept apart
+    # from subscription_status so no access check has to learn a third value.
+    merchant.trialing = (not deleted) and status == "trialing"
+    # A trial that reached Stripe is a trial spent, whatever happens next.
+    # subscribe() also sets this when it creates the session; this covers a
+    # subscription started any other way (the Stripe dashboard, say).
+    if merchant.trialing:
+        merchant.trial_used = True
     merchant.stripe_subscription_id = "" if deleted else (sub.get("id") or "")
     merchant.tier = "" if deleted else tier
     period_end = sub.get("current_period_end")

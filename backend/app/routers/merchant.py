@@ -52,7 +52,7 @@ from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
 from ..storage import (StorageError, delete_image, delete_receipt, media_type_for_key,
                        read_receipt, receipt_view_url, upload_image, upload_receipt)
-from ..payments import (OVERAGE_RATE, TIERS, PaymentError,
+from ..payments import (OVERAGE_RATE, TIERS, TRIAL_DAYS, PaymentError,
                         create_portal_session, create_subscription_session,
                         create_topup_session, ensure_customer, month_start,
                         payments_configured, quote_topup, refund_topup)
@@ -460,13 +460,25 @@ def _month_topups(merchant_id: int, session: Session) -> float:
     return round(sum(t.amount for t in rows), 2)
 
 
+def _trial_available(merchant: Merchant) -> bool:
+    """Whether this brand would get the free month if they subscribed now.
+
+    One per brand, so it survives cancelling and coming back. The portal uses
+    it to decide whether to advertise a trial; subscribe() applies the same
+    test before asking Stripe for one, so the badge can never promise
+    something the checkout then refuses.
+    """
+    return TRIAL_DAYS > 0 and not merchant.trial_used
+
+
 def _subscription_out(merchant: Merchant, session: Session) -> SubscriptionOut:
     """The merchant's plan state, including this month's allowance usage."""
     tier = TIERS.get(merchant.tier or "")
     if not tier:
         # No tier: either never subscribed ("none") or cancelled — keep the
         # real status so the portal can say which.
-        return SubscriptionOut(status=merchant.subscription_status or "none")
+        return SubscriptionOut(status=merchant.subscription_status or "none",
+                               trialAvailable=_trial_available(merchant))
     used = _month_topups(merchant.id, session)
     allowance = tier["allowance"]
     return SubscriptionOut(
@@ -479,6 +491,8 @@ def _subscription_out(merchant: Merchant, session: Session) -> SubscriptionOut:
         allowanceLeft=round(max(0.0, allowance - used), 2),
         renewsAt=merchant.current_period_end,
         canTopUp=merchant.subscription_status == "active",
+        trialing=merchant.trialing,
+        trialAvailable=_trial_available(merchant),
     )
 
 
@@ -564,8 +578,11 @@ def billing(merchant: Merchant = Depends(get_current_merchant),
 def plans():
     """The membership tiers. Public — the plans grid on contact.html reads this,
     so the marketing page and the billing portal can never drift apart."""
+    # trialDays is the offer, not this brand's entitlement — the endpoint is
+    # unauthenticated and has nobody to check. Whether a given brand still
+    # has their free month is on SubscriptionOut.trialAvailable.
     return [PlanOut(id=key, name=t["name"], fee=t["fee"], allowance=t["allowance"],
-                    feeRate=OVERAGE_RATE, blurb=t["blurb"])
+                    feeRate=OVERAGE_RATE, blurb=t["blurb"], trialDays=TRIAL_DAYS)
             for key, t in TIERS.items()]
 
 
@@ -587,12 +604,24 @@ def subscribe(data: SubscribeIn, request: Request,
     _require_payments()
     if data.tier not in TIERS:
         raise HTTPException(status_code=422, detail="Unknown plan.")
+    with_trial = _trial_available(merchant)
     try:
         customer_id = ensure_customer(merchant, session)
         url = create_subscription_session(merchant, data.tier, customer_id,
-                                          request.headers.get("origin", ""))
+                                          request.headers.get("origin", ""),
+                                          with_trial=with_trial)
     except PaymentError:
         raise HTTPException(status_code=502, detail="Could not start checkout. Please try again.")
+    if with_trial:
+        # Spent at session creation, not on the webhook. Abandoning the
+        # checkout therefore costs the brand their free month, which is the
+        # safer way round: marking it only on the webhook leaves a window
+        # where two sessions opened together both carry a trial. If that
+        # trade-off ever bites, the fix is to reserve it here and release it
+        # on checkout.session.expired rather than to move the write.
+        merchant.trial_used = True
+        session.add(merchant)
+        session.commit()
     return CheckoutSessionOut(url=url)
 
 

@@ -72,6 +72,12 @@ TIERS = {
 # Charged on top of any top-up beyond that month's included allowance.
 OVERAGE_RATE = 0.10
 
+# Free first month on every tier. This rides on the Checkout session rather
+# than the Stripe Price, so changing it needs no run of setup_stripe_plans.py
+# and no change in the Stripe dashboard — and it can be granted per brand,
+# which is what makes "once each" enforceable. Set to 0 to switch trials off.
+TRIAL_DAYS = 30
+
 CURRENCY = "gbp"
 
 
@@ -242,12 +248,20 @@ def _price_id(tier_key: str) -> str:
 # Subscriptions — plan signup collects the card and starts billing in one step.
 # ─────────────────────────────────────────────────────────────────────────────
 def create_subscription_session(merchant, tier_key: str, customer_id: str,
-                                origin: str) -> str:
-    """Hosted Checkout that takes the card + billing address and starts the plan."""
+                                origin: str, with_trial: bool = False) -> str:
+    """Hosted Checkout that takes the card + billing address and starts the plan.
+
+    `with_trial` grants TRIAL_DAYS free. The card is still collected up front,
+    so the subscription simply converts when the trial ends — the caller
+    decides who is eligible, because Stripe would give one to everybody.
+    """
     if tier_key not in TIERS:
         raise PaymentError(f"Unknown plan '{tier_key}'.")
     stripe.api_key = _secret_key()
     base = _return_base(origin)
+    sub_data = {"metadata": {"merchant_id": str(merchant.id), "tier": tier_key}}
+    if with_trial and TRIAL_DAYS > 0:
+        sub_data["trial_period_days"] = TRIAL_DAYS
     try:
         session = stripe.checkout.Session.create(
             mode="subscription",
@@ -259,8 +273,7 @@ def create_subscription_session(merchant, tier_key: str, customer_id: str,
             client_reference_id=str(merchant.id),
             metadata={"merchant_id": str(merchant.id), "kind": "subscription",
                       "tier": tier_key},
-            subscription_data={"metadata": {"merchant_id": str(merchant.id),
-                                            "tier": tier_key}},
+            subscription_data=sub_data,
         )
     except Exception as exc:  # noqa: BLE001
         raise PaymentError(str(exc)) from exc

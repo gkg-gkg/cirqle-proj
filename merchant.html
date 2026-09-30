@@ -381,6 +381,9 @@
     .mplan-allow { margin: 12px 0; font-size: .8rem; color: var(--ink-soft); line-height: 1.5; }
     .mplan .btn { width: 100%; margin-top: auto; }
     .mplan.current { border-color: var(--lime-deep); box-shadow: 0 0 0 3px var(--lime); }
+    /* Free-month badge. align-self:start so it hugs its own text rather than
+       stretching the full card width like the flex column's other children. */
+    .mplan-trial { align-self: start; margin-bottom: 8px; padding: 3px 9px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: var(--lime); font-size: .66rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
     .plan-summary { margin-bottom: 16px; }
     .plan-sum-top { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
     .plan-sum-name { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; display: flex; align-items: center; gap: 10px; margin-top: 4px; }
@@ -500,6 +503,16 @@
 
     <!-- ═══ Overview ═══ -->
     <div class="pane" id="paneOverview">
+    <!-- Setup comes first in the order a brand actually does things: the
+         profile names the deal, the plan pays for it, the reference receipt
+         is what claims get checked against. -->
+    <div class="plan-prompt hidden" id="setupPrompt">
+      <div>
+        <div class="plan-prompt-title">Complete your account</div>
+        <div class="plan-prompt-sub">Tell us about your brand — a deal takes its name from this, so you can't submit one until it's done.</div>
+      </div>
+      <button type="button" class="btn btn-ink mini" onclick="openSetup()">Complete →</button>
+    </div>
     <div class="plan-prompt hidden" id="planPrompt">
       <div>
         <div class="plan-prompt-title" id="planPromptTitle">Choose your membership to go live</div>
@@ -946,12 +959,16 @@
     </div>
   </div>
 
-  <!-- Create-campaign modal -->
-  <!-- First sign-in: the short application only took a name, email and phone,
-       so the brand's details are collected here before anything else. No close
-       button on purpose — a deal takes its brand name from this. -->
+  <!-- The short application only took a name, email and phone, so the brand's
+       details are collected here. This used to open un-closable on first
+       sign-in, which meant a brand we had just approved met a form before it
+       met the product. The #setupPrompt banner does the nagging now — it
+       stays until the profile is complete — so this can be dismissed and
+       come back to. The real gate never moved: the server refuses a deal
+       without a profile either way. -->
   <div class="modal-overlay" id="setupModal" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
     <div class="card modal">
+      <button class="modal-close" type="button" onclick="closeSetup()" aria-label="Close">✕</button>
       <h2 id="setupTitle">Complete your account</h2>
       <div class="modal-sub">Tell us about your brand. It takes a minute, and you can change it later in Merchant Profile.</div>
       <form id="setupForm" novalidate onsubmit="return saveSetup(event)">
@@ -1179,7 +1196,10 @@
         if (!res.ok) return;
         const p = await res.json();
         profileComplete = p.profileComplete !== false;
+        renderSetupPrompt();
         if (profileComplete) return;
+        // Fill the form now even though nothing is shown yet, so opening it
+        // from the banner is instant and never loses what's already on file.
         const sel = document.getElementById('sCat');
         sel.innerHTML = '<option value="">Select…</option>' +
           CATEGORIES.map(c => `<option>${escapeHtml(c)}</option>`).join('');
@@ -1187,10 +1207,29 @@
         document.getElementById('sWebsite').value = p.website || '';
         sel.value = (p.categories || [])[0] || '';
         document.getElementById('sInsta').value = p.instagram ? '@' + p.instagram : '';
-        document.getElementById('setupModal').classList.add('open');
-        document.getElementById('sName').focus();
       } catch (_) { /* offline: the server still refuses deals until it's done */ }
     }
+
+    // Same shape as renderPlanPrompt / renderRefPrompt below — the three
+    // prompts stack on Overview and each hides itself once it's satisfied.
+    function renderSetupPrompt() {
+      document.getElementById('setupPrompt').classList.toggle('hidden', profileComplete);
+    }
+    function openSetup() {
+      document.getElementById('setupModal').classList.add('open');
+      document.getElementById('sName').focus();
+    }
+    function closeSetup() {
+      document.getElementById('setupModal').classList.remove('open');
+    }
+    // Dismissed the same two ways as the other modals here, now that it is
+    // dismissible at all.
+    document.getElementById('setupModal').addEventListener('click', e => {
+      if (e.target.id === 'setupModal') closeSetup();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeSetup();
+    });
     async function saveSetup(e) {
       e.preventDefault();
       const err = document.getElementById('setupErr'), btn = document.getElementById('setupBtn');
@@ -1216,7 +1255,8 @@
         localStorage.setItem(SKEY, JSON.stringify(merchant));
         document.getElementById('bizName').textContent = p.businessName;
         loaded.profile = false;   // Merchant Profile tab re-reads it next time
-        document.getElementById('setupModal').classList.remove('open');
+        renderSetupPrompt();      // banner goes as the modal does
+        closeSetup();
         cirqleToast('Account complete ✓');
       } catch (_) { err.textContent = 'Couldn’t reach the server — try again.'; }
       finally { btn.disabled = false; }
@@ -2395,11 +2435,21 @@
       if (onPlan) {
         document.getElementById('planName').textContent = sub.planName;
         const badge = document.getElementById('planStatus');
-        badge.textContent = sub.status;
-        badge.className = 'rbadge ' + sub.status;
-        document.getElementById('planRenews').textContent = sub.renewsAt
-          ? `${gbp(sub.fee)}/month · renews ${new Date(sub.renewsAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
-          : `${gbp(sub.fee)}/month`;
+        // sub.status reports a trialing plan as "active" on purpose — it is
+        // the answer to "can they trade", and they can. The badge and the
+        // date line are the two places the difference is about money rather
+        // than permission, so they read sub.trialing instead.
+        badge.textContent = sub.trialing ? 'trial' : sub.status;
+        badge.className = 'rbadge ' + (sub.trialing ? 'active' : sub.status);
+        const when = sub.renewsAt && new Date(sub.renewsAt)
+          .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        document.getElementById('planRenews').textContent = !when
+          ? `${gbp(sub.fee)}/month`
+          : sub.trialing
+            // Nothing has been charged yet, so "renews" would be wrong twice
+            // over — it is the first payment, not a repeat one.
+            ? `Free trial · first payment of ${gbp(sub.fee)} on ${when}`
+            : `${gbp(sub.fee)}/month · renews ${when}`;
         const pct = sub.allowance ? Math.min(100, sub.allowanceUsed / sub.allowance * 100) : 0;
         const fill = document.getElementById('allowFill');
         fill.style.width = pct + '%';
@@ -2413,21 +2463,35 @@
       }
 
       const plans = await loadPlans();
+      // Two separate facts: the tiers carry the offer (trialDays), and the
+      // subscription state says whether THIS brand still has theirs. Both
+      // have to hold or the badge promises something checkout won't give —
+      // subscribe() applies the same test server-side.
+      const trialDays = plans[0]?.trialDays || 0;
+      const freeMonth = trialDays > 0 && sub.trialAvailable;
       document.getElementById('mPlansGrid').innerHTML = plans.map(p => `
         <div class="mplan${p.id === sub.tier ? ' current' : ''}">
+          ${freeMonth ? `<div class="mplan-trial">${trialDays} days free</div>` : ''}
           <div class="mplan-name">${p.name}</div>
           <div class="mplan-price">${gbp(p.fee)}</div>
-          <div class="mplan-per">per month</div>
+          <div class="mplan-per">${freeMonth ? 'per month after the free trial' : 'per month'}</div>
           <div class="mplan-allow">Includes <strong>${gbp(p.allowance)}</strong> of fee-free cashback credit each month.</div>
-          <button type="button" class="btn btn-lime" data-sub="${p.id}">Choose ${p.name}</button>
+          <button type="button" class="btn btn-lime" data-sub="${p.id}">${freeMonth ? 'Start free trial' : 'Choose ' + p.name}</button>
         </div>`).join('');
       document.getElementById('mPlansNote').textContent =
+        (freeMonth ? `Your first ${trialDays} days are free — we take your card now and the first payment comes after that. ` : '') +
         `Top up beyond your allowance and a ${Math.round((plans[0]?.feeRate || 0.1) * 100)}% platform fee is added. Cancel any time.`;
       document.querySelectorAll('[data-sub]').forEach(b =>
         b.addEventListener('click', () => subscribe(b.dataset.sub, b)));
     }
 
     async function subscribe(tier, btn) {
+      // Remember the label rather than hardcoding one to restore: it reads
+      // "Start free trial" or "Choose Growth" depending on the card, and
+      // putting "Choose plan" back would quietly rewrite the offer after a
+      // failed attempt.
+      const label = btn.textContent;
+      const restore = () => { btn.disabled = false; btn.textContent = label; };
       btn.disabled = true; btn.textContent = 'Opening checkout…';
       try {
         const res = await fetch(`${API}/merchant/billing/subscribe`, {
@@ -2436,10 +2500,10 @@
         });
         if (res.status === 401) { signOut(); return; }
         const body = await res.json().catch(() => ({}));
-        if (!res.ok) { cirqleToast(body.detail || 'Could not start checkout'); btn.disabled = false; btn.textContent = 'Choose plan'; return; }
+        if (!res.ok) { cirqleToast(body.detail || 'Could not start checkout'); restore(); return; }
         window.location.assign(body.url);
       } catch (_) {
-        cirqleToast('Could not reach the server'); btn.disabled = false; btn.textContent = 'Choose plan';
+        cirqleToast('Could not reach the server'); restore();
       }
     }
 

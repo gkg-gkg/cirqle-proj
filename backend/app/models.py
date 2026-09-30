@@ -386,6 +386,15 @@ class Merchant(SQLModel, table=True):
     stripe_subscription_id: str = ""
     subscription_status: str = "none"                # none|active|past_due|canceled
     current_period_end: Optional[datetime] = None    # next renewal
+    # The free first month is once per brand, not once per subscription —
+    # without this a brand could cancel and resubscribe for another one every
+    # month. Set when their first checkout session is created.
+    trial_used: bool = False
+    # Purely presentational. subscription_status deliberately reports a
+    # trialing plan as "active", because for every permission question the two
+    # are the same; this says which it really is, so the portal can write
+    # "first charge" instead of "renews". Never gate access on it.
+    trialing: bool = False
     # ── Email verification / password (mirrors User) ──
     email_verified_at: Optional[datetime] = None
     pending_email: str = ""
@@ -1460,6 +1469,7 @@ class PlanOut(BaseModel):
     allowance: float         # £ of fee-free top-ups included each month
     feeRate: float           # fraction charged on top-ups beyond the allowance
     blurb: str
+    trialDays: int = 0       # free days on a first subscription; 0 = no trial
 
 
 class SubscriptionOut(BaseModel):
@@ -1473,6 +1483,12 @@ class SubscriptionOut(BaseModel):
     allowanceLeft: float = 0
     renewsAt: Optional[datetime] = None
     canTopUp: bool = False                      # false without an active plan
+    # `status` collapses Stripe's "trialing" into "active", because for every
+    # permission question they mean the same thing. These two exist so the
+    # portal can still say "first charge" rather than "renews" during a trial,
+    # and can stop offering a free month to someone who has had one.
+    trialing: bool = False
+    trialAvailable: bool = False
 
 
 class TopUpQuote(BaseModel):
