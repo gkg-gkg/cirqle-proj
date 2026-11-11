@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=21" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=22" />
   <style>
     /* Logged-in nav (matches feed.html) */
     .nav-user { display: flex; align-items: center; gap: 10px; }
@@ -117,14 +117,14 @@
     <div class="card result fade-up" id="resultCard" hidden>
       <img id="preview" alt="Your receipt" />
       <div class="result-badge">Receipt received ✓</div>
-      <p class="result-note">Your receipt was uploaded and saved to your account. Cashback lands once we verify it and the 3‑day hold clears.</p>
+      <p class="result-note">Your receipt was uploaded and saved to your account. Once it&rsquo;s approved, your cashback clears 3 days after you posted.</p>
       <p class="result-note referral-note" id="referralNote" hidden></p>
       <a href="feed" class="btn btn-ink">Back to dashboard</a>
     </div>
   </div>
 
-  <script src="assets/api.js?v=21"></script>
-  <script src="assets/enhance.js?v=21"></script>
+  <script src="assets/api.js?v=22"></script>
+  <script src="assets/enhance.js?v=22"></script>
   <script>
     // ── Auth guard (matches feed.html) ──
     const session = JSON.parse(localStorage.getItem('cirqle_session') || sessionStorage.getItem('cirqle_session') || 'null');

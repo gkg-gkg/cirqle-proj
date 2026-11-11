@@ -50,7 +50,7 @@
   } catch (e) { /* ignore malformed session */ }
 
   // ── Consistent top banner across the main site ──
-  // Centre = Browse Deals + the audience pair, For customers / For brands;
+  // Centre = Browse deals + the audience pair, For customers / For brands;
   // right = My Account / Dashboard chips. "For customers" points at the home
   // page, because the home page IS the customer side — so on index.html it
   // marks itself as current, and anyone who wandered into for-brands.html has
@@ -71,7 +71,7 @@
       else nav.insertBefore(navLinks, nav.firstChild);
     }
     navLinks.innerHTML =
-      '<li><a href="browse">Browse Deals</a></li>' +
+      '<li><a href="browse">Browse deals</a></li>' +
       '<li><a href="/">For customers</a></li>' +
       '<li><a href="for-brands">For brands</a></li>';
 
@@ -125,7 +125,7 @@
     menu.id = 'navMenu';
     // Two groups, split by a divider: where to go, then about us.
     var links = [
-      ['browse', 'Browse Deals'],
+      ['browse', 'Browse deals'],
       ['/', 'For customers'],
       ['for-brands', 'For brands'],
     ];

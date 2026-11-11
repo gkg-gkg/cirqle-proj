@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/cirqle.css?v=21" />
+  <link rel="stylesheet" href="assets/cirqle.css?v=22" />
   <style>
     /* categorical series colors — validated colorblind-safe (dataviz skill) */
     :root { --s-views:#2a78d6; --s-clicks:#1baf7a; --s-claims:#eda100; }
@@ -569,7 +569,7 @@
         <div class="panel-sub">How each of your deals is performing — the numbers behind the chart.</div>
         <table class="deals">
           <thead><tr>
-            <th><span class="th-info">Deal <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">The deal shoppers see on Browse Deals — its title or brand name.</span></span></th>
+            <th><span class="th-info">Deal <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">The deal shoppers see on Browse deals — its title or brand name.</span></span></th>
             <th class="num"><span class="th-info">Views <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many times shoppers have opened this deal's page.</span></span></th>
             <th class="num"><span class="th-info">Clicks <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many times shoppers have clicked through to the brand's site.</span></span></th>
             <th class="num"><span class="th-info">Receipts <button type="button" class="info-btn" onclick="toggleInfo(this)" aria-label="What is this?">i</button><span class="info-pop">How many shoppers have uploaded a receipt for this deal.</span></span></th>
@@ -1076,8 +1076,8 @@
     </div>
   </div>
 
-  <script src="assets/api.js?v=21"></script>
-  <script src="assets/escape.js?v=21"></script>
+  <script src="assets/api.js?v=22"></script>
+  <script src="assets/escape.js?v=22"></script>
   <script>
     const API = window.CIRQLE_API_BASE;
     const SKEY = 'cirqle_merchant';
@@ -2686,6 +2686,6 @@
     // ── Boot ──
     if (merchant && merchant.token) { enterDashboard(); } else { showLogin(); }
   </script>
-  <script src="assets/enhance.js?v=21"></script>
+  <script src="assets/enhance.js?v=22"></script>
 </body>
 </html>
