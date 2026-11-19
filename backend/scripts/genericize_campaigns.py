@@ -7,8 +7,8 @@ category gets the same name, text, rate and photos, copied from one template
 deal per category (picked for unbranded photos). The frontend treats
 `brand == category` as "made-up brand" and badges it as such.
 
-Photos only the replaced deals used are deleted from S3 afterwards, unless
-something else (a merchant logo, a mirrored Instagram post) points at them.
+Nothing is deleted: the replaced deals' old photos stay in S3 (a few MB, no
+real cost).
 
 Safe to run more than once. Run from backend/ after pulling:
 
@@ -29,8 +29,7 @@ load_dotenv(BACKEND_DIR / ".env")
 from sqlmodel import Session, select  # noqa: E402
 
 from app.db import engine  # noqa: E402
-from app.models import Campaign, Mention, Merchant  # noqa: E402
-from app.storage import delete_image  # noqa: E402
+from app.models import Campaign  # noqa: E402
 
 # category -> (template deal id, short card description)
 CATEGORIES = {
@@ -61,8 +60,8 @@ def target_fields(category: str, template: Campaign, card_desc: str) -> dict:
         title=f"{category} — {template.rate:g}% cashback",
         card_title=category,
         card_desc=card_desc,
-        long_desc=(f"A made-up {category} brand. It shows how a {category} deal "
-                   "will look on Cirqle, at a rate the brand itself would set."),
+        long_desc=(f"A made-up {category} brand. It shows how a deal will look "
+                   "on Cirqle, at a rate the brand itself would set."),
         terms=TERMS,
         brand_url="",
         tags=json.dumps([category]),
@@ -75,7 +74,6 @@ def main() -> None:
     with Session(engine) as session:
         campaigns = session.exec(select(Campaign)).all()
         by_id = {c.id: c for c in campaigns}
-        before = {u for c in campaigns for u in json.loads(c.images or "[]")}
 
         changed = 0
         for c in sorted(campaigns, key=lambda c: c.id):
@@ -94,22 +92,11 @@ def main() -> None:
                 session.add(c)
             changed += 1
 
-        # Templates are processed with the rest, but their images never change,
-        # so the post-update image set is just each category's template images.
-        after = {u for tid, _ in CATEGORIES.values()
-                 for u in json.loads(by_id[tid].images or "[]")}
-        in_use = after | {m.logo_url for m in session.exec(select(Merchant)).all()} \
-            | {m.display_url for m in session.exec(select(Mention)).all()}
-        orphans = sorted(before - in_use)
-
         if dry_run:
-            print(f"\n[dry run] {changed} campaign(s) would change and "
-                  f"{len(orphans)} image(s) would be deleted. Nothing written.")
+            print(f"\n[dry run] {changed} campaign(s) would change. Nothing written.")
             return
         session.commit()
-        for url in orphans:
-            delete_image(url)
-        print(f"\nUpdated {changed} campaign(s), deleted {len(orphans)} image(s).")
+        print(f"\nUpdated {changed} campaign(s).")
 
 
 if __name__ == "__main__":
