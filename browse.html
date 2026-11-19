@@ -43,6 +43,37 @@
     .search-input::placeholder { color: #93A0AD; }
     .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); pointer-events: none; }
 
+    /* ── Founding-brands banner (top of page, aimed at brands) ── */
+    .founding {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px 32px;
+      margin-top: 24px; padding: 20px 24px; border-radius: var(--r-card);
+      background: var(--ink); color: #CBD5E1;
+    }
+    .founding-copy { display: flex; flex-direction: column; gap: 3px; }
+    .founding-kicker { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--neon); }
+    .founding h2 { margin: 0; font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+    .founding p { margin: 0; font-size: .88rem; }
+    .founding-side { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .founding-meter { width: 220px; max-width: 100%; }
+    .founding-count { font-size: .84rem; margin-bottom: 7px; }
+    .founding-count b { color: #fff; font-size: 1.05rem; font-weight: 800; margin-right: 3px; font-variant-numeric: tabular-nums; }
+    .founding-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.14); overflow: hidden; }
+    .founding-bar i { display: block; height: 100%; border-radius: 4px; background: var(--neon); }
+    @media (max-width: 560px) {
+      .founding { padding: 16px 18px; margin-top: 18px; }
+      .founding h2 { font-size: 1.1rem; }
+      .founding-side, .founding-meter { width: 100%; }
+    }
+
+    /* Every listing is a made-up "brand" named after its category (brand ==
+       category) — this badge says so on the tile itself. */
+    .madeup-badge {
+      position: absolute; top: 12px; left: 12px;
+      font-size: .66rem; font-weight: 800; padding: 5px 10px;
+      border-radius: var(--r-chip); background: rgba(255,255,255,.94); color: var(--ink);
+      box-shadow: var(--shadow-sm);
+    }
+
     /* ── Layout: filter sidebar + deals grid ── */
     .deals-section { max-width: 1140px; margin: 0 auto; padding: 0 clamp(20px,4vw,44px) 100px; position: relative; z-index: 1; }
     .deals-layout { display: grid; grid-template-columns: 224px minmax(0, 1fr); gap: 30px; align-items: start; }
@@ -240,6 +271,7 @@
       .deals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
       .card-image { height: 124px; font-size: 2.3rem; }
       .ending-badge { top: 8px; right: 8px; font-size: .6rem; padding: 3px 8px; }
+      .madeup-badge { top: 8px; left: 8px; font-size: .6rem; padding: 3px 8px; }
       .card-body { padding: 10px 11px 8px; }
       .card-title { font-size: .84rem; }
       .card-loc { font-size: .7rem; }
@@ -259,6 +291,7 @@
       .is-list .card-image { width: 76px; height: 76px; border: 0; border-radius: 10px; font-size: 1.8rem; }
       .is-list .ending-badge { top: 4px; right: 4px; left: 4px; justify-content: center; font-size: .52rem; padding: 2px 4px; white-space: nowrap; overflow: hidden; }
       .is-list .card-body { padding: 0; }
+      .is-list .madeup-badge { display: none; }   /* no room on a 76px thumb */
       /* List rows: the same pair, stacked on the right, still equal. */
       .is-list .card-footer { grid-template-columns: auto; gap: 5px; }
       .is-list .card-footer { border-top: 0; }
@@ -289,6 +322,22 @@
   <div class="browse-head">
     <h1 class="h-display fade-up d1" style="margin-top:18px">All the <span class="hl hl-pink">deals.</span></h1>
     <p class="h-sub fade-up d2" style="margin-top:10px">A preview of the cashback marketplace we're building.</p>
+    <!-- Founding-brands pitch. The count is hand-set: as spots fill, update
+         "3 of 20", aria-valuenow and the bar width (taken / 20). -->
+    <section class="founding fade-up d3" aria-label="Founding brands">
+      <div class="founding-copy">
+        <span class="founding-kicker">Founding brands</span>
+        <h2>Be one of the first 20 Cirqle brands</h2>
+        <p>Your first month is free.</p>
+      </div>
+      <div class="founding-side">
+        <div class="founding-meter">
+          <div class="founding-count"><b>3 of 20</b> spots taken</div>
+          <div class="founding-bar" role="progressbar" aria-valuemin="0" aria-valuemax="20" aria-valuenow="3" aria-label="Founding spots taken"><i style="width:15%"></i></div>
+        </div>
+        <a href="for-brands" class="btn btn-sm btn-lime">Apply to partner</a>
+      </div>
+    </section>
   </div>
 
   <!-- SIDEBAR + DEALS GRID -->
@@ -358,7 +407,7 @@
 
       <!-- Deals -->
       <div>
-        <div class="preview-note"><button class="preview-note-head" type="button" aria-expanded="false" aria-controls="previewNoteBody"><i class="ico ico-tag"></i><span>These are just example deals.</span><span class="preview-note-chev" aria-hidden="true">&#9660;</span></button><div class="preview-note-body" id="previewNoteBody"><div><p>Cirqle has not onboarded any of the brands shown &mdash; they stand in to show how a listing will look, at a rate the brand itself would set. You can&rsquo;t earn on any of them yet. <a href="for-brands">Brands can apply here</a>.</p></div></div></div>
+        <div class="preview-note"><button class="preview-note-head" type="button" aria-expanded="false" aria-controls="previewNoteBody"><i class="ico ico-tag"></i><span>These are just example deals.</span><span class="preview-note-chev" aria-hidden="true">&#9660;</span></button><div class="preview-note-body" id="previewNoteBody"><div><p>Every brand shown is made up &mdash; each one stands in for its category, to show how a listing will look at a rate the brand itself would set. You can&rsquo;t earn on any of them yet. <a href="for-brands">Brands can apply here</a>.</p></div></div></div>
         <div class="results-bar">
           <p class="results-count"><span id="countNum">12</span> example deals</p>
           <!-- Phones only: tiles (default) or a compact list. Same cards, restyled. -->
@@ -478,6 +527,7 @@
       el.innerHTML = `
         <div class="card-image">
           ${thumb}
+          ${c.brand === c.category ? '<span class="madeup-badge">Made-up brand</span>' : ''}
           ${expiryBadge}
         </div>
         <div class="card-body">

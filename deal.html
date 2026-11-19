@@ -148,7 +148,7 @@
       <span id="bcTitle" style="font-weight:800;color:var(--ink)">Deal</span>
     </div>
 
-    <div class="preview-note fade-up"><button class="preview-note-head" type="button" aria-expanded="false" aria-controls="previewNoteBody"><i class="ico ico-tag"></i><span>This is just an example deal.</span><span class="preview-note-chev" aria-hidden="true">&#9660;</span></button><div class="preview-note-body" id="previewNoteBody"><div><p><span id="pnBrand">This brand</span> has not onboarded with Cirqle &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. You can&rsquo;t earn on it yet. <a href="for-brands">Brands can apply here</a>.</p></div></div></div>
+    <div class="preview-note fade-up"><button class="preview-note-head" type="button" aria-expanded="false" aria-controls="previewNoteBody"><i class="ico ico-tag"></i><span>This is just an example deal.</span><span class="preview-note-chev" aria-hidden="true">&#9660;</span></button><div class="preview-note-body" id="previewNoteBody"><div><p><span id="pnBrand">This brand</span> is a made-up brand &mdash; this page stands in to show how a deal will look, at a rate the brand itself would set. You can&rsquo;t earn on it yet. <a href="for-brands">Brands can apply here</a>.</p></div></div></div>
 
     <!-- Photo + summary -->
     <div class="deal-top">
@@ -275,8 +275,11 @@
       d = c;
       document.title = `${c.brand} — Cirqle`;
       if (c.bg) document.getElementById('heroImg').style.background = c.bg;
-      document.getElementById('heroBrand').textContent = c.brand;
-      document.getElementById('tagBrand').textContent = '@' + c.brand.toLowerCase().replace(/\s+/g, '');
+      // A made-up listing is named after its category (brand == category):
+      // say so, and don't invent an @handle like "@fashion&beauty".
+      const madeUp = c.brand === c.category;
+      document.getElementById('heroBrand').textContent = madeUp ? `${c.brand} · Made-up brand` : c.brand;
+      document.getElementById('tagBrand').textContent = madeUp ? 'the brand' : '@' + c.brand.toLowerCase().replace(/\s+/g, '');
       document.getElementById('heroTitle').textContent = c.cardTitle || c.title;
       document.getElementById('heroDesc').textContent = c.longDesc;
       document.getElementById('bcCategory').textContent = c.category;
