@@ -77,10 +77,11 @@
 
     section { padding-block: 0; scroll-margin-top: 70px; }
     /* bridges carry the reader from one section into the next */
-    .bridge { display: grid; justify-items: center; gap: 12px; padding-block: clamp(36px, 5vw, 56px) clamp(24px, 3vw, 36px); text-align: center; }
-    .bridge .line { width: 2px; height: 52px; background: repeating-linear-gradient(var(--neon-line) 0 6px, transparent 6px 12px); }
+    .bridge { display: grid; justify-items: center; gap: 10px; padding-block: clamp(36px, 5vw, 56px) clamp(24px, 3vw, 36px); text-align: center; }
+    /* half the dashed arrow, the words, then the other half ending in an arrowhead */
+    .bridge .line { width: 2px; height: 30px; background: repeating-linear-gradient(var(--neon-line) 0 6px, transparent 6px 12px); position: relative; }
+    .bridge .line.end::after { content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); border: 6px solid transparent; border-top: 8px solid var(--neon-line); border-bottom: 0; }
     .bridge p { font-weight: 700; font-size: clamp(16px, 1.6vw, 18px); color: var(--ink); max-width: 34ch; }
-    .bridge p::after { content: " ↓"; color: var(--blue); }
     .eyebrow .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 11px; letter-spacing: 0; margin-right: 8px; vertical-align: 1px; }
     .sec-head { display: grid; gap: 12px; margin-bottom: clamp(28px, 4vw, 48px); max-width: 720px; }
     .sec-head.center { margin-inline: auto; text-align: center; justify-items: center; }
@@ -663,7 +664,7 @@
   </div>
 </section>
 
-<div class="bridge"><span class="line"></span><p>That's one customer. Now picture a whole month</p></div>
+<div class="bridge"><span class="line"></span><p>That's one customer. Now picture a whole month</p><span class="line end"></span></div>
 
 <!-- ── Chapter 2: the month ── -->
 <section id="month" class="month">
@@ -779,7 +780,7 @@
   </div>
 </section>
 
-<div class="bridge"><span class="line"></span><p>Anything else you'd want to know?</p></div>
+<div class="bridge"><span class="line"></span><p>Anything else you'd want to know?</p><span class="line end"></span></div>
 
 <!-- ── Chapter 5: FAQ ── -->
 <section id="faq">
