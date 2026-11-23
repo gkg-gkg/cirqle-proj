@@ -412,6 +412,7 @@
     .mstage { position: relative; }
     .mdash { will-change: transform, opacity; }
     .lib { position: absolute; inset: 0; display: flex; align-items: center; overflow: hidden; opacity: 0; pointer-events: none; margin-inline: -20px; }
+    @media (min-width: 601px) { #mLib { display: none; } }
     .lib-track { display: flex; gap: 20px; padding-inline: 20px; will-change: transform; }
     @media (max-width: 600px) { .ugc { width: 190px; } }
 
@@ -459,6 +460,22 @@
     .end-cta p { color: var(--ink-soft); margin-top: 4px; }
     .end-cta .btn { flex: none; white-space: nowrap; }
     @media (max-width: 600px) { .end-cta { flex-direction: column; align-items: stretch; } .end-cta .btn { justify-content: center; } }
+
+    /* laptop "Shares" view: customer photos inside the dashboard */
+    .panes { position: relative; overflow: hidden; min-width: 0; min-height: 0; display: grid; }
+    .panes > .main { grid-area: 1 / 1; background: #fff; will-change: transform; }
+    .lsub { color: #64748B; margin: 0; }
+    .lgrid-wrap { flex: 1; overflow: hidden; min-height: 0; }
+    .lgrid { display: flex; gap: .8em; height: 100%; }
+    .lgrid.grid2 { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr 1fr; }
+    .lcard { flex: none; width: 13em; border: 1px solid #E6EAF0; border-radius: .8em; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .grid2 .lcard { width: auto; }
+    .lc-img { flex: 1; min-height: 0; }
+    .lc-foot { display: flex; justify-content: space-between; gap: .4em; padding: .45em .6em .3em; font-size: .9em; }
+    .lc-foot span { color: #64748B; }
+    .lc-btn { margin: 0 .6em .6em; background: var(--neon); color: #0F172A; border-radius: .45em; text-align: center; font-weight: 700; padding: .25em; font-size: .9em; }
+    /* hero phone keeps its full width; its photo flexes so the phone matches the text height */
+    .hero-fit .dhero { flex: 1 1 160px; min-height: 90px; height: auto; }
   </style>
 </head>
 <body>
@@ -686,14 +703,15 @@
     </div></div></div>
 
     <div class="laptop dash-laptop"><div class="lid"><div class="lscreen">
-      <div class="bchrome"><i></i><i></i><i></i><div class="url">cirqle.co.uk/merchant</div></div>
+      <div class="bchrome"><i></i><i></i><i></i><div class="url" id="mUrl">cirqle.co.uk/merchant</div></div>
       <div class="app">
         <div class="side">
           <div class="logo">cirqle <small>for brands</small></div>
-          <span class="on">Overview</span><span>Sales</span><span>Shares</span><span>Customers</span><span>Your deal</span><span>Billing</span>
+          <span class="on" id="navOv">Overview</span><span>Sales</span><span id="navSh">Shares</span><span>Customers</span><span>Your deal</span><span>Billing</span>
           <div class="me"><div class="mono">BS</div><span style="padding:0;font-weight:600;color:#0F172A">Boswell St Barbers</span></div>
         </div>
-        <div class="main">
+        <div class="panes">
+        <div class="main" id="anaMain">
           <div class="mhead"><h4>Morning, Boswell St Barbers</h4><div style="display:flex;gap:.6em;align-items:center"><span class="tag" style="font-size:.8em">EXAMPLE FIGURES</span><span class="pill">Last 30 days</span></div></div>
           <div class="banner" id="mBanner" style="opacity:0">🎉 <b>3 new customers this week</b>, all brought in by customers who shared you.</div>
           <div class="kpis">
@@ -716,6 +734,12 @@
               </div>
             </div>
           </div>
+        </div>
+        <div class="main lib-main" id="libMain" style="transform:translateX(100%)">
+          <div class="mhead"><h4>Shared by your customers</h4><div style="display:flex;gap:.6em;align-items:center"><span class="tag" style="font-size:.8em">EXAMPLE</span><span class="pill">22 this month</span></div></div>
+          <p class="lsub">Every photo customers share about you. Reshare the best ones on your own account.</p>
+          <div class="lgrid-wrap"><div class="lgrid " id="lTrack"><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 30%"></div><div class="lc-foot"><b>@maya.ucl</b><span>♥ 142</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:center"></div><div class="lc-foot"><b>@sam.j</b><span>♥ 88</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:center"></div><div class="lc-foot"><b>@priya.r</b><span>♥ 203</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 70%"></div><div class="lc-foot"><b>@jo.m</b><span>♥ 1.2k</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:40% 40%"></div><div class="lc-foot"><b>@alex.k</b><span>♥ 64</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:30% 60%"></div><div class="lc-foot"><b>@nina.p</b><span>♥ 97</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 50%"></div><div class="lc-foot"><b>@tom.r</b><span>♥ 310</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:60% 20%"></div><div class="lc-foot"><b>@lee.w</b><span>♥ 45</span></div><span class="lc-btn">Reshare</span></div></div></div>
+        </div>
         </div>
       </div>
     </div></div><div class="base"></div></div>
@@ -833,11 +857,24 @@
     // first half: the month fills in; second half: shared photos slide in from the right
     var p = Math.min(1, whole / 0.5), p2 = reduce ? 0 : Math.min(1, Math.max(0, (whole - 0.56) / 0.4));
     var dash = $('#mDash'), lib = $('#mLib'), track = $('#mTrack');
-    dash.style.transform = 'translateX(' + (-p2 * 70) + '%)';
-    dash.style.opacity = Math.max(0, 1 - p2 * 2.2);
-    lib.style.opacity = Math.min(1, p2 * 3);
-    var room = lib.clientWidth, over = room - track.scrollWidth, end = over < 0 ? over : over / 2;
-    track.style.transform = 'translateX(' + (room * (1 - p2) + end * p2) + 'px)';
+    if ($('.dash-laptop').offsetParent) {
+      // laptop: the screen itself switches from Overview to Shares, then the photos scroll sideways
+      var s = Math.min(1, p2 / 0.35), q = Math.min(1, Math.max(0, (p2 - 0.4) / 0.6));
+      $('#anaMain').style.transform = 'translateX(' + (-s * 100) + '%)';
+      $('#libMain').style.transform = 'translateX(' + ((1 - s) * 100) + '%)';
+      var lt = $('#lTrack'), wrap = lt.parentNode;
+      lt.style.transform = 'translateX(' + (Math.min(0, wrap.clientWidth - lt.scrollWidth) * q) + 'px)';
+      var onShares = p2 > 0.15;
+      $('#navOv').classList.toggle('on', !onShares); $('#navSh').classList.toggle('on', onShares);
+      $('#mUrl').textContent = onShares ? 'cirqle.co.uk/merchant/shares' : 'cirqle.co.uk/merchant';
+    } else {
+      // phone: the dashboard slides away and the photo cards slide in
+      dash.style.transform = 'translateX(' + (-p2 * 70) + '%)';
+      dash.style.opacity = Math.max(0, 1 - p2 * 2.2);
+      lib.style.opacity = Math.min(1, p2 * 3);
+      var room = lib.clientWidth, over = room - track.scrollWidth, end = over < 0 ? over : over / 2;
+      track.style.transform = 'translateX(' + (room * (1 - p2) + end * p2) + 'px)';
+    }
     $('#mhA').style.opacity = Math.max(0, 1 - p2 * 4);
     $('#mhB').style.opacity = reduce ? 1 : Math.min(1, Math.max(0, (p2 - .15) * 4));
     $('#dayN').textContent = Math.max(1, Math.round(p * 30));
@@ -905,16 +942,17 @@
 })();
 </script>
 <script>
-  // Hero: scale the phone so it stands exactly as tall as the title + subtitle
+  // Hero: keep the phone full width and set its height to match the title + subtitle
   (function () {
-    var txt = document.querySelector('.hero .wrap > div:first-child'), fit = document.querySelector('.hero-fit'), ph = fit && fit.querySelector('.phone');
-    if (!txt || !ph) return;
+    var txt = document.querySelector('.hero .wrap > div:first-child'), fit = document.querySelector('.hero-fit');
+    var scr = fit && fit.querySelector('.screen'), map = fit && fit.querySelector('.map');
+    if (!txt || !scr) return;
     function size() {
-      ph.style.transform = ''; fit.style.width = fit.style.height = '';
+      scr.style.height = ''; scr.style.minHeight = ''; if (map) map.style.display = '';
       if (window.innerWidth <= 900) return;
-      var s = Math.min(1.15, txt.offsetHeight / ph.offsetHeight);
-      ph.style.transform = 'scale(' + s + ')';
-      fit.style.width = ph.offsetWidth * s + 'px'; fit.style.height = ph.offsetHeight * s + 'px';
+      var h = txt.offsetHeight - 20;
+      scr.style.minHeight = '0'; scr.style.height = h + 'px';
+      if (map) map.style.display = h < 470 ? 'none' : '';
     }
     window.addEventListener('resize', size);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(size);

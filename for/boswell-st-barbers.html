@@ -326,7 +326,7 @@
     .lib-row::-webkit-scrollbar { display: none; }
     .swipe-hint { display: none; text-align: center; font-size: 13px; font-weight: 600; color: var(--blue); }
     @media (max-width: 1200px) { .swipe-hint { display: block; } }
-    @media (min-width: 601px) { .lib-row .ugc { width: 200px; } }
+    @media (min-width: 601px) { .lib-row, .swipe-hint { display: none !important; } }
     @media (max-width: 600px) { .ugc { width: 190px; } }
 
     /* faq */
@@ -352,6 +352,22 @@
     .end-cta p { color: var(--ink-soft); margin-top: 4px; }
     .end-cta .btn { flex: none; white-space: nowrap; }
     @media (max-width: 600px) { .end-cta { flex-direction: column; align-items: stretch; } .end-cta .btn { justify-content: center; } }
+
+    /* laptop "Shares" view: customer photos inside the dashboard */
+    .panes { position: relative; overflow: hidden; min-width: 0; min-height: 0; display: grid; }
+    .panes > .main { grid-area: 1 / 1; background: #fff; }
+    .lsub { color: #64748B; margin: 0; }
+    .lgrid-wrap { flex: 1; overflow: hidden; min-height: 0; }
+    .lgrid { display: flex; gap: .8em; height: 100%; }
+    .lgrid.grid2 { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr 1fr; }
+    .lcard { flex: none; width: 13em; border: 1px solid #E6EAF0; border-radius: .8em; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .grid2 .lcard { width: auto; }
+    .lc-img { flex: 1; min-height: 0; }
+    .lc-foot { display: flex; justify-content: space-between; gap: .4em; padding: .45em .6em .3em; font-size: .9em; }
+    .lc-foot span { color: #64748B; }
+    .lc-btn { margin: 0 .6em .6em; background: var(--neon); color: #0F172A; border-radius: .45em; text-align: center; font-weight: 700; padding: .25em; font-size: .9em; }
+    /* hero phone keeps its full width; its photo flexes so the phone matches the text height */
+    .hero-fit .dhero { flex: 1 1 160px; min-height: 90px; height: auto; }
   </style>
 </head>
 <body>
@@ -619,6 +635,7 @@
           <span class="on">Overview</span><span>Sales</span><span>Shares</span><span>Customers</span><span>Your deal</span><span>Billing</span>
           <div class="me"><div class="mono">BS</div><span style="padding:0;font-weight:600;color:#0F172A">Boswell St Barbers</span></div>
         </div>
+        <div class="panes">
         <div class="main">
           <div class="mhead"><h4>Morning, Boswell St Barbers</h4><div style="display:flex;gap:.6em;align-items:center"><span class="tag" style="font-size:.8em">EXAMPLE FIGURES</span><span class="pill">Last 30 days</span></div></div>
           <div class="banner">🎉 <b>3 new customers this week</b>, all brought in by customers who shared you.</div>
@@ -645,6 +662,8 @@
             </div>
           </div>
         </div>
+
+        </div>
       </div>
     </div></div><div class="base"></div></div>
 
@@ -653,6 +672,23 @@
         <h3 class="lib-h">Then use the content they create</h3>
         <p class="lead">Every photo customers share about you shows up in your dashboard. Reshare the best ones on your own account.</p>
       </div>
+      <div class="laptop dash-laptop"><div class="lid"><div class="lscreen">
+        <div class="bchrome"><i></i><i></i><i></i><div class="url">cirqle.co.uk/merchant/shares</div></div>
+        <div class="app">
+          <div class="side">
+            <div class="logo">cirqle <small>for brands</small></div>
+            <span>Overview</span><span>Sales</span><span class="on">Shares</span><span>Customers</span><span>Your deal</span><span>Billing</span>
+            <div class="me"><div class="mono">BS</div><span style="padding:0;font-weight:600;color:#0F172A">Boswell St Barbers</span></div>
+          </div>
+          <div class="panes">
+        <div class="main lib-main">
+          <div class="mhead"><h4>Shared by your customers</h4><div style="display:flex;gap:.6em;align-items:center"><span class="tag" style="font-size:.8em">EXAMPLE</span><span class="pill">22 this month</span></div></div>
+          <p class="lsub">Every photo customers share about you. Reshare the best ones on your own account.</p>
+          <div class="lgrid-wrap"><div class="lgrid grid2"><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 30%"></div><div class="lc-foot"><b>@maya.ucl</b><span>♥ 142</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:center"></div><div class="lc-foot"><b>@sam.j</b><span>♥ 88</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:center"></div><div class="lc-foot"><b>@priya.r</b><span>♥ 203</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 70%"></div><div class="lc-foot"><b>@jo.m</b><span>♥ 1.2k</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:40% 40%"></div><div class="lc-foot"><b>@alex.k</b><span>♥ 64</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:30% 60%"></div><div class="lc-foot"><b>@nina.p</b><span>♥ 97</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 50%"></div><div class="lc-foot"><b>@tom.r</b><span>♥ 310</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:60% 20%"></div><div class="lc-foot"><b>@lee.w</b><span>♥ 45</span></div><span class="lc-btn">Reshare</span></div></div></div>
+        </div>
+          </div>
+        </div>
+      </div></div><div class="base"></div></div>
       <div class="lib-row">
         <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@maya.ucl</b><span class="ugc-tag">Story</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 30%"></div><div class="ugc-foot"><span>♥ 142</span><span class="ugc-btn">Reshare</span></div></div>
         <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@sam.j</b><span class="ugc-tag">Post</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:center"></div><div class="ugc-foot"><span>♥ 88</span><span class="ugc-btn">Reshare</span></div></div>
@@ -717,16 +753,17 @@
   })();
 </script>
 <script>
-  // Hero: scale the phone so it stands exactly as tall as the title + subtitle
+  // Hero: keep the phone full width and set its height to match the title + subtitle
   (function () {
-    var txt = document.querySelector('.hero .wrap > div:first-child'), fit = document.querySelector('.hero-fit'), ph = fit && fit.querySelector('.phone');
-    if (!txt || !ph) return;
+    var txt = document.querySelector('.hero .wrap > div:first-child'), fit = document.querySelector('.hero-fit');
+    var scr = fit && fit.querySelector('.screen'), map = fit && fit.querySelector('.map');
+    if (!txt || !scr) return;
     function size() {
-      ph.style.transform = ''; fit.style.width = fit.style.height = '';
+      scr.style.height = ''; scr.style.minHeight = ''; if (map) map.style.display = '';
       if (window.innerWidth <= 900) return;
-      var s = Math.min(1.15, txt.offsetHeight / ph.offsetHeight);
-      ph.style.transform = 'scale(' + s + ')';
-      fit.style.width = ph.offsetWidth * s + 'px'; fit.style.height = ph.offsetHeight * s + 'px';
+      var h = txt.offsetHeight - 20;
+      scr.style.minHeight = '0'; scr.style.height = h + 'px';
+      if (map) map.style.display = h < 470 ? 'none' : '';
     }
     window.addEventListener('resize', size);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(size);
