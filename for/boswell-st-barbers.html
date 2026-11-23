@@ -311,6 +311,24 @@
     .sharers span { background: #F1F5F9; border-radius: 999px; padding: .2em .6em; font-weight: 600; }
 
 
+
+    /* customer content cards (shared photos the shop can reshare) */
+    .ugc { flex: none; width: 220px; background: #fff; color: #0F172A; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 30px rgba(15,23,42,.12); scroll-snap-align: start; }
+    .ugc-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: 12.5px; }
+    .ugc-av { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7); flex: none; }
+    .ugc-tag { margin-left: auto; font-size: 10px; font-weight: 700; color: #64748B; background: #F1F5F9; padding: 2px 7px; border-radius: 999px; }
+    .ugc-img { aspect-ratio: 4/5; }
+    .ugc-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; font-size: 12.5px; color: #475569; }
+    .ugc-btn { background: var(--neon); color: #0F172A; font-weight: 700; border-radius: 8px; padding: 5px 11px; font-size: 12px; }
+    .lib-static { margin-top: clamp(48px, 6vw, 72px); }
+    .lib-h { font-size: clamp(24px, 3vw, 32px); }
+    .lib-row { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 20px 26px; margin-inline: -20px; justify-content: safe center; scrollbar-width: none; }
+    .lib-row::-webkit-scrollbar { display: none; }
+    .swipe-hint { display: none; text-align: center; font-size: 13px; font-weight: 600; color: var(--blue); }
+    @media (max-width: 1200px) { .swipe-hint { display: block; } }
+    @media (min-width: 601px) { .lib-row .ugc { width: 200px; } }
+    @media (max-width: 600px) { .ugc { width: 190px; } }
+
     /* faq */
     .faq { max-width: 780px; margin-inline: auto; display: grid; gap: 10px; }
     .faq details { border: 1px solid var(--line); border-radius: 14px; background: #fff; }
@@ -322,6 +340,18 @@
 
     footer { padding-block: 32px 48px; font-size: 13px; color: var(--ink-soft); }
     footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+    /* hero: phone scaled to the height of the title + subtitle */
+    .hero-fit { position: relative; }
+    .hero-fit .phone { transform-origin: 0 0; }
+    .bar-cta { flex: none; background: var(--neon); color: var(--ink); font-weight: 700; font-size: 13px; padding: 7px 13px; border-radius: 9px; text-decoration: none; }
+    .bar-cta:hover { background: #2AA8F2; }
+    @media (max-width: 480px) { .demo-bar .for { display: none; } .bar-cta { margin-left: auto; } }
+    .end-cta { margin-top: clamp(40px, 6vw, 64px); max-width: 780px; margin-inline: auto; border-top: 1px solid var(--line); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .end-cta h3 { font-size: clamp(20px, 2.4vw, 24px); }
+    .end-cta p { color: var(--ink-soft); margin-top: 4px; }
+    .end-cta .btn { flex: none; white-space: nowrap; }
+    @media (max-width: 600px) { .end-cta { flex-direction: column; align-items: stretch; } .end-cta .btn { justify-content: center; } }
   </style>
 </head>
 <body>
@@ -340,6 +370,7 @@
       <li><a href="#faq">Questions</a></li>
     </ul>
     <span class="for"><span class="mono">BS</span><span class="long">For Boswell St Barbers</span></span>
+    <a class="bar-cta" href="/contact">Apply to partner</a>
   </div>
   <div class="progress"><i id="prog"></i></div>
 </header>
@@ -351,15 +382,10 @@
       <div class="eyebrow">For Boswell St Barbers · 20 Boswell St</div>
       <h1>Turn your customers into your <em>best advert</em>.</h1>
       <p class="lead">Cirqle gives your customers a little money back when they share your shop with their friends. You get new customers walking in, and it works as profit sharing: you only give cashback once a sale has been processed and verified.</p>
-      <div class="ctas">
-        <a class="btn btn-main" href="/contact">Apply to partner →</a>
-        <a class="btn btn-ghost" href="#how">How it works</a>
-      </div>
-      <div class="facts"><span>Nothing changes at your till</span><span>Profit sharing on verified sales</span><span>Works with any customer</span></div>
     </div>
     <div class="hero-art">
       <div class="shot">
-        <div class="phone"><div class="screen">
+        <div class="hero-fit"><div class="phone"><div class="screen">
           <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
           <div class="snav"><span class="logo">cirqle</span><span class="tag">PREVIEW</span></div>
           <div class="dhero photo" style="background-image:url(/assets/demo/barber-pole.jpg)"><div class="mono">BS</div></div>
@@ -370,9 +396,9 @@
             <div class="map"><i class="road h"></i><i class="road v"></i><span class="pin"></span><b>Boswell St</b></div>
             <div class="sbtn">Upload your receipt</div>
           </div>
-        </div></div>
-        <div class="call r" style="top:120px"><span class="ci b">BS</span><div>Your deal on Cirqle<small>Seen by people nearby</small></div></div>
-        <div class="call l" style="top:420px"><span class="ci">%</span><div>You choose the rate<small>Agreed with us when you join</small></div></div>
+        </div></div></div>
+        <div class="call r" style="top:20%"><span class="ci b">BS</span><div>Your deal on Cirqle<small>Seen by people nearby</small></div></div>
+        <div class="call l" style="top:72%"><span class="ci">%</span><div>You choose the rate<small>Agreed with us when you join</small></div></div>
       </div>
     </div>
   </div>
@@ -621,6 +647,21 @@
         </div>
       </div>
     </div></div><div class="base"></div></div>
+
+    <div class="lib-static">
+      <div class="sec-head center" style="margin-bottom:20px">
+        <h3 class="lib-h">Then use the content they create</h3>
+        <p class="lead">Every photo customers share about you shows up in your dashboard. Reshare the best ones on your own account.</p>
+      </div>
+      <div class="lib-row">
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@maya.ucl</b><span class="ugc-tag">Story</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 30%"></div><div class="ugc-foot"><span>♥ 142</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@sam.j</b><span class="ugc-tag">Post</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:center"></div><div class="ugc-foot"><span>♥ 88</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@priya.r</b><span class="ugc-tag">Post</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:center"></div><div class="ugc-foot"><span>♥ 203</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@jo.m</b><span class="ugc-tag">Reel</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/pole-mural.jpg);background-position:center 70%"></div><div class="ugc-foot"><span>♥ 1.2k</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@alex.k</b><span class="ugc-tag">Story</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/barber-pole.jpg);background-position:40% 40%"></div><div class="ugc-foot"><span>♥ 64</span><span class="ugc-btn">Reshare</span></div></div>
+      </div>
+      <p class="swipe-hint">Swipe to see more →</p>
+    </div>
   </div>
 </section>
 
@@ -641,7 +682,11 @@
       <details><summary>My Instagram is quite small. Does that matter?</summary><p>No. Customers share you with their own friends, on social media or in-person, so you reach people who don't follow you yet.</p></details>
       <details><summary>How do you stop fake receipts?</summary><p>Every receipt goes through checks: we read it, match it to your shop, look for duplicates and screen for fraud, and a person reviews it. Rejected receipts cost you nothing.</p></details>
       <details><summary>I already run offers. Do I keep them?</summary><p>That's up to you. Your existing offers, like your student cut, can stay as they are. Cirqle is about getting your customers to bring their friends in.</p></details>
-      <details><summary>How do I get started?</summary><p>Tap Apply to partner at the top of this page, or just tell us when we're in. We'll set up your deal with you.</p></details>
+      <details><summary>How do I get started?</summary><p>Tap Apply to partner below, or just tell us when we're in. We'll set up your deal with you.</p></details>
+    </div>
+    <div class="end-cta">
+      <div><h3>Ready to turn your customers into your best advert?</h3><p>We'll set up your deal with you.</p></div>
+      <a class="btn btn-main" href="/contact">Apply to partner →</a>
     </div>
   </div>
 </section>
@@ -669,6 +714,23 @@
     window.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
     update();
+  })();
+</script>
+<script>
+  // Hero: scale the phone so it stands exactly as tall as the title + subtitle
+  (function () {
+    var txt = document.querySelector('.hero .wrap > div:first-child'), fit = document.querySelector('.hero-fit'), ph = fit && fit.querySelector('.phone');
+    if (!txt || !ph) return;
+    function size() {
+      ph.style.transform = ''; fit.style.width = fit.style.height = '';
+      if (window.innerWidth <= 900) return;
+      var s = Math.min(1.15, txt.offsetHeight / ph.offsetHeight);
+      ph.style.transform = 'scale(' + s + ')';
+      fit.style.width = ph.offsetWidth * s + 'px'; fit.style.height = ph.offsetHeight * s + 'px';
+    }
+    window.addEventListener('resize', size);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(size);
+    size();
   })();
 </script>
 </body>
