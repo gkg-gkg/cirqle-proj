@@ -2,11 +2,11 @@
 
 The two hand-made pages are the templates:
     for/boswell-st-barbers.html        (original design)
-    for/boswell-st-barbers-story.html  (scroll-story design)
+    for/boswell-st-barbers-demo.html   (scroll-story design)
 
 For every brand in scripts/demo_brands.json this swaps in the brand's name,
 address, category wording, photos, prices and example figures, and writes
-    for/<slug>.html  and  for/<slug>-story.html
+    for/<slug>.html  and  for/<slug>-demo.html
 
 Usage:  python3 scripts/build_demo_pages.py
 """
@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MASTERS = {'': ROOT / 'for/boswell-st-barbers.html',
-           '-story': ROOT / 'for/boswell-st-barbers-story.html'}
+           '-demo': ROOT / 'for/boswell-st-barbers-demo.html'}
 
 # ── Category wording, photos and typical spend ──────────────────────────────
 # match: regex on the sheet's category. First match wins.
@@ -176,7 +176,7 @@ def render(master, b, k, story):
     tag_sticker = e(handle) if handle else '📍 ' + name
 
     R = [  # (old, new, expected count: None = any, including 0)
-        ('boswell-st-barbers-story', b['slug'] + '-story', None),
+        ('boswell-st-barbers-demo', b['slug'] + '-demo', None),
         ('boswell-st-barbers', b['slug'], None),
         ('For Boswell St Barbers · 20 Boswell St', f'For {name} · {e(b["addr_short"])}', 1),
         ('20 Boswell St, WC1N 3BW', e(b['addr_full']), None),
@@ -229,7 +229,7 @@ def render(master, b, k, story):
     for old, new, n in R:
         c = t.count(old)
         if n is not None and c != n:
-            raise SystemExit(f'{b["slug"]}{"-story" if story else ""}: expected {n}× {old!r}, found {c}')
+            raise SystemExit(f'{b["slug"]}{"-demo" if story else ""}: expected {n}× {old!r}, found {c}')
         t = t.replace(old, new)
     left = re.findall(r'[Bb]oswell' if k['key'] == 'barber' else r'[Bb]oswell|barber|haircut', t)
     if left:
