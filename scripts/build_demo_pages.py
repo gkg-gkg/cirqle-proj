@@ -1,7 +1,7 @@
 """Build the private merchant demo pages under for/ from the Boswell St Barbers masters.
 
-The two hand-made pages are the templates:
-    for/boswell-st-barbers.html        (original design)
+The two hand-made Boswell St Barbers pages are the templates:
+    scripts/templates/original.html.tmpl (original design; Boswell's own copy isn't published)
     for/boswell-st-barbers-demo.html   (scroll-story design)
 
 For every brand in scripts/demo_brands.json this swaps in the brand's name,
@@ -17,7 +17,7 @@ import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-MASTERS = {'': ROOT / 'for/boswell-st-barbers.html',
+MASTERS = {'': ROOT / 'scripts/templates/original.html.tmpl',
            '-demo': ROOT / 'for/boswell-st-barbers-demo.html'}
 
 # ── Category wording, photos and typical spend ──────────────────────────────
