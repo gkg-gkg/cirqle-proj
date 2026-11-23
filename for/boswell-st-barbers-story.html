@@ -63,7 +63,7 @@
     .demo-bar .wrap { display: flex; align-items: center; gap: 14px; padding-block: 11px; }
     .demo-pill { font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; background: rgba(56,182,255,.18); color: #7DD3FC; padding: 3px 8px; border-radius: 6px; }
     .chapters { display: flex; gap: 2px; margin: 0 auto; padding: 0; list-style: none; }
-    .chapters a { display: block; color: #94A3B8; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 8px; transition: color .2s, background .2s; }
+    .chapters a { white-space: nowrap; display: block; color: #94A3B8; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 8px; transition: color .2s, background .2s; }
     .chapters a:hover { color: #fff; }
     .chapters a.done { color: #CBD5E1; }
     .chapters a.on { color: #fff; background: rgba(255,255,255,.1); }
@@ -72,6 +72,7 @@
     .progress i { display: block; height: 100%; width: 0; background: var(--neon); }
     .logo { font-weight: 700; font-size: 22.4px; letter-spacing: -.03em; color: var(--neon); text-decoration: none; }
     .for { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #CBD5E1; white-space: nowrap; }
+    .for .long { max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
     @media (max-width: 480px) { .for .long { display: none; } }
     .for .mono { width: 26px; height: 26px; font-size: 10px; border: 1.5px solid rgba(255,255,255,.35); box-shadow: none; }
 
@@ -817,7 +818,7 @@
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
-  var money = function (v) { return '£' + (v % 1 ? v.toFixed(2) : Math.round(v)); };
+  var money = function (v) { return '£' + (v % 1 ? v.toFixed(2) : Math.round(v).toLocaleString('en-GB')); };
 
   /* ── Chapter 1: beats drive the phone screen and the tally ── */
   var TALLY = [

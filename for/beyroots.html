@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Private pitch page for one shop: not linked from the site, kept out of search -->
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <title>Cirqle for BEYRoots</title>
+  <meta name="description" content="How Cirqle would bring new customers to BEYRoots." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Cirqle" />
+  <meta property="og:url" content="https://cirqle.co.uk/for/beyroots" />
+  <meta property="og:title" content="Cirqle for BEYRoots" />
+  <meta property="og:description" content="How Cirqle would bring new customers to BEYRoots." />
+  <meta property="og:image" content="https://cirqle.co.uk/assets/og/cirqle-og-for-brands.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Cirqle logo with a For brands badge" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://cirqle.co.uk/assets/og/cirqle-og-for-brands.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* Self-contained on purpose: this page sits outside the site's nav and
+       enhance.js, so it carries Cirqle's tokens (from assets/cirqle.css) itself. */
+    :root {
+      --paper: #FFFFFF; --paper-deep: #F5F7FA; --ink: #0F172A; --ink-soft: #5B6B80;
+      --line: #E6EAF0; --neon: #38B6FF; --neon-line: #0090E8; --blue: #0072D6;
+      --blue-deep: #005CB0; --blue-tint: #ECF6FB; --blue-pale: #F5FBFD;
+      --brand: #1F2937; --on-brand: #FFFFFF;          /* the shop's colour */
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      --display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+      --r: 18px;
+      --shadow: 0 4px 16px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.05);
+      --gap: clamp(64px, 9vw, 112px);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+    img { max-width: 100%; display: block; }
+    h1, h2, h3 { margin: 0; line-height: 1.12; text-wrap: balance; letter-spacing: -.02em; }
+    p { margin: 0; }
+    a { color: var(--blue); }
+    :focus-visible { outline: 2px solid var(--neon-line); outline-offset: 3px; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; }
+    .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--blue); }
+    .lead { font-size: clamp(17px, 1.6vw, 19px); color: var(--ink-soft); max-width: 58ch; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 22px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; }
+    .btn-main { background: var(--neon); color: var(--ink); box-shadow: 0 6px 20px rgba(56,182,255,.4); }
+    .btn-main:hover { background: #2AA8F2; }
+    .btn-ghost { color: var(--ink); border: 1px solid var(--line); background: #fff; }
+    .btn-ghost:hover { border-color: #CBD5E1; }
+
+    /* top bar */
+    /* demo bar: dark, sticky, with chapter links and a scroll progress line */
+    .demo-bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--ink); color: #fff; }
+    .demo-bar .wrap { display: flex; align-items: center; gap: 14px; padding-block: 11px; }
+    .demo-pill { font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; background: rgba(56,182,255,.18); color: #7DD3FC; padding: 3px 8px; border-radius: 6px; }
+    .chapters { display: flex; gap: 2px; margin: 0 auto; padding: 0; list-style: none; }
+    .chapters a { white-space: nowrap; display: block; color: #94A3B8; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 8px; transition: color .2s, background .2s; }
+    .chapters a:hover { color: #fff; }
+    .chapters a.done { color: #CBD5E1; }
+    .chapters a.on { color: #fff; background: rgba(255,255,255,.1); }
+    @media (max-width: 1080px) { .chapters { display: none; } }
+    .progress { height: 3px; background: rgba(255,255,255,.08); }
+    .progress i { display: block; height: 100%; width: 0; background: var(--neon); }
+    .logo { font-weight: 700; font-size: 22.4px; letter-spacing: -.03em; color: var(--neon); text-decoration: none; }
+    .for { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #CBD5E1; white-space: nowrap; }
+    .for .long { max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 480px) { .for .long { display: none; } }
+    .for .mono { width: 26px; height: 26px; font-size: 10px; border: 1.5px solid rgba(255,255,255,.35); box-shadow: none; }
+
+    section { padding-block: 0; scroll-margin-top: 70px; }
+    /* bridges carry the reader from one section into the next */
+    .bridge { display: grid; justify-items: center; gap: 10px; padding-block: clamp(36px, 5vw, 56px) clamp(24px, 3vw, 36px); text-align: center; }
+    /* half the dashed arrow, the words, then the other half ending in an arrowhead */
+    .bridge .line { width: 2px; height: 30px; background: repeating-linear-gradient(var(--neon-line) 0 6px, transparent 6px 12px); position: relative; }
+    .bridge .line.end::after { content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); border: 6px solid transparent; border-top: 8px solid var(--neon-line); border-bottom: 0; }
+    .bridge p { font-weight: 700; font-size: clamp(16px, 1.6vw, 18px); color: var(--ink); max-width: 34ch; }
+    .eyebrow .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 11px; letter-spacing: 0; margin-right: 8px; vertical-align: 1px; }
+    .sec-head { display: grid; gap: 12px; margin-bottom: clamp(28px, 4vw, 48px); max-width: 720px; }
+    .sec-head.center { margin-inline: auto; text-align: center; justify-items: center; }
+    h2 { font-size: clamp(30px, 4.2vw, 46px); }
+    .serif { font-family: var(--display); font-weight: 800; letter-spacing: -.01em; }
+
+    /* hero */
+    .hero { padding-block: clamp(40px, 6vw, 72px) 0; }
+    .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
+    .hero h1 { font-size: clamp(40px, 6vw, 68px); margin-block: 14px 18px; }
+    .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, rgba(56,182,255,.35) 0); }
+    .hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .hero .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 26px; font-size: 14px; color: var(--ink-soft); }
+    .hero .facts span::before { content: "✓"; color: var(--blue); font-weight: 800; margin-right: 6px; }
+    .hero-art { display: flex; justify-content: center; padding-inline: 70px; }
+    @media (max-width: 900px) {
+      .hero .wrap { grid-template-columns: 1fr; }
+      .hero-art { padding-inline: 0; }
+    }
+
+    /* ── device frames (screens stay light) ── */
+    .shot { position: relative; }
+    .phone { position: relative; width: 260px; max-width: 100%; border-radius: 44px; padding: 10px; background: linear-gradient(150deg,#2c3138,#0f1115 45%,#262a31); box-shadow: inset 0 0 0 2px #59606a, inset 0 0 0 4px #14171b, 0 30px 60px rgba(15,23,42,.22), 0 6px 14px rgba(15,23,42,.12); }
+    .phone::before { content: ""; position: absolute; left: -3px; top: 98px; width: 3px; height: 24px; border-radius: 2px 0 0 2px; background: #4a5059; box-shadow: 0 40px 0 #4a5059, 0 78px 0 #4a5059; }
+    .phone::after { content: ""; position: absolute; right: -3px; top: 136px; width: 3px; height: 66px; border-radius: 0 2px 2px 0; background: #4a5059; }
+    .screen { position: relative; background: #fff; color: #0F172A; border-radius: 34px; overflow: hidden; font-size: 12.5px; line-height: 1.45; min-height: 500px; display: flex; flex-direction: column; padding-bottom: 16px; }
+    .screen::before { content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 78px; height: 23px; border-radius: 12px; background: #000; z-index: 5; }
+    .screen::after { content: ""; position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 92px; height: 4px; border-radius: 3px; background: rgba(15,23,42,.82); z-index: 5; }
+    .sbar { display: flex; justify-content: space-between; align-items: center; padding: 13px 24px 6px; font-size: 11px; font-weight: 700; min-height: 40px; }
+    .snav { display: flex; align-items: center; justify-content: space-between; padding: 6px 14px; border-bottom: 1px solid #EFF2F6; }
+    .snav .logo { font-size: 15px; }
+    .tag { font-size: 9px; font-weight: 700; background: #FFF6E5; color: #8A5300; padding: 2px 6px; border-radius: 5px; letter-spacing: .03em; }
+    .sbtn { background: var(--neon); color: #0F172A; font-weight: 700; text-align: center; padding: 10px; border-radius: 10px; }
+    .mono { width: 46px; height: 46px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-weight: 800; font-size: 15px; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.15); flex: none; }
+    .photo { background-size: cover; background-position: center; }
+
+    .mini { width: 186px; max-width: 100%; display: grid; gap: 10px; justify-items: center; }
+    .mini .phone { width: 186px; border-radius: 34px; padding: 7px; }
+    .mini .phone::before { top: 70px; height: 17px; box-shadow: 0 28px 0 #4a5059, 0 54px 0 #4a5059; }
+    .mini .phone::after { top: 94px; height: 44px; }
+    .mini .screen { min-height: 350px; border-radius: 27px; font-size: 11.5px; padding-top: 32px; }
+    .mini .screen::before { top: 8px; width: 56px; height: 16px; }
+    .mini .screen::after { width: 66px; height: 3px; bottom: 5px; }
+
+    .laptop { width: 100%; max-width: 880px; margin-inline: auto; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 26px 32px rgba(15,23,42,.18)); }
+    .lid { width: 88%; background: #0c0e11; border-radius: 18px 18px 6px 6px; padding: 3% 2.2% 2.6%; position: relative; box-shadow: 0 0 0 2px #b9bec6, inset 0 0 0 1px #2a2e35; }
+    .lid::before { content: ""; position: absolute; top: 1.1%; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; border-radius: 50%; background: #1d2228; box-shadow: inset 0 0 0 1.5px #333b45; }
+    .lscreen { background: #fff; color: #0F172A; aspect-ratio: 16/10; overflow: hidden; display: flex; flex-direction: column; container-type: inline-size; border-radius: 2px; line-height: 1.4; }
+    .base { width: 100%; height: clamp(10px, 2vw, 18px); background: linear-gradient(#e6e9ed,#aab0b8); border-radius: 2px 2px 18px 18px / 2px 2px 10px 10px; position: relative; }
+    .base::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 16%; height: 45%; background: #c4c9d0; border-radius: 0 0 8px 8px; }
+    .bchrome { display: flex; align-items: center; gap: .5em; padding: .55em .9em; background: #F1F3F6; border-bottom: 1px solid #E2E6EB; font-size: 1.5cqw; }
+    .bchrome i { width: .75em; height: .75em; border-radius: 50%; background: #FF5F57; flex: none; }
+    .bchrome i:nth-child(2) { background: #FEBC2E; } .bchrome i:nth-child(3) { background: #28C840; }
+    .url { flex: 1; max-width: 55%; margin: 0 auto; background: #fff; border-radius: .5em; padding: .2em .8em; color: #64748B; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* callouts beside frames */
+    .call { position: absolute; z-index: 6; background: #fff; color: #0F172A; border-radius: 14px; padding: 9px 12px; font-weight: 700; font-size: 13px; line-height: 1.25; box-shadow: 0 12px 28px rgba(15,23,42,.16), 0 1px 3px rgba(15,23,42,.08); display: flex; gap: 9px; align-items: center; width: max-content; max-width: 200px; }
+    .call small { display: block; font-weight: 500; color: #64748B; font-size: 11.5px; }
+    .call.l { right: calc(100% - 40px); } .call.r { left: calc(100% - 40px); }
+    /* phones: badges sit in a row under the frame instead of over the screen */
+    @media (max-width: 560px) {
+      .shot { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      .shot .call { position: static; max-width: 100%; }
+    }
+    .ci { flex: none; min-width: 28px; height: 28px; padding: 0 5px; border-radius: 14px; background: var(--neon); color: #0F172A; display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+    .ci.b { background: var(--brand); color: var(--on-brand); }
+
+    /* deal screen */
+    .dhero { height: 160px; position: relative; }
+    .dhero .mono { position: absolute; left: 14px; bottom: -23px; }
+    .dbody { padding: 30px 14px 12px; display: grid; gap: 10px; }
+    .dname { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+    .dcat { color: #64748B; font-size: 11.5px; }
+    .chips { display: flex; gap: 4px; flex-wrap: wrap; }
+    .chips span { font-size: 10px; background: #F1F5F9; padding: 2px 8px; border-radius: 999px; color: #475569; font-weight: 600; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; border-radius: 10px; overflow: hidden; text-align: center; }
+    .split div { padding: 9px; } .split div:first-child { background: #F1F8FD; } .split div:last-child { background: #E2F0FA; }
+    .split b { display: block; font-size: 18px; } .split span { font-size: 10px; color: #475569; }
+    .map { position: relative; height: 54px; border-radius: 9px; background: #E9EEF2; overflow: hidden; }
+    .road { position: absolute; background: #fff; }
+    .road.h { left: 0; right: 0; top: 55%; height: 6px; } .road.v { top: 0; bottom: 0; left: 30%; width: 5px; }
+    .pin { position: absolute; left: 58%; top: 20%; width: 16px; height: 16px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--brand); box-shadow: 0 0 0 2px #fff; }
+    .map b { position: absolute; right: 8px; bottom: 5px; font-size: 10px; color: #475569; }
+
+
+    /* benefits */
+    .benefits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    @media (max-width: 980px) { .benefits { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .benefits { grid-template-columns: 1fr; } }
+    .dash-phone { display: none; justify-content: center; }
+    .dp { padding: 12px; display: grid; gap: 10px; }
+    .dp-head { display: flex; gap: 9px; align-items: center; }
+    .dp-head .mono { width: 34px; height: 34px; font-size: 12px; border: 0; box-shadow: none; }
+    .dp-head small { display: block; color: #64748B; font-size: 10.5px; }
+    .dp-banner { background: color-mix(in srgb, var(--neon) 14%, #fff); border-radius: 9px; padding: 7px 10px; font-size: 11.5px; }
+    .dp-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .dp-kpis div { border: 1px solid #E6EAF0; border-radius: 9px; padding: 7px 9px; }
+    .dp-kpis small { display: block; color: #64748B; font-size: 10px; }
+    .dp-kpis b { font-size: 18px; letter-spacing: -.02em; }
+    .dp-bars { display: flex; align-items: flex-end; gap: 4px; height: 62px; border-bottom: 1px solid #E6EAF0; }
+    .dp-bars i { flex: 1; background: var(--neon); border-radius: 3px 3px 0 0; }
+    .dp-act { display: flex; justify-content: space-between; font-size: 11px; padding-bottom: 5px; border-bottom: 1px solid #F1F3F6; }
+    .dp-act span { color: #64748B; }
+    @media (max-width: 600px) { .dash-phone { display: flex; } .dash-laptop { display: none; } }
+    /* phones: benefit cards go compact, icon beside the text */
+    @media (max-width: 560px) {
+      .ben { grid-template-columns: 44px 1fr; column-gap: 14px; row-gap: 4px; padding: 18px; }
+      .ben .ico { grid-row: span 2; }
+    }
+    .ben { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 24px 22px; display: grid; gap: 10px; align-content: start; }
+    .ben .ico { width: 44px; height: 44px; border-radius: 12px; background: #fff; display: grid; place-items: center; font-size: 20px; box-shadow: var(--shadow); }
+    .ben h3 { font-size: 19px; }
+    .ben p { color: var(--ink-soft); font-size: 15px; }
+
+    /* story band */
+    .band { background: #fff; }
+    .loop { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+    .loop .arrow { align-self: center; font-size: 22px; color: #94A3B8; margin-top: -30px; }
+    @media (max-width: 860px) {
+      .loop { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; margin-inline: -20px; padding-inline: 20px; }
+      .loop .mini { flex: none; scroll-snap-align: center; }
+      .loop .arrow { display: none; }
+    }
+    .swipe { display: none; font-size: 13px; font-weight: 600; color: var(--blue); }
+    @media (max-width: 860px) { .swipe { display: block; } }
+    .profit { margin: clamp(28px, 4vw, 40px) auto 0; max-width: 760px; background: var(--ink); color: #CBD5E1; border-radius: 16px; padding: 18px 22px; display: flex; gap: 16px; align-items: center; font-size: 16px; }
+    .profit b { color: #fff; }
+    .profit .pi { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--neon); display: grid; place-items: center; font-weight: 800; font-size: 18px; }
+    .mini .cap { margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-soft); text-align: center; max-width: 186px; }
+    .mini h4 { margin: 0; font-size: 14px; text-align: center; min-height: 2.9em; display: flex; align-items: flex-end; justify-content: center; }
+    .gain { background: var(--blue-tint); color: var(--blue); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 700; }
+    .receipt { margin: 14px; background: #fff; border: 1px dashed #CBD5E1; border-radius: 6px; padding: 10px; font-family: ui-monospace, Menlo, monospace; font-size: 10px; display: grid; gap: 3px; }
+    .receipt .r { display: flex; justify-content: space-between; }
+    .story { flex: 1; color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; position: relative; }
+    .story::before { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 50%, rgba(0,0,0,.55)); }
+    .story > * { position: relative; }
+    .story .bar { height: 2px; background: rgba(255,255,255,.7); border-radius: 2px; }
+    .sticker { justify-self: center; background: #fff; color: #0F172A; font-weight: 800; padding: 5px 9px; border-radius: 7px; font-size: 11.5px; transform: rotate(-4deg); }
+    .sticker.b { background: var(--neon); transform: rotate(3deg); }
+    .screen:has(.story) { padding-top: 0; }
+    .field { margin: 0 12px; border: 1px solid #E6EAF0; border-radius: 8px; padding: 7px 9px; display: grid; gap: 2px; }
+    .field small { color: #64748B; font-size: 9.5px; }
+    .field.on { border-color: var(--neon); box-shadow: 0 0 0 3px rgba(56,182,255,.25); }
+    .sale { margin: 14px 12px 8px; border-radius: 14px; background: #F1F8FD; padding: 14px 10px; display: grid; gap: 3px; text-align: center; }
+    .sale b { font-size: 32px; letter-spacing: -.02em; line-height: 1.1; }
+    .sale small { color: #475569; font-size: 10.5px; }
+    .ok { justify-self: center; font-size: 9.5px; font-weight: 700; color: var(--blue); background: #fff; border-radius: 999px; padding: 2px 8px; margin-bottom: 4px; }
+    .fine { margin: 0 14px; font-size: 9px; color: #94A3B8; text-align: center; line-height: 1.35; }
+
+    /* two-up feature rows */
+    .feature { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+    .feature.flip .art { order: -1; }
+    @media (max-width: 900px) { .feature { grid-template-columns: 1fr; } .feature.flip .art { order: 0; } }
+    .feature .txt { display: grid; gap: 14px; }
+    .feature .txt h2 { font-size: clamp(28px, 3.6vw, 40px); }
+    .ticks { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 10px; }
+    .ticks li { display: flex; gap: 10px; align-items: flex-start; }
+    .ticks li::before { content: "✓"; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); color: #0F172A; display: grid; place-items: center; font-size: 12px; font-weight: 800; flex: none; margin-top: 2px; }
+    .art { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding-inline: 50px; }
+    @media (max-width: 560px) { .art { padding-inline: 0; } }
+
+    /* instagram + chat */
+    .ig-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+    .av { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7); padding: 2px; flex: none; }
+    .av span { display: block; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #fff; background-size: cover; background-position: center; }
+    .ig-photo { aspect-ratio: 4/5; position: relative; }
+    .ptag { position: absolute; left: 12px; bottom: 12px; background: rgba(15,23,42,.82); color: #fff; font-size: 10px; font-weight: 700; padding: 4px 7px; border-radius: 5px; }
+    .ptag.c { left: auto; right: 12px; bottom: 40px; }
+    .ig-acts { display: flex; gap: 12px; padding: 8px 12px 2px; font-size: 17px; }
+    .ig-cap { padding: 2px 12px 10px; font-size: 11px; }
+    .ig-cap a { color: #00376B; font-weight: 600; text-decoration: none; }
+    .cmt { font-size: 10.5px; margin-top: 3px; color: #334155; }
+    .chat-top { background: #F7F7F7; padding: 8px 14px; border-bottom: 1px solid #E5E7EB; font-weight: 700; font-size: 12px; }
+    .chat-top small { display: block; font-weight: 400; color: #64748B; font-size: 10px; }
+    .chat { background: #EFE7DD; flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .msg { max-width: 82%; padding: 6px 9px; border-radius: 9px; font-size: 11.5px; background: #fff; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
+    .msg.me { align-self: flex-end; background: #D9FDD3; }
+    .msg .who { display: block; font-size: 10px; font-weight: 700; color: var(--blue); }
+    .msg.pic { padding: 3px; } .msg.pic div { width: 140px; height: 120px; border-radius: 7px; }
+    .ts { display: block; text-align: right; font-style: normal; font-size: 8.5px; color: #94A3B8; margin-top: 1px; }
+    .day { align-self: center; font-size: 9.5px; background: #E1F2FB; color: #475569; padding: 2px 8px; border-radius: 6px; }
+
+    /* receipt check */
+    .scan { display: flex; gap: 26px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .rc { width: 230px; background: #fff; color: #0F172A; font-family: ui-monospace, Menlo, monospace; font-size: 12px; padding: 20px 16px 26px; display: grid; gap: 5px; position: relative; overflow: hidden; box-shadow: 0 16px 36px rgba(15,23,42,.14); clip-path: polygon(0 0,100% 0,100% 96%,92% 100%,84% 96%,76% 100%,68% 96%,60% 100%,52% 96%,44% 100%,36% 96%,28% 100%,20% 96%,12% 100%,4% 96%,0 100%); }
+    .rc .r { display: flex; justify-content: space-between; }
+    .rc .hdr { text-align: center; font-weight: 700; }
+    .rc hr { border: 0; border-top: 1px dashed #CBD5E1; margin: 5px 0; width: 100%; }
+    .beam { position: absolute; left: 0; right: 0; height: 30px; top: -34px; background: linear-gradient(transparent, rgba(56,182,255,.45), transparent); animation: beam 3.4s ease-in-out infinite; }
+    .stamp { position: absolute; right: 10px; top: 46%; border: 3px solid var(--blue); color: var(--blue); font-weight: 800; font-family: var(--font); font-size: 15px; padding: 2px 9px; border-radius: 7px; transform: rotate(-12deg); opacity: 0; animation: stamp 3.4s infinite; }
+    @keyframes beam { 0% { top: -34px; } 55%, 100% { top: 105%; } }
+    @keyframes stamp { 0%, 55% { opacity: 0; transform: rotate(-12deg) scale(1.6); } 62%, 94% { opacity: 1; transform: rotate(-12deg) scale(1); } 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .beam { display: none; } .stamp { opacity: 1; } }
+    .checklist { display: grid; gap: 10px; }
+    .checklist div { display: flex; gap: 10px; align-items: center; background: #fff; border-radius: 12px; padding: 10px 14px; box-shadow: var(--shadow); font-weight: 600; font-size: 14px; }
+    .checklist div::before { content: "✓"; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); display: grid; place-items: center; font-size: 12px; font-weight: 800; flex: none; }
+
+    /* dashboard (laptop) */
+    .app { font-size: 1.55cqw; flex: 1; display: grid; grid-template-columns: 12.5em minmax(0,1fr); min-height: 0; }
+    .side { background: #F7F9FB; border-right: 1px solid #EEF1F4; padding: 1.1em .9em; display: flex; flex-direction: column; gap: .25em; }
+    .side .logo { font-size: 1.35em; margin: 0 .4em .9em; }
+    .side .logo small { font-size: .6em; font-weight: 500; color: #64748B; letter-spacing: 0; }
+    .side span { padding: .5em .7em; border-radius: .6em; color: #475569; font-weight: 500; }
+    .side span.on { background: #fff; color: #0F172A; font-weight: 700; box-shadow: 0 1px 2px rgba(15,23,42,.07); }
+    .side .me { margin-top: auto; display: flex; gap: .6em; align-items: center; padding: .4em; font-weight: 600; }
+    .app .mono { width: 2.3em; height: 2.3em; font-size: 1em; border: 0; box-shadow: none; }
+    .main { padding: 1.2em 1.5em; display: flex; flex-direction: column; gap: .9em; min-width: 0; min-height: 0; }
+    .mhead { display: flex; justify-content: space-between; align-items: center; gap: 1em; }
+    .mhead h4 { margin: 0; font-size: 1.55em; letter-spacing: -.015em; }
+    .mhead .pill { border: 1px solid #E6EAF0; border-radius: .6em; padding: .3em .7em; color: #475569; white-space: nowrap; }
+    .banner { background: color-mix(in srgb, var(--neon) 14%, #fff); border-radius: .7em; padding: .55em .9em; }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: .7em; }
+    .kpi { border: 1px solid #E6EAF0; border-radius: .8em; padding: .7em .8em; }
+    .kpi small { display: block; color: #64748B; font-size: .85em; }
+    .kpi b { font-size: 1.9em; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+    .kpi em { font-style: normal; font-size: .8em; font-weight: 700; color: var(--blue); margin-left: .4em; }
+    .panels { flex: 1; display: grid; grid-template-columns: 1.35fr 1fr; gap: .7em; min-height: 0; }
+    .panel { border: 1px solid #E6EAF0; border-radius: .8em; padding: .8em .9em; display: flex; flex-direction: column; gap: .6em; min-height: 0; }
+    .panel h5 { margin: 0; font-size: 1em; }
+    .bars { flex: 1; display: flex; align-items: flex-end; gap: .6em; border-bottom: 1px solid #E6EAF0; min-height: 5em; }
+    .bars i { flex: 1; background: var(--neon); border-radius: .3em .3em 0 0; }
+    .blabels { display: flex; gap: .6em; color: #94A3B8; font-size: .8em; }
+    .blabels span { flex: 1; text-align: center; }
+    .act { display: flex; justify-content: space-between; gap: .6em; padding: .45em 0; border-bottom: 1px solid #F1F3F6; }
+    .act:last-child { border-bottom: 0; }
+    .act span { color: #64748B; white-space: nowrap; }
+    .sharers { display: flex; gap: .4em; flex-wrap: wrap; }
+    .sharers span { background: #F1F5F9; border-radius: 999px; padding: .2em .6em; font-weight: 600; }
+
+
+
+    /* customer content cards (shared photos the shop can reshare) */
+    .ugc { flex: none; width: 220px; background: #fff; color: #0F172A; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 30px rgba(15,23,42,.12); scroll-snap-align: start; }
+    .ugc-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: 12.5px; }
+    .ugc-av { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7); flex: none; }
+    .ugc-tag { margin-left: auto; font-size: 10px; font-weight: 700; color: #64748B; background: #F1F5F9; padding: 2px 7px; border-radius: 999px; }
+    .ugc-img { aspect-ratio: 4/5; }
+    .ugc-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; font-size: 12.5px; color: #475569; }
+    .ugc-btn { background: var(--neon); color: #0F172A; font-weight: 700; border-radius: 8px; padding: 5px 11px; font-size: 12px; }
+    .lib-static { margin-top: clamp(48px, 6vw, 72px); }
+    .lib-h { font-size: clamp(24px, 3vw, 32px); }
+    .lib-row { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 20px 26px; margin-inline: -20px; justify-content: safe center; scrollbar-width: none; }
+    .lib-row::-webkit-scrollbar { display: none; }
+    .swipe-hint { display: none; text-align: center; font-size: 13px; font-weight: 600; color: var(--blue); }
+    @media (max-width: 1200px) { .swipe-hint { display: block; } }
+    @media (min-width: 601px) { .lib-row, .swipe-hint { display: none !important; } }
+    @media (max-width: 600px) { .ugc { width: 190px; } }
+
+    /* faq */
+    .faq { max-width: 780px; margin-inline: auto; display: grid; gap: 10px; }
+    .faq details { border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .faq summary { cursor: pointer; list-style: none; padding: 18px 22px; font-weight: 700; font-size: 17px; display: flex; justify-content: space-between; gap: 16px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; font-size: 22px; line-height: 1; color: var(--blue); font-weight: 500; }
+    .faq details[open] summary::after { content: "–"; }
+    .faq details p { padding: 0 22px 20px; color: var(--ink-soft); }
+
+    footer { padding-block: 32px 48px; font-size: 13px; color: var(--ink-soft); }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+    /* hero: phone scaled to the height of the title + subtitle */
+    .hero-fit { position: relative; }
+    .hero-fit .phone { transform-origin: 0 0; }
+    .bar-cta { flex: none; background: var(--neon); color: var(--ink); font-weight: 700; font-size: 13px; padding: 7px 13px; border-radius: 9px; text-decoration: none; }
+    .bar-cta:hover { background: #2AA8F2; }
+    @media (max-width: 480px) { .demo-bar .for { display: none; } .bar-cta { margin-left: auto; } }
+    .end-cta { margin-top: clamp(40px, 6vw, 64px); max-width: 780px; margin-inline: auto; border-top: 1px solid var(--line); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .end-cta h3 { font-size: clamp(20px, 2.4vw, 24px); }
+    .end-cta p { color: var(--ink-soft); margin-top: 4px; }
+    .end-cta .btn { flex: none; white-space: nowrap; }
+    @media (max-width: 600px) { .end-cta { flex-direction: column; align-items: stretch; } .end-cta .btn { justify-content: center; } }
+
+    /* laptop "Shares" view: customer photos inside the dashboard */
+    .panes { position: relative; overflow: hidden; min-width: 0; min-height: 0; display: grid; }
+    .panes > .main { grid-area: 1 / 1; background: #fff; }
+    .lsub { color: #64748B; margin: 0; }
+    .lgrid-wrap { flex: 1; overflow: hidden; min-height: 0; }
+    .lgrid { display: flex; gap: .8em; height: 100%; }
+    .lgrid.grid2 { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr 1fr; }
+    .lcard { flex: none; width: 13em; border: 1px solid #E6EAF0; border-radius: .8em; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .grid2 .lcard { width: auto; }
+    .lc-img { flex: 1; min-height: 0; }
+    .lc-foot { display: flex; justify-content: space-between; gap: .4em; padding: .45em .6em .3em; font-size: .9em; }
+    .lc-foot span { color: #64748B; }
+    .lc-btn { margin: 0 .6em .6em; background: var(--neon); color: #0F172A; border-radius: .45em; text-align: center; font-weight: 700; padding: .25em; font-size: .9em; }
+    /* hero phone keeps its full width; its photo flexes so the phone matches the text height */
+    .hero-fit .dhero { flex: 1 1 160px; min-height: 90px; height: auto; }
+  </style>
+</head>
+<body>
+
+<header class="demo-bar">
+  <div class="wrap">
+    <a class="logo" href="/">cirqle</a>
+    <span class="demo-pill">Demo</span>
+    <ul class="chapters">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#benefits">Benefits</a></li>
+      <li><a href="#adverts">Free adverts</a></li>
+      <li><a href="#referrals">Referrals</a></li>
+      <li><a href="#checks">Checks</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#faq">Questions</a></li>
+    </ul>
+    <span class="for"><span class="mono">B</span><span class="long">For BEYRoots</span></span>
+    <a class="bar-cta" href="/contact">Apply to partner</a>
+  </div>
+  <div class="progress"><i id="prog"></i></div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">For BEYRoots · Leather Lane Market stall</div>
+      <h1>Turn your customers into your <em>best advert</em>.</h1>
+      <p class="lead">Cirqle gives your customers a little money back when they share your shop with their friends. You get new customers walking in, and it works as profit sharing: you only give cashback once a sale has been processed and verified.</p>
+    </div>
+    <div class="hero-art">
+      <div class="shot">
+        <div class="hero-fit"><div class="phone"><div class="screen">
+          <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="snav"><span class="logo">cirqle</span><span class="tag">PREVIEW</span></div>
+          <div class="dhero photo" style="background-image:url(/assets/cats/food.jpg)"><div class="mono">B</div></div>
+          <div class="dbody">
+            <div><div class="dname">BEYRoots</div><div class="dcat">Street food · Holborn</div></div>
+            <div class="chips"><span>In store</span><span>Lunch</span><span>Independent</span></div>
+            <div class="split"><div><b>10%</b><span>cashback</span></div><div><b>£1</b><span>per friend · 50p to them</span></div></div>
+            <div class="map"><i class="road h"></i><i class="road v"></i><span class="pin"></span><b>Leather Lane</b></div>
+            <div class="sbtn">Upload your receipt</div>
+          </div>
+        </div></div></div>
+        <div class="call r" style="top:20%"><span class="ci b">B</span><div>Your deal on Cirqle<small>Seen by people nearby</small></div></div>
+        <div class="call l" style="top:72%"><span class="ci">%</span><div>You choose the rate<small>Agreed with us when you join</small></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><span class="line"></span><p>Here's how it works, one customer at a time</p><span class="line end"></span></div>
+
+<!-- ── How it works: one customer brings another ── -->
+<section id="how">
+  <div class="wrap">
+    <div class="band">
+      <div class="sec-head center">
+        <div class="eyebrow"><span class="n">1</span>One lunch, followed through</div>
+        <h2>Watch one customer bring you another</h2>
+        <p class="lead">Here's what happens after Maya, a UCL student, grabs lunch at BEYRoots.</p>
+        <p class="swipe">Swipe to follow it through →</p>
+      </div>
+      <div class="loop">
+        <div class="mini"><h4>Maya comes to your store first</h4><div class="phone"><div class="screen">
+          <div class="receipt"><b style="text-align:center">BEYROOTS</b>
+            <div class="r"><span>Lunch</span><span>£8.00</span></div>
+            <div class="r"><span>Card</span><span>£8.00</span></div>
+            <div style="text-align:center;color:#64748B">Thank you!</div></div>
+          <div class="sbtn" style="margin:0 14px">Upload your receipt</div>
+        </div></div><p class="cap">She pays as normal. Nothing changes at your till.</p><span class="gain">Sale · £8</span></div>
+        <span class="arrow">→</span>
+        <div class="mini"><h4>She shares it with her friends</h4><div class="phone"><div class="screen"><div class="story photo" style="background-image:url(/assets/wall-hd/h10.jpg)">
+          <div class="bar"></div>
+          <div style="display:grid;gap:10px"><div class="sticker">📍 BEYRoots</div><div class="sticker b">@cirqle.co.uk</div></div>
+          <div style="text-align:center;font-weight:600">best lunch around here 🌯</div>
+        </div></div></div><p class="cap">On social media or in-person, tagging BEYRoots.</p><span class="gain">Free advert</span></div>
+        <span class="arrow">→</span>
+        <div class="mini"><h4>Her friend comes in</h4><div class="phone"><div class="screen">
+          <div class="snav"><span class="logo">cirqle</span></div>
+          <div style="padding:10px 12px;font-weight:700">Upload your receipt</div>
+          <div class="field"><small>Shop</small><b>BEYRoots</b></div>
+          <div class="field" style="margin-top:6px"><small>Total</small><b>£8.00</b></div>
+          <div class="field on" style="margin-top:6px"><small>Who told you about it?</small><b>@maya.ucl</b></div>
+          <div class="sbtn" style="margin:10px 12px">Upload</div>
+        </div></div><p class="cap">When they upload their receipt, they type in @maya.ucl.</p><span class="gain">New customer</span></div>
+        <span class="arrow">→</span>
+        <div class="mini"><h4>You see it</h4><div class="phone"><div class="screen">
+          <div class="snav"><span class="logo">cirqle <span style="font-size:9px;font-weight:500;color:#64748B;letter-spacing:0">for brands</span></span></div>
+          <div class="sale">
+            <span class="ok">✓ Receipt verified</span>
+            <small>New customer</small>
+            <b>£8.00</b>
+            <small>Brought in by @maya.ucl</small>
+          </div>
+          <div class="fine">From your referral budget: £1 to Maya, 50p to her friend.</div>
+        </div></div><p class="cap">Checked, then shown in your dashboard with who sent them.</p><span class="gain">Sale · £8</span></div>
+      </div>
+      <div class="profit">
+        <span class="pi">%</span>
+        <div><b>It's profit sharing, not ad spend.</b> You only give cashback once a sale has been processed and verified. No verified sale, no cashback.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><span class="line"></span><p>That's one customer. Here's what it adds up to</p><span class="line end"></span></div>
+
+<!-- ── Benefits ── -->
+<section id="benefits">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="n">2</span>What's in it for you</div>
+      <h2>Marketing done by your customers</h2>
+    </div>
+    <div class="benefits">
+      <div class="ben"><div class="ico">🍽️</div><h3>New customers</h3><p>Friends come in because someone they trust sent them. Each one is tracked back to who sent them.</p></div>
+      <div class="ben"><div class="ico">📸</div><h3>Free adverts</h3><p>Customers share you with their friends, on social media or in-person. You don't make the content or pay for it.</p></div>
+      <div class="ben"><div class="ico">%</div><h3>Profit sharing</h3><p>You only give cashback once a sale has been processed and verified. No verified sale, no cashback.</p></div>
+      <div class="ben"><div class="ico">↻</div><h3>Made for regulars</h3><p>Lunch is a daily habit. Every visit is another chance to share you.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><span class="line"></span><p>It all starts with one share</p><span class="line end"></span></div>
+
+<!-- ── Free advert ── -->
+<section id="adverts">
+  <div class="wrap feature">
+    <div class="txt">
+      <div class="eyebrow"><span class="n">3</span>A free advert</div>
+      <h2>Free advertising, seen by people nearby</h2>
+      <p class="lead">Customers share you with their friends. When they share on social media, your shop gets seen by people who live and work nearby, without you making a single post.</p>
+      <ul class="ticks">
+        <li>Every post tags you and @cirqle.co.uk</li>
+        <li>They stay up: customers keep their post live to get paid</li>
+        <li>Friends ask where it's from, right there in the comments</li>
+      </ul>
+    </div>
+    <div class="art">
+      <div class="shot">
+        <div class="phone"><div class="screen">
+          <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="ig-head"><div class="av"><span style="background-image:url(/assets/demo/student.jpg)"></span></div><div style="line-height:1.2"><b>maya.ucl</b><div style="font-size:9.5px;color:#64748B">📍 BEYRoots</div></div><span style="margin-left:auto;font-weight:800">···</span></div>
+          <div class="ig-photo photo" style="background-image:url(/assets/wall-hd/h10.jpg)"><span class="ptag">📍 BEYRoots</span><span class="ptag c">@cirqle.co.uk</span></div>
+          <div class="ig-acts"><span>♥</span><span>💬</span><span>➤</span><span style="margin-left:auto">⚑</span></div>
+          <div class="ig-cap"><b>Liked by sam.j and 141 others</b><br><b>maya.ucl</b> best lunch around here 🌯 <a>@cirqle.co.uk</a>
+            <div class="cmt"><b>sam.j</b> wait where is this?? 😍</div>
+            <div class="cmt"><b>priya.r</b> going this week</div>
+          </div>
+        </div></div>
+        <div class="call l" style="top:130px"><span class="ci">£0</span><div>Free advert<small>To all her followers</small></div></div>
+        <div class="call r" style="top:380px"><span class="ci b">♥</span><div>Friends asking where<small>Demand, in the comments</small></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><span class="line"></span><p>Then the friends who see it come in</p><span class="line end"></span></div>
+
+<!-- ── Word of mouth ── -->
+<section id="referrals">
+  <div class="wrap feature flip">
+    <div class="txt">
+      <div class="eyebrow"><span class="n">4</span>Word of mouth, tracked</div>
+      <h2>See exactly who's bringing you new customers</h2>
+      <p class="lead">Most people pick a lunch spot because a friend told them to. With Cirqle you can see it happen: when a friend comes in, they type in the @handle of whoever sent them.</p>
+      <ul class="ticks">
+        <li>Works for sharing in-person and on social media</li>
+        <li>Each new customer shows up in your dashboard</li>
+        <li>You see your top sharers, so you know your regulars</li>
+      </ul>
+    </div>
+    <div class="art">
+      <div class="shot">
+        <div class="phone"><div class="screen">
+          <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="chat-top">flat 4 🏠<small>Maya, Sam, Priya, Jo</small></div>
+          <div class="chat">
+            <div class="msg me pic"><div class="photo" style="background-image:url(/assets/cats/food.jpg)"></div></div>
+            <div class="msg"><span class="who">Sam</span>omg what is that, looks so good<i class="ts">18:02</i></div>
+            <div class="msg me">BEYRoots! they're great<i class="ts">18:03 ✓✓</i></div>
+            <div class="msg me">and put @maya.ucl in when you upload your receipt<i class="ts">18:03 ✓✓</i></div>
+            <div class="day">Next day</div>
+            <div class="msg"><span class="who">Sam</span>done ✅ love it there<i class="ts">13:40</i></div>
+          </div>
+        </div></div>
+        <div class="call r" style="top:120px"><span class="ci b">↗</span><div>Recommended by a friend<small>How people pick a lunch spot</small></div></div>
+        <div class="call l" style="top:400px"><span class="ci">+1</span><div>New customer<small>£8 · tracked to Maya</small></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><span class="line"></span><p>Every one of those sales is checked</p><span class="line end"></span></div>
+
+<!-- ── Checks ── -->
+<section id="checks">
+  <div class="wrap">
+    <div class="band">
+      <div class="feature">
+        <div class="txt">
+          <div class="eyebrow"><span class="n">5</span>Every sale checked</div>
+          <h2>We fully verify every transaction</h2>
+          <p class="lead">Every receipt is read and checked before anyone gets paid. Cashback only goes out once a sale has been processed and verified. If something doesn't add up, it's rejected and you give nothing.</p>
+        </div>
+        <div class="scan">
+          <div class="rc">
+            <div class="hdr">BEYROOTS</div>
+            <div style="text-align:center;font-size:10px;color:#64748B">Leather Lane Market stall, EC1N</div>
+            <hr>
+            <div class="r"><span>Lunch</span><span>£8.00</span></div>
+            <hr>
+            <div class="r"><b>TOTAL</b><b>£8.00</b></div>
+            <div class="r" style="font-size:10px;color:#64748B"><span>19/11/26 14:02</span><span>CARD</span></div>
+            <div class="beam"></div>
+            <div class="stamp">APPROVED</div>
+          </div>
+          <div class="checklist">
+            <div>Shop name matches</div>
+            <div>Bought after it was shared</div>
+            <div>Not a duplicate</div>
+            <div>Total read: £8.00</div>
+            <div>Checked by a person too</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><span class="line"></span><p>And you can watch it all happen</p><span class="line end"></span></div>
+
+<!-- ── Dashboard ── -->
+<section id="dashboard">
+  <div class="wrap">
+    <div class="sec-head center">
+      <div class="eyebrow"><span class="n">6</span>Your dashboard</div>
+      <h2>Know it's working, at a glance</h2>
+      <p class="lead">Every sale, share and new customer in one place. This is what yours could look like after a month (example figures).</p>
+    </div>
+    <div class="dash-phone"><div class="phone"><div class="screen">
+      <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="snav"><span class="logo">cirqle <span style="font-size:9px;font-weight:500;color:#64748B;letter-spacing:0">for brands</span></span><span class="tag">EXAMPLE</span></div>
+      <div class="dp">
+        <div class="dp-head"><div class="mono">B</div><div><b>BEYRoots</b><small>Last 30 days</small></div></div>
+        <div class="dp-banner">🎉 <b>3 new customers</b> this week</div>
+        <div class="dp-kpis">
+          <div><small>Sales via Cirqle</small><b>£272</b></div>
+          <div><small>New customers</small><b>11</b></div>
+          <div><small>Times shared</small><b>22</b></div>
+          <div><small>You paid</small><b>£43.70</b></div>
+        </div>
+        <div class="dp-bars"><i style="height:22%"></i><i style="height:30%"></i><i style="height:28%"></i><i style="height:45%"></i><i style="height:52%"></i><i style="height:61%"></i><i style="height:78%"></i><i style="height:100%"></i></div>
+        <div class="dp-act"><b>New customer · £8</b><span>via @maya.ucl</span></div>
+        <div class="dp-act"><b>Sale · £8</b><span>@sam.j</span></div>
+      </div>
+    </div></div></div>
+    <div class="laptop dash-laptop"><div class="lid"><div class="lscreen">
+      <div class="bchrome"><i></i><i></i><i></i><div class="url">cirqle.co.uk/merchant</div></div>
+      <div class="app">
+        <div class="side">
+          <div class="logo">cirqle <small>for brands</small></div>
+          <span class="on">Overview</span><span>Sales</span><span>Shares</span><span>Customers</span><span>Your deal</span><span>Billing</span>
+          <div class="me"><div class="mono">B</div><span style="padding:0;font-weight:600;color:#0F172A">BEYRoots</span></div>
+        </div>
+        <div class="panes">
+        <div class="main">
+          <div class="mhead"><h4>Morning, BEYRoots</h4><div style="display:flex;gap:.6em;align-items:center"><span class="tag" style="font-size:.8em">EXAMPLE FIGURES</span><span class="pill">Last 30 days</span></div></div>
+          <div class="banner">🎉 <b>3 new customers this week</b>, all brought in by customers who shared you.</div>
+          <div class="kpis">
+            <div class="kpi"><small>Sales via Cirqle</small><b>£272</b><em>+41%</em></div>
+            <div class="kpi"><small>New customers</small><b>11</b><em>+22%</em></div>
+            <div class="kpi"><small>Times you were shared</small><b>22</b><em>+38%</em></div>
+            <div class="kpi"><small>You paid</small><b>£43.70</b></div>
+          </div>
+          <div class="panels">
+            <div class="panel"><h5>Sales via Cirqle, per week</h5>
+              <div class="bars"><i style="height:22%"></i><i style="height:30%"></i><i style="height:28%"></i><i style="height:45%"></i><i style="height:52%"></i><i style="height:61%"></i><i style="height:78%"></i><i style="height:100%"></i></div>
+              <div class="blabels"><span>W1</span><span>W2</span><span>W3</span><span>W4</span><span>W5</span><span>W6</span><span>W7</span><span>W8</span></div>
+            </div>
+            <div class="panel"><h5>Latest sales</h5>
+              <div>
+                <div class="act"><b>New customer · £8</b><span>via @maya.ucl</span></div>
+                <div class="act"><b>Sale · £8</b><span>@sam.j</span></div>
+                <div class="act"><b>New customer · £8</b><span>via @jo.m</span></div>
+                <div class="act"><b>Sale · £8</b><span>@priya.r</span></div>
+              </div>
+              <h5 style="margin-top:.3em">Top sharers</h5>
+              <div class="sharers"><span>@maya.ucl · 4</span><span>@sam.j · 3</span><span>@jo.m · 2</span></div>
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
+    </div></div><div class="base"></div></div>
+
+    <div class="lib-static">
+      <div class="sec-head center" style="margin-bottom:20px">
+        <h3 class="lib-h">Then use the content they create</h3>
+        <p class="lead">Every photo customers share about you shows up in your dashboard. Reshare the best ones on your own account.</p>
+      </div>
+      <div class="laptop dash-laptop"><div class="lid"><div class="lscreen">
+        <div class="bchrome"><i></i><i></i><i></i><div class="url">cirqle.co.uk/merchant/shares</div></div>
+        <div class="app">
+          <div class="side">
+            <div class="logo">cirqle <small>for brands</small></div>
+            <span>Overview</span><span>Sales</span><span class="on">Shares</span><span>Customers</span><span>Your deal</span><span>Billing</span>
+            <div class="me"><div class="mono">B</div><span style="padding:0;font-weight:600;color:#0F172A">BEYRoots</span></div>
+          </div>
+          <div class="panes">
+        <div class="main lib-main">
+          <div class="mhead"><h4>Shared by your customers</h4><div style="display:flex;gap:.6em;align-items:center"><span class="tag" style="font-size:.8em">EXAMPLE</span><span class="pill">22 this month</span></div></div>
+          <p class="lsub">Every photo customers share about you. Reshare the best ones on your own account.</p>
+          <div class="lgrid-wrap"><div class="lgrid grid2"><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/wall-hd/h10.jpg);background-position:center 30%"></div><div class="lc-foot"><b>@maya.ucl</b><span>♥ 142</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/cats/food.jpg);background-position:center"></div><div class="lc-foot"><b>@sam.j</b><span>♥ 88</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:center"></div><div class="lc-foot"><b>@priya.r</b><span>♥ 203</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/wall-hd/h10.jpg);background-position:center 70%"></div><div class="lc-foot"><b>@jo.m</b><span>♥ 1.2k</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/cats/food.jpg);background-position:40% 40%"></div><div class="lc-foot"><b>@alex.k</b><span>♥ 64</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:30% 60%"></div><div class="lc-foot"><b>@nina.p</b><span>♥ 97</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/wall-hd/h10.jpg);background-position:center 50%"></div><div class="lc-foot"><b>@tom.r</b><span>♥ 310</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/cats/food.jpg);background-position:60% 20%"></div><div class="lc-foot"><b>@lee.w</b><span>♥ 45</span></div><span class="lc-btn">Reshare</span></div></div></div>
+        </div>
+          </div>
+        </div>
+      </div></div><div class="base"></div></div>
+      <div class="lib-row">
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@maya.ucl</b><span class="ugc-tag">Story</span></div><div class="ugc-img photo" style="background-image:url(/assets/wall-hd/h10.jpg);background-position:center 30%"></div><div class="ugc-foot"><span>♥ 142</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@sam.j</b><span class="ugc-tag">Post</span></div><div class="ugc-img photo" style="background-image:url(/assets/cats/food.jpg);background-position:center"></div><div class="ugc-foot"><span>♥ 88</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@priya.r</b><span class="ugc-tag">Post</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:center"></div><div class="ugc-foot"><span>♥ 203</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@jo.m</b><span class="ugc-tag">Reel</span></div><div class="ugc-img photo" style="background-image:url(/assets/wall-hd/h10.jpg);background-position:center 70%"></div><div class="ugc-foot"><span>♥ 1.2k</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@alex.k</b><span class="ugc-tag">Story</span></div><div class="ugc-img photo" style="background-image:url(/assets/cats/food.jpg);background-position:40% 40%"></div><div class="ugc-foot"><span>♥ 64</span><span class="ugc-btn">Reshare</span></div></div>
+      </div>
+      <p class="swipe-hint">Swipe to see more →</p>
+    </div>
+  </div>
+</section>
+
+
+
+<div class="bridge"><span class="line"></span><p>Anything else you'd want to know?</p><span class="line end"></span></div>
+
+<!-- ── FAQ ── -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head center">
+      <div class="eyebrow"><span class="n">7</span>Questions</div>
+      <h2>Quick answers before you decide</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>What does it cost?</summary><p>It works as profit sharing. You give cashback and referral bonuses only once a sale has been processed and verified, plus a small platform fee. We'll go through the numbers with you before you sign up.</p></details>
+      <details><summary>Do I need any new equipment?</summary><p>No. Customers upload their receipts on their own phones. Nothing changes at your till.</p></details>
+      <details><summary>My Instagram is quite small. Does that matter?</summary><p>No. Customers share you with their own friends, on social media or in-person, so you reach people who don't follow you yet.</p></details>
+      <details><summary>How do you stop fake receipts?</summary><p>Every receipt goes through checks: we read it, match it to your shop, look for duplicates and screen for fraud, and a person reviews it. Rejected receipts cost you nothing.</p></details>
+      <details><summary>I already run offers. Do I keep them?</summary><p>That's up to you. Any offers you run now can stay as they are. Cirqle is about getting your customers to bring their friends in.</p></details>
+      <details><summary>How do I get started?</summary><p>Tap Apply to partner below, or just tell us when we're in. We'll set up your deal with you.</p></details>
+    </div>
+    <div class="end-cta">
+      <div><h3>Ready to turn your customers into your best advert?</h3><p>We'll set up your deal with you.</p></div>
+      <a class="btn btn-main" href="/contact">Apply to partner →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Made for BEYRoots by <a href="/">Cirqle</a>.</span>
+    <span>Screens and figures on this page are examples, not real results. BEYRoots isn't on Cirqle yet.</span>
+  </div>
+</footer>
+
+<script>
+  // Scroll progress and the current chapter in the demo bar
+  (function () {
+    var bar = document.getElementById('prog');
+    var links = [].slice.call(document.querySelectorAll('.chapters a'));
+    var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+    function update() {
+      var h = document.documentElement, max = h.scrollHeight - h.clientHeight;
+      bar.style.width = (max > 0 ? h.scrollTop / max * 100 : 0) + '%';
+      var cur = -1;
+      secs.forEach(function (s, i) { if (s && s.getBoundingClientRect().top < window.innerHeight * 0.45) cur = i; });
+      links.forEach(function (a, i) { a.classList.toggle('on', i === cur); a.classList.toggle('done', i < cur); });
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  })();
+</script>
+<script>
+  // Hero: keep the phone full width and set its height to match the title + subtitle
+  (function () {
+    var txt = document.querySelector('.hero .wrap > div:first-child'), fit = document.querySelector('.hero-fit');
+    var scr = fit && fit.querySelector('.screen'), map = fit && fit.querySelector('.map');
+    if (!txt || !scr) return;
+    function size() {
+      scr.style.height = ''; scr.style.minHeight = ''; if (map) map.style.display = '';
+      if (window.innerWidth <= 900) return;
+      var h = txt.offsetHeight - 20;
+      scr.style.minHeight = '0'; scr.style.height = h + 'px';
+      if (map) map.style.display = h < 470 ? 'none' : '';
+    }
+    window.addEventListener('resize', size);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(size);
+    size();
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Private pitch page for one shop: not linked from the site, kept out of search -->
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <title>Cirqle for Fork Deli</title>
+  <meta name="description" content="How Cirqle would bring new customers to Fork Deli." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Cirqle" />
+  <meta property="og:url" content="https://cirqle.co.uk/for/fork-deli-story" />
+  <meta property="og:title" content="Cirqle for Fork Deli" />
+  <meta property="og:description" content="How Cirqle would bring new customers to Fork Deli." />
+  <meta property="og:image" content="https://cirqle.co.uk/assets/og/cirqle-og-for-brands.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Cirqle logo with a For brands badge" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://cirqle.co.uk/assets/og/cirqle-og-for-brands.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* Self-contained on purpose: this page sits outside the site's nav and
+       enhance.js, so it carries Cirqle's tokens (from assets/cirqle.css) itself. */
+    :root {
+      --paper: #FFFFFF; --paper-deep: #F5F7FA; --ink: #0F172A; --ink-soft: #5B6B80;
+      --line: #E6EAF0; --neon: #38B6FF; --neon-line: #0090E8; --blue: #0072D6;
+      --blue-deep: #005CB0; --blue-tint: #ECF6FB; --blue-pale: #F5FBFD;
+      --brand: #1F2937; --on-brand: #FFFFFF;          /* the shop's colour */
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      --display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+      --r: 18px;
+      --shadow: 0 4px 16px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.05);
+      --gap: clamp(64px, 9vw, 112px);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+    img { max-width: 100%; display: block; }
+    h1, h2, h3 { margin: 0; line-height: 1.12; text-wrap: balance; letter-spacing: -.02em; }
+    p { margin: 0; }
+    a { color: var(--blue); }
+    :focus-visible { outline: 2px solid var(--neon-line); outline-offset: 3px; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; }
+    .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--blue); }
+    .lead { font-size: clamp(17px, 1.6vw, 19px); color: var(--ink-soft); max-width: 58ch; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 22px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; }
+    .btn-main { background: var(--neon); color: var(--ink); box-shadow: 0 6px 20px rgba(56,182,255,.4); }
+    .btn-main:hover { background: #2AA8F2; }
+    .btn-ghost { color: var(--ink); border: 1px solid var(--line); background: #fff; }
+    .btn-ghost:hover { border-color: #CBD5E1; }
+
+    /* top bar */
+    /* demo bar: dark, sticky, with chapter links and a scroll progress line */
+    .demo-bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--ink); color: #fff; }
+    .demo-bar .wrap { display: flex; align-items: center; gap: 14px; padding-block: 11px; }
+    .demo-pill { font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; background: rgba(56,182,255,.18); color: #7DD3FC; padding: 3px 8px; border-radius: 6px; }
+    .chapters { display: flex; gap: 2px; margin: 0 auto; padding: 0; list-style: none; }
+    .chapters a { white-space: nowrap; display: block; color: #94A3B8; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 8px; transition: color .2s, background .2s; }
+    .chapters a:hover { color: #fff; }
+    .chapters a.done { color: #CBD5E1; }
+    .chapters a.on { color: #fff; background: rgba(255,255,255,.1); }
+    @media (max-width: 1080px) { .chapters { display: none; } }
+    .progress { height: 3px; background: rgba(255,255,255,.08); }
+    .progress i { display: block; height: 100%; width: 0; background: var(--neon); }
+    .logo { font-weight: 700; font-size: 22.4px; letter-spacing: -.03em; color: var(--neon); text-decoration: none; }
+    .for { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #CBD5E1; white-space: nowrap; }
+    .for .long { max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 480px) { .for .long { display: none; } }
+    .for .mono { width: 26px; height: 26px; font-size: 10px; border: 1.5px solid rgba(255,255,255,.35); box-shadow: none; }
+
+    section { padding-block: 0; scroll-margin-top: 70px; }
+    /* bridges carry the reader from one section into the next */
+    .bridge { display: grid; justify-items: center; gap: 10px; padding-block: clamp(36px, 5vw, 56px) clamp(24px, 3vw, 36px); text-align: center; }
+    /* half the dashed arrow, the words, then the other half ending in an arrowhead */
+    .bridge .line { width: 2px; height: 30px; background: repeating-linear-gradient(var(--neon-line) 0 6px, transparent 6px 12px); position: relative; }
+    .bridge .line.end::after { content: ""; position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); border: 6px solid transparent; border-top: 8px solid var(--neon-line); border-bottom: 0; }
+    .bridge p { font-weight: 700; font-size: clamp(16px, 1.6vw, 18px); color: var(--ink); max-width: 34ch; }
+    .eyebrow .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 11px; letter-spacing: 0; margin-right: 8px; vertical-align: 1px; }
+    .sec-head { display: grid; gap: 12px; margin-bottom: clamp(28px, 4vw, 48px); max-width: 720px; }
+    .sec-head.center { margin-inline: auto; text-align: center; justify-items: center; }
+    h2 { font-size: clamp(30px, 4.2vw, 46px); }
+    .serif { font-family: var(--display); font-weight: 800; letter-spacing: -.01em; }
+
+    /* hero */
+    .hero { padding-block: clamp(40px, 6vw, 72px) 0; }
+    .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
+    .hero h1 { font-size: clamp(40px, 6vw, 68px); margin-block: 14px 18px; }
+    .hero h1 em { font-style: normal; background: linear-gradient(transparent 62%, rgba(56,182,255,.35) 0); }
+    .hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .hero .facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 26px; font-size: 14px; color: var(--ink-soft); }
+    .hero .facts span::before { content: "✓"; color: var(--blue); font-weight: 800; margin-right: 6px; }
+    .hero-art { display: flex; justify-content: center; padding-inline: 70px; }
+    @media (max-width: 900px) {
+      .hero .wrap { grid-template-columns: 1fr; }
+      .hero-art { padding-inline: 0; }
+    }
+
+    /* ── device frames (screens stay light) ── */
+    .shot { position: relative; }
+    .phone { position: relative; width: 260px; max-width: 100%; border-radius: 44px; padding: 10px; background: linear-gradient(150deg,#2c3138,#0f1115 45%,#262a31); box-shadow: inset 0 0 0 2px #59606a, inset 0 0 0 4px #14171b, 0 30px 60px rgba(15,23,42,.22), 0 6px 14px rgba(15,23,42,.12); }
+    .phone::before { content: ""; position: absolute; left: -3px; top: 98px; width: 3px; height: 24px; border-radius: 2px 0 0 2px; background: #4a5059; box-shadow: 0 40px 0 #4a5059, 0 78px 0 #4a5059; }
+    .phone::after { content: ""; position: absolute; right: -3px; top: 136px; width: 3px; height: 66px; border-radius: 0 2px 2px 0; background: #4a5059; }
+    .screen { position: relative; background: #fff; color: #0F172A; border-radius: 34px; overflow: hidden; font-size: 12.5px; line-height: 1.45; min-height: 500px; display: flex; flex-direction: column; padding-bottom: 16px; }
+    .screen::before { content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 78px; height: 23px; border-radius: 12px; background: #000; z-index: 5; }
+    .screen::after { content: ""; position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%); width: 92px; height: 4px; border-radius: 3px; background: rgba(15,23,42,.82); z-index: 5; }
+    .sbar { display: flex; justify-content: space-between; align-items: center; padding: 13px 24px 6px; font-size: 11px; font-weight: 700; min-height: 40px; }
+    .snav { display: flex; align-items: center; justify-content: space-between; padding: 6px 14px; border-bottom: 1px solid #EFF2F6; }
+    .snav .logo { font-size: 15px; }
+    .tag { font-size: 9px; font-weight: 700; background: #FFF6E5; color: #8A5300; padding: 2px 6px; border-radius: 5px; letter-spacing: .03em; }
+    .sbtn { background: var(--neon); color: #0F172A; font-weight: 700; text-align: center; padding: 10px; border-radius: 10px; }
+    .mono { width: 46px; height: 46px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-weight: 800; font-size: 15px; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.15); flex: none; }
+    .photo { background-size: cover; background-position: center; }
+
+    .mini { width: 186px; max-width: 100%; display: grid; gap: 10px; justify-items: center; }
+    .mini .phone { width: 186px; border-radius: 34px; padding: 7px; }
+    .mini .phone::before { top: 70px; height: 17px; box-shadow: 0 28px 0 #4a5059, 0 54px 0 #4a5059; }
+    .mini .phone::after { top: 94px; height: 44px; }
+    .mini .screen { min-height: 350px; border-radius: 27px; font-size: 11.5px; padding-top: 32px; }
+    .mini .screen::before { top: 8px; width: 56px; height: 16px; }
+    .mini .screen::after { width: 66px; height: 3px; bottom: 5px; }
+
+    .laptop { width: 100%; max-width: 880px; margin-inline: auto; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 26px 32px rgba(15,23,42,.18)); }
+    .lid { width: 88%; background: #0c0e11; border-radius: 18px 18px 6px 6px; padding: 3% 2.2% 2.6%; position: relative; box-shadow: 0 0 0 2px #b9bec6, inset 0 0 0 1px #2a2e35; }
+    .lid::before { content: ""; position: absolute; top: 1.1%; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; border-radius: 50%; background: #1d2228; box-shadow: inset 0 0 0 1.5px #333b45; }
+    .lscreen { background: #fff; color: #0F172A; aspect-ratio: 16/10; overflow: hidden; display: flex; flex-direction: column; container-type: inline-size; border-radius: 2px; line-height: 1.4; }
+    .base { width: 100%; height: clamp(10px, 2vw, 18px); background: linear-gradient(#e6e9ed,#aab0b8); border-radius: 2px 2px 18px 18px / 2px 2px 10px 10px; position: relative; }
+    .base::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 16%; height: 45%; background: #c4c9d0; border-radius: 0 0 8px 8px; }
+    .bchrome { display: flex; align-items: center; gap: .5em; padding: .55em .9em; background: #F1F3F6; border-bottom: 1px solid #E2E6EB; font-size: 1.5cqw; }
+    .bchrome i { width: .75em; height: .75em; border-radius: 50%; background: #FF5F57; flex: none; }
+    .bchrome i:nth-child(2) { background: #FEBC2E; } .bchrome i:nth-child(3) { background: #28C840; }
+    .url { flex: 1; max-width: 55%; margin: 0 auto; background: #fff; border-radius: .5em; padding: .2em .8em; color: #64748B; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* callouts beside frames */
+    .call { position: absolute; z-index: 6; background: #fff; color: #0F172A; border-radius: 14px; padding: 9px 12px; font-weight: 700; font-size: 13px; line-height: 1.25; box-shadow: 0 12px 28px rgba(15,23,42,.16), 0 1px 3px rgba(15,23,42,.08); display: flex; gap: 9px; align-items: center; width: max-content; max-width: 200px; }
+    .call small { display: block; font-weight: 500; color: #64748B; font-size: 11.5px; }
+    .call.l { right: calc(100% - 40px); } .call.r { left: calc(100% - 40px); }
+    /* phones: badges sit in a row under the frame instead of over the screen */
+    @media (max-width: 560px) {
+      .shot { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      .shot .call { position: static; max-width: 100%; }
+    }
+    .ci { flex: none; min-width: 28px; height: 28px; padding: 0 5px; border-radius: 14px; background: var(--neon); color: #0F172A; display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+    .ci.b { background: var(--brand); color: var(--on-brand); }
+
+    /* deal screen */
+    .dhero { height: 160px; position: relative; }
+    .dhero .mono { position: absolute; left: 14px; bottom: -23px; }
+    .dbody { padding: 30px 14px 12px; display: grid; gap: 10px; }
+    .dname { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+    .dcat { color: #64748B; font-size: 11.5px; }
+    .chips { display: flex; gap: 4px; flex-wrap: wrap; }
+    .chips span { font-size: 10px; background: #F1F5F9; padding: 2px 8px; border-radius: 999px; color: #475569; font-weight: 600; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; border-radius: 10px; overflow: hidden; text-align: center; }
+    .split div { padding: 9px; } .split div:first-child { background: #F1F8FD; } .split div:last-child { background: #E2F0FA; }
+    .split b { display: block; font-size: 18px; } .split span { font-size: 10px; color: #475569; }
+    .map { position: relative; height: 54px; border-radius: 9px; background: #E9EEF2; overflow: hidden; }
+    .road { position: absolute; background: #fff; }
+    .road.h { left: 0; right: 0; top: 55%; height: 6px; } .road.v { top: 0; bottom: 0; left: 30%; width: 5px; }
+    .pin { position: absolute; left: 58%; top: 20%; width: 16px; height: 16px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--brand); box-shadow: 0 0 0 2px #fff; }
+    .map b { position: absolute; right: 8px; bottom: 5px; font-size: 10px; color: #475569; }
+
+
+    /* benefits */
+    .benefits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    @media (max-width: 980px) { .benefits { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .benefits { grid-template-columns: 1fr; } }
+    .dash-phone { display: none; justify-content: center; }
+    .dp { padding: 12px; display: grid; gap: 10px; }
+    .dp-head { display: flex; gap: 9px; align-items: center; }
+    .dp-head .mono { width: 34px; height: 34px; font-size: 12px; border: 0; box-shadow: none; }
+    .dp-head small { display: block; color: #64748B; font-size: 10.5px; }
+    .dp-banner { background: color-mix(in srgb, var(--neon) 14%, #fff); border-radius: 9px; padding: 7px 10px; font-size: 11.5px; }
+    .dp-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .dp-kpis div { border: 1px solid #E6EAF0; border-radius: 9px; padding: 7px 9px; }
+    .dp-kpis small { display: block; color: #64748B; font-size: 10px; }
+    .dp-kpis b { font-size: 18px; letter-spacing: -.02em; }
+    .dp-bars { display: flex; align-items: flex-end; gap: 4px; height: 62px; border-bottom: 1px solid #E6EAF0; }
+    .dp-bars i { flex: 1; background: var(--neon); border-radius: 3px 3px 0 0; }
+    .dp-act { display: flex; justify-content: space-between; font-size: 11px; padding-bottom: 5px; border-bottom: 1px solid #F1F3F6; }
+    .dp-act span { color: #64748B; }
+    @media (max-width: 600px) { .dash-phone { display: flex; } .dash-laptop { display: none; } }
+    /* phones: benefit cards go compact, icon beside the text */
+    @media (max-width: 560px) {
+      .ben { grid-template-columns: 44px 1fr; column-gap: 14px; row-gap: 4px; padding: 18px; }
+      .ben .ico { grid-row: span 2; }
+    }
+    .ben { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 24px 22px; display: grid; gap: 10px; align-content: start; }
+    .ben .ico { width: 44px; height: 44px; border-radius: 12px; background: #fff; display: grid; place-items: center; font-size: 20px; box-shadow: var(--shadow); }
+    .ben h3 { font-size: 19px; }
+    .ben p { color: var(--ink-soft); font-size: 15px; }
+
+    /* story band */
+    .band { background: #fff; }
+    .loop { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+    .loop .arrow { align-self: center; font-size: 22px; color: #94A3B8; margin-top: -30px; }
+    @media (max-width: 860px) {
+      .loop { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; margin-inline: -20px; padding-inline: 20px; }
+      .loop .mini { flex: none; scroll-snap-align: center; }
+      .loop .arrow { display: none; }
+    }
+    .swipe { display: none; font-size: 13px; font-weight: 600; color: var(--blue); }
+    @media (max-width: 860px) { .swipe { display: block; } }
+    .profit { margin: clamp(28px, 4vw, 40px) auto 0; max-width: 760px; background: var(--ink); color: #CBD5E1; border-radius: 16px; padding: 18px 22px; display: flex; gap: 16px; align-items: center; font-size: 16px; }
+    .profit b { color: #fff; }
+    .profit .pi { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--neon); display: grid; place-items: center; font-weight: 800; font-size: 18px; }
+    .mini .cap { margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-soft); text-align: center; max-width: 186px; }
+    .mini h4 { margin: 0; font-size: 14px; text-align: center; min-height: 2.9em; display: flex; align-items: flex-end; justify-content: center; }
+    .gain { background: var(--blue-tint); color: var(--blue); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 700; }
+    .receipt { margin: 14px; background: #fff; border: 1px dashed #CBD5E1; border-radius: 6px; padding: 10px; font-family: ui-monospace, Menlo, monospace; font-size: 10px; display: grid; gap: 3px; }
+    .receipt .r { display: flex; justify-content: space-between; }
+    .story { flex: 1; color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; position: relative; }
+    .story::before { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 50%, rgba(0,0,0,.55)); }
+    .story > * { position: relative; }
+    .story .bar { height: 2px; background: rgba(255,255,255,.7); border-radius: 2px; }
+    .sticker { justify-self: center; background: #fff; color: #0F172A; font-weight: 800; padding: 5px 9px; border-radius: 7px; font-size: 11.5px; transform: rotate(-4deg); }
+    .sticker.b { background: var(--neon); transform: rotate(3deg); }
+    .screen:has(.story) { padding-top: 0; }
+    .field { margin: 0 12px; border: 1px solid #E6EAF0; border-radius: 8px; padding: 7px 9px; display: grid; gap: 2px; }
+    .field small { color: #64748B; font-size: 9.5px; }
+    .field.on { border-color: var(--neon); box-shadow: 0 0 0 3px rgba(56,182,255,.25); }
+    .sale { margin: 14px 12px 8px; border-radius: 14px; background: #F1F8FD; padding: 14px 10px; display: grid; gap: 3px; text-align: center; }
+    .sale b { font-size: 32px; letter-spacing: -.02em; line-height: 1.1; }
+    .sale small { color: #475569; font-size: 10.5px; }
+    .ok { justify-self: center; font-size: 9.5px; font-weight: 700; color: var(--blue); background: #fff; border-radius: 999px; padding: 2px 8px; margin-bottom: 4px; }
+    .fine { margin: 0 14px; font-size: 9px; color: #94A3B8; text-align: center; line-height: 1.35; }
+
+    /* two-up feature rows */
+    .feature { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+    .feature.flip .art { order: -1; }
+    @media (max-width: 900px) { .feature { grid-template-columns: 1fr; } .feature.flip .art { order: 0; } }
+    .feature .txt { display: grid; gap: 14px; }
+    .feature .txt h2 { font-size: clamp(28px, 3.6vw, 40px); }
+    .ticks { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 10px; }
+    .ticks li { display: flex; gap: 10px; align-items: flex-start; }
+    .ticks li::before { content: "✓"; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); color: #0F172A; display: grid; place-items: center; font-size: 12px; font-weight: 800; flex: none; margin-top: 2px; }
+    .art { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding-inline: 50px; }
+    @media (max-width: 560px) { .art { padding-inline: 0; } }
+
+    /* instagram + chat */
+    .ig-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+    .av { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7); padding: 2px; flex: none; }
+    .av span { display: block; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #fff; background-size: cover; background-position: center; }
+    .ig-photo { aspect-ratio: 4/5; position: relative; }
+    .ptag { position: absolute; left: 12px; bottom: 12px; background: rgba(15,23,42,.82); color: #fff; font-size: 10px; font-weight: 700; padding: 4px 7px; border-radius: 5px; }
+    .ptag.c { left: auto; right: 12px; bottom: 40px; }
+    .ig-acts { display: flex; gap: 12px; padding: 8px 12px 2px; font-size: 17px; }
+    .ig-cap { padding: 2px 12px 10px; font-size: 11px; }
+    .ig-cap a { color: #00376B; font-weight: 600; text-decoration: none; }
+    .cmt { font-size: 10.5px; margin-top: 3px; color: #334155; }
+    .chat-top { background: #F7F7F7; padding: 8px 14px; border-bottom: 1px solid #E5E7EB; font-weight: 700; font-size: 12px; }
+    .chat-top small { display: block; font-weight: 400; color: #64748B; font-size: 10px; }
+    .chat { background: #EFE7DD; flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .msg { max-width: 82%; padding: 6px 9px; border-radius: 9px; font-size: 11.5px; background: #fff; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
+    .msg.me { align-self: flex-end; background: #D9FDD3; }
+    .msg .who { display: block; font-size: 10px; font-weight: 700; color: var(--blue); }
+    .msg.pic { padding: 3px; } .msg.pic div { width: 140px; height: 120px; border-radius: 7px; }
+    .ts { display: block; text-align: right; font-style: normal; font-size: 8.5px; color: #94A3B8; margin-top: 1px; }
+    .day { align-self: center; font-size: 9.5px; background: #E1F2FB; color: #475569; padding: 2px 8px; border-radius: 6px; }
+
+    /* receipt check */
+    .scan { display: flex; gap: 26px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .rc { width: 230px; background: #fff; color: #0F172A; font-family: ui-monospace, Menlo, monospace; font-size: 12px; padding: 20px 16px 26px; display: grid; gap: 5px; position: relative; overflow: hidden; box-shadow: 0 16px 36px rgba(15,23,42,.14); clip-path: polygon(0 0,100% 0,100% 96%,92% 100%,84% 96%,76% 100%,68% 96%,60% 100%,52% 96%,44% 100%,36% 96%,28% 100%,20% 96%,12% 100%,4% 96%,0 100%); }
+    .rc .r { display: flex; justify-content: space-between; }
+    .rc .hdr { text-align: center; font-weight: 700; }
+    .rc hr { border: 0; border-top: 1px dashed #CBD5E1; margin: 5px 0; width: 100%; }
+    .beam { position: absolute; left: 0; right: 0; height: 30px; top: -34px; background: linear-gradient(transparent, rgba(56,182,255,.45), transparent); animation: beam 3.4s ease-in-out infinite; }
+    .stamp { position: absolute; right: 10px; top: 46%; border: 3px solid var(--blue); color: var(--blue); font-weight: 800; font-family: var(--font); font-size: 15px; padding: 2px 9px; border-radius: 7px; transform: rotate(-12deg); opacity: 0; animation: stamp 3.4s infinite; }
+    @keyframes beam { 0% { top: -34px; } 55%, 100% { top: 105%; } }
+    @keyframes stamp { 0%, 55% { opacity: 0; transform: rotate(-12deg) scale(1.6); } 62%, 94% { opacity: 1; transform: rotate(-12deg) scale(1); } 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .beam { display: none; } .stamp { opacity: 1; } }
+    .checklist { display: grid; gap: 10px; }
+    .checklist div { display: flex; gap: 10px; align-items: center; background: #fff; border-radius: 12px; padding: 10px 14px; box-shadow: var(--shadow); font-weight: 600; font-size: 14px; }
+    .checklist div::before { content: "✓"; width: 22px; height: 22px; border-radius: 50%; background: var(--neon); display: grid; place-items: center; font-size: 12px; font-weight: 800; flex: none; }
+
+    /* dashboard (laptop) */
+    .app { font-size: 1.55cqw; flex: 1; display: grid; grid-template-columns: 12.5em minmax(0,1fr); min-height: 0; }
+    .side { background: #F7F9FB; border-right: 1px solid #EEF1F4; padding: 1.1em .9em; display: flex; flex-direction: column; gap: .25em; }
+    .side .logo { font-size: 1.35em; margin: 0 .4em .9em; }
+    .side .logo small { font-size: .6em; font-weight: 500; color: #64748B; letter-spacing: 0; }
+    .side span { padding: .5em .7em; border-radius: .6em; color: #475569; font-weight: 500; }
+    .side span.on { background: #fff; color: #0F172A; font-weight: 700; box-shadow: 0 1px 2px rgba(15,23,42,.07); }
+    .side .me { margin-top: auto; display: flex; gap: .6em; align-items: center; padding: .4em; font-weight: 600; }
+    .app .mono { width: 2.3em; height: 2.3em; font-size: 1em; border: 0; box-shadow: none; }
+    .main { padding: 1.2em 1.5em; display: flex; flex-direction: column; gap: .9em; min-width: 0; min-height: 0; }
+    .mhead { display: flex; justify-content: space-between; align-items: center; gap: 1em; }
+    .mhead h4 { margin: 0; font-size: 1.55em; letter-spacing: -.015em; }
+    .mhead .pill { border: 1px solid #E6EAF0; border-radius: .6em; padding: .3em .7em; color: #475569; white-space: nowrap; }
+    .banner { background: color-mix(in srgb, var(--neon) 14%, #fff); border-radius: .7em; padding: .55em .9em; }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: .7em; }
+    .kpi { border: 1px solid #E6EAF0; border-radius: .8em; padding: .7em .8em; }
+    .kpi small { display: block; color: #64748B; font-size: .85em; }
+    .kpi b { font-size: 1.9em; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+    .kpi em { font-style: normal; font-size: .8em; font-weight: 700; color: var(--blue); margin-left: .4em; }
+    .panels { flex: 1; display: grid; grid-template-columns: 1.35fr 1fr; gap: .7em; min-height: 0; }
+    .panel { border: 1px solid #E6EAF0; border-radius: .8em; padding: .8em .9em; display: flex; flex-direction: column; gap: .6em; min-height: 0; }
+    .panel h5 { margin: 0; font-size: 1em; }
+    .bars { flex: 1; display: flex; align-items: flex-end; gap: .6em; border-bottom: 1px solid #E6EAF0; min-height: 5em; }
+    .bars i { flex: 1; background: var(--neon); border-radius: .3em .3em 0 0; }
+    .blabels { display: flex; gap: .6em; color: #94A3B8; font-size: .8em; }
+    .blabels span { flex: 1; text-align: center; }
+    .act { display: flex; justify-content: space-between; gap: .6em; padding: .45em 0; border-bottom: 1px solid #F1F3F6; }
+    .act:last-child { border-bottom: 0; }
+    .act span { color: #64748B; white-space: nowrap; }
+    .sharers { display: flex; gap: .4em; flex-wrap: wrap; }
+    .sharers span { background: #F1F5F9; border-radius: 999px; padding: .2em .6em; font-weight: 600; }
+
+
+    /* faq */
+    .faq { max-width: 780px; margin-inline: auto; display: grid; gap: 10px; }
+    .faq details { border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .faq summary { cursor: pointer; list-style: none; padding: 18px 22px; font-weight: 700; font-size: 17px; display: flex; justify-content: space-between; gap: 16px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; font-size: 22px; line-height: 1; color: var(--blue); font-weight: 500; }
+    .faq details[open] summary::after { content: "–"; }
+    .faq details p { padding: 0 22px 20px; color: var(--ink-soft); }
+
+    footer { padding-block: 32px 48px; font-size: 13px; color: var(--ink-soft); }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+    /* ══ Story version: scroll-driven chapters ══ */
+    .cue { display: grid; justify-items: center; gap: 8px; padding-block: 40px 0; color: var(--ink-soft); font-size: 14px; font-weight: 600; }
+    .cue i { width: 26px; height: 40px; border: 2px solid #CBD5E1; border-radius: 14px; position: relative; }
+    .cue i::after { content: ""; position: absolute; left: 50%; top: 7px; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: var(--neon); animation: wheel 1.6s ease-in-out infinite; }
+    @keyframes wheel { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(12px); opacity: 0; } 100% { opacity: 0; } }
+
+    /* chapter 1: the journey — sticky phone + tally, beats scroll past */
+    .story-head { max-width: 760px; margin: 0 auto; text-align: center; display: grid; gap: 12px; justify-items: center; padding-inline: 20px; }
+    .story-grid { max-width: 1120px; margin: 0 auto; padding-inline: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .story-stage { order: 2; position: sticky; top: 70px; height: calc(100vh - 90px); max-height: 760px; display: flex; align-items: center; justify-content: center; gap: 24px; }
+    .story-steps { padding-block: 12vh 36vh; }
+    .beat { min-height: 78vh; display: flex; align-items: center; }
+    .beat-card { max-width: 460px; display: grid; gap: 12px; opacity: .3; transform: translateY(10px); transition: opacity .45s, transform .45s; }
+    .beat.on .beat-card { opacity: 1; transform: none; }
+    .beat-num { display: inline-flex; align-items: center; gap: 10px; font-size: 12.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--blue); }
+    .beat-num b { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--neon); color: var(--ink); letter-spacing: 0; font-size: 12px; }
+    .beat h3 { font-size: clamp(26px, 3.2vw, 38px); }
+    .beat p { color: var(--ink-soft); font-size: 17px; }
+    .beat-pic { width: 96px; height: 96px; border-radius: 18px; box-shadow: 0 10px 22px rgba(15,23,42,.14); }
+    .get { margin-top: 4px; background: linear-gradient(135deg, #0072D6, #0A4FA0); color: #fff; border-radius: 16px; padding: 14px 18px; display: grid; gap: 2px; box-shadow: 0 14px 30px rgba(0,114,214,.25); position: relative; overflow: hidden; }
+    .get::after { content: ""; position: absolute; right: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%; background: rgba(56,182,255,.35); }
+    .get > * { position: relative; }
+    .get-k { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #BFE6FF; }
+    .get b { font-size: 22px; letter-spacing: -.01em; }
+    .get small { font-size: 14.5px; color: #E2F2FF; }
+    .get.dark { background: var(--ink); box-shadow: 0 14px 30px rgba(15,23,42,.25); }
+    .get.dark::after { background: rgba(56,182,255,.12); }
+    .get.dark b { color: var(--neon); font-size: 24px; }
+
+    .stack { position: relative; flex: 1; }
+    .story-stage .screen { height: 520px; min-height: 0; }
+    .scr { position: absolute; inset: 0; display: flex; flex-direction: column; opacity: 0; transform: translateY(14px) scale(.985); transition: opacity .5s, transform .5s; pointer-events: none; }
+    .scr.on { opacity: 1; transform: none; }
+    .scr .story { border-radius: 0; }
+    .scan-mini { margin: 12px; display: grid; gap: 6px; }
+    .scan-mini .rc { width: 100%; font-size: 10.5px; padding: 14px 12px 20px; }
+    .tk { display: flex; gap: 7px; align-items: center; font-size: 11px; font-weight: 600; opacity: 0; transform: translateX(-6px); transition: opacity .35s, transform .35s; }
+    .tk::before { content: "✓"; width: 17px; height: 17px; border-radius: 50%; background: var(--neon); display: grid; place-items: center; font-size: 10px; font-weight: 800; flex: none; }
+    .scr.on .tk { opacity: 1; transform: none; }
+    .scr.on .tk:nth-child(2) { transition-delay: .5s; } .scr.on .tk:nth-child(3) { transition-delay: .9s; } .scr.on .tk:nth-child(4) { transition-delay: 1.3s; }
+
+    .tally { width: 240px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 12px; box-shadow: 0 18px 40px rgba(15,23,42,.08); }
+    .tally h4 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+    .trow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 6px 8px; margin-inline: -8px; border-radius: 10px; transition: background .5s; }
+    .trow span { font-size: 14px; color: var(--ink-soft); }
+    .trow b { font-size: 24px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    .trow.flash { background: var(--blue-tint); }
+    .trow.gave b { font-size: 18px; }
+    .tnote { font-size: 12px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; }
+
+    .ph-wrap { display: contents; }
+    /* phones: half-size phone + tally pinned in one strip; step cards scroll under it */
+    @media (max-width: 860px) {
+      .story-grid { grid-template-columns: 1fr; gap: 0; }
+      .story-stage { order: 0; top: 50px; height: auto; max-height: none; z-index: 5; background: #fff; padding: 14px 0 12px; gap: 14px; border-bottom: 1px solid var(--line); box-shadow: 0 10px 20px -14px rgba(15,23,42,.25); }
+      .ph-wrap { display: block; width: 130px; height: 270px; flex: none; }
+      .ph-wrap .phone { width: 260px; max-width: none; transform: scale(.5); transform-origin: 0 0; }
+      .tally { width: auto; flex: 1; max-width: 210px; padding: 12px; gap: 4px; box-shadow: none; }
+      .tally h4 { font-size: 10.5px; }
+      .tnote { display: none; }
+      .trow { padding: 4px 6px; margin-inline: -6px; }
+      .trow span { font-size: 12.5px; }
+      .trow b, .trow.gave b { font-size: 18px; }
+      .story-steps { position: relative; z-index: 1; padding-block: 16px 30vh; }
+      .beat { min-height: 72vh; align-items: flex-start; }
+      .beat-card { opacity: 1; transform: none; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: 0 10px 30px rgba(15,23,42,.08); gap: 10px; }
+      .beat h3 { font-size: 22px; } .beat p { font-size: 15px; }
+      .beat-pic { display: none; }
+      .get b { font-size: 19px; } .get small { font-size: 13.5px; }
+    }
+
+    /* chapter 2: the month — pinned dashboard, scrubbed by scroll */
+    .month { height: 440vh; position: relative; background: linear-gradient(#fff, #EAF5FD 12%, #EAF5FD 88%, #fff); }
+    .month-pin { position: sticky; top: 56px; height: calc(100vh - 56px); display: flex; flex-direction: column; justify-content: center; gap: clamp(16px, 3vh, 28px); padding-inline: 20px; }
+    .month-pin .story-head { padding: 0; }
+    .day { display: inline-flex; gap: 8px; align-items: baseline; background: var(--ink); color: #CBD5E1; border-radius: 999px; padding: 6px 16px; font-size: 14px; font-weight: 600; }
+    .day b { color: #fff; font-size: 18px; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+    .month .laptop { max-width: min(800px, calc((100vh - 300px) * 1.75)); }
+    .month .bars i { transition: height .15s linear; }
+    .month .banner { transition: opacity .4s; }
+    .month .dash-phone .phone { transform: scale(.82); transform-origin: top center; margin-bottom: -95px; }
+    @media (max-width: 600px) { .month-pin { justify-content: flex-start; padding-top: 18px; } .month-pin h2 { font-size: 28px; } }
+
+    .mheads { display: grid; }
+    .mh { grid-area: 1 / 1; transition: opacity .3s; }
+    #mhB { opacity: 0; }
+    .mstage { position: relative; }
+    .mdash { will-change: transform, opacity; }
+    .lib { position: absolute; inset: 0; display: flex; align-items: center; overflow: hidden; opacity: 0; pointer-events: none; margin-inline: -20px; }
+    @media (min-width: 601px) { #mLib { display: none; } }
+    .lib-track { display: flex; gap: 20px; padding-inline: 20px; will-change: transform; }
+    @media (max-width: 600px) { .ugc { width: 190px; } }
+
+    /* customer content cards (shared photos the shop can reshare) */
+    .ugc { flex: none; width: 220px; background: #fff; color: #0F172A; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 30px rgba(15,23,42,.12); scroll-snap-align: start; }
+    .ugc-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: 12.5px; }
+    .ugc-av { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7); flex: none; }
+    .ugc-tag { margin-left: auto; font-size: 10px; font-weight: 700; color: #64748B; background: #F1F5F9; padding: 2px 7px; border-radius: 999px; }
+    .ugc-img { aspect-ratio: 4/5; }
+    .ugc-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; font-size: 12.5px; color: #475569; }
+    .ugc-btn { background: var(--neon); color: #0F172A; font-weight: 700; border-radius: 8px; padding: 5px 11px; font-size: 12px; }
+
+    /* chapter 3: the promise — words light up as you scroll */
+    .promise { height: 220vh; position: relative; background: var(--ink); color: #fff; }
+    .promise .eyebrow { color: #7DD3FC; }
+    .promise .eyebrow .n { background: var(--neon); color: var(--ink); }
+    .promise-pin { position: sticky; top: 0; height: 100vh; display: grid; align-content: center; justify-items: start; gap: 22px; max-width: 980px; margin: 0 auto; padding-inline: 20px; }
+    .scrub { font-size: clamp(32px, 5vw, 62px); font-weight: 800; letter-spacing: -.025em; line-height: 1.12; text-wrap: balance; }
+    .js .scrub span { color: #334155; transition: color .25s; }
+    .js .scrub span.on { color: #fff; }
+    .js .scrub span.hl.on { color: var(--neon); }
+
+    #benefits .ben .ico { background: var(--blue-tint); box-shadow: none; }
+    /* gentle reveal for cards (starts visible, just settles in) */
+    .js .rise { transform: translateY(18px); opacity: .4; transition: transform .6s, opacity .6s; }
+    .js .rise.in { transform: none; opacity: 1; }
+    .benefits .rise:nth-child(2) { transition-delay: .08s; } .benefits .rise:nth-child(3) { transition-delay: .16s; } .benefits .rise:nth-child(4) { transition-delay: .24s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .month, .promise { height: auto; }
+      .month-pin, .promise-pin { position: static; height: auto; padding-block: 40px; }
+      .lib { position: static; opacity: 1; overflow-x: auto; margin-top: 24px; pointer-events: auto; }
+      #mhB { opacity: 1; }
+      .js .scrub span, .js .rise { color: inherit; opacity: 1; transform: none; }
+    }
+
+    /* hero: phone scaled to the height of the title + subtitle */
+    .hero-fit { position: relative; }
+    .hero-fit .phone { transform-origin: 0 0; }
+    .bar-cta { flex: none; background: var(--neon); color: var(--ink); font-weight: 700; font-size: 13px; padding: 7px 13px; border-radius: 9px; text-decoration: none; }
+    .bar-cta:hover { background: #2AA8F2; }
+    @media (max-width: 480px) { .demo-bar .for { display: none; } .bar-cta { margin-left: auto; } }
+    .end-cta { margin-top: clamp(40px, 6vw, 64px); max-width: 780px; margin-inline: auto; border-top: 1px solid var(--line); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .end-cta h3 { font-size: clamp(20px, 2.4vw, 24px); }
+    .end-cta p { color: var(--ink-soft); margin-top: 4px; }
+    .end-cta .btn { flex: none; white-space: nowrap; }
+    @media (max-width: 600px) { .end-cta { flex-direction: column; align-items: stretch; } .end-cta .btn { justify-content: center; } }
+
+    /* laptop "Shares" view: customer photos inside the dashboard */
+    .panes { position: relative; overflow: hidden; min-width: 0; min-height: 0; display: grid; }
+    .panes > .main { grid-area: 1 / 1; background: #fff; will-change: transform; }
+    .lsub { color: #64748B; margin: 0; }
+    .lgrid-wrap { flex: 1; overflow: hidden; min-height: 0; }
+    .lgrid { display: flex; gap: .8em; height: 100%; }
+    .lgrid.grid2 { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr 1fr; }
+    .lcard { flex: none; width: 13em; border: 1px solid #E6EAF0; border-radius: .8em; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .grid2 .lcard { width: auto; }
+    .lc-img { flex: 1; min-height: 0; }
+    .lc-foot { display: flex; justify-content: space-between; gap: .4em; padding: .45em .6em .3em; font-size: .9em; }
+    .lc-foot span { color: #64748B; }
+    .lc-btn { margin: 0 .6em .6em; background: var(--neon); color: #0F172A; border-radius: .45em; text-align: center; font-weight: 700; padding: .25em; font-size: .9em; }
+    /* hero phone keeps its full width; its photo flexes so the phone matches the text height */
+    .hero-fit .dhero { flex: 1 1 160px; min-height: 90px; height: auto; }
+  </style>
+</head>
+<body>
+
+<header class="demo-bar">
+  <div class="wrap">
+    <a class="logo" href="/">cirqle</a>
+    <span class="demo-pill">Demo</span>
+    <ul class="chapters">
+      <li><a href="#journey">One customer</a></li>
+      <li><a href="#month">Your first month</a></li>
+      <li><a href="#promise">Profit sharing</a></li>
+      <li><a href="#benefits">Benefits</a></li>
+      <li><a href="#faq">Questions</a></li>
+    </ul>
+    <span class="for"><span class="mono">FD</span><span class="long">For Fork Deli</span></span>
+    <a class="bar-cta" href="/contact">Apply to partner</a>
+  </div>
+  <div class="progress"><i id="prog"></i></div>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">For Fork Deli · Marchmont St</div>
+      <h1>Turn your customers into your <em>best advert</em>.</h1>
+      <p class="lead">Cirqle gives your customers a little money back when they share your shop with their friends. You get new customers walking in, and it works as profit sharing: you only give cashback once a sale has been processed and verified.</p>
+    </div>
+    <div class="hero-art">
+      <div class="shot">
+        <div class="hero-fit"><div class="phone"><div class="screen">
+          <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="snav"><span class="logo">cirqle</span><span class="tag">PREVIEW</span></div>
+          <div class="dhero photo" style="background-image:url(/assets/brands/latte.jpg)"><div class="mono">FD</div></div>
+          <div class="dbody">
+            <div><div class="dname">Fork Deli</div><div class="dcat">Café · Bloomsbury</div></div>
+            <div class="chips"><span>In store</span><span>Coffee</span><span>Independent</span></div>
+            <div class="split"><div><b>10%</b><span>cashback</span></div><div><b>£1</b><span>per friend · 50p to them</span></div></div>
+            <div class="map"><i class="road h"></i><i class="road v"></i><span class="pin"></span><b>Marchmont St</b></div>
+            <div class="sbtn">Upload your receipt</div>
+          </div>
+        </div></div></div>
+        <div class="call r" style="top:20%"><span class="ci b">FD</span><div>Your deal on Cirqle<small>Seen by people nearby</small></div></div>
+        <div class="call l" style="top:72%"><span class="ci">%</span><div>You choose the rate<small>Agreed with us when you join</small></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="cue"><i></i>Scroll to watch one customer bring you another</div>
+</section>
+
+<!-- ── Chapter 1: the journey ── -->
+<section id="journey" style="padding-top:clamp(64px,9vw,110px)">
+  <div class="story-head">
+    <div class="eyebrow"><span class="n">1</span>One coffee, followed through</div>
+    <h2>Watch one customer bring you another</h2>
+    <p class="lead">Here's what happens after Maya, a UCL student, buys her coffee at Fork Deli. Keep an eye on what your shop gets.</p>
+  </div>
+
+  <div class="story-grid">
+    <div class="story-stage">
+      <div class="ph-wrap"><div class="phone"><div class="screen">
+        <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="stack">
+          <!-- 0 · Maya comes in -->
+          <div class="scr on" data-s="0">
+            <div class="receipt" style="margin-top:20px"><b style="text-align:center">FORK DELI</b>
+              <div style="text-align:center;color:#64748B">Marchmont St, WC1N</div>
+              <div class="r"><span>Coffee &amp; cake</span><span>£8.00</span></div>
+              <div class="r"><span>Card</span><span>£8.00</span></div>
+              <div style="text-align:center;color:#64748B">Thank you!</div></div>
+            <div class="sbtn" style="margin:0 14px">Upload your receipt</div>
+          </div>
+          <!-- 1 · She shares -->
+          <div class="scr" data-s="1">
+            <div class="story photo" style="background-image:url(/assets/wall-hd/h2.jpg)">
+              <div class="bar"></div>
+              <div style="display:grid;gap:10px"><div class="sticker">📍 Fork Deli</div><div class="sticker b">@cirqle.co.uk</div></div>
+              <div style="text-align:center;font-weight:600">new favourite spot ☕️</div>
+            </div>
+          </div>
+          <!-- 2 · A friend sees it -->
+          <div class="scr" data-s="2">
+            <div class="chat-top">flat 4 🏠<small>Maya, Sam, Priya, Jo</small></div>
+            <div class="chat">
+              <div class="msg me pic"><div class="photo" style="background-image:url(/assets/brands/latte.jpg)"></div></div>
+              <div class="msg"><span class="who">Sam</span>where&#x27;s that from??<i class="ts">18:02</i></div>
+              <div class="msg me">Fork Deli! they're great<i class="ts">18:03 ✓✓</i></div>
+              <div class="msg me">put @maya.ucl in when you upload your receipt<i class="ts">18:03 ✓✓</i></div>
+            </div>
+          </div>
+          <!-- 3 · The friend comes in -->
+          <div class="scr" data-s="3">
+            <div class="snav"><span class="logo">cirqle</span></div>
+            <div style="padding:12px 14px;font-weight:700;font-size:14px">Upload your receipt</div>
+            <div class="field"><small>Shop</small><b>Fork Deli</b></div>
+            <div class="field" style="margin-top:8px"><small>Total</small><b>£8.00</b></div>
+            <div class="field on" style="margin-top:8px"><small>Who told you about it?</small><b>@maya.ucl</b></div>
+            <div class="sbtn" style="margin:12px 14px">Upload</div>
+          </div>
+          <!-- 4 · Checked -->
+          <div class="scr" data-s="4">
+            <div class="snav"><span class="logo">cirqle</span><span class="tag">CHECKING</span></div>
+            <div class="scan-mini">
+              <div class="rc">
+                <div class="hdr">FORK DELI</div>
+                <hr>
+                <div class="r"><span>Coffee &amp; cake</span><span>£8.00</span></div>
+                <div class="r"><b>TOTAL</b><b>£8.00</b></div>
+                <div class="beam"></div>
+                <div class="stamp">APPROVED</div>
+              </div>
+              <div class="tk">Shop name matches</div>
+              <div class="tk">Bought after it was shared</div>
+              <div class="tk">Not a duplicate</div>
+              <div class="tk">Checked by a person too</div>
+            </div>
+          </div>
+          <!-- 5 · You see it -->
+          <div class="scr" data-s="5">
+            <div class="snav"><span class="logo">cirqle <span style="font-size:9px;font-weight:500;color:#64748B;letter-spacing:0">for brands</span></span></div>
+            <div class="sale">
+              <span class="ok">✓ Receipt verified</span>
+              <small>New customer</small>
+              <b>£8.00</b>
+              <small>Brought in by @maya.ucl</small>
+            </div>
+            <div class="fine">From your referral budget: £1 to Maya, 50p to her friend.</div>
+          </div>
+        </div>
+      </div></div></div>
+
+      <div class="tally" aria-live="polite">
+        <h4>What Fork Deli got</h4>
+        <div class="trow" data-k="sales"><span>Sales</span><b>£8</b></div>
+        <div class="trow" data-k="adv"><span>Free adverts</span><b>0</b></div>
+        <div class="trow" data-k="newc"><span>New customers</span><b>0</b></div>
+        <div class="trow gave" data-k="gave"><span>You gave</span><b>£0</b></div>
+        <div class="tnote">Nothing is given until a sale is verified.</div>
+      </div>
+    </div>
+
+    <div class="story-steps">
+      <div class="beat on" data-s="0"><div class="beat-card">
+        <div class="beat-pic photo" style="background-image:url(/assets/brands/latte.jpg)"></div>
+        <div class="beat-num"><b>1</b>Shop</div>
+        <h3>Maya comes to your store first</h3>
+        <p>She orders her coffee and pays as normal. No code, no app at the till, nothing for your staff to do.</p>
+        <div class="get"><span class="get-k">What you get</span><b>A £8 sale</b><small>Business as usual. Nothing to set up at the till.</small></div>
+      </div></div>
+      <div class="beat" data-s="1"><div class="beat-card">
+        <div class="beat-pic photo" style="background-image:url(/assets/demo/student.jpg)"></div>
+        <div class="beat-num"><b>2</b>Share</div>
+        <h3>She shares it with her friends</h3>
+        <p>On social media or in-person. Here she shares a story tagging Fork Deli, so everyone who follows her sees your shop.</p>
+        <div class="get"><span class="get-k">What you get</span><b>A free advert</b><small>Maya's friends now know your name. You didn't make it or pay for it.</small></div>
+      </div></div>
+      <div class="beat" data-s="2"><div class="beat-card">
+        <div class="beat-pic photo" style="background-image:url(/assets/wall/w10.jpg)"></div>
+        <div class="beat-num"><b>3</b>Word of mouth</div>
+        <h3>Her friend wants the same</h3>
+        <p>Most people pick a café because a friend told them to. Maya tells Sam to put her @handle in when he uploads his receipt.</p>
+        <div class="get"><span class="get-k">What you get</span><b>A personal recommendation</b><small>The kind people trust most, and Cirqle lets you see it.</small></div>
+      </div></div>
+      <div class="beat" data-s="3"><div class="beat-card">
+        <div class="beat-pic photo" style="background-image:url(/assets/wall/w3.jpg)"></div>
+        <div class="beat-num"><b>4</b>New customer</div>
+        <h3>Sam comes in for the first time</h3>
+        <p>He orders, uploads his receipt and types in @maya.ucl. That's how you know exactly who sent him.</p>
+        <div class="get"><span class="get-k">What you get</span><b>A brand-new customer</b><small>Sam has never been in before. Another £8, and maybe a new regular.</small></div>
+      </div></div>
+      <div class="beat" data-s="4"><div class="beat-card">
+        <div class="beat-num"><b>5</b>Verified</div>
+        <h3>We fully verify every transaction</h3>
+        <p>Every receipt is read and checked before anyone gets paid. Only once a sale is processed and verified does cashback go out. If something doesn't add up, you give nothing.</p>
+        <div class="get"><span class="get-k">What you get</span><b>Protection from fakes</b><small>Cashback only goes out on sales that are real and verified.</small></div>
+      </div></div>
+      <div class="beat" data-s="5"><div class="beat-card">
+        <div class="beat-num"><b>6</b>Get paid</div>
+        <h3>You see it in your dashboard</h3>
+        <p>The sale shows up with who brought them in. Maya gets her cashback and a small referral bonus, and you've gained a new regular.</p>
+        <div class="get dark"><span class="get-k">What you get</span><b>Two customers for one coffee</b><small>£16 in sales. You gave £2.30, and only after both were verified.</small></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><span class="line"></span><p>That's one customer. Now picture a whole month</p><span class="line end"></span></div>
+
+<!-- ── Chapter 2: the month ── -->
+<section id="month" class="month">
+  <div class="month-pin">
+    <div class="mheads">
+      <div class="story-head mh" id="mhA">
+        <div class="eyebrow"><span class="n">2</span>Your first month</div>
+        <h2>Know it's working, at a glance</h2>
+        <span class="day">Day <b id="dayN">1</b> of 30</span>
+      </div>
+      <div class="story-head mh" id="mhB">
+        <div class="eyebrow"><span class="n">2</span>Your content library</div>
+        <h2>Then use the content they create</h2>
+        <p class="lead">Every photo customers share about you shows up in your dashboard. Reshare the best ones on your own account.</p>
+      </div>
+    </div>
+    <div class="mstage">
+      <div class="mdash" id="mDash">
+
+    <div class="dash-phone"><div class="phone"><div class="screen">
+      <div class="sbar"><span>9:41</span><span>●●● ▮</span></div>
+      <div class="snav"><span class="logo">cirqle <span style="font-size:9px;font-weight:500;color:#64748B;letter-spacing:0">for brands</span></span><span class="tag">EXAMPLE</span></div>
+      <div class="dp">
+        <div class="dp-head"><div class="mono">FD</div><div><b>Fork Deli</b><small>Last 30 days</small></div></div>
+        <div class="dp-kpis">
+          <div><small>Sales via Cirqle</small><b data-to="272" data-money></b></div>
+          <div><small>New customers</small><b data-to="11"></b></div>
+          <div><small>Times shared</small><b data-to="22"></b></div>
+          <div><small>You paid</small><b data-to="43.7" data-money></b></div>
+        </div>
+        <div class="dp-bars"><i data-h="35"></i><i data-h="55"></i><i data-h="75"></i><i data-h="100"></i></div>
+        <b style="font-size:11.5px">Top sharers</b>
+        <div class="dp-act"><b>@maya.ucl</b><span>4 new customers</span></div>
+        <div class="dp-act"><b>@sam.j</b><span>3 new customers</span></div>
+        <div class="dp-act"><b>@jo.m</b><span>2 new customers</span></div>
+      </div>
+    </div></div></div>
+
+    <div class="laptop dash-laptop"><div class="lid"><div class="lscreen">
+      <div class="bchrome"><i></i><i></i><i></i><div class="url" id="mUrl">cirqle.co.uk/merchant</div></div>
+      <div class="app">
+        <div class="side">
+          <div class="logo">cirqle <small>for brands</small></div>
+          <span class="on" id="navOv">Overview</span><span>Sales</span><span id="navSh">Shares</span><span>Customers</span><span>Your deal</span><span>Billing</span>
+          <div class="me"><div class="mono">FD</div><span style="padding:0;font-weight:600;color:#0F172A">Fork Deli</span></div>
+        </div>
+        <div class="panes">
+        <div class="main" id="anaMain">
+          <div class="mhead"><h4>Morning, Fork Deli</h4><div style="display:flex;gap:.6em;align-items:center"><span class="tag" style="font-size:.8em">EXAMPLE FIGURES</span><span class="pill">Last 30 days</span></div></div>
+          <div class="banner" id="mBanner" style="opacity:0">🎉 <b>3 new customers this week</b>, all brought in by customers who shared you.</div>
+          <div class="kpis">
+            <div class="kpi"><small>Sales via Cirqle</small><b data-to="272" data-money></b></div>
+            <div class="kpi"><small>New customers</small><b data-to="11"></b></div>
+            <div class="kpi"><small>Times you were shared</small><b data-to="22"></b></div>
+            <div class="kpi"><small>You paid</small><b data-to="43.7" data-money></b></div>
+          </div>
+          <div class="panels">
+            <div class="panel"><h5>Sales via Cirqle, per week</h5>
+              <div class="bars"><i data-h="35"></i><i data-h="55"></i><i data-h="75"></i><i data-h="100"></i></div>
+              <div class="blabels"><span>Week 1</span><span>Week 2</span><span>Week 3</span><span>Week 4</span></div>
+            </div>
+            <div class="panel"><h5>Top sharers</h5>
+              <div>
+                <div class="act"><b>@maya.ucl</b><span>4 new customers</span></div>
+                <div class="act"><b>@sam.j</b><span>3 new customers</span></div>
+                <div class="act"><b>@jo.m</b><span>2 new customers</span></div>
+                <div class="act"><b>@priya.r</b><span>2 new customers</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="main lib-main" id="libMain" style="transform:translateX(100%)">
+          <div class="mhead"><h4>Shared by your customers</h4><div style="display:flex;gap:.6em;align-items:center"><span class="tag" style="font-size:.8em">EXAMPLE</span><span class="pill">22 this month</span></div></div>
+          <p class="lsub">Every photo customers share about you. Reshare the best ones on your own account.</p>
+          <div class="lgrid-wrap"><div class="lgrid " id="lTrack"><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/wall-hd/h2.jpg);background-position:center 30%"></div><div class="lc-foot"><b>@maya.ucl</b><span>♥ 142</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/brands/latte.jpg);background-position:center"></div><div class="lc-foot"><b>@sam.j</b><span>♥ 88</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:center"></div><div class="lc-foot"><b>@priya.r</b><span>♥ 203</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/wall-hd/h2.jpg);background-position:center 70%"></div><div class="lc-foot"><b>@jo.m</b><span>♥ 1.2k</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/brands/latte.jpg);background-position:40% 40%"></div><div class="lc-foot"><b>@alex.k</b><span>♥ 64</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:30% 60%"></div><div class="lc-foot"><b>@nina.p</b><span>♥ 97</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/wall-hd/h2.jpg);background-position:center 50%"></div><div class="lc-foot"><b>@tom.r</b><span>♥ 310</span></div><span class="lc-btn">Reshare</span></div><div class="lcard"><div class="lc-img photo" style="background-image:url(/assets/brands/latte.jpg);background-position:60% 20%"></div><div class="lc-foot"><b>@lee.w</b><span>♥ 45</span></div><span class="lc-btn">Reshare</span></div></div></div>
+        </div>
+        </div>
+      </div>
+    </div></div><div class="base"></div></div>
+      </div>
+      <div class="lib" id="mLib"><div class="lib-track" id="mTrack">
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@maya.ucl</b><span class="ugc-tag">Story</span></div><div class="ugc-img photo" style="background-image:url(/assets/wall-hd/h2.jpg);background-position:center 30%"></div><div class="ugc-foot"><span>♥ 142</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@sam.j</b><span class="ugc-tag">Post</span></div><div class="ugc-img photo" style="background-image:url(/assets/brands/latte.jpg);background-position:center"></div><div class="ugc-foot"><span>♥ 88</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@priya.r</b><span class="ugc-tag">Post</span></div><div class="ugc-img photo" style="background-image:url(/assets/demo/student.jpg);background-position:center"></div><div class="ugc-foot"><span>♥ 203</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@jo.m</b><span class="ugc-tag">Reel</span></div><div class="ugc-img photo" style="background-image:url(/assets/wall-hd/h2.jpg);background-position:center 70%"></div><div class="ugc-foot"><span>♥ 1.2k</span><span class="ugc-btn">Reshare</span></div></div>
+        <div class="ugc"><div class="ugc-head"><span class="ugc-av"></span><b>@alex.k</b><span class="ugc-tag">Story</span></div><div class="ugc-img photo" style="background-image:url(/assets/brands/latte.jpg);background-position:40% 40%"></div><div class="ugc-foot"><span>♥ 64</span><span class="ugc-btn">Reshare</span></div></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Chapter 3: the promise ── -->
+<section id="promise" class="promise">
+  <div class="promise-pin">
+    <div class="eyebrow"><span class="n">3</span>Why it's low risk</div>
+    <p class="scrub" id="scrub">It's <em class="hl">profit sharing</em>, not ad spend. You only give cashback once a sale has been processed and <em class="hl">verified</em>. No verified sale, no cashback.</p>
+  </div>
+</section>
+
+<!-- ── Chapter 4: benefits ── -->
+<section id="benefits" style="padding-top:clamp(72px,9vw,120px)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><span class="n">4</span>What's in it for you</div>
+      <h2>Marketing done by your customers</h2>
+    </div>
+    <div class="benefits">
+      <div class="ben rise"><div class="ico">☕️</div><h3>New customers</h3><p>Friends come in because someone they trust sent them. Each one is tracked back to who sent them.</p></div>
+      <div class="ben rise"><div class="ico">📸</div><h3>Free adverts</h3><p>Customers share you with their friends, on social media or in-person. You don't make the content or pay for it.</p></div>
+      <div class="ben rise"><div class="ico">%</div><h3>Profit sharing</h3><p>You only give cashback once a sale has been processed and verified. No verified sale, no cashback.</p></div>
+      <div class="ben rise"><div class="ico">↻</div><h3>Made for regulars</h3><p>Coffee is a daily habit. Every visit is another chance to share you.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><span class="line"></span><p>Anything else you'd want to know?</p><span class="line end"></span></div>
+
+<!-- ── Chapter 5: FAQ ── -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head center">
+      <div class="eyebrow"><span class="n">5</span>Questions</div>
+      <h2>Quick answers before you decide</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>What does it cost?</summary><p>It works as profit sharing. You give cashback and referral bonuses only once a sale has been processed and verified, plus a small platform fee. We'll go through the numbers with you before you sign up.</p></details>
+      <details><summary>Do I need any new equipment?</summary><p>No. Customers upload their receipts on their own phones. Nothing changes at your till.</p></details>
+      <details><summary>My Instagram is quite small. Does that matter?</summary><p>No. Customers share you with their own friends, on social media or in-person, so you reach people who don't follow you yet.</p></details>
+      <details><summary>How do you stop fake receipts?</summary><p>Every receipt goes through checks: we read it, match it to your shop, look for duplicates and screen for fraud, and a person reviews it. Rejected receipts cost you nothing.</p></details>
+      <details><summary>I already run offers. Do I keep them?</summary><p>That's up to you. Any offers you run now can stay as they are. Cirqle is about getting your customers to bring their friends in.</p></details>
+      <details><summary>How do I get started?</summary><p>Tap Apply to partner below, or just tell us when we're in. We'll set up your deal with you.</p></details>
+    </div>
+    <div class="end-cta">
+      <div><h3>Ready to turn your customers into your best advert?</h3><p>We'll set up your deal with you.</p></div>
+      <a class="btn btn-main" href="/contact">Apply to partner →</a>
+    </div>
+  </div>
+</section>
+
+<footer style="margin-top:var(--gap)">
+  <div class="wrap">
+    <span>Made for Fork Deli by <a href="/">Cirqle</a>.</span>
+    <span>Screens and figures on this page are examples, not real results. Fork Deli isn't on Cirqle yet.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  document.documentElement.classList.add('js');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+  var money = function (v) { return '£' + (v % 1 ? v.toFixed(2) : Math.round(v).toLocaleString('en-GB')); };
+
+  /* ── Chapter 1: beats drive the phone screen and the tally ── */
+  var TALLY = [
+    { sales: 8, adv: 0, newc: 0, gave: 0 },
+    { sales: 8, adv: 1, newc: 0, gave: 0 },
+    { sales: 8, adv: 1, newc: 0, gave: 0 },
+    { sales: 16, adv: 1, newc: 1, gave: 0 },
+    { sales: 16, adv: 1, newc: 1, gave: 2.3 },
+    { sales: 16, adv: 1, newc: 1, gave: 2.3 }
+  ];
+  var beats = $$('.beat'), scrs = $$('.scr'), cur = 0;
+  function show(i) {
+    if (i === cur) return;
+    var prev = TALLY[cur], next = TALLY[i];
+    cur = i;
+    beats.forEach(function (b) { b.classList.toggle('on', +b.dataset.s === i); });
+    scrs.forEach(function (s) { s.classList.toggle('on', +s.dataset.s === i); });
+    ['sales', 'adv', 'newc', 'gave'].forEach(function (k) {
+      var row = $('.trow[data-k="' + k + '"]'), b = $('b', row);
+      b.textContent = (k === 'sales' || k === 'gave') ? money(next[k]) : next[k];
+      if (prev[k] !== next[k]) { row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); setTimeout(function () { row.classList.remove('flash'); }, 900); }
+    });
+  }
+  function pickBeat() {
+    var stage = $('.story-stage'), line = window.innerWidth <= 860 ? stage.getBoundingClientRect().bottom + 140 : window.innerHeight * 0.55, best = 0;
+    beats.forEach(function (b, i) { if (b.getBoundingClientRect().top < line) best = i; });
+    show(best);
+  }
+
+  /* ── Chapter 2: the month fills in as you scroll ── */
+  var month = $('#month'), counters = $$('[data-to]', month);
+  function progressOf(el) {
+    var r = el.getBoundingClientRect(), span = el.offsetHeight - window.innerHeight;
+    return span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 1;
+  }
+  function paintMonth() {
+    var whole = reduce ? 1 : progressOf(month);
+    // first half: the month fills in; second half: shared photos slide in from the right
+    var p = Math.min(1, whole / 0.5), p2 = reduce ? 0 : Math.min(1, Math.max(0, (whole - 0.56) / 0.4));
+    var dash = $('#mDash'), lib = $('#mLib'), track = $('#mTrack');
+    if ($('.dash-laptop').offsetParent) {
+      // laptop: the screen itself switches from Overview to Shares, then the photos scroll sideways
+      var s = Math.min(1, p2 / 0.35), q = Math.min(1, Math.max(0, (p2 - 0.4) / 0.6));
+      $('#anaMain').style.transform = 'translateX(' + (-s * 100) + '%)';
+      $('#libMain').style.transform = 'translateX(' + ((1 - s) * 100) + '%)';
+      var lt = $('#lTrack'), wrap = lt.parentNode;
+      lt.style.transform = 'translateX(' + (Math.min(0, wrap.clientWidth - lt.scrollWidth) * q) + 'px)';
+      var onShares = p2 > 0.15;
+      $('#navOv').classList.toggle('on', !onShares); $('#navSh').classList.toggle('on', onShares);
+      $('#mUrl').textContent = onShares ? 'cirqle.co.uk/merchant/shares' : 'cirqle.co.uk/merchant';
+    } else {
+      // phone: the dashboard slides away and the photo cards slide in
+      dash.style.transform = 'translateX(' + (-p2 * 70) + '%)';
+      dash.style.opacity = Math.max(0, 1 - p2 * 2.2);
+      lib.style.opacity = Math.min(1, p2 * 3);
+      var room = lib.clientWidth, over = room - track.scrollWidth, end = over < 0 ? over : over / 2;
+      track.style.transform = 'translateX(' + (room * (1 - p2) + end * p2) + 'px)';
+    }
+    $('#mhA').style.opacity = Math.max(0, 1 - p2 * 4);
+    $('#mhB').style.opacity = reduce ? 1 : Math.min(1, Math.max(0, (p2 - .15) * 4));
+    $('#dayN').textContent = Math.max(1, Math.round(p * 30));
+    counters.forEach(function (c) {
+      var v = +c.dataset.to * p;
+      c.textContent = c.hasAttribute('data-money') ? money(p === 1 ? +c.dataset.to : Math.round(v)) : Math.round(v);
+    });
+    // each dashboard (phone and laptop) fills its own four weekly bars in turn
+    $$('.bars, .dp-bars', month).forEach(function (row) {
+      var bs = $$('[data-h]', row);
+      bs.forEach(function (b, i) {
+        var local = Math.min(1, Math.max(0, (p - i / bs.length) * bs.length));
+        b.style.height = (+b.dataset.h * local) + '%';
+      });
+    });
+    $('#mBanner').style.opacity = p > 0.8 ? 1 : 0;
+  }
+
+  /* ── Chapter 3: words light up ── */
+  var scrub = $('#scrub'), words = [];
+  (function split(node) {
+    [].slice.call(node.childNodes).forEach(function (n) {
+      if (n.nodeType === 3) {
+        var frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(function (w) {
+          if (!w) return;
+          if (/^\s+$/.test(w)) { frag.appendChild(document.createTextNode(w)); return; }
+          var s = document.createElement('span'); s.textContent = w;
+          if (node.classList && node.classList.contains('hl')) s.className = 'hl';
+          frag.appendChild(s); words.push(s);
+        });
+        node.replaceChild(frag, n);
+      } else split(n);
+    });
+  })(scrub);
+  $$('em', scrub).forEach(function (e) { e.style.fontStyle = 'normal'; });
+  function paintPromise() {
+    var p = reduce ? 1 : Math.min(1, progressOf($('#promise')) * 1.25);
+    var n = Math.round(p * words.length);
+    words.forEach(function (w, i) { w.classList.toggle('on', i < n); });
+  }
+
+  /* ── Cards settle in when they reach the screen ── */
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: .2 });
+    $$('.rise').forEach(function (el) { io.observe(el); });
+  } else $$('.rise').forEach(function (el) { el.classList.add('in'); });
+
+  /* ── Demo bar: progress line and current chapter ── */
+  var prog = $('#prog'), links = $$('.chapters a'), secs = links.map(function (a) { return $(a.getAttribute('href')); });
+  function paintBar() {
+    var h = document.documentElement, max = h.scrollHeight - h.clientHeight;
+    prog.style.width = (max > 0 ? h.scrollTop / max * 100 : 0) + '%';
+    var c = -1;
+    secs.forEach(function (s, i) { if (s && s.getBoundingClientRect().top < window.innerHeight * 0.45) c = i; });
+    links.forEach(function (a, i) { a.classList.toggle('on', i === c); a.classList.toggle('done', i < c); });
+  }
+
+  var ticking = false;
+  function frame() { ticking = false; pickBeat(); paintMonth(); paintPromise(); paintBar(); }
+  function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  frame();
+})();
+</script>
+<script>
+  // Hero: keep the phone full width and set its height to match the title + subtitle
+  (function () {
+    var txt = document.querySelector('.hero .wrap > div:first-child'), fit = document.querySelector('.hero-fit');
+    var scr = fit && fit.querySelector('.screen'), map = fit && fit.querySelector('.map');
+    if (!txt || !scr) return;
+    function size() {
+      scr.style.height = ''; scr.style.minHeight = ''; if (map) map.style.display = '';
+      if (window.innerWidth <= 900) return;
+      var h = txt.offsetHeight - 20;
+      scr.style.minHeight = '0'; scr.style.height = h + 'px';
+      if (map) map.style.display = h < 470 ? 'none' : '';
+    }
+    window.addEventListener('resize', size);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(size);
+    size();
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,623 @@
+[
+ {
+  "name": "Hairform Studio",
+  "category": "Hair salon",
+  "price": "££",
+  "addr_full": "4 Procter St, WC1V",
+  "addr_short": "4 Procter St",
+  "street": "Procter St",
+  "handle": "",
+  "followers": 0,
+  "offer": "10% student discount"
+ },
+ {
+  "name": "Skoob Books",
+  "category": "Second-hand books",
+  "price": "£",
+  "addr_full": "66 The Brunswick, WC1N 1AE",
+  "addr_short": "66 The Brunswick",
+  "street": "The Brunswick",
+  "handle": "@skoobbookslondon",
+  "followers": 7500,
+  "offer": "10% student discount"
+ },
+ {
+  "name": "Judd Books",
+  "category": "New & second-hand books",
+  "price": "£",
+  "addr_full": "82 Marchmont St, WC1N 1AG",
+  "addr_short": "82 Marchmont St",
+  "street": "Marchmont St",
+  "handle": "",
+  "followers": 0,
+  "offer": "10% student discount and stamp cards"
+ },
+ {
+  "name": "Tower Salon",
+  "category": "Hair salon",
+  "price": "£",
+  "addr_full": "Fitzrovia, W1",
+  "addr_short": "Fitzrovia",
+  "street": "Fitzrovia",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Tea Knows",
+  "category": "Bubble tea",
+  "price": "£",
+  "addr_full": "112 Great Russell St, WC1B",
+  "addr_short": "112 Great Russell St",
+  "street": "Great Russell St",
+  "handle": "@teaknows_uk",
+  "followers": 220
+ },
+ {
+  "name": "Il Gelataio",
+  "category": "Gelato / crêpes",
+  "price": "£",
+  "addr_full": "51 Marchmont St, WC1N 1AP",
+  "addr_short": "51 Marchmont St",
+  "street": "Marchmont St",
+  "handle": "@ilgelataiomarchmontst",
+  "followers": 550
+ },
+ {
+  "name": "Gino Gents Hairdressing",
+  "category": "Barber",
+  "price": "£",
+  "addr_full": "43 Marchmont St, WC1N 1AP",
+  "addr_short": "43 Marchmont St",
+  "street": "Marchmont St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Bonu Cakes and Tea",
+  "category": "Bubble tea / Vietnamese café",
+  "price": "£",
+  "addr_full": "Near Tottenham Court Rd, W1",
+  "addr_short": "Near Tottenham Court Rd",
+  "street": "Tottenham Court Rd",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Lever & Bloom Coffee",
+  "category": "Specialty coffee cart",
+  "price": "£",
+  "addr_full": "Byng Place, WC1E 7LE",
+  "addr_short": "Byng Place",
+  "street": "Byng Place",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Ta'mini Lebanese Bakery",
+  "category": "Bakery / street food",
+  "price": "£–££",
+  "addr_full": "70 Marchmont St, WC1N 1AB",
+  "addr_short": "70 Marchmont St",
+  "street": "Marchmont St",
+  "handle": "@tamini.lebanese.bakery",
+  "followers": 15000
+ },
+ {
+  "name": "Elite Barbers",
+  "category": "Barber",
+  "price": "£",
+  "addr_full": "69 Marchmont St, WC1N 1AP",
+  "addr_short": "69 Marchmont St",
+  "street": "Marchmont St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Luardos",
+  "category": "Mexican street food",
+  "price": "£",
+  "addr_full": "Leather Lane Market stall, EC1N",
+  "addr_short": "Leather Lane Market stall",
+  "street": "Leather Lane",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Prufrock Coffee",
+  "category": "Specialty café",
+  "price": "£",
+  "addr_full": "23–25 Leather Lane, EC1N 7TE",
+  "addr_short": "23–25 Leather Lane",
+  "street": "Leather Lane",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Hair days",
+  "category": "Hair & make-up salon",
+  "price": "££",
+  "addr_full": "Marchmont St, WC1N",
+  "addr_short": "Marchmont St",
+  "street": "Marchmont St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "C V Hair & Beauty",
+  "category": "Hair & beauty",
+  "price": "£",
+  "addr_full": "57 Marchmont St, WC1N 1AP",
+  "addr_short": "57 Marchmont St",
+  "street": "Marchmont St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Newman Barber Shop",
+  "category": "Barber",
+  "price": "££",
+  "addr_full": "Great Russell St, WC1",
+  "addr_short": "Great Russell St",
+  "street": "Great Russell St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Russell's Barbers",
+  "category": "Barber",
+  "price": "£",
+  "addr_full": "19 Great Ormond St, WC1N 3JB",
+  "addr_short": "19 Great Ormond St",
+  "street": "Great Ormond St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Universal Barber",
+  "category": "Barber",
+  "price": "£",
+  "addr_full": "90 Cromer St, WC1H 8DD",
+  "addr_short": "90 Cromer St",
+  "street": "Cromer St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Gay's the Word",
+  "category": "LGBTQ+ bookshop",
+  "price": "££",
+  "addr_full": "66 Marchmont St, WC1N 1AB",
+  "addr_short": "66 Marchmont St",
+  "street": "Marchmont St",
+  "handle": "@gaysthewordbookshop",
+  "followers": 69000
+ },
+ {
+  "name": "La Dolce London",
+  "category": "Café / cakes",
+  "price": "££",
+  "addr_full": "Marchmont St, WC1N",
+  "addr_short": "Marchmont St",
+  "street": "Marchmont St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Fork Deli",
+  "category": "Café / deli",
+  "price": "££",
+  "addr_full": "Marchmont St, WC1N",
+  "addr_short": "Marchmont St",
+  "street": "Marchmont St",
+  "handle": "",
+  "followers": 0,
+  "spend": 8
+ },
+ {
+  "name": "Cafe Deco",
+  "category": "Café",
+  "price": "££",
+  "addr_full": "Store St, WC1E",
+  "addr_short": "Store St",
+  "street": "Store St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Mille Patisserie",
+  "category": "Patisserie / cakes",
+  "price": "££",
+  "addr_full": "The Brunswick Centre, WC1N",
+  "addr_short": "The Brunswick Centre",
+  "street": "The Brunswick Centre",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Patisserie Deux Amis",
+  "category": "Patisserie",
+  "price": "££",
+  "addr_full": "63 Judd St, WC1H 9QT",
+  "addr_short": "63 Judd St",
+  "street": "Judd St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Knockbox Coffee",
+  "category": "Coffee",
+  "price": "£",
+  "addr_full": "29 Lamb's Conduit St, WC1N",
+  "addr_short": "29 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Conduit Coffee House",
+  "category": "Café / brunch",
+  "price": "££",
+  "addr_full": "61 Lamb's Conduit St, WC1N 3NB",
+  "addr_short": "61 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0,
+  "spend": 12
+ },
+ {
+  "name": "49 Cafe",
+  "category": "Café / breakfast",
+  "price": "£",
+  "addr_full": "Bloomsbury, WC1",
+  "addr_short": "Bloomsbury",
+  "street": "Bloomsbury",
+  "handle": "",
+  "followers": 0,
+  "spend": 8
+ },
+ {
+  "name": "Aux Pains de Papy",
+  "category": "French bakery",
+  "price": "£",
+  "addr_full": "279 Gray's Inn Rd, WC1X 8QF",
+  "addr_short": "279 Gray's Inn Rd",
+  "street": "Gray's Inn Rd",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Arcana Coffee",
+  "category": "Specialty coffee",
+  "price": "££",
+  "addr_full": "20–21 Bloomsbury Way, WC1A",
+  "addr_short": "20–21 Bloomsbury Way",
+  "street": "Bloomsbury Way",
+  "handle": "",
+  "followers": 0,
+  "spend": 5
+ },
+ {
+  "name": "Huckle The Barber",
+  "category": "Barber",
+  "price": "££",
+  "addr_full": "55 Lamb's Conduit St, WC1N",
+  "addr_short": "55 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Store Street Espresso",
+  "category": "Specialty coffee",
+  "price": "££",
+  "addr_full": "40 Store St, WC1E",
+  "addr_short": "40 Store St",
+  "street": "Store St",
+  "handle": "@storestreetespresso",
+  "followers": 9100,
+  "spend": 5
+ },
+ {
+  "name": "Word on the Water",
+  "category": "Floating bookshop",
+  "price": "£",
+  "addr_full": "Regent's Canal, Granary Square, N1C",
+  "addr_short": "Regent's Canal",
+  "street": "Regent's Canal",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Honest Jon's",
+  "category": "Record shop",
+  "price": "££",
+  "addr_full": "Coal Drops Yard, N1C",
+  "addr_short": "Coal Drops Yard",
+  "street": "Coal Drops Yard",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Cissy Wears",
+  "category": "Vintage-inspired fashion",
+  "price": "££–£££",
+  "addr_full": "Unit 89, Coal Drops Yard, N1C",
+  "addr_short": "Coal Drops Yard",
+  "street": "Coal Drops Yard",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Symphonic",
+  "category": "Record shop",
+  "price": "££",
+  "addr_full": "47 Lamb's Conduit St, WC1N",
+  "addr_short": "47 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Persephone Books",
+  "category": "Bookshop / publisher",
+  "price": "££",
+  "addr_full": "59 Lamb's Conduit St, WC1N 3NB",
+  "addr_short": "59 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Botanical Boys",
+  "category": "Plants / homeware",
+  "price": "££",
+  "addr_full": "Coal Drops Yard, N1C",
+  "addr_short": "Coal Drops Yard",
+  "street": "Coal Drops Yard",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Maya Magal",
+  "category": "Jewellery",
+  "price": "££",
+  "addr_full": "Coal Drops Yard, N1C",
+  "addr_short": "Coal Drops Yard",
+  "street": "Coal Drops Yard",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Dawson Flowers",
+  "category": "Florist",
+  "price": "££",
+  "addr_full": "Lamb's Conduit St, WC1N",
+  "addr_short": "Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Yum Bowl",
+  "category": "Vietnamese street food",
+  "price": "£",
+  "addr_full": "Leather Lane stall, EC1N",
+  "addr_short": "Leather Lane stall",
+  "street": "Leather Lane",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Kolkati",
+  "category": "Indian street food",
+  "price": "£",
+  "addr_full": "Leather Lane Market stall, EC1N",
+  "addr_short": "Leather Lane Market stall",
+  "street": "Leather Lane",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "BEYRoots",
+  "category": "Lebanese street food",
+  "price": "£",
+  "addr_full": "Leather Lane Market stall, EC1N",
+  "addr_short": "Leather Lane Market stall",
+  "street": "Leather Lane",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Al-Kouther",
+  "category": "Mediterranean café",
+  "price": "£",
+  "addr_full": "Leather Lane, EC1N",
+  "addr_short": "Leather Lane",
+  "street": "Leather Lane",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Jerkkies",
+  "category": "Caribbean takeaway",
+  "price": "£",
+  "addr_full": "Hatton Garden + Leather Lane stall, EC1N",
+  "addr_short": "Leather Lane",
+  "street": "Leather Lane",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Canopy Market",
+  "category": "Weekend market",
+  "price": "£–££",
+  "addr_full": "West Handyside Canopy, 2 Granary Sq, N1C 4BH",
+  "addr_short": "West Handyside Canopy",
+  "street": "West Handyside Canopy",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Bikefix",
+  "category": "Bike repair",
+  "price": "££",
+  "addr_full": "Lamb's Conduit St, WC1N",
+  "addr_short": "Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Bloomsbury Coffee House",
+  "category": "Café",
+  "price": "££",
+  "addr_full": "Bloomsbury, WC1",
+  "addr_short": "Bloomsbury",
+  "street": "Bloomsbury",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Fortitude Bakehouse",
+  "category": "Bakery",
+  "price": "££",
+  "addr_full": "Colonnade, WC1N 1JA",
+  "addr_short": "Colonnade",
+  "street": "Colonnade",
+  "handle": "@fortitudebakehouse",
+  "followers": 226000
+ },
+ {
+  "name": "Twiin",
+  "category": "Fashion concept store",
+  "price": "£££",
+  "addr_full": "Coal Drops Yard, N1C",
+  "addr_short": "Coal Drops Yard",
+  "street": "Coal Drops Yard",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "The People's Supermarket",
+  "category": "Community grocery",
+  "price": "£",
+  "addr_full": "Lamb's Conduit St, WC1N",
+  "addr_short": "Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Boutique by Shelter",
+  "category": "Charity vintage",
+  "price": "£",
+  "addr_full": "Coal Drops Yard, N1C",
+  "addr_short": "Coal Drops Yard",
+  "street": "Coal Drops Yard",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Tutti's Cafe",
+  "category": "Café / salad bar",
+  "price": "£",
+  "addr_full": "68 Lamb's Conduit St, WC1N 3LW",
+  "addr_short": "68 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0,
+  "spend": 7
+ },
+ {
+  "name": "Miné Mané",
+  "category": "Café / restaurant",
+  "price": "££",
+  "addr_full": "Marchmont St, WC1N",
+  "addr_short": "Marchmont St",
+  "street": "Marchmont St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Fred Bakery Holborn",
+  "category": "Bakery",
+  "price": "££",
+  "addr_full": "1 Northington St, WC1N 2JE",
+  "addr_short": "1 Northington St",
+  "street": "Northington St",
+  "handle": "",
+  "followers": 0,
+  "spend": 5
+ },
+ {
+  "name": "Thornback & Peel",
+  "category": "Gifts / homeware",
+  "price": "££",
+  "addr_full": "Lamb's Conduit St, WC1N",
+  "addr_short": "Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Maggie Owen London",
+  "category": "Accessories",
+  "price": "££",
+  "addr_full": "13 Rugby St, WC1N 3QT",
+  "addr_short": "13 Rugby St",
+  "street": "Rugby St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "London Undercover",
+  "category": "Umbrellas / accessories",
+  "price": "££",
+  "addr_full": "28 Lamb's Conduit St, WC1N 3LE",
+  "addr_short": "28 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0,
+  "spend": 35
+ },
+ {
+  "name": "Collinge & Clark",
+  "category": "Antiquarian books",
+  "price": "££",
+  "addr_full": "13 Leigh St, WC1H",
+  "addr_short": "13 Leigh St",
+  "street": "Leigh St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Pentreath & Hall",
+  "category": "Gifts / homeware",
+  "price": "£££",
+  "addr_full": "Rugby St, WC1N",
+  "addr_short": "Rugby St",
+  "street": "Rugby St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Cigala",
+  "category": "Spanish restaurant",
+  "price": "£££",
+  "addr_full": "54 Lamb's Conduit St, WC1N 3LW",
+  "addr_short": "54 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ },
+ {
+  "name": "Connock & Lockie",
+  "category": "Tailor",
+  "price": "£££",
+  "addr_full": "33 Lamb's Conduit St, WC1N 3NG",
+  "addr_short": "33 Lamb's Conduit St",
+  "street": "Lamb's Conduit St",
+  "handle": "",
+  "followers": 0
+ }
+]
