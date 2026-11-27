@@ -29,6 +29,7 @@
       history.replaceState(null, '', location.pathname.replace(/index\.html$/, '') + location.search + location.hash);
   </script>
   <link rel="stylesheet" href="assets/cirqle.css?v=22" />
+  <link rel="stylesheet" href="assets/video.css?v=1" />
   <style>
     /* ── HERO ── */
     .hero {
@@ -929,6 +930,24 @@
   </header>
   </div>
 
+  <!-- ══ DEMO VIDEO ══ -->
+  <section class="section" id="watch">
+    <div class="section-inner">
+      <div class="section-head center">
+        <h2 class="h-display reveal reveal-delay-1">Cirqle in <span class="hl">35 seconds.</span></h2>
+        <p class="h-sub reveal reveal-delay-2" style="margin-left:auto;margin-right:auto">Shop, share, upload your receipt and get paid. Here&rsquo;s how.</p>
+      </div>
+      <figure class="vid reveal">
+        <div class="vid-frame">
+          <video src="assets/video/cirqle-customer-ad.mp4" poster="assets/video/cirqle-customer-ad-poster.jpg" preload="none" playsinline></video>
+          <button class="vid-play" type="button" aria-label="Play the Cirqle video for shoppers, 35 seconds"><span class="vid-play-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></span></button>
+          <span class="vid-len" aria-hidden="true">0:35</span>
+        </div>
+        <figcaption class="vid-cap">The deals in this video are examples. The brands shown aren&rsquo;t on Cirqle yet.</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <!-- ══ SHARE → PAID CAROUSEL ══ -->
   <section class="section band" id="flow">
     <div class="section-inner">
@@ -1647,6 +1666,7 @@
     });
   })();
   </script>
+  <script src="assets/video.js?v=1"></script>
   <script src="assets/enhance.js?v=22"></script>
 </body>
 </html>

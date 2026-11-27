@@ -24,6 +24,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/cirqle.css?v=22" />
+  <link rel="stylesheet" href="assets/video.css?v=1" />
   <style>
     /* ── The chain ──
        The same device how-it-works.html uses for members, with the brand's
@@ -600,6 +601,7 @@
     .page { --gap: 72px; padding-top: 0; }
     .fb-hero { padding-bottom: 0; }
     .fb-wall { --gap: 72px; padding: var(--gap) 0 0; }
+    .fb-video { position: relative; z-index: 1; padding: 72px clamp(20px, 4vw, 44px) 0; }
     .page > .prose { margin-top: var(--gap); }
     .page > .cta-box { margin-top: var(--gap); }
     .page:has(+ .fb-band) { padding-bottom: 0; }
@@ -663,6 +665,22 @@
         <div class="fb-ref-pay"><em>+£1.00 Emma</em><em>+£0.50 Zara</em></div>
       </div>
     </div>
+  </section>
+
+  <!-- ══ DEMO VIDEO ══ The whole brand story in a minute. -->
+  <section class="fb-video" id="watch">
+    <div class="fb-wall-head reveal">
+      <h2>See how it works for your brand.</h2>
+      <p>One minute on how customers bring you new sales, and how every receipt gets checked.</p>
+    </div>
+    <figure class="vid reveal">
+        <div class="vid-frame">
+          <video src="assets/video/cirqle-merchant-ad.mp4" poster="assets/video/cirqle-merchant-ad-poster.jpg" preload="none" playsinline></video>
+          <button class="vid-play" type="button" aria-label="Play the Cirqle video for brands, 1 minute 5 seconds"><span class="vid-play-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg></span></button>
+          <span class="vid-len" aria-hidden="true">1:05</span>
+        </div>
+        <figcaption class="vid-cap">Illustrative demo. The shop and customers shown are examples.</figcaption>
+      </figure>
   </section>
 
   <!-- ══ POST WALL ══ What a brand actually gets. Illustrative, and says so. -->
@@ -977,6 +995,7 @@
       });
     });
   </script>
+  <script src="assets/video.js?v=1"></script>
   <script src="assets/enhance.js?v=22"></script>
 </body>
 </html>
