@@ -80,6 +80,11 @@ TRIAL_DAYS = 30
 
 CURRENCY = "gbp"
 
+# Billing is switched off while early brands are onboarded for free: the
+# website hides plans and top-ups, and deals can be submitted without a plan.
+# The Stripe code below stays intact — set BILLING_ENABLED=true to turn it back on.
+BILLING_ENABLED = os.environ.get("BILLING_ENABLED", "false").lower() == "true"
+
 
 class PaymentError(RuntimeError):
     """A Stripe call failed — maps to a 502 for the caller."""

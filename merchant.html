@@ -371,10 +371,20 @@
     .txn-amt { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
     .txn-amt.pos { color: #1c7c3a; }
     .txn-empty { color: var(--ink-soft); font-weight: 600; padding: 10px 0; }
-    .plan-prompt { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 15px 18px; margin-bottom: 18px; border: var(--bw) solid var(--ink); border-radius: var(--r-chip); background: var(--lime); }
-    .plan-prompt-title { font-family: var(--font-display); font-weight: 800; font-size: 1rem; }
-    .plan-prompt-sub { font-size: .84rem; color: var(--ink-soft); margin-top: 2px; }
+    .plan-prompt { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px 18px; margin-bottom: 14px;
+      border: 1px solid rgba(56,182,255,.35); border-left: 4px solid var(--neon); border-radius: var(--r-card);
+      background: linear-gradient(120deg, var(--blue-pale), var(--blue-tint)); box-shadow: var(--shadow-sm); }
+    .plan-prompt > div { flex: 1 1 240px; min-width: 0; }
+    .plan-prompt-ico { flex: none; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+      font-size: 1.2rem; color: #fff; background: linear-gradient(135deg, var(--neon-soft), var(--neon-line)); box-shadow: var(--shadow-blue); }
+    .plan-prompt-ico .ico { color: inherit; }
+    .plan-prompt-title { font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: var(--ink); }
+    .plan-prompt-sub { font-size: .84rem; color: var(--ink-soft); margin-top: 3px; line-height: 1.5; }
     .plan-prompt .btn { margin-left: auto; }
+    /* Something went wrong (e.g. an unreadable receipt): amber, not blue. */
+    .plan-prompt.is-warn { border-color: #FCD34D; border-left-color: #F59E0B; background: linear-gradient(120deg, #FFFBEB, #FEF3C7); }
+    .plan-prompt.is-warn .plan-prompt-ico { background: linear-gradient(135deg, #FBBF24, #D97706); box-shadow: 0 6px 18px rgba(217,119,6,.30); }
+    .plan-prompt.is-warn .plan-prompt-sub { color: #92400E; }
     .plan-picker .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 16px; }
     .mplan { padding: 20px 18px; display: flex; flex-direction: column; border: var(--bw) solid var(--line); border-radius: var(--r-card); background: var(--paper); }
     .mplan-name { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; }
@@ -500,7 +510,8 @@
       <button class="mtab" data-tab="posts" onclick="showTab('posts')">Posts<span class="tab-badge hidden" id="postsBadge">0</span></button>
       <button class="mtab" data-tab="referrals" onclick="showTab('referrals')">Referrals<span class="tab-badge hidden" id="referralsBadge">0</span></button>
       <button class="mtab" data-tab="profile" onclick="showTab('profile')">Merchant Profile</button>
-      <button class="mtab" data-tab="billing" onclick="showTab('billing')">Billing</button>
+      <!-- Billing is hidden during free onboarding — see BILLING_ENABLED below. -->
+      <button class="mtab hidden" data-tab="billing" onclick="showTab('billing')">Billing</button>
     </nav>
 
     <!-- ═══ Overview ═══ -->
@@ -509,11 +520,12 @@
          profile names the deal, the plan pays for it, the reference receipt
          is what claims get checked against. -->
     <div class="plan-prompt hidden" id="setupPrompt">
+      <span class="plan-prompt-ico" aria-hidden="true"><i class="ico ico-briefcase"></i></span>
       <div>
         <div class="plan-prompt-title">Complete your account</div>
         <div class="plan-prompt-sub">Tell us about your brand — a deal takes its name from this, so you can't submit one until it's done.</div>
       </div>
-      <button type="button" class="btn btn-ink mini" onclick="openSetup()">Complete →</button>
+      <button type="button" class="btn btn-lime mini" onclick="openSetup()">Complete →</button>
     </div>
     <div class="plan-prompt hidden" id="planPrompt">
       <div>
@@ -523,12 +535,13 @@
       <button type="button" class="btn btn-ink mini" onclick="showTab('billing')">View plans →</button>
     </div>
     <div class="plan-prompt hidden" id="refPrompt">
+      <span class="plan-prompt-ico" aria-hidden="true"><i class="ico ico-receipt" id="refPromptIco"></i></span>
       <div>
         <div class="plan-prompt-title" id="refPromptTitle">Upload a reference receipt</div>
         <div class="plan-prompt-sub" id="refPromptSub">Every shopper's receipt gets checked against it — you can't submit a new deal until you've uploaded one.</div>
       </div>
       <input type="file" id="refReceiptInput" accept="image/*" style="display:none" onchange="uploadReferenceReceipt()" />
-      <button type="button" class="btn btn-ink mini" onclick="document.getElementById('refReceiptInput').click()">Upload receipt →</button>
+      <button type="button" class="btn btn-lime mini" onclick="document.getElementById('refReceiptInput').click()">Upload receipt →</button>
     </div>
     <!-- Money first: what the deals earned, then what they cost. The counts
          that used to lead the page moved to the row below — they're context,
@@ -1271,7 +1284,7 @@
       showTab((location.hash || '').slice(1) || 'overview');
       handleTopupReturn();
       // Load billing up front so the Overview plan prompt is accurate on arrival.
-      if (!loaded.billing) { loaded.billing = true; loadBilling(); }
+      if (BILLING_ENABLED && !loaded.billing) { loaded.billing = true; loadBilling(); }
       // Same idea for the reference-receipt prompt — needs to be accurate
       // before they can try "+ Create campaign".
       loadReferenceReceipt();
@@ -1802,8 +1815,11 @@
     // ── Tabs (Overview / Posts / Profile / Billing) ──
     const PANES = { overview: 'paneOverview', customers: 'paneCustomers', posts: 'panePosts', referrals: 'paneReferrals', profile: 'paneProfile', billing: 'paneBilling' };
     const loaded = { customers: false, posts: false, referrals: false, profile: false, billing: false };
+    // Brands are onboarded free for now: no plans, no top-ups. Mirrors the
+    // server's BILLING_ENABLED; flip both (and unhide the tab) to bring it back.
+    const BILLING_ENABLED = false;
     function showTab(tab) {
-      if (!(tab in PANES)) tab = 'overview';
+      if (!(tab in PANES) || (tab === 'billing' && !BILLING_ENABLED)) tab = 'overview';
       Object.values(PANES).forEach(id => document.getElementById(id).classList.add('hidden'));
       document.getElementById(PANES[tab]).classList.remove('hidden');
       document.querySelectorAll('.mtab').forEach(b =>
@@ -2263,6 +2279,8 @@
       el.classList.toggle('hidden', ready);
       if (ready) return;
       const bad = status === 'needs_manual_fix';
+      el.classList.toggle('is-warn', bad);
+      document.getElementById('refPromptIco').className = 'ico ' + (bad ? 'ico-warning' : 'ico-receipt');
       document.getElementById('refPromptTitle').textContent = bad
         ? "That receipt wasn't clear enough" : 'Upload a reference receipt';
       document.getElementById('refPromptSub').textContent = bad

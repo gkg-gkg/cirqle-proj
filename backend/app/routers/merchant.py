@@ -52,7 +52,7 @@ from ..security import (create_merchant_token, get_current_merchant,
                         hash_password, verify_password)
 from ..storage import (StorageError, delete_image, delete_receipt, media_type_for_key,
                        read_receipt, receipt_view_url, upload_image, upload_receipt)
-from ..payments import (OVERAGE_RATE, TIERS, TRIAL_DAYS, PaymentError,
+from ..payments import (BILLING_ENABLED, OVERAGE_RATE, TIERS, TRIAL_DAYS, PaymentError,
                         create_portal_session, create_subscription_session,
                         create_topup_session, ensure_customer, month_start,
                         payments_configured, quote_topup, refund_topup)
@@ -1023,7 +1023,7 @@ def submit_campaign(data: CampaignSubmissionIn,
         raise HTTPException(
             status_code=400,
             detail="Complete your account (brand name, website and category) before submitting a deal.")
-    if merchant.subscription_status != "active":
+    if BILLING_ENABLED and merchant.subscription_status != "active":
         raise HTTPException(
             status_code=409,
             detail="An active membership plan is needed to submit new deals.")
